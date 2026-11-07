@@ -104,6 +104,9 @@ static void place_city_read (struct ENTITY *en, float *state)
 	memcpy (state + 6, get_local_entity_vec3d_ptr (en, VEC3D_TYPE_BOUNDING_BOX_MAX), 3 * sizeof (float));
 
 	state [9] = (float) get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
+
+	// the city's shape (a city is created with the invalid index, 0): the host raises the sector's height at the city's arrival only when it is valid, as the original's link response does
+	state [10] = (float) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
 }
 
 #define CAMPAIGN_PLACE_ENTITY struct ENTITY

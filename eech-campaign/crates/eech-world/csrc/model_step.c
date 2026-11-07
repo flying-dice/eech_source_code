@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 #include "eech_arith.h"
+#include "sector_height_raise.h"
 
 #define MODEL_OK 0
 #define MODEL_MASKS 1
@@ -1016,4 +1017,32 @@ int eech_model_city_box_expand(const float *bounds, const float *heading, const 
 	result = city_box_expand_body(bounds, heading, building, city, box_min, box_max, out_min, out_max);
 
 	return (leave_environment(&caller, result));
+}
+
+/*
+ * A sector's high-water height after the arrival of one fixed structure (sc_msgs.c response_to_link_child; the expression is sector_height_raise.h, shared with the real-engine control). `position_y` and `box_ymax`
+ * are the arriving structure's position y and the top of its scene's bounding box WITH lines, `tallest` the word the sector holds on the way in and the word it holds on the way out. All three are plain words copied by the
+ * caller; the caller has classified the two inputs by their bits (finite) and `tallest` is ANY word (a restored negative, infinite or NaN word is valid history). The environment is the one every public entry of this
+ * file has: the original's exception masks required, the caller's complete state saved, round-toward-zero set and the caller's state restored.
+ */
+int eech_model_sector_height_raise(const float *position_y, const float *box_ymax, float *tallest)
+{
+	eech_model_caller_environment caller;
+	int result;
+
+	if (!position_y || !box_ymax || !tallest)
+	{
+		return (MODEL_BAD_ARGUMENT);
+	}
+
+	result = enter_environment(&caller);
+
+	if (result != MODEL_OK)
+	{
+		return (result);
+	}
+
+	sector_height_raise_body(position_y, box_ymax, tallest);
+
+	return (leave_environment(&caller, MODEL_OK));
 }

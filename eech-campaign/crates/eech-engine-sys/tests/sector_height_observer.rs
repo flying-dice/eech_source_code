@@ -42,7 +42,13 @@ fn the_observer_records_what_the_real_sector_code_did_and_refuses_an_unjoined_ru
     let mut checks: c_int = 0;
     let failures = unsafe { eech_sector_height_check_run(text.as_mut_ptr(), text.len() as c_int, &mut checks) };
     assert_eq!(failures, 0, "the hooks changed the control's results:\n{}", text_of(&text));
-    assert_eq!(checks, 179, "the control made {checks} expectations, not the 179 of the unhooked run");
+    // the observer hooks the ORIGINAL body of the response, the getter and the pack, which a hosted build compiles out (Task49, the host-owned sector height): this control runs in the original-solver profile (feature
+    // `collision-fixture`), where the accepted 179 expectations hold unchanged and the host's raise expression is run beside the original response over every domain case (42 more)
+    assert_eq!(
+        checks,
+        179 + 42,
+        "the control made {checks} expectations, not the 179 of the unhooked run and the 42 of the differential"
+    );
 
     let mut summary = vec![0 as c_char; 16384];
     assert_eq!(unsafe { eech_sho_summary_run(summary.as_mut_ptr(), summary.len() as c_int) }, 0);

@@ -85,6 +85,7 @@ extern "C" {
         out_min: *mut f32,
         out_max: *mut f32,
     ) -> i32;
+    fn eech_model_sector_height_raise(position_y: *const f32, box_ymax: *const f32, tallest: *mut f32) -> i32;
     fn eech_model_fp_state(x87_masks: *mut i32, sse_masks: *mut i32, sse_rounding: *mut i32, x87_control: *mut u32, mxcsr_bits: *mut u32) -> i32;
 }
 
@@ -2218,6 +2219,14 @@ pub enum CityBox {
     Refused(&'static str),
 }
 
+/// The host's answer for a sector's high-water height after one arrival (`ModelStore::sector_height_raise`): the word the sector holds afterwards, as the bits of the float (the held word itself when the
+/// arrival did not exceed it), or the name of what the host cannot compute. A refusal is never a word.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SectorRaise {
+    Held(u32),
+    Refused(&'static str),
+}
+
 /// Whether a float's bit pattern is a finite number (an exponent that is not all ones): classified by integer operations, before any floating-point use of the word.
 fn finite_word(word: u32) -> bool {
     word & 0x7f80_0000 != 0x7f80_0000
@@ -2893,6 +2902,32 @@ impl ModelStore {
             return Ok(CityBox::Refused("non_finite_result"));
         }
         Ok(CityBox::Expanded { min, max })
+    }
+
+    /// A sector's high-water height after the arrival of one fixed structure (sc_msgs.c `response_to_link_child`, the expression `sector_height_raise.h`): the word the sector held, `held`, becomes the sum of the
+    /// structure's position y (`position_y`) and the top of its scene's bounding box WITH lines (the store's own `bounding_box`, not a value the caller supplies) when that sum is strictly greater, and stays the held
+    /// word otherwise. Every word is a float bit pattern. `held` is ANY word (a restored negative, infinite or NaN word is valid history and is neither clamped nor refused); the two inputs are classified by their
+    /// bits before any floating-point instruction has touched them (finite), and a scene outside 1 to the catalogue's end, a store whose custom files were never read and a failed environment guard are named refusals.
+    pub fn sector_height_raise(&self, shape: i64, position_y: u32, held: u32) -> Result<SectorRaise, QueryError> {
+        let view = self.scene(shape)?;
+        if self.inventory_only {
+            return Ok(SectorRaise::Refused("custom_definitions_not_loaded"));
+        }
+        let top = view.bounding_box[3];
+        if !finite_word(top) || !finite_word(position_y) {
+            return Ok(SectorRaise::Refused("non_finite_input"));
+        }
+        let (position_y, top) = (f32::from_bits(position_y), f32::from_bits(top));
+        let mut tallest = f32::from_bits(held);
+        // SAFETY: the pointers are to locals of one float each; the kernel reads the first two and reads and writes the third.
+        let code = unsafe { eech_model_sector_height_raise(&position_y, &top, &mut tallest) };
+        match code {
+            0 => {}
+            1 => return Ok(SectorRaise::Refused("fp_masks")),
+            2 => return Ok(SectorRaise::Refused("fp_environment")),
+            _ => return Ok(SectorRaise::Refused("kernel_argument")),
+        }
+        Ok(SectorRaise::Held(tallest.to_bits()))
     }
 
     /// The `index`th node of the route object of (scene, kind): the original's parse of `object->points[index]` (routegen.c `parse_waypoint_routes_from_object`), decoded by

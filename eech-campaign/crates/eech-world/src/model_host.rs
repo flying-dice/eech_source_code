@@ -18,6 +18,7 @@
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
 use crate::entity_host;
+use crate::models::SectorRaise;
 use crate::models::{
     compiled_scene_name, hex_list, scene_index_by_name, scene_last, AnimationRef, CityBox, CustomWalk, ErrorKind, FixedPath, FixedTarget, ModelStore,
     ObjectHeader, ObjectSource, OffsetSource, RouteFace, RouteNode, SceneSource, TargetPointChain, TargetPointLocal, TargetPointWorld, Triangle,
@@ -735,6 +736,9 @@ const ROSTER_CITY_EXPAND: u32 = 0x4170_0000;
 /// The city release (16.0, classified from its bits like the others): the campaign's city ENTITY ends (its heap slot is freed); see `city_event`. It is the real end of the record a removal kept for the box the
 /// host built, and it is not the host's own diagnostic withdrawal of a state (which keeps every record).
 const ROSTER_RELEASE: u32 = 0x4180_0000;
+/// The sector's high-water height read (17.0) and restore (18.0), classified from their bits like the others: see `sector_height_event`.
+const ROSTER_SECTOR_HEIGHT: u32 = 0x4188_0000;
+const ROSTER_SECTOR_RESTORE: u32 = 0x4190_0000;
 /// The bits of 1.0: the only non-zero value a flag word of the contract has.
 const ONE_BITS: u32 = 0x3f80_0000;
 
@@ -891,7 +895,7 @@ fn sub_type_of(word: u32) -> Result<i32, String> {
 ///
 /// The withdrawal word is the HOST's own: it retires only the fixed state the record holds (the placement stays standing; the record keeps its placements, identity and list) and answers `removed`. The campaign
 /// never sends it; the host side of a witness uses it to prove a candidate is refused when its canonical state is gone. A withdrawal states no state.
-fn fixed_event(lua: &Lua, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
+fn fixed_event(lua: &Lua, store: &mut dyn FnMut() -> LuaResult<Arc<ModelStore>>, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
     let table = lua.create_table()?;
     table.set("name", "")?;
     let refuse = |table: &LuaTable, reason: String| -> LuaResult<LuaTable> {
@@ -986,8 +990,16 @@ fn fixed_event(lua: &Lua, words: &[u32], identity: &str) -> LuaResult<LuaTable> 
         shape,
         sub_type,
     };
+    // the arrival's height raise is computed BEFORE the record changes (a refusal changes nothing) and committed only after the roster accepted the statement
+    let arrived = match arrival(&roster, store, key, words[1], shape)? {
+        Arrival::Refused(why) => return refuse(&table, why),
+        taken => taken,
+    };
     match roster.set_fixed(key, entity_type, state) {
         Ok(()) => {
+            if let Err(why) = commit_arrival(&mut roster, key, arrived) {
+                return refuse(&table, why);
+            }
             table.set("result", "placed")?;
             table.set("name", key.to_string())?;
             Ok(table)
@@ -996,13 +1008,110 @@ fn fixed_event(lua: &Lua, words: &[u32], identity: &str) -> LuaResult<LuaTable> 
     }
 }
 
+/// What a statement under a sector placement does to the sector's height: nothing (the placement has arrived already, or is no sector entry), or take the ARRIVAL, with the word the original's raise leaves.
+enum Arrival {
+    Not,
+    Taken(Option<u32>),
+    Refused(String),
+}
+
+/// The original's raise at the arrival of a fixed sender (sc_msgs.c, `response_to_link_child`), decided from the roster and the statement's own words: the sender's shape valid (`OBJECT_3D_INVALID_OBJECT_INDEX` is 0:
+/// no raise), then `position.y + box.ymax` of the host's own scene store, strictly greater than the word the sector holds. Only the FIRST statement under a sector key after its insertion is an arrival; a city child,
+/// an ended key and a later statement are not. Nothing changes here: the result is committed by `commit_arrival` after the statement itself was accepted.
+fn arrival(
+    roster: &crate::roster::SectorRoster,
+    store: &mut dyn FnMut() -> LuaResult<Arc<ModelStore>>,
+    key: u64,
+    position_y: u32,
+    shape: i32,
+) -> LuaResult<Arrival> {
+    let Some(sector) = roster.awaiting_arrival(key) else {
+        return Ok(Arrival::Not);
+    };
+    if shape == 0 {
+        return Ok(Arrival::Taken(None));
+    }
+    let held = roster.sector_height(sector);
+    let store = store()?;
+    Ok(match store.sector_height_raise(i64::from(shape), position_y, held) {
+        Ok(SectorRaise::Held(word)) => Arrival::Taken((word != held).then_some(word)),
+        Ok(SectorRaise::Refused(why)) => Arrival::Refused(format!(
+            "[roster.sector_height.{why}] the host cannot raise the sector's height for the arriving structure"
+        )),
+        Err(why) => Arrival::Refused(format!("[roster.sector_height.shape] the arriving structure's shape has no bounds: {why}")),
+    })
+}
+
+/// Commits an `arrival` once the roster accepted the statement. The arrival is taken exactly once per key.
+fn commit_arrival(roster: &mut crate::roster::SectorRoster, key: u64, arrival: Arrival) -> Result<(), String> {
+    match arrival {
+        Arrival::Taken(word) => roster.raise_sector_height(key, word).map_err(|why| format!("[roster.sector_height] {}", why.0)),
+        Arrival::Not | Arrival::Refused(_) => Ok(()),
+    }
+}
+
+/// The sector high-water height of an `entity_scan` question (EEDCS-49, D3, Task49): the READ (phase 17) and the session RESTORE (phase 18). The host holds the ONE physical word of each sector in its roster
+/// (`crate::roster::SectorRoster::sector_height`); the campaign holds none and asks for it by the sector's own coordinates (facts 12 and 13, the scan's cursor facts: whole numbers), every other fact being zero
+/// but the phase (and, for a restore, fact 0, which carries the saved word RAW). The identity place is empty. The READ answers `height` and a restore answers `restored`; both answer `p` = the sector's x and z as
+/// asked, then the word the host holds, all as bit patterns, so the campaign can check that the answer is for the sector it asked about and, after a restore, that the host holds exactly the bits it stated.
+/// The word is NEVER validated, classified or compared as a float here: a negative, infinite or NaN word the original saved is valid history and crosses and is stored exactly. A sector the host holds no word for
+/// is the all-zero word (a fresh sector, a boot's clear). Every refusal is named and changes nothing.
+fn sector_height_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("name", "")?;
+    let refuse = |table: &LuaTable, reason: String| -> LuaResult<LuaTable> {
+        table.set("result", "refused")?;
+        table.set("reason", reason)?;
+        Ok(table.clone())
+    };
+    let restore = phase == ROSTER_SECTOR_RESTORE;
+    let kind = if restore { "restore" } else { "read" };
+    // every fact a question does not state is zero
+    for (at, word) in words.iter().enumerate() {
+        let stated = matches!(at, 11..=13) || (restore && at == 0);
+        if !stated && *word != 0 {
+            return refuse(
+                &table,
+                format!("[roster.sector_height.request] fact {at} of a sector height {kind} is not zero: it states nothing there"),
+            );
+        }
+    }
+    if !identity.is_empty() {
+        return refuse(&table, format!("[roster.sector_height.key] a sector height {kind} names no placement"));
+    }
+    let (Some(x), Some(z)) = (
+        crate::roster::word_whole(words[12], 0, 16_777_216),
+        crate::roster::word_whole(words[13], 0, 16_777_216),
+    ) else {
+        return refuse(
+            &table,
+            format!("[roster.sector_height.sector] the sector of a sector height {kind} is not a pair of whole numbers from 0 to 16777216"),
+        );
+    };
+    let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+        return refuse(&table, "[roster.missing] the host keeps no sector roster".into());
+    };
+    let Ok(mut roster) = shared.0.try_borrow_mut() else {
+        return refuse(&table, "[roster.busy] the sector roster was busy".into());
+    };
+    let word = if restore {
+        roster.restore_sector_height((x, z), words[0]);
+        words[0]
+    } else {
+        roster.sector_height((x, z))
+    };
+    table.set("result", if restore { "restored" } else { "height" })?;
+    table.set("p", hex_list(&[words[12], words[13], word]))?;
+    Ok(table)
+}
+
 /// The city-state report of an `entity_scan` question (phase 14, the same question as the roster's): the position, the bounding box minimum and the bounding box maximum of the city placement the key in the identity place
 /// names, as the entity holds the words (facts 0 to 8), and the city's fixed sub type (fact 10, the same fact and the same declared domain as a fixed-state report's: the host derives the city's collision flag from it).
 /// Every other fact but the phase is zero, and the host's withdrawal word is not part of it: the host retires a state with the fixed report's. The record of the
 /// placement holds them (`crate::roster::CityState`), and a candidate question about the city that reads them is decided from them (`fixed_join`). The box of a city that has no building yet is the original's inverted
 /// initial box (1.0e6 and -1.0e6), which is a valid statement: no box word is compared with another. Every word is classified by integer operations BEFORE the roster is looked at: a position must be a finite number inside
 /// the world (the fixed report's own domain) and a box word finite (the candidate question's own domain for the facts that are not flags), and a refusal changes nothing.
-fn city_state_event(lua: &Lua, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
+fn city_state_event(lua: &Lua, store: &mut dyn FnMut() -> LuaResult<Arc<ModelStore>>, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
     let table = lua.create_table()?;
     table.set("name", "")?;
     let refuse = |table: &LuaTable, reason: String| -> LuaResult<LuaTable> {
@@ -1012,13 +1121,20 @@ fn city_state_event(lua: &Lua, words: &[u32], identity: &str) -> LuaResult<LuaTa
     };
     // every fact a report does not state is zero
     for (at, word) in words.iter().enumerate() {
-        if !matches!(at, 0..=8 | 10 | 11) && *word != 0 {
+        if !matches!(at, 0..=11) && *word != 0 {
             return refuse(
                 &table,
                 format!("[roster.request] fact {at} of a city state report is not zero: it states nothing there"),
             );
         }
     }
+    // the city's shape (fact 9): a whole scene index, 0 being the invalid index a city is created with. Only an ARRIVAL reads it, for the height raise of a city that has a valid one
+    let Some(shape) = crate::roster::word_whole(words[9], 0, 16_777_216) else {
+        return refuse(
+            &table,
+            "[roster.shape] the shape of a city state report is not a whole scene index from 0 to 16777216".into(),
+        );
+    };
     let shown = |text: &str| text.chars().take(40).collect::<String>();
     if identity.is_empty() {
         return refuse(&table, "[roster.key] a city state report names no placement".into());
@@ -1059,8 +1175,15 @@ fn city_state_event(lua: &Lua, words: &[u32], identity: &str) -> LuaResult<LuaTa
         box_max: [words[6], words[7], words[8]],
         sub_type,
     };
+    let arrived = match arrival(&roster, store, key, words[1], shape)? {
+        Arrival::Refused(why) => return refuse(&table, why),
+        taken => taken,
+    };
     match roster.set_city(key, state) {
         Ok(()) => {
+            if let Err(why) = commit_arrival(&mut roster, key, arrived) {
+                return refuse(&table, why);
+            }
             table.set("result", "placed")?;
             table.set("name", key.to_string())?;
             Ok(table)
@@ -1181,6 +1304,21 @@ fn fixed_join(lua: &Lua, words: &mut [u32], scene: i64, key_text: &str, of_city:
         return Err("[candidate.roster] the sector roster was busy while a candidate was joined to its record".into());
     };
     let (_, entity_type, hold) = roster.placement_fixed(key, of_city).map_err(|why| format!("[candidate.key] {}", why.0))?;
+    // The sector's tallest structure (fact 12) is the HOST's word: the campaign only passes on what it was answered, and a word that is not the one the host holds for the candidate's own sector is a named
+    // refusal (the sector skip below is decided over the host's word, never the campaign's). A building listed under a city is not skipped by the sector again, and its key names no sector entry.
+    if !of_city {
+        const TALLEST: usize = entity_host::CANDIDATE_TALLEST;
+        let sector = roster
+            .sector(key)
+            .ok_or_else(|| format!("[candidate.key] the placement {key} stands in no sector of the roster"))?;
+        let held = roster.sector_height(sector);
+        if words[TALLEST] != held {
+            return Err(format!(
+                "[candidate.sector_height] the campaign offers {:#010x} as the tallest structure of sector {sector:?}, but the host holds {held:#010x}: the word is the host's and the campaign only passes it on",
+                words[TALLEST]
+            ));
+        }
+    }
     let set = |word: u32| entity_host::candidate_flag_is_set(word);
     let (fixed_given, placement_given) = (set(words[FIXED_GIVEN]), set(words[entity_host::CANDIDATE_PLACEMENT_GIVEN]));
     let (city, city_building, fixed_flag, mobile_flag) = (
@@ -1490,14 +1628,17 @@ fn entity_scan_answer(lua: &Lua, store: &mut dyn FnMut() -> LuaResult<Arc<ModelS
     ) {
         return city_event(lua, phase_word, &words, identity);
     }
+    if matches!(phase_word, ROSTER_SECTOR_HEIGHT | ROSTER_SECTOR_RESTORE) {
+        return sector_height_event(lua, phase_word, &words, identity);
+    }
     if phase_word == ROSTER_FIXED_STATE {
-        return fixed_event(lua, &words, identity);
+        return fixed_event(lua, store, &words, identity);
     }
     if phase_word == ROSTER_CITY_EXPAND {
         return city_expand_event(lua, store, &words, identity);
     }
     if phase_word == ROSTER_CITY_STATE {
-        return city_state_event(lua, &words, identity);
+        return city_state_event(lua, store, &words, identity);
     }
     let table = lua.create_table()?;
     table.set("name", "")?;

@@ -150,7 +150,7 @@ static void check_city_expand (const char *city, const char *building, float *bo
 #define CAMPAIGN_PLACE_FIXED_FAMILY(TYPE) ((((TYPE) >= 60) && ((TYPE) < 70)) || ((TYPE) == CHECK_BUILDING_TYPE))
 #define CAMPAIGN_PLACE_FIXED_READ(E,OUT) do { memcpy ((OUT), (E)->position, 3 * sizeof (float)); (OUT)[3] = (E)->heading; (OUT)[4] = (E)->shape; (OUT)[5] = (E)->sub_type; } while (0)
 #define CAMPAIGN_PLACE_CITY(TYPE) ((TYPE) == CHECK_CITY_TYPE)
-#define CAMPAIGN_PLACE_CITY_READ(E,OUT) do { memcpy ((OUT), (E)->position, 3 * sizeof (float)); memcpy ((OUT) + 3, (E)->box_min, 3 * sizeof (float)); memcpy ((OUT) + 6, (E)->box_max, 3 * sizeof (float)); (OUT)[9] = (E)->sub_type; } while (0)
+#define CAMPAIGN_PLACE_CITY_READ(E,OUT) do { memcpy ((OUT), (E)->position, 3 * sizeof (float)); memcpy ((OUT) + 3, (E)->box_min, 3 * sizeof (float)); memcpy ((OUT) + 6, (E)->box_max, 3 * sizeof (float)); (OUT)[9] = (E)->sub_type; (OUT)[10] = 0.0f; } while (0)
 
 /* the STAGED mb_hostplacemap.h: its observer hooks SH8 and SH9 (the statement hooks, with the sector-placement flag) are compiled into this include */
 #include "entity/mobile/mb_hostplacemap.h"
@@ -230,15 +230,16 @@ void eech_sho_statement_fixed (const void *en, int type, int sector_placed, cons
 void eech_sho_statement_city (const void *en, int sector_placed, const char *key, const float *city)
 {
 	const struct pentity *e = en;
-	uint32_t words[CAMPAIGN_CITY_STATE_WORDS];
+	uint32_t words[10];
 	int i;
 
-	for (i = 0; i < CAMPAIGN_CITY_STATE_WORDS; i++)
+	/* the observer records the first ten words of a city statement (eech_sho.c, SHO_CITY_WORDS) */
+	for (i = 0; i < 10; i++)
 	{
 		words[i] = word_bits (&city[i]);
 	}
 
-	eech_sho_core_statement (e->slot, CHECK_CITY_TYPE, FAMILY_CITY, sector_placed, key, words, CAMPAIGN_CITY_STATE_WORDS);
+	eech_sho_core_statement (e->slot, CHECK_CITY_TYPE, FAMILY_CITY, sector_placed, key, words, 10);
 }
 
 /* ---- the funnel ---- */

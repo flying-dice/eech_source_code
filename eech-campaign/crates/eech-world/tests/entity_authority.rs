@@ -8,6 +8,9 @@
 //! delegation of every other operation and the physical signature of the cohort. The collaborators invent no physics and say nothing about the DLL or the host's kernel; the scripted engine
 //! applies only as much of the real bridge and C domain rules as the driver's bookkeeping needs (the rules themselves are checked in eech-engine-sys `entity_dialogue` and eech-dc).
 
+#[path = "support/model_root.rs"]
+mod model_root;
+
 use mlua::Lua;
 use serde_json::Value;
 
@@ -609,7 +612,7 @@ package.preload.eech_dc = function ()
 					identity = roster_key
 				end
 				local fault = scenario.bad_roster_request
-				if fault == "phase7" then words [12] = "0x41880000"
+				if fault == "phase7" then words [12] = "0x41980000"
 				elseif fault == "insert_stray_word" and kind == "insert" then words [8] = "0x3f800000"
 				elseif fault == "remove_no_key" and kind == "remove" then identity = ""
 				elseif fault == "remove_text" and kind == "remove" then identity = "eech-world:1"
@@ -687,7 +690,7 @@ package.preload.eech_dc = function ()
 				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
 				words [4], words [5], words [6], words [7], words [8], words [9], words [11], words [12] = "0xc1f00000", "0xc0a00000", "0xc2200000", "0x42480000", "0x41400000", "0x42700000", "0x40800000", "0x41600000"
 				local fault = scenario.bad_city_state_request
-				if fault == "stray_fact" then words [10] = "0x3f800000"
+				if fault == "stray_fact" then words [15] = "0x3f800000"
 				elseif fault == "word_13" then words [14] = "0x3f800000" end
 				local identity = key_of
 				if fault == "bad_key" then identity = "01"
@@ -697,6 +700,33 @@ package.preload.eech_dc = function ()
 				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
 				if type (answer) ~= "table" or answer.result ~= "placed" then stop ("entity_scan.state", "a city state report allows only placed") end
 				return answer
+			end
+			-- the sector's HIGH-WATER HEIGHT (phases 17 and 18, Task49): the campaign's getter asks the host for a sector's word by its coordinates (x in fact 12, z in fact 13), and a session unpack states each saved word RAW in fact 0.
+			-- The scripted engine reads sector (3, 4) (the fresh zero word of a sector no statement raised), restores a quiet NaN with a payload and reads it back; each answer is checked as the shared C checks it (the state, no name, the sector
+			-- echoed, the word exactly as stated). The host's answer comes back unaltered; a refusal is the bridge's own fatal with the host's reason
+			local function height_event (kind, word)
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [12], words [13], words [14] = kind == "restore" and "0x41900000" or "0x41880000", "0x40400000", "0x40800000"
+				if kind == "restore" then words [1] = word end
+				local fault = scenario.bad_height_request
+				local identity = ""
+				if fault == "stray_fact" then words [6] = "0x3f800000"
+				elseif fault == "identity" then identity = "1" end
+				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. (identity ~= "" and (" " .. identity) or ""), true)
+				if not ok then stop ("entity_scan.callback", tostring (answer)) end
+				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
+				if type (answer) ~= "table" or answer.result ~= (kind == "restore" and "restored" or "height") then stop ("entity_scan.state", "a sector height allows only height and restored") end
+				local expected = kind == "restore" and word or answer.p and string.match (answer.p, "[^,]+$")
+				if string.match (answer.p, "[^,]+$") ~= expected then stop ("entity_scan.sector_height", "the word the host answered is not the one it was to hold") end
+				return answer
+			end
+			local function sector_height_events ()
+				local first = height_event ("read")
+				if string.match (first.p, "[^,]+$") ~= ZERO then stop ("entity_scan.sector_height", "a sector no arrival raised does not hold the zero word") end
+				height_event ("restore", "0x7fc0f00d")
+				local again = height_event ("read")
+				if string.match (again.p, "[^,]+$") ~= "0x7fc0f00d" then stop ("entity_scan.sector_height", "the word restored is not the word read back") end
 			end
 			-- the city's own state at its insertion with the original's INVERTED initial box (minimum 1.0e6, maximum -1.0e6): the statement a city makes before its first building links
 			local function sentinel_city_report (key_of)
@@ -996,6 +1026,7 @@ package.preload.eech_dc = function ()
 				roster_event ("insert")
 				if scenario.fixed_state then fixed_report (roster_key) end
 				if scenario.city_state then city_state_report (roster_key) end
+				if scenario.sector_height then sector_height_events () end
 				-- a SECOND live placement the real provider also holds a state for (stated after the served one; the scan serves the first): a candidate that names it names a placement the host did not serve
 				if (scenario.fixed_state or scenario.city_state) and scenario.second_held then
 					scenario.second_key = roster_event ("insert", true).name
@@ -1334,8 +1365,12 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
         .exec()
         .expect("the scenario is valid Lua");
     // the REAL model provider with its own sector roster, for the scenarios that ask for it (`real_scan`): the scripted collaborators then forward every entity_scan question to it
+    // the provider holds the host's roster, whose arrival of a fixed structure raises the sector's height from the host's own scene table: it needs an installation, here the minimal one (every scene slot the zero box)
+    let model_root = model_root::Root::minimal();
     let real_host = lua.create_table().expect("a table");
-    real_host.set("args", lua.create_table().expect("a table")).expect("args");
+    let host_args = lua.create_table().expect("a table");
+    host_args.set("root", model_root.dir.to_string_lossy().to_string()).expect("root");
+    real_host.set("args", host_args).expect("args");
     eech_world::model_host::register(&lua, &real_host).expect("the real provider registers");
     lua.globals().set("REAL_HOST", real_host).expect("the real host");
     let roster = std::rc::Rc::new(std::cell::RefCell::new(eech_world::roster::SectorRoster::default()));
@@ -2589,7 +2624,7 @@ fn each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_questi
         (", bad_scan_request = 'begin_key'", "scan request:", "carries no standing key"),
         (", bad_scan_request = 'other_key'", "scan request:", "is not the entry the host last served"),
         (", questions = 2, bad_scan_request = 'ended_key'", "scan request:", "has ended"),
-        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 16"),
+        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 18"),
         (
             ", bad_roster_request = 'insert_stray_word'",
             "scan request:",
@@ -4819,6 +4854,40 @@ fn a_healthy_control_counts_the_fixed_state_reports_apart_and_every_staged_quest
 }
 
 #[test]
+fn a_sector_height_read_and_restore_cross_the_public_driver_to_the_real_roster_and_are_counted_and_checked_with_nothing_altered() {
+    let (driven, row) = scan_row(&format!("{FIXED_STATE}, sector_height = true"), "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    for (field, expected) in [
+        ("request_faults", 0),
+        ("reply_faults", 0),
+        // two reads and one restore, each answered well-formed in the engine's own window (the boot walk), and none of them is a roster, city, fixed or scan question
+        ("sector_height_total", 2),
+        ("sector_height_answered", 2),
+        ("sector_restore_total", 1),
+        ("sector_restore_answered", 1),
+        ("fixed_total", 1),
+        ("roster_after", 2),
+        ("candidate_altered", 0),
+    ] {
+        assert_eq!(row[field], expected, "{field}: {row}");
+    }
+}
+
+#[test]
+fn each_single_fault_of_the_sector_height_grammar_is_counted_at_its_question_and_is_never_a_pass() {
+    for (fault, expected) in [
+        ("stray_fact", "states nothing but the sector, its phase and, for a restore, the word"),
+        ("identity", "a sector height names no placement"),
+    ] {
+        let (driven, row) = scan_row(&format!("{FIXED_STATE}, sector_height = true, bad_height_request = '{fault}'"), "scan_real");
+        assert!(driven.result.is_err(), "{fault}: {:?}", driven.result);
+        assert!(row["request_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
+        let first = row["first_fault"].as_str().unwrap();
+        assert!(first.starts_with("scan request:") && first.contains(expected), "{fault}: {first}");
+    }
+}
+
+#[test]
 fn withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_the_same_candidate_refused_by_name() {
     let driven = drive(&healthy(FIXED_STATE), &[("mode", "withdrawn_fixed_state")]);
     assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
@@ -5600,11 +5669,11 @@ fn each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is
     for (fault, expected) in [
         (
             "stray_fact",
-            "states nothing but the position, the box minimum, the box maximum, the sub type and its phase",
+            "states nothing but the position, the box minimum, the box maximum, the shape, the sub type and its phase",
         ),
         (
             "word_13",
-            "states nothing but the position, the box minimum, the box maximum, the sub type and its phase",
+            "states nothing but the position, the box minimum, the box maximum, the shape, the sub type and its phase",
         ),
         ("no_key", "names \"\", which is not a roster key"),
         ("bad_key", "names \"01\", which is not a roster key"),

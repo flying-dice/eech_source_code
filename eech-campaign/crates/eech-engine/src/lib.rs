@@ -1328,10 +1328,14 @@ pub enum CandidateDecision {
 /// What the host decided about the enumeration of the entity scan: the TAIL of the list of a sector (`First`, with the sector's two indices), the predecessor of the entry the campaign is at (`Next`),
 /// to offer that entry for its decisions (`Offer`), or the end of the scan with no hit (`DoneNone`) or with the hit of the entry offered last (`DoneHit`). The host's roster events are answered with
 /// `Placed` (the key it issued is the answer's `key`), `Removed` and `Cleared`; a city's box expansion with `Expanded` (the six words of the box the host built, minimum then maximum, and the city's key as `key`).
+/// A sector's high-water height is answered with `Height` and its restore with `Restored`: three words, the sector's x and z as asked and then the word the host holds, each kept as the 32 bits it came in (the
+/// height word is never classified, so a negative, infinite or NaN word crosses exactly).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ScanDecision {
     First([f32; 2]),
     Expanded([f32; 6]),
+    Height([f32; 3]),
+    Restored([f32; 3]),
     Next,
     Offer,
     DoneNone,
@@ -1770,6 +1774,16 @@ unsafe extern "C" fn model_callback(
                         reply.candidate[..6].copy_from_slice(&words);
                         reply.candidate_count = 6;
                         sys::EECH_MODEL_SCAN_EXPANDED
+                    }
+                    ScanDecision::Height(words) => {
+                        reply.candidate[..3].copy_from_slice(&words);
+                        reply.candidate_count = 3;
+                        sys::EECH_MODEL_SCAN_HEIGHT
+                    }
+                    ScanDecision::Restored(words) => {
+                        reply.candidate[..3].copy_from_slice(&words);
+                        reply.candidate_count = 3;
+                        sys::EECH_MODEL_SCAN_RESTORED
                     }
                     ScanDecision::Next => sys::EECH_MODEL_SCAN_NEXT,
                     ScanDecision::Offer => sys::EECH_MODEL_SCAN_OFFER,
@@ -11740,6 +11754,82 @@ mod tests {
         assert!(reply.candidate[6..].iter().all(|float| float.to_bits() == 0), "no word beyond the six");
         let name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
         assert_eq!(name, b"17");
+    }
+
+    #[test]
+    fn a_sector_height_question_and_its_answer_cross_every_raw_word_bit_for_bit_and_with_their_count() {
+        // a sector's high-water height (phases 17 and 18): the question states the sector in the cursor facts and, for a restore, the saved word RAW in fact 0; the answer carries the sector as asked and the word the host holds.
+        // Every word the original could have saved is valid history: zero and negative zero, the subnormal and normal edges, both extremes, both infinities, a negative word and quiet NaNs with payloads
+        let words: [u32; 17] = [
+            0x0000_0000,
+            0x8000_0000,
+            0x0000_0001,
+            0x007f_ffff,
+            0x0080_0000,
+            0x3f80_0000,
+            0x42dc_0000,
+            0x461c_4000,
+            0x7f7f_ffff,
+            0xff7f_ffff,
+            0x7f80_0000,
+            0xff80_0000,
+            0x7fc0_0000,
+            0xbf80_0000,
+            0xc2dc_0000,
+            0x7fc0_f00d,
+            0xffc0_0001,
+        ];
+        for (index, word) in words.iter().enumerate() {
+            for (phase_bits, decision, state) in [
+                (
+                    0x4188_0000u32,
+                    ScanDecision::Height([5.0, 9.0, f32::from_bits(*word)]),
+                    sys::EECH_MODEL_SCAN_HEIGHT,
+                ),
+                (
+                    0x4190_0000u32,
+                    ScanDecision::Restored([5.0, 9.0, f32::from_bits(*word)]),
+                    sys::EECH_MODEL_SCAN_RESTORED,
+                ),
+            ] {
+                let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+                request.pose_count = 16;
+                request.pose[SCAN_PHASE_FACT] = f32::from_bits(phase_bits);
+                request.pose[12] = 5.0;
+                request.pose[13] = 9.0;
+                request.pose[0] = f32::from_bits(*word);
+                let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+                let record = std::rc::Rc::clone(&seen);
+                let (code, reply, error) = model_crossing(
+                    Some(Box::new(move |query| match query {
+                        ModelQuery::EntityScan { facts, identity } => {
+                            assert_eq!(identity, "");
+                            *record.borrow_mut() = Some(facts);
+                            Ok(ModelAnswer::EntityScan { decision, key: String::new() })
+                        }
+                        other => Err(format!("unexpected {other:?}")),
+                    })),
+                    request,
+                );
+                assert_eq!(code, 0, "word {index} {word:#010x}: {error}");
+                // the question arrived as the campaign sent it: the phase, the sector and the word, as bit patterns
+                let facts = seen.borrow().clone().unwrap_or_default();
+                let fact = |at: usize| facts.get(at).copied();
+                assert_eq!(
+                    (fact(SCAN_PHASE_FACT), fact(12), fact(13), fact(0)),
+                    (Some(phase_bits), Some(5.0f32.to_bits()), Some(9.0f32.to_bits()), Some(*word)),
+                    "{word:#010x}"
+                );
+                assert_eq!(reply.candidate_state, state, "{word:#010x}");
+                assert_eq!(reply.candidate_count, 3, "{word:#010x}");
+                assert_eq!(
+                    reply.candidate[..3].iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
+                    vec![5.0f32.to_bits(), 9.0f32.to_bits(), *word],
+                    "the sector as asked and the word as held, bit for bit"
+                );
+                assert!(reply.candidate[3..].iter().all(|float| float.to_bits() == 0), "no word beyond the three");
+            }
+        }
     }
 
     #[test]

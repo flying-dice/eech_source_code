@@ -1,0 +1,3578 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+warning: unused import: `fp_state`
+ --> crates/eech-world/tests/model_store.rs:9:77
+  |
+9 |     compiled_animation_count, compiled_animation_name, compiled_scene_name, fp_state, old_last, scene_last, AnimationRef, ErrorKind, ...
+  |                                                                             ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `fp_state`
+  --> crates/eech-world/tests/model_target_point.rs:12:51
+   |
+12 |     compiled_scene_name, compiled_subobject_name, fp_state, old_last, scene_last, subobject_last, FixedPath, FixedTarget, ModelStore...
+   |                                                   ^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `OFFSETS` is never used
+    --> crates/eech-world/tests/model_target_point.rs:2937:7
+     |
+2937 | const OFFSETS: [[f32; 3]; 5] = [[0.0, 0.0, 0.0], [12.5, -3.0, 40.25], [-100.0, 0.0, 7.0], [0.1, 0.2, 0.3], [-0.0, -0.0, -0.0]];
+     |       ^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `BOXES` is never used
+    --> crates/eech-world/tests/model_target_point.rs:2939:7
+     |
+2939 | const BOXES: [([f32; 3], [f32; 3]); 4] = [
+     |       ^^^^^
+
+warning: `eech-world` (test "model_target_point") generated 3 warnings (run `cargo fix --test "model_target_point" -p eech-world` to apply 1 suggestion)
+warning: `eech-world` (test "model_store") generated 1 warning (run `cargo fix --test "model_store" -p eech-world` to apply 1 suggestion)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+   Compiling eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6m 37s
+     Running unittests src/lib.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_campaign-746b7e64bc69d604)
+     Running tests/campaign.rs (/target/i686-unknown-linux-gnu/debug/deps/campaign-b1307bed5acec1ea)
+     Running unittests src/lib.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_dc-dfc6823479d33a21)
+     Running tests/lua_debug_layout.rs (/target/i686-unknown-linux-gnu/debug/deps/lua_debug_layout-1e7d1294210bc469)
+     Running unittests src/lib.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_engine-7d5f510747309873)
+     Running unittests src/lib.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_engine_sys-c031c8ddd4b386aa)
+     Running tests/entity_host_guard.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_host_guard-285d28e25e2f1e1b)
+     Running tests/entity_pose_lifecycle_guard.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_pose_lifecycle_guard-3e662a6fb7edf3db)
+     Running tests/entity_roster_guard.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_roster_guard-9941cb7dad2ddf7e)
+     Running tests/sector_height_guard.rs (/target/i686-unknown-linux-gnu/debug/deps/sector_height_guard-1828f56bdab465b9)
+     Running tests/tree_host_guard.rs (/target/i686-unknown-linux-gnu/debug/deps/tree_host_guard-5e8a58e76ced8129)
+     Running unittests src/lib.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_harness-d9277a1152561909)
+     Running unittests src/main.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_harness-e935e163acd08daa)
+     Running tests/corpus.rs (/target/i686-unknown-linux-gnu/debug/deps/corpus-e6f638f2806139bb)
+     Running tests/scenarios.rs (/target/i686-unknown-linux-gnu/debug/deps/scenarios-f99c2da21c410df6)
+     Running unittests src/main.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_map-7392db68a9eefae5)
+     Running unittests src/lib.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_sys-4805422da46a9a71)
+     Running tests/findings.rs (/target/i686-unknown-linux-gnu/debug/deps/findings-8b7eca5209ec7093)
+     Running tests/smoke.rs (/target/i686-unknown-linux-gnu/debug/deps/smoke-1be4994665e80de0)
+     Running unittests src/lib.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_world-e78eaf258564237f)
+     Running unittests src/main.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_world-739f43458c301f57)
+     Running tests/city_box_lifecycle.rs (/target/i686-unknown-linux-gnu/debug/deps/city_box_lifecycle-f6e85b2f517c279a)
+     Running tests/entity_authority.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_authority-b52398f828b36e51)
+entity-authority: mode=city_box_lifecycle_changed profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=city_box_lifecycle profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=scan_real profile=hosted completed entity=2 other_ops=2 altered=2
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=scan_real profile=hosted completed entity=2 other_ops=2 altered=2
+entity-authority: mode=moving_query_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=forced_miss profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=withdrawn_child profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=scan_real profile=hosted completed entity=2 other_ops=2 altered=2
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=forced_hit profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=moving_query_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=withheld_entity profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=changed_fixed_rule profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=2 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=3 other_ops=2 altered=0
+entity-authority: mode=bad_write_mask profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=moving_query_lift profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=withheld_scan profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=changed_fixed_rule profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=withheld_candidate profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=bad_answer profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=terrain_lift profile=hosted completed entity=2 other_ops=4 altered=0
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=withheld_pose profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=withheld_scan profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=bad_candidate_state profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=moving_control profile=hosted completed entity=2 other_ops=4 altered=0
+entity-authority: mode=bad_pose_answer profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=bad_scan_state profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=bad_candidate_identity profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=bad_pose_state profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=bad_scan_cursor profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=city_box_lifecycle profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=bad_candidate_identity profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=changed_fixed_rule profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=bad_scan_cursor profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=bad_candidate_state profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=city_box_lifecycle profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=forced_hit profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=forced_miss profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=2 other_ops=4 altered=0
+entity-authority: mode=moving_control profile=hosted completed entity=2 other_ops=4 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=moving_query_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=3 other_ops=2 altered=0
+entity-authority: mode=moving_query_control profile=original completed entity=0 other_ops=0 altered=0
+entity-authority: mode=withdrawn_box_state profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=city_box_lifecycle_missing profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: OUTPUT FAILURE while closing after the failure below: close failed
+entity-authority: mode=moving_query_lift profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=moving_query_lift profile=original completed entity=0 other_ops=0 altered=0
+entity-authority: mode=withdrawn_box_state profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=withdrawn_record profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=scan_none profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=moving_query_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_lift profile=original completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=2 other_ops=4 altered=0
+entity-authority: OUTPUT FAILURE while closing after the failure below: close failed
+entity-authority: mode=displaced_record profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=scan_none profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=moving_query_lift profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=scan_none profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=moving_control profile=hosted completed entity=2 other_ops=4 altered=0
+entity-authority: mode=control profile=hosted completed entity=3 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=3 other_ops=2 altered=0
+entity-authority: mode=moving_control profile=hosted completed entity=2 other_ops=4 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=moving_query_speed_control profile=original completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=moving_query_speed_zero profile=original completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=3 other_ops=2 altered=0
+entity-authority: mode=moving_query_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=candidate_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=scan_none profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=moving_query_speed_control profile=original completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=moving_query_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=withdrawn_backing profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=moving_query_lift profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=candidate_real profile=hosted completed entity=1 other_ops=2 altered=1
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=moving_query_control profile=original completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=candidate_skip profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=withdrawn_box_state profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=changed_fixed_rule profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=moving_query_speed_zero profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=candidate_skip profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=withdrawn_city_state profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=moving_query_speed_zero profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=withdrawn_fixed_state profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=changed_fixed_rule profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=withdrawn_child profile=hosted completed entity=0 other_ops=2 altered=0
+entity-authority: mode=moving_query_speed_control profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=withheld_pose profile=hosted completed entity=0 other_ops=2 altered=0
+     Running tests/entity_candidate_host.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_candidate_host-e318736058afe9d1)
+     Running tests/entity_collision_host.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_collision_host-67141570edef0c7e)
+     Running tests/entity_pose_host.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_pose_host-325385aca138383c)
+     Running tests/entity_roster_host.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_roster_host-df692222eba89681)
+     Running tests/env_ambient_authority.rs (/target/i686-unknown-linux-gnu/debug/deps/env_ambient_authority-c529eae27e36d417)
+env-ambient-authority: mode=control case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=0 failure=none
+env-ambient-authority: mode=control case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=0 failure=none
+env-ambient-authority: mode=control case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=0 failure=none
+env-ambient-authority: mode=control case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=0 failure=none
+env-ambient-authority: mode=control case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=0 failure=none
+env-ambient-authority: mode=control case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=0 failure=none
+env-ambient-authority: mode=control case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=0 failure=none
+env-ambient-authority: mode=changed_env_ambient case=27 completed=true env_requests=1 terrain_requests=1 env_altered=1 terrain_altered=0 failure=none
+env-ambient-authority: mode=changed_terrain_ambient case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=1 failure=none
+env-ambient-authority: mode=withheld_env_ambient case=27 completed=false env_requests=1 terrain_requests=0 env_altered=1 terrain_altered=0 failure=host environment: [env-provider:ambient.callback] the host withholds its ambient environment answer
+env-ambient-authority: mode=changed_env_ambient case=27 completed=true env_requests=1 terrain_requests=1 env_altered=1 terrain_altered=0 failure=none
+env-ambient-authority: mode=control case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=0 failure=none
+env-ambient-authority: mode=malformed_env_ambient case=27 completed=false env_requests=1 terrain_requests=0 env_altered=1 terrain_altered=0 failure=host environment: [env-provider:ambient.answer] wind_light must be within 0 to 1
+env-ambient-authority: mode=withheld_terrain_ambient case=27 completed=false env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=1 failure=host terrain: [terrain-provider:ambient.callback] the host withholds its ambient terrain answer
+env-ambient-authority: mode=withheld_terrain_ambient case=27 completed=false env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=1 failure=host terrain: [terrain-provider:ambient.callback] the host withholds its ambient terrain answer
+env-ambient-authority: mode=malformed_terrain_ambient case=27 completed=false env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=1 failure=host terrain: [terrain-provider:ambient.amplitudes] amplitudes must be a list of exactly 6 numbers
+env-ambient-authority: mode=withheld_env_ambient case=27 completed=false env_requests=1 terrain_requests=0 env_altered=1 terrain_altered=0 failure=host environment: [env-provider:ambient.callback] the host withholds its ambient environment answer
+env-ambient-authority: mode=changed_env_ambient case=27 completed=true env_requests=1 terrain_requests=1 env_altered=1 terrain_altered=0 failure=none
+env-ambient-authority: mode=changed_terrain_ambient case=27 completed=true env_requests=1 terrain_requests=1 env_altered=0 terrain_altered=1 failure=none
+     Running tests/env_lightning_queue.rs (/target/i686-unknown-linux-gnu/debug/deps/env_lightning_queue-57d63148fbef34e5)
+env-lightning-queue: case=1 label=add_without_active_environment refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=true
+env-lightning-queue: case=3 label=fill_the_queue_and_drop_the_next refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=true
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-host-witness: mode=withheld stopped at [env-provider:lightning_add.callback] after 1 host request(s) for 'lightning_add'
+env-lightning-host-witness: mode=changed case 2 completed; the host was asked 1 time(s) for 'lightning_add'; the case shows occupancy 0 mask 00000000; 1 other request(s) forwarded unchanged
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-host-witness: mode=healthy case 2 completed; the host was asked 2 time(s) for 'lightning_add'; the case shows occupancy 1 mask 00000001; 1 other request(s) forwarded unchanged
+env-lightning-host-witness: mode=frame_negative stopped at [env-provider:lightning_update.answer] after 2 host request(s) for 'lightning_update'
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-queue: case=1 label=add_without_active_environment refused=false
+env-lightning-host-witness: mode=frames_without_fork stopped at [env-provider:lightning_update.answer] after 1 host request(s) for 'lightning_update'
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-queue: case=5 label=age_a_forked_strike_by_the_time_of_day refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-host-witness: mode=malformed stopped at [env-provider:lightning_add.answer] after 1 host request(s) for 'lightning_add'
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-host-witness: mode=frame_high stopped at [env-provider:lightning_update.answer] after 2 host request(s) for 'lightning_update'
+env-lightning-queue: case=3 label=fill_the_queue_and_drop_the_next refused=false
+env-lightning-queue: case=5 label=age_a_forked_strike_by_the_time_of_day refused=false
+env-lightning-queue: case=4 label=age_a_cloud_burst_by_the_time_of_day refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-queue: case=4 label=age_a_cloud_burst_by_the_time_of_day refused=false
+env-lightning-queue: case=3 label=fill_the_queue_and_drop_the_next refused=false
+env-lightning-queue: case=5 label=age_a_forked_strike_by_the_time_of_day refused=false
+env-lightning-queue: case=1 label=add_without_active_environment refused=false
+env-lightning-queue: case=4 label=age_a_cloud_burst_by_the_time_of_day refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=false
+env-lightning-queue: case=4 label=age_a_cloud_burst_by_the_time_of_day refused=false
+env-lightning-queue: case=2 label=add_with_the_main_environment refused=true
+     Running tests/env_play_resumed_parent.rs (/target/i686-unknown-linux-gnu/debug/deps/env_play_resumed_parent-53103c83d7c929ac)
+env-play-elided-parent: mode=overload elided=0 natural=0 controlled=0 overload_stopped=true
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=overload calls=6 natural=0 controlled=6 live=true
+env-play-resumed-parent: mode=fixture calls=0 natural=0 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=overload calls=6 natural=0 controlled=6 live=true
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-elided-parent: mode=natural elided=1 natural=1 controlled=0 overload_stopped=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=true
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-elided-parent: mode=overload elided=0 natural=0 controlled=0 overload_stopped=true
+env-play-resumed-parent: mode=natural calls=2 natural=2 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=overload calls=6 natural=0 controlled=6 live=true
+env-play-resumed-parent: mode=fixture calls=3 natural=0 controlled=3 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=overload calls=6 natural=0 controlled=6 live=true
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-elided-parent: mode=fixture elided=6 natural=0 controlled=6 overload_stopped=false
+env-play-resumed-parent: mode=overload calls=6 natural=0 controlled=6 live=true
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=overload calls=6 natural=0 controlled=6 live=true
+env-play-resumed-parent: mode=overload calls=6 natural=0 controlled=6 live=true
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=overload calls=6 natural=0 controlled=6 live=true
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=fixture calls=6 natural=0 controlled=6 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+env-play-resumed-parent: mode=natural calls=1 natural=1 controlled=0 live=false
+     Running tests/env_rotor_host_witness.rs (/target/i686-unknown-linux-gnu/debug/deps/env_rotor_host_witness-369b01a79a163d0d)
+env-rotor-host-witness: mode=withheld stopped at [env-provider:rotor_sound.callback] (boot) after 1 host request(s) for 'rotor_sound'
+env-rotor-host-witness: mode=healthy 4 call(s), 4 host request(s); 40 sound children and 8 requests show the host's answer; 3 sweep rows joined
+env-rotor-host-witness: mode=changed 4 call(s), 4 host request(s); 40 sound children and 8 requests show the host's answer; 3 sweep rows joined
+env-rotor-host-witness: mode=withheld stopped at [env-provider:rotor_sound.callback] (engine_failure_row) after 1 host request(s) for 'rotor_sound'
+env-rotor-host-witness: mode=healthy 4 call(s), 4 host request(s); 40 sound children and 8 requests show the host's answer; 3 sweep rows joined
+env-rotor-host-witness: mode=healthy 15 call(s), 15 host request(s); 150 sound children and 30 requests show the host's answer; 14 sweep rows joined
+env-rotor-host-witness: mode=changed 15 call(s), 15 host request(s); 150 sound children and 30 requests show the host's answer; 14 sweep rows joined
+env-rotor-host-witness: mode=malformed stopped at [env-provider:rotor_sound.answer] (boot) after 1 host request(s) for 'rotor_sound'
+env-rotor-host-witness: mode=malformed stopped at [env-provider:rotor_sound.answer] (engine_failure_row) after 1 host request(s) for 'rotor_sound'
+env-rotor-host-witness: mode=healthy 4 call(s), 4 host request(s); 41 sound children and 8 requests show the host's answer; 3 sweep rows joined
+     Running tests/env_rotor_sounds.rs (/target/i686-unknown-linux-gnu/debug/deps/env_rotor_sounds-e88cd080ab3fbcbd)
+env-rotor-sounds: calls=0 natural=0 sweep=ai probe=off
+env-rotor-sounds: calls=3 natural=3 sweep=none probe=on
+env-rotor-sounds: calls=3 natural=1 sweep=ai probe=on
+env-rotor-sounds: calls=3 natural=1 sweep=fd probe=on
+env-rotor-sounds: calls=3 natural=1 sweep=ai probe=on
+env-rotor-sounds: calls=3 natural=1 sweep=fd probe=on
+env-rotor-sounds: calls=4 natural=1 sweep=fd probe=on
+     Running tests/env_sector_authority.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sector_authority-1a30999740502e89)
+env-sector-authority: mode=control completed=true frames=5 sector_requests=5 altered=0 sound_calls=5 failure=none
+env-sector-authority: mode=control completed=true frames=5 sector_requests=5 altered=0 sound_calls=5 failure=none
+env-sector-authority: mode=control completed=true frames=5 sector_requests=5 altered=0 sound_calls=5 failure=none
+env-sector-authority: mode=control completed=true frames=5 sector_requests=5 altered=0 sound_calls=5 failure=none
+env-sector-authority: mode=control completed=true frames=5 sector_requests=5 altered=0 sound_calls=5 failure=none
+env-sector-authority: mode=changed_sector completed=true frames=5 sector_requests=5 altered=5 sound_calls=5 failure=none
+env-sector-authority: mode=withheld_sector completed=false frames=0 sector_requests=1 altered=1 sound_calls=-1 failure=host terrain: [terrain-provider:sector.callback] the host withholds its sector answer
+env-sector-authority: mode=changed_sector completed=true frames=5 sector_requests=5 altered=5 sound_calls=5 failure=none
+env-sector-authority: mode=malformed_sector_flags completed=false frames=0 sector_requests=1 altered=1 sound_calls=-1 failure=host terrain: [terrain-provider:sector.flags] the flags are not 62 characters of 0 and 1
+env-sector-authority: mode=malformed_sector_returned completed=false frames=0 sector_requests=1 altered=1 sound_calls=-1 failure=host terrain: [terrain-provider:sector.returned] the return value does not fit the flags
+     Running tests/env_sector_characterization.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sector_characterization-ff9dae3c4a14fe31)
+env-sector: scenario=georgia_retail cases=3 answered=2 refused=1 anomalies=0
+env-sector: scenario=lebanon_retail cases=3 answered=2 refused=1 anomalies=1
+     Running tests/env_sound_backend_witness.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_backend_witness-57afcaf412b1b523)
+env-sound-backend-host-witness: mode=available stopped at [sound-backend-provider:unsupported] after 1 host request(s) for 'sound_backend'
+env-sound-backend-host-witness: mode=available stopped at [sound-backend-provider:unsupported] after 1 host request(s) for 'sound_backend'
+env-sound-backend-host-witness: mode=withheld stopped at [sound-backend-provider:callback] after 1 host request(s) for 'sound_backend'
+env-sound-backend-host-witness: mode=withheld stopped at [sound-backend-provider:callback] after 1 host request(s) for 'sound_backend'
+env-sound-backend-host-witness: mode=healthy: the host was asked 1 time(s) and the real report shows its answer (available 0) with no campaign device call
+env-sound-backend-host-witness: mode=malformed stopped at [sound-backend-provider:answer] after 1 host request(s) for 'sound_backend'
+env-sound-backend-host-witness: mode=withheld stopped at [sound-backend-provider:callback] after 1 host request(s) for 'sound_backend'
+env-sound-backend-host-witness: mode=malformed stopped at [sound-backend-provider:answer] after 1 host request(s) for 'sound_backend'
+     Running tests/env_sound_characterization.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_characterization-cd5808b9d9d16d2a)
+env-sound: scenario=lebanon_retail cases=3 answered=1 refused=2 calls=1 anomalies=0
+env-sound: scenario=lebanon_retail cases=3 answered=1 refused=2 calls=1 anomalies=1
+env-sound: scenario=georgia_retail cases=3 answered=1 refused=2 calls=1 anomalies=0
+env-sound: scenario=lebanon_retail cases=3 answered=1 refused=2 calls=1 anomalies=1
+env-sound: scenario=lebanon_retail cases=3 answered=1 refused=2 calls=1 anomalies=1
+env-sound: scenario=lebanon_retail cases=3 answered=1 refused=2 calls=1 anomalies=1
+     Running tests/env_sound_data_witness.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_data_witness-9d284418afa1f7c4)
+env-sound-data-host-witness: mode=withheld stopped at [sound-data-provider:callback] after 1 host request(s) for 'sound_catalogue'
+env-sound-data-host-witness: mode=withheld stopped at [sound-data-provider:callback] after 1 host request(s) for 'sound_catalogue'
+env-sound-data-host-witness: mode=withheld stopped at [sound-data-provider:callback] after 1 host request(s) for 'sound_catalogue'
+env-sound-data-host-witness: mode=malformed stopped at [sound-data-provider:answer] after 1 host request(s) for 'sound_catalogue'
+env-sound-data-host-witness: mode=withheld stopped at [sound-data-provider:callback] after 1 host request(s) for 'sound_catalogue'
+env-sound-data-host-witness: mode=healthy, expect=absent: the host was asked 1 time(s) and the real report shows its answer
+env-sound-data-host-witness: mode=changed, expect=absent: the host was asked 1 time(s) and the real report shows its answer
+env-sound-data-host-witness: mode=healthy, expect=control: the host was asked 1 time(s) and the real report shows its answer
+env-sound-data-host-witness: mode=short stopped at [sound-data-provider:answer] after 1 host request(s) for 'sound_catalogue'
+env-sound-data-host-witness: mode=incoherent stopped at [sound-data-provider:answer] after 1 host request(s) for 'sound_catalogue'
+env-sound-data-host-witness: mode=malformed stopped at [sound-data-provider:answer] after 1 host request(s) for 'sound_catalogue'
+env-sound-data-host-witness: mode=short stopped at [sound-data-provider:answer] after 1 host request(s) for 'sound_catalogue'
+env-sound-data-host-witness: mode=incoherent stopped at [sound-data-provider:answer] after 1 host request(s) for 'sound_catalogue'
+     Running tests/env_sound_handle.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_handle-528e86ec6f57706f)
+env-sound-handle: case=22 calls=3 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=marker_cleared_measured
+env-sound-handle: case=21 calls=1 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=inferred_from_an_expiry_with_a_handle_no_marker_to_measure
+env-sound-handle: case=21 calls=3 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=inferred_from_an_expiry_with_a_handle_no_marker_to_measure
+env-sound-handle: case=21 calls=2 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=inferred_from_an_expiry_with_a_handle_no_marker_to_measure
+env-sound-handle: case=22 calls=3 handle_used_after=1 expired_idle=0 expired_playing=0 killed=0 getter=no_expiry_with_a_handle_so_no_getter_call_inferred
+env-sound-handle: case=21 calls=2 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=inferred_from_an_expiry_with_a_handle_no_marker_to_measure
+env-sound-handle: case=21 calls=2 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=inferred_from_an_expiry_with_a_handle_no_marker_to_measure
+env-sound-handle: case=21 calls=3 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=inferred_from_an_expiry_with_a_handle_no_marker_to_measure
+env-sound-handle: case=21 calls=1 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=inferred_from_an_expiry_with_a_handle_no_marker_to_measure
+env-sound-handle: case=21 calls=3 handle_used_after=1 expired_idle=0 expired_playing=0 killed=0 getter=no_expiry_with_a_handle_so_no_getter_call_inferred
+env-sound-handle: case=21 calls=3 handle_used_after=1 expired_idle=0 expired_playing=2 killed=0 getter=inferred_from_an_expiry_with_a_handle_no_marker_to_measure
+env-sound-handle: case=21 calls=3 handle_used_after=1 expired_idle=0 expired_playing=2 killed=0 getter=inferred_from_an_expiry_with_a_handle_no_marker_to_measure
+env-sound-handle: case=21 calls=3 handle_used_after=1 expired_idle=0 expired_playing=0 killed=0 getter=no_expiry_with_a_handle_so_no_getter_call_inferred
+env-sound-handle: case=22 calls=3 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=marker_cleared_measured
+env-sound-handle: case=22 calls=3 handle_used_after=0 expired_idle=1 expired_playing=0 killed=1 getter=marker_cleared_measured
+env-sound-handle: case=22 calls=3 handle_used_after=1 expired_idle=0 expired_playing=0 killed=0 getter=no_expiry_with_a_handle_so_no_getter_call_inferred
+env-sound-handle: case=22 calls=3 handle_used_after=1 expired_idle=0 expired_playing=1 killed=0 getter=marker_cleared_measured
+env-sound-handle: case=21 calls=2 handle_used_after=1 expired_idle=0 expired_playing=0 killed=0 getter=no_expiry_with_a_handle_so_no_getter_call_inferred
+env-sound-handle: case=22 calls=3 handle_used_after=1 expired_idle=0 expired_playing=0 killed=0 getter=no_expiry_with_a_handle_so_no_getter_call_inferred
+env-sound-handle: case=21 calls=2 handle_used_after=1 expired_idle=0 expired_playing=0 killed=0 getter=no_expiry_with_a_handle_so_no_getter_call_inferred
+     Running tests/env_sound_handle_guard.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_handle_guard-4a88e2a106837956)
+env-sound-handle-guard: case=21 expected_named_refusal=unsupported_handle_status
+env-sound-handle-guard: case=21 expected_named_refusal=unsupported_handle_status
+env-sound-handle-guard: case=22 expected_named_refusal=unsupported_handle_status
+     Running tests/env_sound_init.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_init-de27045bc1d365be)
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init-host: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init-backend: boots=1 branch=host_reported_backend_unavailable
+env-sound-init: boots=1 branch=skipped_by_flags
+env-sound-init-host: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init-backend: boots=1 branch=skipped_by_flags
+env-sound-init-host: boots=1 branch=backend_initialisation_returned_false
+env-sound-init-host: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_enabled
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init-host: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init-host: boots=1 branch=backend_initialisation_returned_false
+env-sound-init-host: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init-host: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init-host: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+env-sound-init: boots=1 branch=backend_initialisation_returned_false
+     Running tests/env_sound_init_store.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_init_store-658c02b5201e55df)
+     Running tests/env_sound_lifetime.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_lifetime-ff6dfa5f93fa9ea8)
+env-sound-lifetime: case=1 label=server_branch_ages_then_expires refused=true
+env-sound-lifetime: case=11 label=pause_then_resume_while_still_linked refused=true
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=true
+env-sound-lifetime: case=1 label=server_branch_ages_then_expires refused=false
+env-sound-lifetime: case=11 label=pause_then_resume_while_still_linked refused=false
+env-sound-lifetime: case=1 label=server_branch_ages_then_expires refused=false
+env-sound-lifetime: case=11 label=pause_then_resume_while_still_linked refused=false
+env-sound-lifetime: case=9 label=data_invalid_server_countdown_and_unlink refused=false
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-lifetime: case=12 label=resume_after_the_unlink_and_updates_after refused=false
+env-sound-lifetime: case=12 label=resume_after_the_unlink_and_updates_after refused=false
+env-sound-host-witness: mode=pause_healthy case 12 completed; the host was asked 2 time(s) for 'sound_pause_resume' in the fixture phase (2 in boot); the case shows 4 calls, 0 kills, lifetime words 40a00000,40a00000,40a00000,40a00000,40a00000,40a00000,40800000; 2 other request(s) forwarded unchanged
+env-sound-lifetime: case=1 label=server_branch_ages_then_expires refused=true
+env-sound-lifetime: case=9 label=data_invalid_server_countdown_and_unlink refused=true
+env-sound-lifetime: case=14 label=subtype_isolation_and_every_match refused=true
+env-sound-lifetime: case=1 label=server_branch_ages_then_expires refused=false
+env-sound-lifetime: case=2 label=client_branch_ages_and_clamps refused=false
+env-sound-lifetime: case=8 label=data_looping_server_and_client_not_aged refused=true
+env-sound-lifetime: case=1 label=server_branch_ages_then_expires refused=true
+env-sound-lifetime: case=12 label=resume_after_the_unlink_and_updates_after refused=false
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-lifetime: case=9 label=data_invalid_server_countdown_and_unlink refused=false
+env-sound-lifetime: case=12 label=resume_after_the_unlink_and_updates_after refused=false
+env-sound-lifetime: case=3 label=playback_prerequisites refused=false
+env-sound-lifetime: case=2 label=client_branch_ages_and_clamps refused=false
+env-sound-host-witness: mode=pause_withheld stopped at [env-provider:sound_pause_resume.callback] after 1 host request(s) for 'sound_pause_resume'
+env-sound-lifetime: case=10 label=data_invalid_client_countdown_and_unlink refused=false
+env-sound-lifetime: case=11 label=pause_then_resume_while_still_linked refused=false
+env-sound-host-witness: mode=pause_changed case 11 completed; the host was asked 2 time(s) for 'sound_pause_resume' in the fixture phase (2 in boot); the case shows 0 calls, 0 kills, lifetime words 40a00000,40a00000,40a00000; 2 other request(s) forwarded unchanged
+env-sound-lifetime: case=5 label=data_positive_client_clamps refused=false
+env-sound-lifetime: case=13 label=repeated_and_no_op_pause_and_resume_counts refused=false
+env-sound-lifetime: case=12 label=resume_after_the_unlink_and_updates_after refused=false
+env-sound-lifetime: case=1 label=server_branch_ages_then_expires refused=false
+env-sound-host-witness: mode=pause_malformed stopped at [env-provider:sound_pause_resume.answer] after 1 host request(s) for 'sound_pause_resume'
+env-sound-lifetime: case=12 label=resume_after_the_unlink_and_updates_after refused=false
+env-sound-lifetime: case=11 label=pause_then_resume_while_still_linked refused=false
+env-sound-lifetime: case=6 label=data_sequence_accumulates refused=false
+env-sound-lifetime: case=10 label=data_invalid_client_countdown_and_unlink refused=false
+env-sound-lifetime: case=2 label=client_branch_ages_and_clamps refused=false
+env-sound-host-witness: mode=pause_incoherent stopped at [env-provider:sound_pause_resume.answer] after 3 host request(s) for 'sound_pause_resume'
+env-sound-lifetime: case=14 label=subtype_isolation_and_every_match refused=false
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-host-witness: mode=changed case 4 completed; the host was asked 3 time(s) for 'sound_lifetime_update' in the fixture phase (0 in boot); the case shows 3 calls, 0 kills, lifetime words 40a00000,40a00000,40a00000,40a00000; 3 other request(s) forwarded unchanged
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-host-witness: mode=pause_incoherent stopped at [env-provider:sound_pause_resume.answer] after 3 host request(s) for 'sound_pause_resume'
+env-sound-lifetime: case=3 label=playback_prerequisites refused=false
+env-sound-lifetime: case=7 label=data_caps_nonmusic_and_music refused=false
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-host-witness: mode=withheld stopped at [env-provider:sound_lifetime_update.callback] after 1 host request(s) for 'sound_lifetime_update'
+env-sound-host-witness: mode=healthy case 4 completed; the host was asked 3 time(s) for 'sound_lifetime_update' in the fixture phase (0 in boot); the case shows 3 calls, 1 kills, lifetime words 40a00000,40400000,3f800000,00000000; 3 other request(s) forwarded unchanged
+env-sound-lifetime: case=12 label=resume_after_the_unlink_and_updates_after refused=false
+env-sound-host-witness: mode=resume_changed case 12 completed; the host was asked 2 time(s) for 'sound_pause_resume' in the fixture phase (2 in boot); the case shows 3 calls, 0 kills, lifetime words 40a00000,40a00000,40a00000,40a00000,40a00000,40a00000,40a00000; 2 other request(s) forwarded unchanged
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-host-witness: mode=malformed stopped at [env-provider:sound_lifetime_update.answer] after 1 host request(s) for 'sound_lifetime_update'
+env-sound-lifetime: case=11 label=pause_then_resume_while_still_linked refused=false
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-lifetime: case=8 label=data_looping_server_and_client_not_aged refused=false
+env-sound-host-witness: mode=withheld_init stopped at [env-provider:sound_lifetime_init.callback] after 1 host request(s) for 'sound_lifetime_init'
+env-sound-lifetime: case=12 label=resume_after_the_unlink_and_updates_after refused=false
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-lifetime: case=9 label=data_invalid_server_countdown_and_unlink refused=false
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-lifetime: case=6 label=data_sequence_accumulates refused=false
+env-sound-host-witness: mode=changed_init case 6 completed; the host was asked 1 time(s) for 'sound_lifetime_init' in the fixture phase (2 in boot); the case shows 0 calls, 0 kills, lifetime words 3e800000; 0 other request(s) forwarded unchanged
+env-sound-lifetime: case=9 label=data_invalid_server_countdown_and_unlink refused=false
+env-sound-lifetime: case=6 label=data_sequence_accumulates refused=false
+env-sound-lifetime: case=10 label=data_invalid_client_countdown_and_unlink refused=false
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+env-sound-lifetime: case=7 label=data_caps_nonmusic_and_music refused=false
+env-sound-lifetime: case=4 label=data_positive_server_ages_and_expires refused=false
+     Running tests/env_sound_native_guard.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_native_guard-b62dd979ee1bd51d)
+env-sound-native-guard: case=23 expected_named_refusal=unsupported_native_handle
+env-sound-native-guard: case=23 expected_named_refusal=unsupported_native_handle
+env-sound-native-guard: case=24 expected_named_refusal=unsupported_native_handle
+     Running tests/env_sound_route.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_route-ec4b8ead5da67841)
+env-sound-route: case=23 calls=3 handle_released_by_original=true entity_live=true
+env-sound-route: case=23 calls=3 handle_released_by_original=true entity_live=true
+env-sound-route: case=23 calls=2 handle_released_by_original=true entity_live=true
+env-sound-route: case=23 calls=3 handle_released_by_original=false entity_live=true
+env-sound-route: case=24 calls=1 handle_released_by_original=false entity_live=true
+env-sound-route: case=24 calls=1 handle_released_by_original=false entity_live=true
+env-sound-route: case=24 calls=1 handle_released_by_original=true entity_live=true
+     Running tests/env_sound_wide_children.rs (/target/i686-unknown-linux-gnu/debug/deps/env_sound_wide_children-66fb8cb8bcfd0ab6)
+env-sound-wide: scenario=lebanon_retail cases=3 targets=16,17,20
+     Running tests/env_wind_authority.rs (/target/i686-unknown-linux-gnu/debug/deps/env_wind_authority-f7088324c794fede)
+env-wind-authority: mode=changed_wind completed=true cohort=1 ended=1 wind_vector_after=10 altered=10 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=0 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=changed_wind completed=true cohort=1 ended=1 wind_vector_after=0 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=2 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=changed_wind completed=true cohort=1 ended=1 wind_vector_after=10 altered=10 failure=none
+env-wind-authority: mode=withheld_wind completed=false cohort=1 ended=0 wind_vector_after=1 altered=1 failure=[env-provider:wind.callback] the host withholds its wind answer
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=withheld_wind completed=true cohort=1 ended=1 wind_vector_after=0 altered=0 failure=none
+env-wind-authority: mode=malformed_wind_speed completed=false cohort=1 ended=0 wind_vector_after=1 altered=1 failure=[env-provider:wind.answer] the speed must be a number
+env-wind-authority: mode=changed_wind completed=true cohort=1 ended=1 wind_vector_after=10 altered=10 failure=none
+env-wind-authority: mode=malformed_wind_vector completed=false cohort=1 ended=0 wind_vector_after=1 altered=1 failure=[env-provider:wind.answer] the vector must be three numbers
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=withheld_wind completed=false cohort=1 ended=0 wind_vector_after=1 altered=1 failure=[env-provider:wind.callback] the host withholds its wind answer
+env-wind-authority: mode=changed_wind completed=true cohort=1 ended=1 wind_vector_after=10 altered=10 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+env-wind-authority: mode=control completed=true cohort=1 ended=1 wind_vector_after=10 altered=0 failure=none
+     Running tests/ground_authority.rs (/target/i686-unknown-linux-gnu/debug/deps/ground_authority-1437b3a16008c079)
+ground-authority: mode=control completed=true cohort=1 ended=1 ground_after=20 altered=0/0 failure=none
+ground-authority: mode=control completed=true cohort=2 ended=1 ground_after=20 altered=0/0 failure=none
+ground-authority: mode=control completed=true cohort=1 ended=1 ground_after=20 altered=0/0 failure=none
+ground-authority: mode=below_true completed=true cohort=1 ended=1 ground_after=20 altered=10/0 failure=none
+ground-authority: mode=control completed=true cohort=1 ended=1 ground_after=20 altered=0/0 failure=none
+ground-authority: mode=below_true_impact_shift completed=true cohort=1 ended=1 ground_after=20 altered=10/10 failure=none
+ground-authority: mode=control completed=true cohort=1 ended=1 ground_after=20 altered=0/0 failure=none
+ground-authority: mode=withheld_below completed=false cohort=1 ended=0 ground_after=1 altered=1/0 failure=[terrain-provider:ground_below.callback] the host withholds its ground answer
+ground-authority: mode=control completed=true cohort=1 ended=1 ground_after=20 altered=0/0 failure=none
+ground-authority: mode=control completed=true cohort=1 ended=1 ground_after=20 altered=0/0 failure=none
+ground-authority: mode=control completed=true cohort=1 ended=1 ground_after=20 altered=0/0 failure=none
+ground-authority: mode=control completed=true cohort=1 ended=1 ground_after=20 altered=0/0 failure=none
+     Running tests/ground_conformance.rs (/target/i686-unknown-linux-gnu/debug/deps/ground_conformance-8713b9b94c5f852e)
+     Running tests/ground_handoff.rs (/target/i686-unknown-linux-gnu/debug/deps/ground_handoff-9df3f50fdd3c8c0d)
+ground-handoff: control: zero ground requests with 2 point request(s): the unmoved DLL computes the ground predicates and the impact search itself
+ground-handoff: control: zero ground requests with 2 point request(s): the unmoved DLL computes the ground predicates and the impact search itself
+ground-handoff: required: 1 ground_above, 1 ground_below and 1 ground_impact request(s) reached the host provider
+     Running tests/ground_provider.rs (/target/i686-unknown-linux-gnu/debug/deps/ground_provider-813cbf88413cc49b)
+     Running tests/host_callbacks.rs (/target/i686-unknown-linux-gnu/debug/deps/host_callbacks-abd06492012ab9e9)
+     Running tests/load_dc.rs (/target/i686-unknown-linux-gnu/debug/deps/load_dc-5c9f6810e2a11230)
+     Running tests/model_animation_characterization.rs (/target/i686-unknown-linux-gnu/debug/deps/model_animation_characterization-db175a67858f5e49)
+     Running tests/model_characterization.rs (/target/i686-unknown-linux-gnu/debug/deps/model_characterization-7628cb58e89dd160)
+     Running tests/model_custom_walk_source.rs (/target/i686-unknown-linux-gnu/debug/deps/model_custom_walk_source-40b973c828d4f8c4)
+     Running tests/model_horizon_control.rs (/target/i686-unknown-linux-gnu/debug/deps/model_horizon_control-a816e6e16ab16768)
+     Running tests/model_route.rs (/target/i686-unknown-linux-gnu/debug/deps/model_route-4f86116eacc72a5d)
+     Running tests/model_store.rs (/target/i686-unknown-linux-gnu/debug/deps/model_store-b58ea20fb145bffd)
+     Running tests/model_target_point.rs (/target/i686-unknown-linux-gnu/debug/deps/model_target_point-4f6b5ca35a326a18)
+     Running tests/rotor_sound_kernel.rs (/target/i686-unknown-linux-gnu/debug/deps/rotor_sound_kernel-1c075f6c2ce3b29f)
+==== ROTOR-CI-CONTROL (ENV-HOST-ROTOR-CI-1): characterisation only, UNMEASURED until a build prints it; it says what this target computes, not which answer is right
+capture status: complete
+target i686-unknown-linux-gnu host x86_64-unknown-linux-gnu profile debug | build-time environment of the cargo invocation (NOT the World EECH_ENGINE_OPT unless it is the same variable): EECH_ENGINE_OPT (unset) EECH_C_OPT (unset); the C optimisation actually used is the -O of the command below (opt-level 1); EECH_C_OPT now (unset) | rust target_arch x86 pointer_width 32 os linux
+compiler version: exit exit status: 0: x86_64-linux-gnu-gcc (Debian 12.2.0-14+deb12u1) 12.2.0 | Copyright (C) 2022 Free Software Foundation, Inc. | This is free software; see the source for copying conditions.  There is NO | warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+compiler machine: exit exit status: 0: x86_64-linux-gnu
+full compile command (the steps archive with env_ref.c uses the same settings): x86_64-linux-gnu-gcc -O1 -ffunction-sections -fdata-sections -fPIC -g -gdwarf-4 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -m32 -march=i686 -w -std=gnu99 -w -fno-strict-aliasing -fwrapv -ftrivial-auto-var-init=zero -c -o <object> <source>
+control build facts: __VERSION__=12.2.0 __GNUC__=12.2.0 __OPTIMIZE__=1 __FAST_MATH__=0 __FLT_EVAL_METHOD__=2 __FLT_EVAL_METHOD_TS_18661_3__=2 FLT_EVAL_METHOD=2 __FP_FAST_FMA=0 __SSE_MATH__=0 __SSE2_MATH__=0 __i386__=1 sizeof(long double)=12
+source sha256: csrc/env_ref.c=4fb9dd4f8913b585aed72d341e6600d93f43e1a54db00fbca70b6c92b4c2127a; csrc/env_ref.h=f1749f2b414821f8e2056144da90249f716f1e9d0f8c2cd753d84128bdb3d46c; tests/csrc/rotor_control.c=abe4cf5d7e0288ca8f73b1f997fd5092b7e6102a9342d80a724c5845da77f0fc; tests/csrc/rotor_control.h=19a8c9d096670a024c206638b46539e87d6e0cc025d902ece59003f1aecfb993; tests/csrc/rotor_control_body.h=375ca0ebb6a0cf1171a11df6e6c31d3d393e1e11f08c6b0d5f383758b9b355f3; tests/csrc/rotor_control_stubs.c=985868aae3a02dd71d6bea0d38ae1a9d1db772449ce84f42136c404a6e11398e; build.rs=995a2671ced9145b185edb8e8a0a928632984a1b09c3fbf2b9c15feded777714
+variants: U = the arithmetic statements of the original, token-identical, in a SURROGATE compilation context (stub collaborators, reduced layouts), not the engine's code generation; S = STAGED, diagnostic CHANGED code (each intermediate stored to an addressable volatile float and reloaded; one extra magnitude call, tag 0); d = no environment change; c = the canonical environment REQUESTED (x87 0x0f7f, MXCSR 0x7f80). Every variant starts from the same captured baseline, is bracketed by its own save and restore, and is reported with the states MEASURED before, at entry, after the arithmetic and after the restoration
+floating-point baseline captured at the start of the diagnostics: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+observed and restored: the x87 control, status and tag words (and the environment pointers, restored but not compared) and the complete MXCSR of this thread; NOT the x87 data registers, the XMM data or other threads; nothing is inferred about the engine's startup state or about the public caller's floating-point equivalence
+ai-sweep 0 (player 0 flight model false): in 00000000,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+ai-sweep 1 (player 0 flight model false): in 41200000,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+ai-sweep 2 (player 0 flight model false): in 41efffff,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+ai-sweep 3 (player 0 flight model false): in 41f00000,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+ai-sweep 4 (player 0 flight model false): in 41f00001,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: amp0 want 34088888 got 34088889 | U/c: matches | S/d: amp0 want 34088888 got 34088889 | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = dededede dededede dededede dededede 34088889 3e99999a dededede dededede dededede dededede dededede dededede dededede
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = dededede dededede dededede dededede 34088888 3e99999a dededede dededede dededede dededede dededede dededede dededede
+    kernel words: amplification 34088888 00000000 3f800000 3f800000 00000000 3f400000 pitch 3f800000 3f800000 3fa66666 3fa66666 3f800000 00000000
+ai-sweep 5 (player 0 flight model false): in 42160000,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+ai-sweep 6 (player 0 flight model false): in 4233ffff,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: amp0 want 3f7ffffb got 3f7ffffc | U/c: matches | S/d: amp0 want 3f7ffffb got 3f7ffffc | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = dededede dededede dededede dededede 3f7ffffc 3ee66665 dededede dededede dededede dededede dededede dededede dededede
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = dededede dededede dededede dededede 3f7ffffb 3ee66665 dededede dededede dededede dededede dededede dededede dededede
+    kernel words: amplification 3f7ffffb 00000000 3f800000 3f800000 00000000 3f400000 pitch 3f800000 3f800000 3fa66666 3fa66666 3f800000 00000000
+ai-sweep 7 (player 0 flight model false): in 42340000,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+ai-sweep 8 (player 0 flight model false): in 42340001,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+ai-sweep 9 (player 0 flight model false): in 42700000,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+ai-sweep 10 (player 0 flight model false): in 42c80000,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+ai-sweep 11 (player 0 flight model false): in c1200000,00000000,00000000,00000000,00000000,00000000,00000000 | kernel: matches | U/d: matches | U/c: matches | S/d: matches | S/c: matches
+fd-sweep 0 (player 1 flight model true): in 42480000,00000000,00000000,00000000,42480000,42700000,40a00000 | kernel: matches | U/d: amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | U/c: matches | S/d: amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e99999a 3d4ccccd 3f8ccccd 3f000000 dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e999999 3d4ccccc 3f8ccccc 3f000000 dededede 3f999999 3f199999
+    kernel words: amplification 3f800000 00000000 3f000000 3f199999 3d4ccccc 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f999999 3e999999 00000000
+fd-sweep 1 (player 1 flight model true): in 42480000,40400000,40800000,00000000,42480000,42700000,40a00000 | kernel: matches | U/d: amp0 want 3f2aaaab got 3f2aaaaa, amp1 want 3eaaaaaa got 3eaaaaab, amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | U/c: matches | S/d: amp0 want 3f2aaaab got 3f2aaaaa, amp1 want 3eaaaaaa got 3eaaaaab, amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 40a00000 3eaaaaab 3eaaaaab 3eaaaaab 3f800000 3f000000 3e99999a 3d4ccccd 3f8ccccd 3f000000 dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 40a00000 3eaaaaaa 3eaaaaaa 3eaaaaaa 3f800000 3f000000 3e999999 3d4ccccc 3f8ccccc 3f000000 dededede 3f999999 3f199999
+    kernel words: amplification 3f2aaaab 3eaaaaaa 3f000000 3f199999 3d4ccccc 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f999999 3e999999 00000000
+fd-sweep 2 (player 1 flight model true): in 42160000,41f00000,00000000,00000000,42480000,42700000,40a00000 | kernel: matches | U/d: amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | U/c: matches | S/d: amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 41f00000 40000000 3f800000 3f800000 3f000000 3ec00000 3e99999a 3d4ccccd 3f8ccccd 3f000000 dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 41f00000 40000000 3f800000 3f800000 3f000000 3ec00000 3e999999 3d4ccccc 3f8ccccc 3f000000 dededede 3f999999 3f199999
+    kernel words: amplification bf000000 3f800000 3f000000 3f199999 3d4ccccc 3f400000 pitch 3ec00000 3ec00000 3f8ccccc 3f999999 3e999999 00000000
+fd-sweep 3 (player 1 flight model true): in 41f00000,41700000,00000000,00000000,42480000,42700000,41200000 | kernel: matches | U/d: amp3 want 3f199999 got 3f19999a, amp4 want 3dcccccc got 3dcccccd, pitch0 want 3e999999 got 3e99999a, pitch1 want 3e999999 got 3e99999a, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 3ecccccc got 3ecccccd | U/c: matches | S/d: amp3 want 3f199999 got 3f19999a, amp4 want 3dcccccc got 3dcccccd, pitch0 want 3e999999 got 3e99999a, pitch1 want 3e999999 got 3e99999a, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 3ecccccc got 3ecccccd | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 41700000 3f800000 00000000 00000000 00000000 3e99999a 3ecccccd 3dcccccd 3f8ccccd 3f000000 dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 41700000 3f800000 00000000 00000000 00000000 3e999999 3ecccccc 3dcccccc 3f8ccccc 3f000000 dededede 3f999999 3f199999
+    kernel words: amplification 00000000 00000000 3f000000 3f199999 3dcccccc 3f400000 pitch 3e999999 3e999999 3f8ccccc 3f999999 3ecccccc 00000000
+fd-sweep 4 (player 1 flight model true): in 42480000,00000000,00000000,00000000,3f800000,42700000,40a00000 | kernel: matches | U/d: amp2 want 3e4ccccc got 3e4ccccd, amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f1c28f5 got 3f1c28f6, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | U/c: matches | S/d: amp2 want 3e4ccccc got 3e4ccccd, amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f1c28f5 got 3f1c28f6, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e99999a 3d4ccccd 3f1c28f6 3e4ccccd dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e999999 3d4ccccc 3f1c28f5 3e4ccccc dededede 3f999999 3f199999
+    kernel words: amplification 3f800000 00000000 3e4ccccc 3f199999 3d4ccccc 3f400000 pitch 3f000000 3f000000 3f1c28f5 3f999999 3e999999 00000000
+fd-sweep 5 (player 1 flight model true): in 42480000,00000000,00000000,00000000,3f800001,42700000,40a00000 | kernel: matches | U/d: amp2 want 3e4ccccc got 3e4ccccd, amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f1c28f5 got 3f1c28f6, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | U/c: matches | S/d: amp2 want 3e4ccccc got 3e4ccccd, amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f1c28f5 got 3f1c28f6, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e99999a 3d4ccccd 3f1c28f6 3e4ccccd dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e999999 3d4ccccc 3f1c28f5 3e4ccccc dededede 3f999999 3f199999
+    kernel words: amplification 3f800000 00000000 3e4ccccc 3f199999 3d4ccccc 3f400000 pitch 3f000000 3f000000 3f1c28f5 3f999999 3e999999 00000000
+fd-sweep 6 (player 1 flight model true): in 42480000,00000000,00000000,00000000,42480000,3f000000,40a00000 | kernel: matches | U/d: amp3 want 3e4ccccc got 3e4ccccd, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f1ae147 got 3f1ae148, pitch4 want 3e999999 got 3e99999a | U/c: matches | S/d: amp3 want 3e4ccccc got 3e4ccccd, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f1ae147 got 3f1ae148, pitch4 want 3e999999 got 3e99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e99999a 3d4ccccd 3f8ccccd 3f000000 dededede 3f1ae148 3e4ccccd
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e999999 3d4ccccc 3f8ccccc 3f000000 dededede 3f1ae147 3e4ccccc
+    kernel words: amplification 3f800000 00000000 3f000000 3e4ccccc 3d4ccccc 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f1ae147 3e999999 00000000
+fd-sweep 7 (player 1 flight model true): in 42480000,00000000,00000000,00000000,42480000,42700000,43480000 | kernel: matches | U/d: amp3 want 3f199999 got 3f19999a, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 400ccccc got 400ccccd | U/c: matches | S/d: amp3 want 3f199999 got 3f19999a, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a, pitch4 want 400ccccc got 400ccccd | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 400ccccd 3e800000 3f8ccccd 3f000000 dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 400ccccc 3e800000 3f8ccccc 3f000000 dededede 3f999999 3f199999
+    kernel words: amplification 3f800000 00000000 3f000000 3f199999 3e800000 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f999999 400ccccc 00000000
+fd-sweep 8 (player 1 flight model true): in 42480000,00000000,00000000,00000000,42480000,42700000,3f000000 | kernel: matches | U/d: amp3 want 3f199999 got 3f19999a, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a | U/c: matches | S/d: amp3 want 3f199999 got 3f19999a, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e570a3d 3ba3d70a 3f8ccccd 3f000000 dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e570a3d 3ba3d70a 3f8ccccc 3f000000 dededede 3f999999 3f199999
+    kernel words: amplification 3f800000 00000000 3f000000 3f199999 3ba3d70a 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f999999 3e570a3d 00000000
+fd-sweep 9 (player 1 flight model true): in 42c80000,00000000,00000000,00000000,00000000,42700000,40a00000 | kernel: matches | U/d: amp2 want 3e4ccccc got 3e4ccccd, amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f199999 got 3f19999a, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | U/c: matches | S/d: amp2 want 3e4ccccc got 3e4ccccd, amp3 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f199999 got 3f19999a, pitch3 want 3f999999 got 3f99999a, pitch4 want 3e999999 got 3e99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f800000 3e99999a 3d4ccccd 3f19999a 3e4ccccd dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f800000 3e999999 3d4ccccc 3f199999 3e4ccccc dededede 3f999999 3f199999
+    kernel words: amplification 3f800000 00000000 3e4ccccc 3f199999 3d4ccccc 3f400000 pitch 3f800000 3f800000 3f199999 3f999999 3e999999 00000000
+fd-sweep 10 (player 1 flight model true): in 42480000,00000000,00000000,00000000,42480000,42480000,40a00000 | kernel: matches | U/d: amp2 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch4 want 3e999999 got 3e99999a | U/c: matches | S/d: amp2 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch4 want 3e999999 got 3e99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e99999a 3d4ccccd 3f8ccccd 3f000000 3f19999a dededede dededede
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e999999 3d4ccccc 3f8ccccc 3f000000 3f199999 dededede dededede
+    kernel words: amplification 3f800000 00000000 3f199999 00000000 3d4ccccc 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f800000 3e999999 00000000
+fd-sweep 11 (player 1 flight model true): in 42480000,00000000,00000000,00000000,42480000,424c0000,40a00000 | kernel: matches | U/d: amp2 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch4 want 3e999999 got 3e99999a | U/c: matches | S/d: amp2 want 3f199999 got 3f19999a, amp4 want 3d4ccccc got 3d4ccccd, pitch2 want 3f8ccccc got 3f8ccccd, pitch4 want 3e999999 got 3e99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e99999a 3d4ccccd 3f8ccccd 3f000000 3f19999a dededede dededede
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 3e999999 3d4ccccc 3f8ccccc 3f000000 3f199999 dededede dededede
+    kernel words: amplification 3f800000 00000000 3f199999 00000000 3d4ccccc 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f800000 3e999999 00000000
+fd-sweep 12 (player 1 flight model true): in 42480000,00000000,00000000,00000000,42480000,424c0001,00000000 | kernel: matches | U/d: pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f8e147a got 3f8e147b | U/c: pitch3 want 3f8e147a got 3f8e147b | S/d: pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f8e147a got 3f8e147b | S/c: pitch3 want 3f8e147a got 3f8e147b
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 dededede dededede 3f8ccccd 3f000000 dededede 3f8e147b 3ed70a40
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 dededede dededede 3f8ccccc 3f000000 dededede 3f8e147b 3ed70a40
+    kernel words: amplification 3f800000 00000000 3f000000 3ed70a40 00000000 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f8e147a 3f800000 00000000
+fd-sweep 13 (player 1 flight model true): in 42480000,00000000,00000000,00000000,42480000,42700000,00000000 | kernel: matches | U/d: amp3 want 3f199999 got 3f19999a, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a | U/c: matches | S/d: amp3 want 3f199999 got 3f19999a, pitch2 want 3f8ccccc got 3f8ccccd, pitch3 want 3f999999 got 3f99999a | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 dededede dededede 3f8ccccd 3f000000 dededede 3f99999a 3f19999a
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 dededede dededede 3f8ccccc 3f000000 dededede 3f999999 3f199999
+    kernel words: amplification 3f800000 00000000 3f000000 3f199999 00000000 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f999999 3f800000 00000000
+fd-sweep 14 (player 1 flight model true): in 42480000,00000000,00000000,00000000,42480000,42480000,00000000 | kernel: matches | U/d: amp2 want 3f199999 got 3f19999a, pitch2 want 3f8ccccc got 3f8ccccd | U/c: matches | S/d: amp2 want 3f199999 got 3f19999a, pitch2 want 3f8ccccc got 3f8ccccd | S/c: matches
+    U/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    U/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] after [x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/d staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 dededede dededede 3f8ccccd 3f000000 3f19999a dededede dededede
+    S/c measured: before [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80] entered [x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80] after [x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80] restored [x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80]
+    S/c staged floats [0 EXTRA magnitude call, 1 acc_force, 2 slap_amp, 3 slap_amp bounded, 4 looping_amp, 5 looping_pitch, 6 apu_pitch, 7 apu_amp, 8 left_pitch, 9 left_amp, 10 left_amp x1.2, 11 right_pitch, 12 right_amp] = 00000000 00000000 00000000 00000000 3f800000 3f000000 dededede dededede 3f8ccccc 3f000000 3f199999 dededede dededede
+    kernel words: amplification 3f800000 00000000 3f199999 00000000 00000000 3f400000 pitch 3f000000 3f000000 3f8ccccc 3f800000 3f800000 00000000
+natural distinct inputs 261: rows differing from the oracle: kernel 0 | U/d 4 U/c 0 S/d 4 S/c 0 (AI helicopters without a flight model only)
+distinct measured states over every variant run (label and moment):
+    U/d before: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    U/d entered: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    U/d after: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    U/d restored: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    U/c before: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    U/c entered: x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80
+    U/c after: x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80
+    U/c restored: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    S/d before: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    S/d entered: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    S/d after: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    S/d restored: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    S/c before: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    S/c entered: x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80
+    S/c after: x87 cw=0f7f sw=0000 tw=ffff mxcsr=00007f80
+    S/c restored: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80
+    S/d after: x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80
+    S/c after: x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80
+    U/d after: x87 cw=037f sw=0020 tw=ffff mxcsr=00001f80
+    U/c after: x87 cw=0f7f sw=0020 tw=ffff mxcsr=00007f80
+floating-point boundaries: 1152 variant runs, 0 whose readback after the restoration differed from the baseline
+---- untouched assembly: the kernel env_ref_rotor_sound and its callees, the control's entry eech_rotor_control_run and the local functions it calls (the unmodified and the STAGED variant as emitted), and the stub control_magnitude, with their constant data; each section says if its label was not found
+capture status: complete
+==== csrc/env_ref.c: assembly of the unmodified source, compiled with -S -g0 added to the command above (exit exit status: 0:)
+---- function env_ref_rotor_sound
+env_ref_rotor_sound:
+.LFB68:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	pushl	%edi
+	pushl	%esi
+	pushl	%ebx
+	subl	$252, %esp
+	.cfi_offset 7, -12
+	.cfi_offset 6, -16
+	.cfi_offset 3, -20
+	call	__x86.get_pc_thunk.di
+	addl	$_GLOBAL_OFFSET_TABLE_, %edi
+	movl	8(%ebp), %ebx
+	leal	-56(%ebp), %ecx
+	movl	$0, %edx
+	movl	$32, %esi
+	movl	$0, %eax
+.L648:
+	movl	%edx, (%ecx,%eax)
+	movl	%edx, 4(%ecx,%eax)
+	addl	$8, %eax
+	cmpl	%esi, %eax
+	jb	.L648
+	movl	12(%ebp), %eax
+	movl	(%eax), %eax
+	movl	%eax, -232(%ebp)
+	movl	12(%ebp), %eax
+	movl	4(%eax), %eax
+	movl	%eax, -224(%ebp)
+	movl	16(%ebp), %edx
+	movl	$80, -228(%ebp)
+	movl	$0, %ecx
+	testb	$1, %dl
+	jne	.L754
+.L650:
+	testb	$2, %dl
+	jne	.L755
+.L651:
+	movl	-228(%ebp), %esi
+	andl	$-8, %esi
+	movl	$0, %eax
+.L652:
+	movl	%ecx, (%edx,%eax)
+	movl	%ecx, 4(%edx,%eax)
+	addl	$8, %eax
+	cmpl	%esi, %eax
+	jb	.L652
+	addl	%eax, %edx
+	testb	$4, -228(%ebp)
+	je	.L654
+	movl	$0, (%edx)
+	addl	$4, %edx
+.L654:
+	testb	$2, -228(%ebp)
+	je	.L655
+	movw	$0, (%edx)
+	addl	$2, %edx
+.L655:
+	testb	$1, -228(%ebp)
+	je	.L656
+	movb	$0, (%edx)
+.L656:
+	movl	20(%ebp), %edx
+	movl	$92, -228(%ebp)
+	movl	$0, %ecx
+	testb	$1, %dl
+	jne	.L756
+.L657:
+	testb	$2, %dl
+	jne	.L757
+.L658:
+	movl	-228(%ebp), %esi
+	andl	$-8, %esi
+	movl	$0, %eax
+.L659:
+	movl	%ecx, (%edx,%eax)
+	movl	%ecx, 4(%edx,%eax)
+	addl	$8, %eax
+	cmpl	%esi, %eax
+	jb	.L659
+	addl	%eax, %edx
+	testb	$4, -228(%ebp)
+	je	.L661
+	movl	$0, (%edx)
+	addl	$4, %edx
+.L661:
+	testb	$2, -228(%ebp)
+	je	.L662
+	movw	$0, (%edx)
+	addl	$2, %edx
+.L662:
+	testb	$1, -228(%ebp)
+	je	.L663
+	movb	$0, (%edx)
+.L663:
+	leal	-88(%ebp), %ecx
+	movl	$0, %edx
+	movl	$32, %esi
+	movl	$0, %eax
+.L664:
+	movl	%edx, (%ecx,%eax)
+	movl	%edx, 4(%ecx,%eax)
+	addl	$8, %eax
+	cmpl	%esi, %eax
+	jb	.L664
+	leal	-120(%ebp), %ecx
+	movl	$0, %edx
+	movl	$32, %esi
+	movl	$0, %eax
+.L666:
+	movl	%edx, (%ecx,%eax)
+	movl	%edx, 4(%ecx,%eax)
+	addl	$8, %eax
+	cmpl	%esi, %eax
+	jb	.L666
+	leal	-144(%ebp), %ecx
+	movl	$0, %edx
+	movl	$24, %esi
+	movl	$0, %eax
+.L668:
+	movl	%edx, (%ecx,%eax)
+	movl	%edx, 4(%ecx,%eax)
+	addl	$8, %eax
+	cmpl	%esi, %eax
+	jb	.L668
+	leal	-168(%ebp), %ecx
+	movl	$0, %edx
+	movl	$24, %esi
+	movl	$0, %eax
+.L670:
+	movl	%edx, (%ecx,%eax)
+	movl	%edx, 4(%ecx,%eax)
+	addl	$8, %eax
+	cmpl	%esi, %eax
+	jb	.L670
+	cmpl	$2, -232(%ebp)
+	ja	.L758
+	cmpl	$1, -224(%ebp)
+	ja	.L759
+	movl	(%ebx), %eax
+	andl	$2139095040, %eax
+	cmpl	$2139095040, %eax
+	je	.L675
+	cmpl	$1, -232(%ebp)
+	sete	%dl
+	movl	-224(%ebp), %esi
+	testl	%esi, %esi
+	setne	%al
+	andb	%al, %dl
+	movb	%dl, -228(%ebp)
+	testl	%esi, %esi
+	je	.L677
+	movl	4(%ebx), %eax
+	andl	$2139095040, %eax
+	cmpl	$2139095040, %eax
+	je	.L678
+	movl	8(%ebx), %eax
+	andl	$2139095040, %eax
+	cmpl	$2139095040, %eax
+	je	.L678
+	movl	12(%ebx), %eax
+	andl	$2139095040, %eax
+	cmpl	$2139095040, %eax
+	je	.L678
+	cmpb	$0, -228(%ebp)
+	je	.L677
+	movl	16(%ebx), %eax
+	andl	$2139095040, %eax
+	cmpl	$2139095040, %eax
+	je	.L680
+	movl	20(%ebx), %eax
+	andl	$2139095040, %eax
+	cmpl	$2139095040, %eax
+	je	.L680
+	movl	24(%ebx), %eax
+	andl	$2139095040, %eax
+	cmpl	$2139095040, %eax
+	je	.L680
+.L677:
+	leal	-56(%ebp), %eax
+	call	fp_save
+	movl	28(%ebp), %edx
+	movl	24(%ebp), %eax
+	call	fp_enter_canonical
+	movl	%eax, %esi
+	testl	%eax, %eax
+	jne	.L760
+	movl	4(%ebx), %eax
+	movl	%eax, -180(%ebp)
+	movl	8(%ebx), %eax
+	movl	%eax, -176(%ebp)
+	movl	12(%ebx), %eax
+	movl	%eax, -172(%ebp)
+	flds	.LC81@GOTOFF(%edi)
+	flds	(%ebx)
+	fcomi	%st(1), %st
+	fstp	%st(1)
+	jnb	.L719
+	flds	.LC82@GOTOFF(%edi)
+	fcomi	%st(1), %st
+	jnb	.L720
+	fld	%st(1)
+	fsubp	%st, %st(1)
+	fdivs	.LC83@GOTOFF(%edi)
+	fstps	-236(%ebp)
+	jmp	.L682
+.L754:
+	movb	$0, (%edx)
+	movl	16(%ebp), %eax
+	leal	1(%eax), %edx
+	movl	$79, -228(%ebp)
+	jmp	.L650
+.L755:
+	movw	$0, (%edx)
+	addl	$2, %edx
+	subl	$2, -228(%ebp)
+	jmp	.L651
+.L756:
+	movb	$0, (%edx)
+	movl	20(%ebp), %eax
+	leal	1(%eax), %edx
+	movl	$91, -228(%ebp)
+	jmp	.L657
+.L757:
+	movw	$0, (%edx)
+	addl	$2, %edx
+	subl	$2, -228(%ebp)
+	jmp	.L658
+.L758:
+	movl	-232(%ebp), %eax
+	movl	%eax, 12(%esp)
+	leal	.LC76@GOTOFF(%edi), %eax
+	movl	%eax, 8(%esp)
+	movl	28(%ebp), %eax
+	movl	%eax, 4(%esp)
+	movl	24(%ebp), %eax
+	movl	%eax, (%esp)
+	call	fail
+	jmp	.L647
+.L759:
+	movl	-224(%ebp), %eax
+	movl	%eax, 12(%esp)
+	leal	.LC77@GOTOFF(%edi), %eax
+	movl	%eax, 8(%esp)
+	movl	28(%ebp), %eax
+	movl	%eax, 4(%esp)
+	movl	24(%ebp), %eax
+	movl	%eax, (%esp)
+	call	fail
+	jmp	.L647
+.L675:
+	leal	.LC78@GOTOFF(%edi), %eax
+	movl	%eax, 8(%esp)
+	movl	28(%ebp), %eax
+	movl	%eax, 4(%esp)
+	movl	24(%ebp), %eax
+	movl	%eax, (%esp)
+	call	fail
+	jmp	.L647
+.L678:
+	leal	.LC79@GOTOFF(%edi), %eax
+	movl	%eax, 8(%esp)
+	movl	28(%ebp), %eax
+	movl	%eax, 4(%esp)
+	movl	24(%ebp), %eax
+	movl	%eax, (%esp)
+	call	fail
+.L647:
+	addl	$252, %esp
+	popl	%ebx
+	.cfi_remember_state
+	.cfi_restore 3
+	popl	%esi
+	.cfi_restore 6
+	popl	%edi
+	.cfi_restore 7
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa 4, 4
+	ret
+.L680:
+	.cfi_restore_state
+	leal	.LC80@GOTOFF(%edi), %eax
+	movl	%eax, 8(%esp)
+	movl	28(%ebp), %eax
+	movl	%eax, 4(%esp)
+	movl	24(%ebp), %eax
+	movl	%eax, (%esp)
+	call	fail
+	jmp	.L647
+.L760:
+	leal	-56(%ebp), %eax
+	movl	28(%ebp), %edi
+	movl	%edi, (%esp)
+	movl	24(%ebp), %ecx
+	movl	$-1, %edx
+	call	fp_leave
+	jmp	.L647
+.L719:
+	fld1
+	fstps	-236(%ebp)
+.L682:
+	cmpl	$0, -232(%ebp)
+	je	.L721
+	fdivs	.LC38@GOTOFF(%edi)
+	fstps	-232(%ebp)
+.L683:
+	cmpl	$0, -224(%ebp)
+	jne	.L761
+	fldz
+	fld1
+	flds	.LC75@GOTOFF(%edi)
+	fld	%st(0)
+	fld	%st(3)
+	fxch	%st(3)
+	fsts	-228(%ebp)
+	fld	%st(0)
+.L684:
+	fldz
+	fstps	-240(%ebp)
+	flds	-240(%ebp)
+	flds	-236(%ebp)
+	fucomip	%st(1), %st
+	fstp	%st(0)
+	jp	.L703
+	jne	.L703
+	movl	-224(%ebp), %edi
+	movl	$0, -88(%ebp,%edi,4)
+	leal	1(%edi), %eax
+	movl	$0, -120(%ebp,%edi,4)
+	movl	$0, -88(%ebp,%eax,4)
+	addl	$2, %edi
+	movl	%edi, -224(%ebp)
+	movl	$1, -120(%ebp,%eax,4)
+.L705:
+	flds	-236(%ebp)
+	fsub	%st(6), %st
+	fstps	-144(%ebp)
+	flds	-232(%ebp)
+	fsts	-168(%ebp)
+	fxch	%st(6)
+	fstps	-140(%ebp)
+	fxch	%st(5)
+	fstps	-164(%ebp)
+	fxch	%st(4)
+	fstps	-136(%ebp)
+	fstps	-160(%ebp)
+	flds	-228(%ebp)
+	fstps	-132(%ebp)
+	fstps	-156(%ebp)
+	fstps	-128(%ebp)
+	fstps	-152(%ebp)
+	movl	$0x3f400000, -124(%ebp)
+	leal	-144(%ebp), %eax
+	leal	-168(%ebp), %eax
+	leal	-56(%ebp), %eax
+	movl	28(%ebp), %edi
+	movl	%edi, (%esp)
+	movl	24(%ebp), %ecx
+	movl	$0, %edx
+	call	fp_leave
+	testl	%eax, %eax
+	jne	.L647
+	leal	-144(%ebp), %edx
+	movl	16(%ebp), %ecx
+	movl	%edx, %esi
+	movl	$24, -228(%ebp)
+	testb	$1, %cl
+	jne	.L762
+.L706:
+	testb	$2, %cl
+	jne	.L763
+.L707:
+	movl	-228(%ebp), %edi
+	andl	$-4, %edi
+	movl	$0, %edx
+	movl	-224(%ebp), %ebx
+	movl	%eax, -232(%ebp)
+.L708:
+	movl	(%esi,%edx), %eax
+	movl	%eax, (%ecx,%edx)
+	addl	$4, %edx
+	cmpl	%edi, %edx
+	jb	.L708
+	movl	%ebx, -224(%ebp)
+	movl	-232(%ebp), %eax
+	addl	%edx, %ecx
+	addl	%edx, %esi
+	movl	$0, %edx
+	testb	$2, -228(%ebp)
+	je	.L710
+	movzwl	(%esi), %edi
+	movw	%di, (%ecx)
+	movl	$2, %edx
+.L710:
+	testb	$1, -228(%ebp)
+	je	.L711
+	movzbl	(%esi,%edx), %ebx
+	movb	%bl, (%ecx,%edx)
+.L711:
+	movl	16(%ebp), %edi
+	leal	24(%edi), %edx
+	leal	-168(%ebp), %edi
+	movl	%edx, %ecx
+	movl	%edi, %esi
+	movl	$24, -228(%ebp)
+	testb	$1, %dl
+	jne	.L764
+.L712:
+	testb	$2, %cl
+	jne	.L765
+.L713:
+	movl	-228(%ebp), %edi
+	andl	$-4, %edi
+	movl	$0, %edx
+	movl	-224(%ebp), %ebx
+	movl	%eax, -232(%ebp)
+.L714:
+	movl	(%esi,%edx), %eax
+	movl	%eax, (%ecx,%edx)
+	addl	$4, %edx
+	cmpl	%edi, %edx
+	jb	.L714
+	movl	%ebx, -224(%ebp)
+	movl	-232(%ebp), %eax
+	addl	%edx, %ecx
+	addl	%edx, %esi
+	movl	$0, %edx
+	testb	$2, -228(%ebp)
+	je	.L716
+	movzwl	(%esi), %edi
+	movw	%di, (%ecx)
+	movl	$2, %edx
+.L716:
+	testb	$1, -228(%ebp)
+	je	.L717
+	movzbl	(%esi,%edx), %ebx
+	movb	%bl, (%ecx,%edx)
+.L717:
+	movl	20(%ebp), %edi
+	movl	$3, (%edi)
+	movl	$3, 4(%edi)
+	movl	$3, 8(%edi)
+	movl	$3, 12(%edi)
+	movl	$3, 16(%edi)
+	movl	$1, 20(%edi)
+	movl	16(%ebp), %edi
+	movl	$0, 44(%edi)
+	movl	20(%ebp), %edi
+	movl	-224(%ebp), %ebx
+	movl	%ebx, 24(%edi)
+	movl	%eax, %edx
+.L718:
+	movl	-88(%ebp,%edx,4), %ecx
+	movl	20(%ebp), %edi
+	movl	%ecx, 28(%edi,%edx,4)
+	movl	-120(%ebp,%edx,4), %ecx
+	movl	%ecx, 60(%edi,%edx,4)
+	incl	%edx
+	cmpl	%edx, %ebx
+	jne	.L718
+	jmp	.L647
+.L720:
+	fstp	%st(0)
+	fldz
+	fstps	-236(%ebp)
+	jmp	.L682
+.L721:
+	fstp	%st(0)
+	fld1
+	fstps	-232(%ebp)
+	jmp	.L683
+.L761:
+	leal	-180(%ebp), %eax
+	call	rotor_vector_magnitude
+	fdivs	.LC83@GOTOFF(%edi)
+	fstps	-208(%ebp)
+	flds	-208(%ebp)
+	fmuls	-236(%ebp)
+	fstps	-204(%ebp)
+	flds	-204(%ebp)
+	fldz
+	fsts	-224(%ebp)
+	fcomip	%st(1), %st
+	ja	.L723
+	fld1
+	fsts	-224(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L766
+	fstp	%st(0)
+	jmp	.L685
+.L723:
+	fstp	%st(0)
+	fldz
+	jmp	.L685
+.L766:
+	fstp	%st(1)
+.L685:
+	cmpb	$0, -228(%ebp)
+	je	.L724
+	movl	24(%ebx), %eax
+	flds	16(%ebx)
+	flds	20(%ebx)
+	fld	%st(1)
+	fsub	%st(1), %st
+	fabs
+	fld	%st(2)
+	fdivs	.LC38@GOTOFF(%edi)
+	fstps	-200(%ebp)
+	flds	-200(%ebp)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L725
+	fldl	.LC72@GOTOFF(%edi)
+	fstl	-224(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L767
+	fstp	%st(0)
+	jmp	.L687
+.L725:
+	fstp	%st(0)
+	fldz
+	jmp	.L687
+.L767:
+	fstp	%st(1)
+.L687:
+	faddl	.LC84@GOTOFF(%edi)
+	fstps	-224(%ebp)
+	flds	-224(%ebp)
+	fld	%st(3)
+	fsubs	.LC37@GOTOFF(%edi)
+	fmull	.LC85@GOTOFF(%edi)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L726
+	fldl	.LC73@GOTOFF(%edi)
+	fstl	-224(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L768
+	fstp	%st(0)
+	jmp	.L689
+.L726:
+	fstp	%st(0)
+	fldz
+	jmp	.L689
+.L768:
+	fstp	%st(1)
+.L689:
+	faddl	.LC86@GOTOFF(%edi)
+	fstps	-224(%ebp)
+	flds	-224(%ebp)
+	fld1
+	fxch	%st(5)
+	fcomip	%st(5), %st
+	fxch	%st(2)
+	seta	%dl
+	movzbl	%dl, %edx
+	movl	%edx, -88(%ebp)
+	movl	$2, -120(%ebp)
+	fcomip	%st(4), %st
+	fstp	%st(3)
+	jbe	.L751
+	fld	%st(1)
+	fdivs	.LC38@GOTOFF(%edi)
+	fstps	-196(%ebp)
+	flds	-196(%ebp)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L727
+	fldl	.LC72@GOTOFF(%edi)
+	fstl	-224(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L769
+	fstp	%st(0)
+	jmp	.L693
+.L727:
+	fstp	%st(0)
+	fldz
+	jmp	.L693
+.L769:
+	fstp	%st(1)
+.L693:
+	faddl	.LC84@GOTOFF(%edi)
+	fstps	-224(%ebp)
+	flds	-224(%ebp)
+	fld	%st(2)
+	fsubs	.LC62@GOTOFF(%edi)
+	fmull	.LC87@GOTOFF(%edi)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L728
+	fldl	.LC73@GOTOFF(%edi)
+	fstl	-224(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L770
+	fstp	%st(0)
+	jmp	.L695
+.L728:
+	fstp	%st(0)
+	fldz
+	jmp	.L695
+.L770:
+	fstp	%st(1)
+.L695:
+	faddl	.LC86@GOTOFF(%edi)
+	fstps	-228(%ebp)
+	fld1
+	fxch	%st(3)
+	fcomip	%st(3), %st
+	fstp	%st(2)
+	seta	%dl
+	movzbl	%dl, %edx
+	movl	%edx, -84(%ebp)
+.L697:
+	movl	$3, -116(%ebp)
+	movl	%eax, -224(%ebp)
+	fldz
+	flds	-224(%ebp)
+	fcomi	%st(1), %st
+	fstp	%st(1)
+	jbe	.L752
+	fldl	.LC86@GOTOFF(%edi)
+	fstpl	-192(%ebp)
+	fld	%st(0)
+	fldl	.LC87@GOTOFF(%edi)
+	fstl	-224(%ebp)
+	fmulp	%st, %st(2)
+	fldz
+	fcomip	%st(2), %st
+	ja	.L729
+	flds	.LC74@GOTOFF(%edi)
+	fxch	%st(2)
+	fcomi	%st(2), %st
+	jbe	.L771
+	fstp	%st(0)
+	fxch	%st(1)
+	jmp	.L700
+.L751:
+	fstp	%st(1)
+	fldl	.LC88@GOTOFF(%edi)
+	fstl	-224(%ebp)
+	fmulp	%st, %st(1)
+	fstps	-224(%ebp)
+	flds	-224(%ebp)
+	fld1
+	fldz
+	fstps	-228(%ebp)
+	fxch	%st(1)
+	jmp	.L697
+.L729:
+	fstp	%st(1)
+	fldz
+	jmp	.L700
+.L771:
+	fstp	%st(2)
+	fxch	%st(1)
+.L700:
+	fldl	-192(%ebp)
+	faddp	%st, %st(1)
+	fstps	-224(%ebp)
+	flds	-224(%ebp)
+	fxch	%st(1)
+	fmull	.LC85@GOTOFF(%edi)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L730
+	flds	.LC3@GOTOFF(%edi)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	fstp	%st(1)
+	ja	.L731
+	fstps	-224(%ebp)
+	flds	-224(%ebp)
+	jmp	.L702
+.L730:
+	fstp	%st(0)
+	fldz
+.L702:
+	fxch	%st(4)
+	fxch	%st(2)
+	movl	$1, -80(%ebp)
+	movl	$4, -112(%ebp)
+	movl	$3, -224(%ebp)
+	jmp	.L684
+.L731:
+	fstp	%st(0)
+	flds	.LC3@GOTOFF(%edi)
+	jmp	.L702
+.L752:
+	fstp	%st(0)
+	movl	$4, -112(%ebp)
+	fld1
+	fldz
+	fxch	%st(4)
+	fxch	%st(2)
+	movl	$3, -224(%ebp)
+	jmp	.L684
+.L724:
+	movl	%esi, -224(%ebp)
+	fld1
+	flds	.LC75@GOTOFF(%edi)
+	fld	%st(0)
+	fldz
+	fxch	%st(3)
+	fsts	-228(%ebp)
+	fld	%st(0)
+	jmp	.L684
+.L703:
+	movl	-224(%ebp), %edi
+	movl	$1, -88(%ebp,%edi,4)
+	leal	1(%edi), %eax
+	movl	$0, -120(%ebp,%edi,4)
+	movl	$1, -88(%ebp,%eax,4)
+	addl	$2, %edi
+	movl	%edi, -224(%ebp)
+	movl	$1, -120(%ebp,%eax,4)
+	jmp	.L705
+.L762:
+	movl	%ecx, %edi
+	movzbl	-144(%ebp), %ecx
+	movb	%cl, (%edi)
+	movl	16(%ebp), %edi
+	leal	1(%edi), %ecx
+	leal	-143(%ebp), %esi
+	movl	$23, -228(%ebp)
+	jmp	.L706
+.L763:
+	movzwl	(%esi), %edi
+	movw	%di, (%ecx)
+	leal	2(%ecx), %ecx
+	leal	2(%esi), %esi
+	subl	$2, -228(%ebp)
+	jmp	.L707
+.L764:
+	movl	16(%ebp), %esi
+	movzbl	-168(%ebp), %ebx
+	movb	%bl, 24(%esi)
+	leal	1(%edx), %ecx
+	leal	-167(%ebp), %esi
+	movl	$23, -228(%ebp)
+	jmp	.L712
+.L765:
+	movzwl	(%esi), %edi
+	movw	%di, (%ecx)
+	leal	2(%ecx), %ecx
+	leal	2(%esi), %esi
+	subl	$2, -228(%ebp)
+	jmp	.L713
+	.cfi_endproc
+---- constant .LC81
+.LC81:
+	.long	1110704128
+	.align 4
+---- constant .LC82
+.LC82:
+	.long	1106247680
+	.align 4
+---- constant .LC83
+.LC83:
+	.long	1097859072
+---- constant .LC76
+.LC76:
+	.string	"the player role %d is not 0 (AI), 1 (local) or 2 (remote)"
+	.align 4
+---- constant .LC77
+.LC77:
+	.string	"the flight model flag %d is neither 0 nor 1"
+	.align 4
+---- constant .LC78
+.LC78:
+	.string	"the main rotor rpm is not a finite number"
+	.align 4
+---- constant .LC79
+.LC79:
+	.string	"the acceleration is not a finite vector"
+	.align 4
+---- constant .LC80
+.LC80:
+	.string	"an engine or APU rpm is not a finite number"
+---- constant .LC38
+.LC38:
+	.long	1120403456
+	.align 4
+---- constant .LC75
+.LC75:
+	.long	1067869798
+	.align 4
+---- constant .LC72
+.LC72:
+	.long	-1717986918
+	.long	1073322393
+	.align 8
+---- constant .LC84
+.LC84:
+	.long	858993459
+	.long	1071854387
+	.align 8
+---- constant .LC37
+.LC37:
+	.long	1101004800
+	.align 4
+---- constant .LC85
+.LC85:
+	.long	1202590843
+	.long	1065646817
+	.align 8
+---- constant .LC73
+.LC73:
+	.long	-1717986918
+	.long	1071225241
+---- constant .LC86
+.LC86:
+	.long	-1717986918
+	.long	1070176665
+	.align 8
+---- constant .LC62
+.LC62:
+	.long	1109393408
+	.align 4
+---- constant .LC87
+.LC87:
+	.long	1202590843
+	.long	1066695393
+	.align 8
+---- constant .LC74
+.LC74:
+	.long	1073741824
+	.align 4
+---- constant .LC88
+.LC88:
+	.long	858993459
+	.long	1072902963
+---- constant .LC3
+.LC3:
+	.long	1048576000
+---- local callee (executed form as emitted) __x86.get_pc_thunk.di
+__x86.get_pc_thunk.di:
+.LFB73:
+	.cfi_startproc
+	movl	(%esp), %edi
+	ret
+	.cfi_endproc
+---- local callee (executed form as emitted) fp_save
+fp_save:
+.LFB42:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	subl	$16, %esp
+#APP
+# 1086 "csrc/env_ref.c" 1
+	fnstenv (%eax)
+# 0 "" 2
+# 1088 "csrc/env_ref.c" 1
+	fldenv (%eax)
+# 0 "" 2
+# 1059 "csrc/env_ref.c" 1
+	stmxcsr -4(%ebp)
+# 0 "" 2
+#NO_APP
+	movl	-4(%ebp), %edx
+	movl	%edx, 28(%eax)
+	movl	%ebp, %esp
+	.cfi_def_cfa_register 4
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa_offset 4
+	ret
+	.cfi_endproc
+---- local callee (executed form as emitted) fp_enter_canonical
+fp_enter_canonical:
+.LFB44:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	subl	$40, %esp
+	movl	%ebx, -4(%ebp)
+	.cfi_offset 3, -12
+	call	__x86.get_pc_thunk.bx
+	addl	$_GLOBAL_OFFSET_TABLE_, %ebx
+	movl	%eax, %ecx
+	movw	$3967, -10(%ebp)
+	movw	$0, -12(%ebp)
+#APP
+# 1138 "csrc/env_ref.c" 1
+	fldcw -10(%ebp)
+# 0 "" 2
+#NO_APP
+	movl	$32640, -16(%ebp)
+#APP
+# 1066 "csrc/env_ref.c" 1
+	ldmxcsr -16(%ebp)
+# 0 "" 2
+# 1141 "csrc/env_ref.c" 1
+	fnstcw -12(%ebp)
+# 0 "" 2
+#NO_APP
+	movzwl	-12(%ebp), %eax
+	cmpl	$3967, %eax
+	je	.L96
+	leal	.LC18@GOTOFF(%ebx), %eax
+	movl	%eax, 8(%esp)
+	movl	%edx, 4(%esp)
+	movl	%ecx, (%esp)
+	call	fail
+.L95:
+	movl	-4(%ebp), %ebx
+	movl	%ebp, %esp
+	.cfi_remember_state
+	.cfi_restore 3
+	.cfi_def_cfa_register 4
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa_offset 4
+	ret
+.L96:
+	.cfi_restore_state
+#APP
+# 1059 "csrc/env_ref.c" 1
+	stmxcsr -16(%ebp)
+# 0 "" 2
+#NO_APP
+	movl	$0, %eax
+	cmpl	$32640, -16(%ebp)
+	je	.L95
+	leal	.LC19@GOTOFF(%ebx), %eax
+	movl	%eax, 8(%esp)
+	movl	%edx, 4(%esp)
+	movl	%ecx, (%esp)
+	call	fail
+	jmp	.L95
+	.cfi_endproc
+---- constant .LC18
+.LC18:
+	.string	"the x87 control word could not be set to the canonical arithmetic environment"
+	.align 4
+---- constant .LC19
+.LC19:
+	.string	"MXCSR could not be set to the canonical arithmetic environment (round toward zero, every exception masked, flush-to-zero and denormals-are-zero off)"
+---- local callee (executed form as emitted) fail
+fail:
+.LFB22:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	subl	$24, %esp
+	movl	%ebx, -4(%ebp)
+	.cfi_offset 3, -12
+	call	__x86.get_pc_thunk.bx
+	addl	$_GLOBAL_OFFSET_TABLE_, %ebx
+	movl	8(%ebp), %eax
+	testl	%eax, %eax
+	je	.L48
+	cmpl	$0, 12(%ebp)
+	jne	.L50
+.L48:
+	movl	$-1, %eax
+	movl	-4(%ebp), %ebx
+	movl	%ebp, %esp
+	.cfi_remember_state
+	.cfi_restore 3
+	.cfi_def_cfa_register 4
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa_offset 4
+	ret
+.L50:
+	.cfi_restore_state
+	leal	20(%ebp), %edx
+	movl	%edx, 12(%esp)
+	movl	16(%ebp), %edx
+	movl	%edx, 8(%esp)
+	movl	12(%ebp), %ecx
+	movl	%ecx, 4(%esp)
+	movl	%eax, (%esp)
+	call	vsnprintf@PLT
+	jmp	.L48
+	.cfi_endproc
+---- local callee (executed form as emitted) fp_leave
+fp_leave:
+.LFB46:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	pushl	%edi
+	pushl	%esi
+	pushl	%ebx
+	subl	$92, %esp
+	.cfi_offset 7, -12
+	.cfi_offset 6, -16
+	.cfi_offset 3, -20
+	call	__x86.get_pc_thunk.di
+	addl	$_GLOBAL_OFFSET_TABLE_, %edi
+	movl	%edi, -72(%ebp)
+	movl	%edx, -60(%ebp)
+	movl	%ecx, -76(%ebp)
+	movzbl	1(%eax), %edx
+	sall	$8, %edx
+	movzbl	(%eax), %ecx
+	orl	%ecx, %edx
+	movl	%edx, -64(%ebp)
+	movzbl	5(%eax), %edx
+	sall	$8, %edx
+	movzbl	4(%eax), %ecx
+	orl	%ecx, %edx
+	movl	%edx, -68(%ebp)
+	movzbl	9(%eax), %edx
+	sall	$8, %edx
+	movzbl	8(%eax), %ecx
+	movl	%edx, %ebx
+	orl	%ecx, %ebx
+#APP
+# 1171 "csrc/env_ref.c" 1
+	fldenv (%eax)
+# 0 "" 2
+#NO_APP
+	movl	28(%eax), %edx
+	movl	%edx, -52(%ebp)
+#APP
+# 1066 "csrc/env_ref.c" 1
+	ldmxcsr -52(%ebp)
+# 0 "" 2
+#NO_APP
+	leal	-52(%ebp), %ecx
+	movl	$0, %esi
+	movl	$24, %edi
+	movl	$0, %edx
+.L108:
+	movl	%esi, (%ecx,%edx)
+	movl	%esi, 4(%ecx,%edx)
+	addl	$8, %edx
+	cmpl	%edi, %edx
+	jb	.L108
+	movl	$0, (%ecx,%edx)
+#APP
+# 1074 "csrc/env_ref.c" 1
+	fnstenv -52(%ebp)
+# 0 "" 2
+# 1075 "csrc/env_ref.c" 1
+	fldenv -52(%ebp)
+# 0 "" 2
+#NO_APP
+	movzbl	-51(%ebp), %edx
+	sall	$8, %edx
+	movzbl	-52(%ebp), %ecx
+	orl	%ecx, %edx
+	movzbl	-47(%ebp), %ecx
+	sall	$8, %ecx
+	movzbl	-48(%ebp), %esi
+	orl	%esi, %ecx
+	movzbl	-43(%ebp), %esi
+	sall	$8, %esi
+	movzbl	-44(%ebp), %edi
+	orl	%edi, %esi
+#APP
+# 1059 "csrc/env_ref.c" 1
+	stmxcsr -52(%ebp)
+# 0 "" 2
+#NO_APP
+	cmpl	%ecx, -68(%ebp)
+	setne	%cl
+	cmpl	%edx, -64(%ebp)
+	setne	%dl
+	orb	%cl, %dl
+	movl	-52(%ebp), %edi
+	cmpl	%edi, 28(%eax)
+	setne	%al
+	orb	%al, %dl
+	cmpl	%esi, %ebx
+	setne	%al
+	orb	%dl, %al
+	jne	.L113
+.L110:
+	movl	-60(%ebp), %eax
+	addl	$92, %esp
+	popl	%ebx
+	.cfi_remember_state
+	.cfi_restore 3
+	popl	%esi
+	.cfi_restore 6
+	popl	%edi
+	.cfi_restore 7
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa 4, 4
+	ret
+.L113:
+	.cfi_restore_state
+	movl	-72(%ebp), %eax
+	leal	.LC23@GOTOFF(%eax), %eax
+	movl	%eax, 8(%esp)
+	movl	8(%ebp), %eax
+	movl	%eax, 4(%esp)
+	movl	-76(%ebp), %eax
+	movl	%eax, (%esp)
+	call	fail
+	movl	%eax, -60(%ebp)
+	jmp	.L110
+	.cfi_endproc
+---- constant .LC23
+.LC23:
+	.string	"the caller's floating-point environment did not read back as saved: the answer is withheld"
+---- local callee (executed form as emitted) rotor_vector_magnitude
+rotor_vector_magnitude:
+.LFB67:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	subl	$40, %esp
+	movl	%ebx, -4(%ebp)
+	.cfi_offset 3, -12
+	call	__x86.get_pc_thunk.bx
+	addl	$_GLOBAL_OFFSET_TABLE_, %ebx
+	flds	(%eax)
+	flds	4(%eax)
+	flds	8(%eax)
+	fxch	%st(2)
+	fmul	%st(0), %st
+	fxch	%st(1)
+	fmul	%st(0), %st
+	faddp	%st, %st(1)
+	fxch	%st(1)
+	fmul	%st(0), %st
+	faddp	%st, %st(1)
+	fldz
+	fsts	-12(%ebp)
+	fucomip	%st(1), %st
+	ja	.L75
+	fsqrt
+.L70:
+	movl	-4(%ebp), %ebx
+	movl	%ebp, %esp
+	.cfi_remember_state
+	.cfi_restore 3
+	.cfi_def_cfa_register 4
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa_offset 4
+	ret
+.L75:
+	.cfi_restore_state
+	fstps	(%esp)
+	call	sqrtf@PLT
+	jmp	.L70
+	.cfi_endproc
+---- calls to symbols this translation unit does not define: []
+==== tests/csrc/rotor_control.c: assembly of the unmodified source, compiled with -S -g0 added to the command above (exit exit status: 0:)
+---- function eech_rotor_control_run
+eech_rotor_control_run:
+.LFB2:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	pushl	%esi
+	pushl	%ebx
+	subl	$48, %esp
+	.cfi_offset 6, -12
+	.cfi_offset 3, -16
+	call	__x86.get_pc_thunk.bx
+	addl	$_GLOBAL_OFFSET_TABLE_, %ebx
+	movl	20(%ebp), %esi
+	movl	$0, -28(%ebp)
+	movl	$0, -24(%ebp)
+	movl	$0, -20(%ebp)
+	movl	$0, -16(%ebp)
+	movl	$0, -12(%ebp)
+	call	control_reset@PLT
+	movl	$0, -24(%ebp)
+	movl	$0, -16(%ebp)
+	movl	$20, -28(%ebp)
+	leal	control_helicopter@GOTOFF(%ebx), %eax
+	movl	%eax, -12(%ebp)
+	movl	(%esi), %eax
+	movl	%eax, control_helicopter@GOTOFF(%ebx)
+	movl	4(%esi), %eax
+	movl	%eax, control_dynamics@GOTOFF(%ebx)
+	movl	8(%esi), %eax
+	movl	%eax, 4+control_dynamics@GOTOFF(%ebx)
+	movl	12(%esi), %eax
+	movl	%eax, 8+control_dynamics@GOTOFF(%ebx)
+	movl	16(%esi), %eax
+	movl	%eax, 12+control_dynamics@GOTOFF(%ebx)
+	movl	20(%esi), %eax
+	movl	%eax, 16+control_dynamics@GOTOFF(%ebx)
+	movl	24(%esi), %eax
+	movl	%eax, 20+control_dynamics@GOTOFF(%ebx)
+	movl	12(%ebp), %eax
+	movl	%eax, -20(%ebp)
+	movl	$0, %eax
+	cmpl	$0, 16(%ebp)
+	je	.L159
+	leal	control_dynamics@GOTOFF(%ebx), %eax
+.L159:
+	movl	control_current_flight_dynamics@GOT(%ebx), %edx
+	movl	%eax, (%edx)
+	cmpl	$0, 8(%ebp)
+	je	.L160
+	leal	-28(%ebp), %eax
+	movl	%eax, (%esp)
+	call	control_original_staged@PLT
+.L161:
+	movl	control_current_flight_dynamics@GOT(%ebx), %eax
+	movl	$0, (%eax)
+	movl	24(%ebp), %eax
+	movl	%eax, (%esp)
+	call	control_written_words@PLT
+	movl	28(%ebp), %eax
+	movl	%eax, (%esp)
+	call	control_stage_words@PLT
+	addl	$48, %esp
+	popl	%ebx
+	.cfi_remember_state
+	.cfi_restore 3
+	popl	%esi
+	.cfi_restore 6
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa 4, 4
+	ret
+.L160:
+	.cfi_restore_state
+	leal	-28(%ebp), %eax
+	movl	%eax, (%esp)
+	call	control_original_unmodified@PLT
+	jmp	.L161
+	.cfi_endproc
+---- local callee (executed form as emitted) __x86.get_pc_thunk.bx
+__x86.get_pc_thunk.bx:
+.LFB5:
+	.cfi_startproc
+	movl	(%esp), %ebx
+	ret
+	.cfi_endproc
+---- local callee (executed form as emitted) control_original_staged
+control_original_staged:
+.LFB1:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	pushl	%edi
+	pushl	%esi
+	pushl	%ebx
+	subl	$140, %esp
+	.cfi_offset 7, -12
+	.cfi_offset 6, -16
+	.cfi_offset 3, -20
+	call	__x86.get_pc_thunk.bx
+	addl	$_GLOBAL_OFFSET_TABLE_, %ebx
+	movl	8(%ebp), %esi
+	movl	16(%esi), %edi
+	flds	(%edi)
+	flds	.LC7@GOTOFF(%ebx)
+	fsts	-80(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	fstp	%st(1)
+	jnb	.L120
+	flds	.LC8@GOTOFF(%ebx)
+	fsts	-80(%ebp)
+	fcomi	%st(1), %st
+	jnb	.L121
+	fsubrp	%st, %st(1)
+	fdivs	.LC9@GOTOFF(%ebx)
+	jmp	.L80
+.L120:
+	fstp	%st(0)
+	fld1
+.L80:
+	fstps	-72(%ebp)
+	flds	-72(%ebp)
+	fstps	-84(%ebp)
+	flds	-72(%ebp)
+	fstps	4(%esp)
+	movl	$4, (%esp)
+	call	control_stage@PLT
+	flds	.LC10@GOTOFF(%ebx)
+	fsts	-80(%ebp)
+	fdivrs	(%edi)
+	fstps	-68(%ebp)
+	flds	-68(%ebp)
+	fstps	-88(%ebp)
+	flds	-68(%ebp)
+	fstps	4(%esp)
+	movl	$5, (%esp)
+	call	control_stage@PLT
+	movl	(%esi), %eax
+	sall	$4, %eax
+	addl	control_fn_get_int@GOT(%ebx), %eax
+	movl	$1, 4(%esp)
+	movl	%esi, (%esp)
+	call	*4(%eax)
+	testl	%eax, %eax
+	jne	.L81
+	fld1
+	fstps	-88(%ebp)
+.L81:
+	movl	control_current_flight_dynamics@GOT(%ebx), %eax
+	movl	(%eax), %eax
+	testl	%eax, %eax
+	je	.L123
+	movl	%eax, (%esp)
+	call	control_magnitude@PLT
+	fdivs	.LC9@GOTOFF(%ebx)
+	fstps	-80(%ebp)
+	movl	control_current_flight_dynamics@GOT(%ebx), %eax
+	movl	(%eax), %eax
+	movl	%eax, (%esp)
+	call	control_magnitude@PLT
+	fstps	4(%esp)
+	movl	$0, (%esp)
+	call	control_stage@PLT
+	flds	-80(%ebp)
+	fstps	-64(%ebp)
+	flds	-64(%ebp)
+	fstps	-80(%ebp)
+	flds	-64(%ebp)
+	fstps	4(%esp)
+	movl	$1, (%esp)
+	call	control_stage@PLT
+	flds	-80(%ebp)
+	fmuls	-84(%ebp)
+	fstps	-60(%ebp)
+	flds	-60(%ebp)
+	fstps	-80(%ebp)
+	flds	-60(%ebp)
+	fstps	4(%esp)
+	movl	$2, (%esp)
+	call	control_stage@PLT
+	fldz
+	fsts	-92(%ebp)
+	flds	-80(%ebp)
+	fxch	%st(1)
+	fcomip	%st(1), %st
+	ja	.L124
+	fld1
+	fsts	-92(%ebp)
+	fxch	%st(1)
+	fcomip	%st(1), %st
+	jbe	.L152
+	fstps	-80(%ebp)
+	jmp	.L83
+.L121:
+	fstp	%st(0)
+	fstp	%st(0)
+	fldz
+	jmp	.L80
+.L124:
+	fstp	%st(0)
+	fldz
+	fstps	-80(%ebp)
+	jmp	.L83
+.L152:
+	fstp	%st(0)
+.L83:
+	flds	-80(%ebp)
+	fstps	-56(%ebp)
+	flds	-56(%ebp)
+	fstps	-92(%ebp)
+	flds	-56(%ebp)
+	fstps	4(%esp)
+	movl	$3, (%esp)
+	call	control_stage@PLT
+.L82:
+	movl	(%esi), %eax
+	sall	$4, %eax
+	addl	control_fn_get_int@GOT(%ebx), %eax
+	movl	$1, 4(%esp)
+	movl	%esi, (%esp)
+	call	*4(%eax)
+	cmpl	$1, %eax
+	je	.L151
+	fld1
+	fsts	-128(%ebp)
+	flds	.LC6@GOTOFF(%ebx)
+	fsts	-124(%ebp)
+	fstps	-96(%ebp)
+	fldz
+	fstps	-120(%ebp)
+	fsts	-112(%ebp)
+	fstps	-104(%ebp)
+.L85:
+	fldz
+	fsts	-80(%ebp)
+	flds	-84(%ebp)
+	fucomip	%st(1), %st
+	fstp	%st(0)
+	jp	.L107
+	jne	.L107
+	movl	$0x00000000, 8(%esp)
+	movl	$33, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_pause_sound@PLT
+	movl	$0x00000000, 8(%esp)
+	movl	$37, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_pause_sound@PLT
+.L109:
+	movl	(%esi), %eax
+	sall	$5, %eax
+	addl	control_fn_first_child@GOT(%ebx), %eax
+	movl	$7, 4(%esp)
+	movl	%esi, (%esp)
+	call	*28(%eax)
+	movl	%eax, %esi
+	testl	%eax, %eax
+	je	.L79
+	movl	control_fn_get_int@GOT(%ebx), %eax
+	movl	%eax, -80(%ebp)
+	movl	control_fn_child_succ@GOT(%ebx), %edi
+	jmp	.L119
+.L123:
+	fldz
+	fstps	-92(%ebp)
+	jmp	.L82
+.L151:
+	movl	control_current_flight_dynamics@GOT(%ebx), %eax
+	movl	(%eax), %eax
+	testl	%eax, %eax
+	je	.L126
+	flds	12(%eax)
+	fsts	-112(%ebp)
+	flds	16(%eax)
+	fsts	-80(%ebp)
+	flds	20(%eax)
+	fstps	-128(%ebp)
+	fld	%st(1)
+	fsubp	%st, %st(1)
+	fabs
+	fstps	-120(%ebp)
+	fdivs	.LC10@GOTOFF(%ebx)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L127
+	fldl	.LC2@GOTOFF(%ebx)
+	fstl	-104(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L153
+	fstp	%st(0)
+	jmp	.L86
+.L127:
+	fstp	%st(0)
+	fldz
+	jmp	.L86
+.L153:
+	fstp	%st(1)
+.L86:
+	faddl	.LC11@GOTOFF(%ebx)
+	fstps	-104(%ebp)
+	flds	-104(%ebp)
+	fstps	-52(%ebp)
+	flds	-52(%ebp)
+	fstps	-96(%ebp)
+	flds	-52(%ebp)
+	fstps	4(%esp)
+	movl	$8, (%esp)
+	call	control_stage@PLT
+	flds	-112(%ebp)
+	fsubs	.LC12@GOTOFF(%ebx)
+	fmull	.LC13@GOTOFF(%ebx)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L128
+	fldl	.LC3@GOTOFF(%ebx)
+	fstl	-104(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L154
+	fstp	%st(0)
+	jmp	.L88
+.L128:
+	fstp	%st(0)
+	fldz
+	jmp	.L88
+.L154:
+	fstp	%st(1)
+.L88:
+	faddl	.LC14@GOTOFF(%ebx)
+	fstps	-104(%ebp)
+	flds	-104(%ebp)
+	fstps	-48(%ebp)
+	flds	-48(%ebp)
+	fstps	-104(%ebp)
+	flds	-48(%ebp)
+	fstps	4(%esp)
+	movl	$9, (%esp)
+	call	control_stage@PLT
+	fld1
+	fsts	-124(%ebp)
+	flds	-112(%ebp)
+	fcomip	%st(1), %st
+	fstp	%st(0)
+	jbe	.L146
+	movl	$35, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_resume_sound@PLT
+.L92:
+	fld1
+	flds	-120(%ebp)
+	fcomip	%st(1), %st
+	fstp	%st(0)
+	jbe	.L147
+	flds	-80(%ebp)
+	fdivs	.LC10@GOTOFF(%ebx)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L129
+	fldl	.LC2@GOTOFF(%ebx)
+	fstl	-112(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L155
+	fstp	%st(0)
+	jmp	.L95
+.L146:
+	movl	$0x00000000, 8(%esp)
+	movl	$35, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_pause_sound@PLT
+	jmp	.L92
+.L129:
+	fstp	%st(0)
+	fldz
+	jmp	.L95
+.L155:
+	fstp	%st(1)
+.L95:
+	faddl	.LC11@GOTOFF(%ebx)
+	fstps	-112(%ebp)
+	flds	-112(%ebp)
+	fstps	-44(%ebp)
+	flds	-44(%ebp)
+	fstps	-124(%ebp)
+	flds	-44(%ebp)
+	fstps	4(%esp)
+	movl	$11, (%esp)
+	call	control_stage@PLT
+	flds	-80(%ebp)
+	fsubs	.LC15@GOTOFF(%ebx)
+	fmull	.LC16@GOTOFF(%ebx)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L130
+	fldl	.LC3@GOTOFF(%ebx)
+	fstl	-112(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L156
+	fstp	%st(0)
+	jmp	.L97
+.L130:
+	fstp	%st(0)
+	fldz
+	jmp	.L97
+.L156:
+	fstp	%st(1)
+.L97:
+	faddl	.LC14@GOTOFF(%ebx)
+	fstps	-112(%ebp)
+	flds	-112(%ebp)
+	fstps	-40(%ebp)
+	flds	-40(%ebp)
+	fstps	-112(%ebp)
+	flds	-40(%ebp)
+	fstps	4(%esp)
+	movl	$12, (%esp)
+	call	control_stage@PLT
+	fld1
+	flds	-80(%ebp)
+	fcomip	%st(1), %st
+	fstp	%st(0)
+	jbe	.L148
+	movl	$36, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_resume_sound@PLT
+.L101:
+	fldz
+	flds	-128(%ebp)
+	fcomi	%st(1), %st
+	jbe	.L149
+	fstl	-80(%ebp)
+	fldl	.LC16@GOTOFF(%ebx)
+	fstl	-120(%ebp)
+	fmulp	%st, %st(1)
+	fxch	%st(1)
+	fcomip	%st(1), %st
+	ja	.L131
+	flds	.LC4@GOTOFF(%ebx)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L157
+	fstp	%st(0)
+	jmp	.L104
+.L148:
+	movl	$0x00000000, 8(%esp)
+	movl	$36, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_pause_sound@PLT
+	jmp	.L101
+.L147:
+	fldz
+	fsts	-112(%ebp)
+	fstps	8(%esp)
+	movl	$36, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_pause_sound@PLT
+	fldl	.LC17@GOTOFF(%ebx)
+	fstl	-80(%ebp)
+	fmuls	-104(%ebp)
+	fstps	-80(%ebp)
+	flds	-80(%ebp)
+	fstps	-36(%ebp)
+	flds	-36(%ebp)
+	fstps	-104(%ebp)
+	flds	-36(%ebp)
+	fstps	4(%esp)
+	movl	$10, (%esp)
+	call	control_stage@PLT
+	fld1
+	fstps	-124(%ebp)
+	jmp	.L101
+.L131:
+	fstp	%st(0)
+	fldz
+	jmp	.L104
+.L157:
+	fstp	%st(1)
+.L104:
+	faddl	.LC14@GOTOFF(%ebx)
+	fstps	-120(%ebp)
+	flds	-120(%ebp)
+	fstps	-32(%ebp)
+	flds	-32(%ebp)
+	fstps	-128(%ebp)
+	flds	-32(%ebp)
+	fstps	4(%esp)
+	movl	$6, (%esp)
+	call	control_stage@PLT
+	fldl	-80(%ebp)
+	fmull	.LC13@GOTOFF(%ebx)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L132
+	flds	.LC5@GOTOFF(%ebx)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	fstp	%st(1)
+	ja	.L133
+	fstps	-80(%ebp)
+	flds	-80(%ebp)
+	jmp	.L106
+.L132:
+	fstp	%st(0)
+	fldz
+.L106:
+	fstps	-28(%ebp)
+	flds	-28(%ebp)
+	fstps	-120(%ebp)
+	flds	-28(%ebp)
+	fstps	4(%esp)
+	movl	$7, (%esp)
+	call	control_stage@PLT
+	movl	$34, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_resume_sound@PLT
+	jmp	.L85
+.L133:
+	fstp	%st(0)
+	flds	.LC5@GOTOFF(%ebx)
+	jmp	.L106
+.L149:
+	fstp	%st(0)
+	fstp	%st(0)
+	fldz
+	fsts	-120(%ebp)
+	fstps	8(%esp)
+	movl	$34, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_pause_sound@PLT
+	fld1
+	fstps	-128(%ebp)
+	jmp	.L85
+.L126:
+	fld1
+	fsts	-128(%ebp)
+	flds	.LC6@GOTOFF(%ebx)
+	fsts	-124(%ebp)
+	fstps	-96(%ebp)
+	fldz
+	fstps	-120(%ebp)
+	fsts	-112(%ebp)
+	fstps	-104(%ebp)
+	jmp	.L85
+.L107:
+	movl	$33, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_resume_sound@PLT
+	movl	$37, 4(%esp)
+	movl	%esi, (%esp)
+	call	control_resume_sound@PLT
+	jmp	.L109
+.L118:
+	movl	control_fn_set_float@GOT(%ebx), %ecx
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-84(%ebp)
+	fsubs	-92(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%esi, (%esp)
+	movl	%ecx, -132(%ebp)
+	call	*(%ecx,%eax)
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-88(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%esi, (%esp)
+	movl	-132(%ebp), %ecx
+	call	*4(%ecx,%eax)
+.L111:
+	movl	(%esi), %eax
+	sall	$5, %eax
+	movl	$7, 4(%esp)
+	movl	%esi, (%esp)
+	call	*28(%edi,%eax)
+	movl	%eax, %esi
+	testl	%eax, %eax
+	je	.L79
+.L119:
+	cmpl	$32, (%esi)
+	jne	.L111
+	movl	$2, 4(%esp)
+	movl	%esi, (%esp)
+	movl	-80(%ebp), %eax
+	call	*520(%eax)
+	subl	$33, %eax
+	cmpl	$8, %eax
+	ja	.L111
+	movl	%ebx, %edx
+	addl	.L113@GOTOFF(%ebx,%eax,4), %edx
+	jmp	*%edx
+	.section	.rodata.control_original_staged,"a",@progbits
+	.align 4
+	.align 4
+.L113:
+	.long	.L118@GOTOFF
+	.long	.L117@GOTOFF
+	.long	.L116@GOTOFF
+	.long	.L115@GOTOFF
+	.long	.L114@GOTOFF
+	.long	.L112@GOTOFF
+	.long	.L112@GOTOFF
+	.long	.L112@GOTOFF
+	.long	.L112@GOTOFF
+	.section	.text.control_original_staged
+.L116:
+	movl	control_fn_set_float@GOT(%ebx), %ecx
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-104(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%esi, (%esp)
+	movl	%ecx, -132(%ebp)
+	call	*(%ecx,%eax)
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-96(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%esi, (%esp)
+	movl	-132(%ebp), %ecx
+	call	*4(%ecx,%eax)
+	jmp	.L111
+.L115:
+	movl	control_fn_set_float@GOT(%ebx), %ecx
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-112(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%esi, (%esp)
+	movl	%ecx, -132(%ebp)
+	call	*(%ecx,%eax)
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-124(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%esi, (%esp)
+	movl	-132(%ebp), %ecx
+	call	*4(%ecx,%eax)
+	jmp	.L111
+.L117:
+	movl	control_fn_set_float@GOT(%ebx), %edx
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-120(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%esi, (%esp)
+	movl	%edx, -132(%ebp)
+	call	*(%edx,%eax)
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-128(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%esi, (%esp)
+	movl	-132(%ebp), %edx
+	call	*4(%edx,%eax)
+	jmp	.L111
+.L112:
+	movl	(%esi), %eax
+	sall	$4, %eax
+	addl	control_fn_set_float@GOT(%ebx), %eax
+	movl	$0x3f400000, 8(%esp)
+	movl	$0, 4(%esp)
+	movl	%esi, (%esp)
+	call	*(%eax)
+	jmp	.L111
+.L114:
+	movl	control_fn_set_float@GOT(%ebx), %ecx
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-92(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%esi, (%esp)
+	movl	%ecx, -132(%ebp)
+	call	*(%ecx,%eax)
+	movl	(%esi), %eax
+	sall	$4, %eax
+	flds	-88(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%esi, (%esp)
+	movl	-132(%ebp), %ecx
+	call	*4(%ecx,%eax)
+	jmp	.L111
+.L79:
+	addl	$140, %esp
+	popl	%ebx
+	.cfi_restore 3
+	popl	%esi
+	.cfi_restore 6
+	popl	%edi
+	.cfi_restore 7
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa 4, 4
+	ret
+	.cfi_endproc
+---- constant .LC7
+.LC7:
+	.long	1110704128
+	.align 4
+---- constant .LC8
+.LC8:
+	.long	1106247680
+	.align 4
+---- constant .LC9
+.LC9:
+	.long	1097859072
+	.align 4
+---- constant .LC10
+.LC10:
+	.long	1120403456
+---- constant .LC6
+.LC6:
+	.long	1067869798
+	.align 4
+---- constant .LC2
+.LC2:
+	.long	-1717986918
+	.long	1073322393
+	.align 8
+---- constant .LC11
+.LC11:
+	.long	858993459
+	.long	1071854387
+---- constant .LC12
+.LC12:
+	.long	1101004800
+---- constant .LC13
+.LC13:
+	.long	1202590843
+	.long	1065646817
+	.align 8
+---- constant .LC3
+.LC3:
+	.long	-1717986918
+	.long	1071225241
+---- constant .LC14
+.LC14:
+	.long	-1717986918
+	.long	1070176665
+---- constant .LC15
+.LC15:
+	.long	1109393408
+---- constant .LC16
+.LC16:
+	.long	1202590843
+	.long	1066695393
+	.align 8
+---- constant .LC4
+.LC4:
+	.long	1073741824
+	.align 4
+---- constant .LC17
+.LC17:
+	.long	858993459
+	.long	1072902963
+---- constant .LC5
+.LC5:
+	.long	1048576000
+	.align 4
+---- local callee (executed form as emitted) control_original_unmodified
+control_original_unmodified:
+.LFB0:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	pushl	%edi
+	pushl	%esi
+	pushl	%ebx
+	subl	$92, %esp
+	.cfi_offset 7, -12
+	.cfi_offset 6, -16
+	.cfi_offset 3, -20
+	call	__x86.get_pc_thunk.si
+	addl	$_GLOBAL_OFFSET_TABLE_, %esi
+	movl	8(%ebp), %edi
+	movl	16(%edi), %eax
+	flds	(%eax)
+	fsts	-40(%ebp)
+	flds	.LC7@GOTOFF(%esi)
+	fsts	-32(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	fstp	%st(1)
+	jnb	.L41
+	flds	.LC8@GOTOFF(%esi)
+	fsts	-32(%ebp)
+	fcomi	%st(1), %st
+	jnb	.L42
+	fsubrp	%st, %st(1)
+	fdivs	.LC9@GOTOFF(%esi)
+	fstps	-36(%ebp)
+	jmp	.L2
+.L41:
+	fstp	%st(0)
+	fld1
+	fstps	-36(%ebp)
+.L2:
+	movl	(%edi), %eax
+	sall	$4, %eax
+	addl	control_fn_get_int@GOT(%esi), %eax
+	movl	$1, 4(%esp)
+	movl	%edi, (%esp)
+	call	*4(%eax)
+	testl	%eax, %eax
+	je	.L43
+	flds	-40(%ebp)
+	fdivs	.LC10@GOTOFF(%esi)
+	fstps	-44(%ebp)
+.L3:
+	movl	control_current_flight_dynamics@GOT(%esi), %eax
+	movl	(%eax), %eax
+	testl	%eax, %eax
+	je	.L44
+	movl	%eax, (%esp)
+	movl	%esi, %ebx
+	call	control_magnitude@PLT
+	fdivs	.LC9@GOTOFF(%esi)
+	fmuls	-36(%ebp)
+	fsts	-40(%ebp)
+	fldz
+	fsts	-32(%ebp)
+	fcomip	%st(1), %st
+	ja	.L45
+	fld1
+	fsts	-32(%ebp)
+	fxch	%st(1)
+	fcomip	%st(1), %st
+	jbe	.L73
+	fstps	-40(%ebp)
+	jmp	.L4
+.L42:
+	fstp	%st(0)
+	fstp	%st(0)
+	fldz
+	fstps	-36(%ebp)
+	jmp	.L2
+.L43:
+	fld1
+	fstps	-44(%ebp)
+	jmp	.L3
+.L44:
+	fldz
+	fstps	-40(%ebp)
+	jmp	.L4
+.L73:
+	fstp	%st(0)
+.L4:
+	movl	(%edi), %eax
+	sall	$4, %eax
+	addl	control_fn_get_int@GOT(%esi), %eax
+	movl	$1, 4(%esp)
+	movl	%edi, (%esp)
+	call	*4(%eax)
+	cmpl	$1, %eax
+	je	.L72
+	fld1
+	fsts	-72(%ebp)
+	flds	.LC6@GOTOFF(%esi)
+	fsts	-68(%ebp)
+	fstps	-48(%ebp)
+	fldz
+	fstps	-76(%ebp)
+	fsts	-64(%ebp)
+	fstps	-56(%ebp)
+.L6:
+	fldz
+	fsts	-32(%ebp)
+	flds	-36(%ebp)
+	fucomip	%st(1), %st
+	fstp	%st(0)
+	jp	.L28
+	jne	.L28
+	movl	$0x00000000, 8(%esp)
+	movl	$33, 4(%esp)
+	movl	%edi, (%esp)
+	movl	%esi, %ebx
+	call	control_pause_sound@PLT
+	movl	$0x00000000, 8(%esp)
+	movl	$37, 4(%esp)
+	movl	%edi, (%esp)
+	call	control_pause_sound@PLT
+.L30:
+	movl	(%edi), %eax
+	sall	$5, %eax
+	addl	control_fn_first_child@GOT(%esi), %eax
+	movl	$7, 4(%esp)
+	movl	%edi, (%esp)
+	call	*28(%eax)
+	movl	%eax, %ebx
+	testl	%eax, %eax
+	je	.L1
+	movl	control_fn_get_int@GOT(%esi), %eax
+	movl	%eax, -32(%ebp)
+	movl	control_fn_child_succ@GOT(%esi), %edi
+	jmp	.L40
+.L45:
+	fstp	%st(0)
+	fldz
+	fstps	-40(%ebp)
+	jmp	.L4
+.L72:
+	movl	control_current_flight_dynamics@GOT(%esi), %eax
+	movl	(%eax), %eax
+	testl	%eax, %eax
+	je	.L47
+	flds	12(%eax)
+	flds	16(%eax)
+	fsts	-32(%ebp)
+	flds	20(%eax)
+	fstps	-72(%ebp)
+	fsubr	%st(1), %st
+	fabs
+	fstps	-64(%ebp)
+	fld	%st(0)
+	fdivs	.LC10@GOTOFF(%esi)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L48
+	fldl	.LC2@GOTOFF(%esi)
+	fstl	-56(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L74
+	fstp	%st(0)
+	jmp	.L7
+.L48:
+	fstp	%st(0)
+	fldz
+	jmp	.L7
+.L74:
+	fstp	%st(1)
+.L7:
+	faddl	.LC11@GOTOFF(%esi)
+	fstps	-48(%ebp)
+	fld	%st(0)
+	fsubs	.LC12@GOTOFF(%esi)
+	fmull	.LC13@GOTOFF(%esi)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L49
+	fldl	.LC3@GOTOFF(%esi)
+	fstl	-56(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L75
+	fstp	%st(0)
+	jmp	.L9
+.L49:
+	fstp	%st(0)
+	fldz
+	jmp	.L9
+.L75:
+	fstp	%st(1)
+.L9:
+	faddl	.LC14@GOTOFF(%esi)
+	fstps	-56(%ebp)
+	fld1
+	fxch	%st(1)
+	fcomip	%st(1), %st
+	fstp	%st(0)
+	jbe	.L67
+	movl	$35, 4(%esp)
+	movl	%edi, (%esp)
+	movl	%esi, %ebx
+	call	control_resume_sound@PLT
+.L13:
+	fld1
+	flds	-64(%ebp)
+	fcomip	%st(1), %st
+	fstp	%st(0)
+	jbe	.L68
+	flds	-32(%ebp)
+	fdivs	.LC10@GOTOFF(%esi)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L50
+	fldl	.LC2@GOTOFF(%esi)
+	fstl	-64(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L76
+	fstp	%st(0)
+	jmp	.L16
+.L67:
+	movl	$0x00000000, 8(%esp)
+	movl	$35, 4(%esp)
+	movl	%edi, (%esp)
+	movl	%esi, %ebx
+	call	control_pause_sound@PLT
+	jmp	.L13
+.L50:
+	fstp	%st(0)
+	fldz
+	jmp	.L16
+.L76:
+	fstp	%st(1)
+.L16:
+	faddl	.LC11@GOTOFF(%esi)
+	fstps	-68(%ebp)
+	flds	-32(%ebp)
+	fsubs	.LC15@GOTOFF(%esi)
+	fmull	.LC16@GOTOFF(%esi)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L51
+	fldl	.LC3@GOTOFF(%esi)
+	fstl	-64(%ebp)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L77
+	fstp	%st(0)
+	jmp	.L18
+.L51:
+	fstp	%st(0)
+	fldz
+	jmp	.L18
+.L77:
+	fstp	%st(1)
+.L18:
+	faddl	.LC14@GOTOFF(%esi)
+	fstps	-64(%ebp)
+	fld1
+	flds	-32(%ebp)
+	fcomip	%st(1), %st
+	fstp	%st(0)
+	jbe	.L69
+	movl	$36, 4(%esp)
+	movl	%edi, (%esp)
+	movl	%esi, %ebx
+	call	control_resume_sound@PLT
+.L22:
+	fldz
+	flds	-72(%ebp)
+	fcomi	%st(1), %st
+	jbe	.L70
+	fld	%st(0)
+	fldl	.LC16@GOTOFF(%esi)
+	fstl	-32(%ebp)
+	fmulp	%st, %st(2)
+	fxch	%st(2)
+	fcomip	%st(1), %st
+	ja	.L52
+	flds	.LC4@GOTOFF(%esi)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	jbe	.L78
+	fstp	%st(0)
+	jmp	.L25
+.L69:
+	movl	$0x00000000, 8(%esp)
+	movl	$36, 4(%esp)
+	movl	%edi, (%esp)
+	movl	%esi, %ebx
+	call	control_pause_sound@PLT
+	jmp	.L22
+.L68:
+	fldz
+	fsts	-64(%ebp)
+	fstps	8(%esp)
+	movl	$36, 4(%esp)
+	movl	%edi, (%esp)
+	movl	%esi, %ebx
+	call	control_pause_sound@PLT
+	fldl	.LC17@GOTOFF(%esi)
+	fstl	-32(%ebp)
+	fmuls	-56(%ebp)
+	fstps	-56(%ebp)
+	fld1
+	fstps	-68(%ebp)
+	jmp	.L22
+.L52:
+	fstp	%st(0)
+	fldz
+	jmp	.L25
+.L78:
+	fstp	%st(1)
+.L25:
+	faddl	.LC14@GOTOFF(%esi)
+	fstps	-72(%ebp)
+	fmull	.LC13@GOTOFF(%esi)
+	fldz
+	fcomip	%st(1), %st
+	ja	.L53
+	flds	.LC5@GOTOFF(%esi)
+	fxch	%st(1)
+	fcomi	%st(1), %st
+	fstp	%st(1)
+	ja	.L54
+	fstps	-76(%ebp)
+	jmp	.L27
+.L53:
+	fstp	%st(0)
+	fldz
+	fstps	-76(%ebp)
+.L27:
+	movl	$34, 4(%esp)
+	movl	%edi, (%esp)
+	movl	%esi, %ebx
+	call	control_resume_sound@PLT
+	jmp	.L6
+.L54:
+	fstp	%st(0)
+	flds	.LC5@GOTOFF(%esi)
+	fstps	-76(%ebp)
+	jmp	.L27
+.L70:
+	fstp	%st(0)
+	fstp	%st(0)
+	fldz
+	fsts	-76(%ebp)
+	fstps	8(%esp)
+	movl	$34, 4(%esp)
+	movl	%edi, (%esp)
+	movl	%esi, %ebx
+	call	control_pause_sound@PLT
+	fld1
+	fstps	-72(%ebp)
+	jmp	.L6
+.L47:
+	fld1
+	fsts	-72(%ebp)
+	flds	.LC6@GOTOFF(%esi)
+	fsts	-68(%ebp)
+	fstps	-48(%ebp)
+	fldz
+	fstps	-76(%ebp)
+	fsts	-64(%ebp)
+	fstps	-56(%ebp)
+	jmp	.L6
+.L28:
+	movl	$33, 4(%esp)
+	movl	%edi, (%esp)
+	movl	%esi, %ebx
+	call	control_resume_sound@PLT
+	movl	$37, 4(%esp)
+	movl	%edi, (%esp)
+	call	control_resume_sound@PLT
+	jmp	.L30
+.L39:
+	movl	control_fn_set_float@GOT(%esi), %ecx
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-36(%ebp)
+	fsubs	-40(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	%ecx, -80(%ebp)
+	call	*(%ecx,%eax)
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-44(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	-80(%ebp), %ecx
+	call	*4(%ecx,%eax)
+.L32:
+	movl	(%ebx), %eax
+	sall	$5, %eax
+	movl	$7, 4(%esp)
+	movl	%ebx, (%esp)
+	call	*28(%edi,%eax)
+	movl	%eax, %ebx
+	testl	%eax, %eax
+	je	.L1
+.L40:
+	cmpl	$32, (%ebx)
+	jne	.L32
+	movl	$2, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	-32(%ebp), %eax
+	call	*520(%eax)
+	subl	$33, %eax
+	cmpl	$8, %eax
+	ja	.L32
+	movl	%esi, %edx
+	addl	.L34@GOTOFF(%esi,%eax,4), %edx
+	jmp	*%edx
+	.section	.rodata.control_original_unmodified,"a",@progbits
+	.align 4
+	.align 4
+.L34:
+	.long	.L39@GOTOFF
+	.long	.L38@GOTOFF
+	.long	.L37@GOTOFF
+	.long	.L36@GOTOFF
+	.long	.L35@GOTOFF
+	.long	.L33@GOTOFF
+	.long	.L33@GOTOFF
+	.long	.L33@GOTOFF
+	.long	.L33@GOTOFF
+	.section	.text.control_original_unmodified
+.L37:
+	movl	control_fn_set_float@GOT(%esi), %ecx
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-56(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	%ecx, -80(%ebp)
+	call	*(%ecx,%eax)
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-48(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	-80(%ebp), %ecx
+	call	*4(%ecx,%eax)
+	jmp	.L32
+.L36:
+	movl	control_fn_set_float@GOT(%esi), %ecx
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-64(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	%ecx, -80(%ebp)
+	call	*(%ecx,%eax)
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-68(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	-80(%ebp), %ecx
+	call	*4(%ecx,%eax)
+	jmp	.L32
+.L38:
+	movl	control_fn_set_float@GOT(%esi), %edx
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-76(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	%edx, -80(%ebp)
+	call	*(%edx,%eax)
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-72(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	-80(%ebp), %edx
+	call	*4(%edx,%eax)
+	jmp	.L32
+.L33:
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	addl	control_fn_set_float@GOT(%esi), %eax
+	movl	$0x3f400000, 8(%esp)
+	movl	$0, 4(%esp)
+	movl	%ebx, (%esp)
+	call	*(%eax)
+	jmp	.L32
+.L35:
+	movl	control_fn_set_float@GOT(%esi), %ecx
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-40(%ebp)
+	fstps	8(%esp)
+	movl	$0, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	%ecx, -80(%ebp)
+	call	*(%ecx,%eax)
+	movl	(%ebx), %eax
+	sall	$4, %eax
+	flds	-44(%ebp)
+	fstps	8(%esp)
+	movl	$1, 4(%esp)
+	movl	%ebx, (%esp)
+	movl	-80(%ebp), %ecx
+	call	*4(%ecx,%eax)
+	jmp	.L32
+.L1:
+	addl	$92, %esp
+	popl	%ebx
+	.cfi_restore 3
+	popl	%esi
+	.cfi_restore 6
+	popl	%edi
+	.cfi_restore 7
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa 4, 4
+	ret
+	.cfi_endproc
+---- constant .LC7
+.LC7:
+	.long	1110704128
+	.align 4
+---- constant .LC8
+.LC8:
+	.long	1106247680
+	.align 4
+---- constant .LC9
+.LC9:
+	.long	1097859072
+	.align 4
+---- constant .LC10
+.LC10:
+	.long	1120403456
+---- constant .LC6
+.LC6:
+	.long	1067869798
+	.align 4
+---- constant .LC2
+.LC2:
+	.long	-1717986918
+	.long	1073322393
+	.align 8
+---- constant .LC11
+.LC11:
+	.long	858993459
+	.long	1071854387
+---- constant .LC12
+.LC12:
+	.long	1101004800
+---- constant .LC13
+.LC13:
+	.long	1202590843
+	.long	1065646817
+	.align 8
+---- constant .LC3
+.LC3:
+	.long	-1717986918
+	.long	1071225241
+---- constant .LC14
+.LC14:
+	.long	-1717986918
+	.long	1070176665
+---- constant .LC15
+.LC15:
+	.long	1109393408
+---- constant .LC16
+.LC16:
+	.long	1202590843
+	.long	1066695393
+	.align 8
+---- constant .LC4
+.LC4:
+	.long	1073741824
+	.align 4
+---- constant .LC17
+.LC17:
+	.long	858993459
+	.long	1072902963
+---- constant .LC5
+.LC5:
+	.long	1048576000
+	.align 4
+---- calls to symbols this translation unit does not define: ["control_reset", "control_written_words", "control_stage_words"]
+==== tests/csrc/rotor_control_stubs.c: assembly of the unmodified source, compiled with -S -g0 added to the command above (exit exit status: 0:)
+---- function control_magnitude
+control_magnitude:
+.LFB10:
+	.cfi_startproc
+	pushl	%ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	movl	%esp, %ebp
+	.cfi_def_cfa_register 5
+	subl	$40, %esp
+	movl	%ebx, -4(%ebp)
+	.cfi_offset 3, -12
+	call	__x86.get_pc_thunk.bx
+	addl	$_GLOBAL_OFFSET_TABLE_, %ebx
+	movl	8(%ebp), %eax
+	flds	(%eax)
+	flds	4(%eax)
+	flds	8(%eax)
+	fxch	%st(2)
+	fmul	%st(0), %st
+	fxch	%st(1)
+	fmul	%st(0), %st
+	faddp	%st, %st(1)
+	fxch	%st(1)
+	fmul	%st(0), %st
+	faddp	%st, %st(1)
+	fldz
+	fsts	-12(%ebp)
+	fucomip	%st(1), %st
+	ja	.L55
+	fsqrt
+.L50:
+	movl	-4(%ebp), %ebx
+	movl	%ebp, %esp
+	.cfi_remember_state
+	.cfi_restore 3
+	.cfi_def_cfa_register 4
+	popl	%ebp
+	.cfi_restore 5
+	.cfi_def_cfa_offset 4
+	ret
+.L55:
+	.cfi_restore_state
+	fstps	(%esp)
+	call	sqrtf@PLT
+	jmp	.L50
+	.cfi_endproc
+---- local callee (executed form as emitted) __x86.get_pc_thunk.bx
+__x86.get_pc_thunk.bx:
+.LFB14:
+	.cfi_startproc
+	movl	(%esp), %ebx
+	ret
+	.cfi_endproc
+---- calls to symbols this translation unit does not define: ["sqrtf"]
+==== end of ROTOR-CI-CONTROL
+     Running tests/route_characterization.rs (/target/i686-unknown-linux-gnu/debug/deps/route_characterization-adbd5f8b4f9e7f56)
+     Running tests/sector_height_baseline_driver.rs (/target/i686-unknown-linux-gnu/debug/deps/sector_height_baseline_driver-1fad13b2df5c5058)
+     Running tests/sector_height_host.rs (/target/i686-unknown-linux-gnu/debug/deps/sector_height_host-1a82feb3950f79b8)
+     Running tests/sound_backend_provider.rs (/target/i686-unknown-linux-gnu/debug/deps/sound_backend_provider-1a2dedc922dea670)
+     Running tests/sound_catalogue_provider.rs (/target/i686-unknown-linux-gnu/debug/deps/sound_catalogue_provider-127904b13f043203)
+     Running tests/sound_root_cwd.rs (/target/i686-unknown-linux-gnu/debug/deps/sound_root_cwd-6e35c79f2b2af010)
+     Running tests/target_point_characterization.rs (/target/i686-unknown-linux-gnu/debug/deps/target_point_characterization-32a54ca32bb78667)
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 2 queries (0 at boot), branches reached: 3
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: setup probe: cases 3:setup_not_applied were NOT called
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 3 queries (1 at boot), branches reached: 1,2,3
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; NO natural target-point query was reached in 36 frames (nothing is covered)
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: setup probe: cases 1:no_bbox_scene_without_skin were NOT called
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; NO natural target-point query was reached in 36 frames (nothing is covered)
+target-point-characterization: census whole; NO natural target-point query was reached in 36 frames (nothing is covered)
+target-point-characterization: census whole; NO natural target-point query was reached in 36 frames (nothing is covered)
+target-point-characterization: census whole; 2 queries (1 at boot), branches reached: 1
+target-point-characterization: setup probe: cases 1:no_census_pass were NOT called
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: setup probe: cases 1:scene_has_target_point were NOT called
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 2 queries (1 at boot), branches reached: 1
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: controlled probe: cases 4 are UNAVAILABLE (no candidate); the other cases were picked
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: setup probe: cases 1:setup_not_applied were NOT called
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; NO natural target-point query was reached in 36 frames (nothing is covered)
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: setup probe: cases 1:no_mobile_with_instance,2:no_mobile_with_instance were NOT called
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: setup probe: cases 3:no_fixed_structure_with_valid_shape were NOT called
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: setup probe: cases 1:no_mobile_with_instance,2:no_mobile_with_instance were NOT called
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: setup probe: cases 1:no_mobile_with_instance,2:no_mobile_with_instance,3:no_fixed_structure_with_valid_shape were NOT called
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 1 queries (0 at boot), branches reached: 1
+target-point-characterization: census whole; 7 queries (0 at boot), branches reached: 1,2,3,4
+     Running tests/terrain_backend.rs (/target/i686-unknown-linux-gnu/debug/deps/terrain_backend-32bfe87c87b590e3)
+     Running tests/terrain_boot_contract.rs (/target/i686-unknown-linux-gnu/debug/deps/terrain_boot_contract-d84577dc092059e5)
+     Running tests/terrain_conformance.rs (/target/i686-unknown-linux-gnu/debug/deps/terrain_conformance-fed54f0683425d0e)
+     Running tests/terrain_has_face_harness.rs (/target/i686-unknown-linux-gnu/debug/deps/terrain_has_face_harness-aaee622820564fbd)
+terrain-has-face: reference ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=1 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+terrain-has-face: reference ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=1 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+terrain-has-face: reference ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=1 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+terrain-has-face: reference ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=1 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+terrain-has-face: reference ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=1 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+terrain-has-face: generic ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=0 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+terrain-has-face: reference ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=1 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+terrain-has-face: generic ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=0 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+terrain-has-face: generic ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=0 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+terrain-has-face: generic ok: terrain-face-probe elevation=00000000 fresh=0 after_query=1 hint_after_query=0 after_again=1 after_clear=0 shared_fresh=0 shared_after_query=1 shared_after_clear=0
+     Running tests/terrain_provider_harness.rs (/target/i686-unknown-linux-gnu/debug/deps/terrain_provider_harness-1510bbd04630eecc)
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.elevation]
+terrain-provider: mode=reference frames=5/5 map=1 point=1 fast=1 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: mode=bad_elevation frames=2/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=true failure=[string "collaborator"]:30: eech: [terrain-provider:point.elevation] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:missing] no terrain provider was given
+terrain-provider: mode=reference frames=5/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.callback] [string "terrain-provider.lua"]:143: provider failed on purpose
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.answer] the answer was refused
+terrain-provider: mode=nohint frames=5/5 map=1 point=1 fast=1 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: mode=bad_elevation frames=2/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=true failure=[string "collaborator"]:30: cannot open terrain.ffp
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:missing]
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.elevation]
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp: no such file
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.callback] the provider failed
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.elevation] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:35: nohint kept the hint or stored
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp
+terrain-provider: mode=bad_elevation frames=2/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=true failure=[string "collaborator"]:30: [terrain-provider:point.normal]
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [string "terrain-provider.lua"]:143: provider failed on purpose
+terrain-provider: boot failed: [string "collaborator"]:29: eech: the terrain could not be loaded
+terrain-provider: mode=bad_elevation frames=5/5 map=0 point=0 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.normal] the answer was refused
+terrain-provider: mode=reference frames=1/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=[string "collaborator"]:30: anything
+terrain-provider: mode=bad_elevation frames=2/5 map=0 point=0 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=[string "collaborator"]:30: [terrain-provider:point.elevation]
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.elevation]
+terrain-provider: mode=bad_elevation frames=5/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=true failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.type] the answer was refused
+terrain-provider: mode=reference frames=5/5 map=0 point=0 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: unrelated
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.hint] the answer was refused
+terrain-provider: mode=raised frames=5/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp: no such file
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:missing]
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.elevation] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.answer] the answer was refused
+terrain-provider: mode=raised frames=1/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=[string "collaborator"]:30: anything
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.normal] the answer was refused
+terrain-provider: mode=raised frames=5/5 map=0 point=0 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.type] the answer was refused
+terrain-provider: mode=nohint frames=5/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.hint] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:missing]
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp: no such file
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.normal] the answer was refused
+terrain-provider: mode=nohint frames=1/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=[string "collaborator"]:30: anything
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.answer] the answer was refused
+terrain-provider: mode=nohint frames=5/5 map=0 point=0 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.elevation] the answer was refused
+terrain-provider: mode=generic frames=5/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.type] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:missing]
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.hint] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp: no such file
+terrain-provider: mode=generic frames=1/5 map=0 point=1 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=[string "collaborator"]:30: anything
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.type] the answer was refused
+terrain-provider: mode=generic frames=5/5 map=0 point=0 fast=0 placed=0/0 los=0/0 malformed_sent=false failure=none
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.answer] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.elevation] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.normal] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.hint] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp: no such file
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.hint] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.answer] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.elevation] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.normal] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: eech: [terrain-provider:point.type] the answer was refused
+terrain-provider: boot failed: [string "collaborator"]:29: cannot open terrain.ffp: no such file
+     Running tests/terrain_sector.rs (/target/i686-unknown-linux-gnu/debug/deps/terrain_sector-af1219504c641d1f)
+     Running tests/tree_authority.rs (/target/i686-unknown-linux-gnu/debug/deps/tree_authority-56e0d97735fed341)
+tree-authority: mode=new_only profile=hosted completed tree_begin=1 tree_terrain=1 altered=1/1
+tree-authority: mode=withheld_tree profile=hosted completed tree_begin=1 tree_terrain=0 altered=1/0
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=2 altered=0/0
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=2 altered=0/0
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=2 altered=0/0
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=2 altered=0/0
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=2 altered=0/0
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=2 altered=0/0
+tree-authority: mode=control profile=hosted completed tree_begin=2 tree_terrain=4 altered=0/0
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=1 altered=0/0
+tree-authority: mode=bad_tree_state profile=hosted completed tree_begin=1 tree_terrain=0 altered=1/0
+tree-authority: OUTPUT FAILURE while closing after the failure below: close failed
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=2 altered=0/0
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=2 altered=0/0
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=1 altered=0/0
+tree-authority: mode=bad_tree_word profile=hosted completed tree_begin=1 tree_terrain=0 altered=1/0
+tree-authority: OUTPUT FAILURE while closing after the failure below: close failed
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=0 altered=0/0
+tree-authority: mode=done_not_boolean profile=hosted completed tree_begin=1 tree_terrain=0 altered=1/0
+tree-authority: OUTPUT FAILURE while closing after the failure below: close failed
+tree-authority: mode=new_then_old profile=hosted completed tree_begin=1 tree_terrain=1 altered=1/1
+tree-authority: mode=control profile=hosted completed tree_begin=1 tree_terrain=2 altered=0/0
+tree-authority: mode=old_twice profile=hosted completed tree_begin=1 tree_terrain=1 altered=1/1
+tree-authority: mode=third_lookup profile=hosted completed tree_begin=1 tree_terrain=2 altered=1/2
+     Running tests/tree_collision_host.rs (/target/i686-unknown-linux-gnu/debug/deps/tree_collision_host-87d11c9925638cae)
+     Running tests/tree_conformance.rs (/target/i686-unknown-linux-gnu/debug/deps/tree_conformance-a1283cfe28c59737)
+   Doc-tests eech_campaign
+   Doc-tests eech_dc
+   Doc-tests eech_engine
+   Doc-tests eech_engine_sys
+   Doc-tests eech_harness
+   Doc-tests eech_sys
+   Doc-tests eech_world

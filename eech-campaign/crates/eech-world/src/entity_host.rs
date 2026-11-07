@@ -12,7 +12,7 @@
 //!
 //! The HOST owns which candidates are offered and in what order: the sector window and the traversal (`scan_step`) and which entities stand in each sector in what order (`crate::roster`, served
 //! by `crate::model_host`: the campaign reports every insertion into and removal from a sector list and the host issues the keys it serves the scan by). The campaign's lists are only the
-//! conformance mirror of that order. The campaign still owns the exclusion of the source and the target, a sector's tallest structure, a city's buildings, the reads of the entity state the
+//! conformance mirror of that order. The campaign still owns the exclusion of the source and the target, a city's buildings (a sector's tallest structure is the host's: `crate::roster`), the reads of the entity state the
 //! facts are made of, and it performs the two getters that have effects of their own when the host names them: that is declared coupling, required to move, and nothing here claims it has.
 //!
 //! # Exactness
@@ -163,6 +163,8 @@ pub const CANDIDATE_FACTS: usize = 44;
 /// Where the facts of an ENTITY_CANDIDATE question that the host's physical record decides for a mobile candidate sit (mb_hostmodel.h, CAMPAIGN_CANDIDATE_*): the flags, the position (3), the motion vector (3),
 /// the attitude (9) and the flag that says the placement facts were read.
 pub const CANDIDATE_MOBILE: usize = 6;
+/// the sector's tallest structure: the host's own raw word, any bit pattern (see `classify_candidate_words`)
+pub const CANDIDATE_TALLEST: usize = 12;
 pub const CANDIDATE_OF_CITY: usize = 10;
 pub const CANDIDATE_POSITION: usize = 13;
 pub const CANDIDATE_MOTION: usize = 16;
@@ -217,7 +219,8 @@ fn check_candidate_facts(facts: &[f32]) -> Result<(), String> {
     if facts.len() != CANDIDATE_FACTS {
         return Err(format!("an entity candidate question has {CANDIDATE_FACTS} floats, not {}", facts.len()));
     }
-    if let Some(at) = facts.iter().position(|value| !value.is_finite()) {
+    // fact 12 is the host's own raw sector word, any bit pattern (see `classify_candidate_words`)
+    if let Some(at) = facts.iter().enumerate().position(|(at, value)| at != CANDIDATE_TALLEST && !value.is_finite()) {
         return Err(format!("fact {at} of an entity candidate question is not a finite number"));
     }
     for at in [6, 7, 8, 9, 10, 11, 22, 23, 42, 43] {
@@ -250,7 +253,10 @@ pub fn classify_candidate_words(words: &[u32]) -> Result<(), String> {
     if words.len() != CANDIDATE_FACTS {
         return Err(format!("an entity candidate question has {CANDIDATE_FACTS} floats, not {}", words.len()));
     }
-    if let Some(at) = words.iter().position(|word| !finite(*word)) {
+    // Fact 12 is the sector's tallest structure, the HOST's own raw word (`crate::roster::SectorRoster::sector_height`): any bit pattern is valid history (a negative, infinite or NaN word restored from a session is
+    // neither clamped nor refused), so it is the one fact that is not required to be finite. The join to the host's word (`model_host::fixed_join`) compares its bits, and the decision compares it the way the original does
+    // (a strict greater-than, false for a NaN).
+    if let Some(at) = words.iter().enumerate().position(|(at, word)| at != CANDIDATE_TALLEST && !finite(*word)) {
         return Err(format!("fact {at} of an entity candidate question is not a finite number"));
     }
     for at in [6, 7, 8, 9, 10, 11, 22, 23, 42, 43] {

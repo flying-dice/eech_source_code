@@ -4173,6 +4173,14 @@ return function(op, scene, depth, kind, definition, key)
 			if not p then return nil, 'p ' .. why end
 			return 'expanded', p, nil, nil, nil, nil, nil, key
 		end
+		-- a sector's high-water height (phases 17 and 18): the sector's x, z and the word, as three BIT PATTERNS only (a number would be a float, and the word is raw: never a number here), and no placement name
+		if result == 'height' or result == 'restored' then
+			if type(a.p) ~= 'string' then return nil, 'p must be three bit patterns, the sector x, z and the word' end
+			local p, why = list(a.p, 3)
+			if not p then return nil, 'p ' .. why end
+			if key ~= '' then return nil, 'name is only for first, next and placed' end
+			return result, p, nil, nil, nil, nil, nil, key
+		end
 		if result == 'next' or result == 'placed' then
 			if a.p ~= nil then return nil, 'p is only for first' end
 			return result, nil, nil, nil, nil, nil, nil, key
@@ -4187,7 +4195,7 @@ return function(op, scene, depth, kind, definition, key)
 			if key ~= '' then return nil, 'name is only for first, next and placed' end
 			return result
 		end
-		return nil, 'result must be first, expanded, next, offer, done_none, done_hit, placed, removed, cleared or refused'
+		return nil, 'result must be first, expanded, height, restored, next, offer, done_none, done_hit, placed, removed, cleared or refused'
 	end
 	if op == 'target_point_world' or op == 'target_point_fixed' then
 		local name, result = a.name, a.result
@@ -4661,6 +4669,17 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             let words = bridged_floats::<6>(&a.ok_or_else(missing)?, "p", operation)?;
             Ok(ModelAnswer::EntityScan {
                 decision: ScanDecision::Expanded(words),
+                key: g.unwrap_or_default(),
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "height" | "restored") => {
+            let words = bridged_words::<3>(&a.ok_or_else(missing)?, "p", operation)?;
+            Ok(ModelAnswer::EntityScan {
+                decision: if tag == "height" {
+                    ScanDecision::Height(words)
+                } else {
+                    ScanDecision::Restored(words)
+                },
                 key: g.unwrap_or_default(),
             })
         }
@@ -6315,6 +6334,69 @@ mod tests {
         for pick in [2, 3, 4, 5] {
             let Err(error) = ask_pick(pick) else {
                 return Err(format!("pick {pick}: a malformed box was accepted").into());
+            };
+            assert!(error.contains("entity_scan"), "pick {pick}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_sector_height_answer_carries_three_bit_patterns_and_every_raw_word_comes_back_exactly_and_a_number_or_a_short_list_or_a_name_is_refused() -> Test {
+        let lua = Lua::new();
+        // the provider picks its answer by the last digit of the first fact: the sector and the word are bit patterns, never numbers (the word is raw)
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_scan' and scene == 0)
+               local pick = tonumber (key:sub (10, 10))
+               if pick == 1 then return { result = 'height', p = '0x40a00000,0x41100000,0x7fc0f00d' } end
+               if pick == 2 then return { result = 'restored', p = '0x40a00000,0x41100000,0xff800000' } end
+               if pick == 3 then return { result = 'height', p = { 5, 9, 1.5 } } end
+               if pick == 4 then return { result = 'height', p = '0x40a00000,0x41100000' } end
+               if pick == 5 then return { result = 'height', name = '12', p = '0x40a00000,0x41100000,0x3f800000' } end
+               if pick == 6 then return { result = 'height' } end
+               if pick == 7 then return { result = 'restored', p = '0x40a00000,0x41100000,0x80000000' } end
+               if pick == 8 then return { result = 'height', p = '0x40a00000,0x41100000,0x3f800000,0x00000000' } end
+             end",
+        )?;
+        let mut ask_pick = |pick: u32| {
+            let facts: Vec<u32> = std::iter::once(0x3f80_0000 + pick).chain((1..16).map(|_| 0)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
+        };
+        let words_of = |answer: ModelAnswer| match answer {
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Height(words) | ScanDecision::Restored(words),
+                ..
+            } => Some(words.map(f32::to_bits)),
+            _ => None,
+        };
+        // a quiet NaN with a payload, a negative infinity and a negative zero keep every bit
+        assert_eq!(words_of(ask_pick(1)?), Some([0x40a0_0000, 0x4110_0000, 0x7fc0_f00d]));
+        assert!(matches!(
+            ask_pick(1)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Height(_),
+                ..
+            }
+        ));
+        assert_eq!(words_of(ask_pick(2)?), Some([0x40a0_0000, 0x4110_0000, 0xff80_0000]));
+        assert!(matches!(
+            ask_pick(2)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Restored(_),
+                ..
+            }
+        ));
+        assert_eq!(words_of(ask_pick(7)?), Some([0x40a0_0000, 0x4110_0000, 0x8000_0000]));
+        for pick in [3, 4, 5, 6, 8] {
+            let Err(error) = ask_pick(pick) else {
+                return Err(format!("pick {pick}: a malformed sector height answer was accepted").into());
             };
             assert!(error.contains("entity_scan"), "pick {pick}: {error}");
         }

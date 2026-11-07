@@ -458,7 +458,7 @@ static int get_3d_line_quad_face_intersection
 // caller's intercept point and face normal go to neither and their final words come back, whether or not the segment hits, as the original's intersection helpers left them. The original
 // arithmetic is not compiled into it; the explicit original-characterisation profile (feature collision-fixture) keeps it.
 //
-// What the campaign keeps, declared and required to move: the exclusion of the source and the target (a comparison only the entity heap can make), the tallest structure of a sector, a city's buildings,
+// What the campaign keeps, declared and required to move: the exclusion of the source and the target (a comparison only the entity heap can make), a city's buildings (the tallest structure of a sector is the host's word since Task49: the sector's getter asks it),
 // the sector lists themselves (its entity state, and the CONFORMANCE MIRROR of the host's roster: WHICH entities stand in a sector and in what order is the host's, mb_hostplace.c and mb_hostscan.h; a
 // disagreement stops the scan by name and the campaign's list never answers), the reads of the entity's own state the host is given as facts (in stages, only as
 // the host asks for the next one, so a candidate the original skipped is not made to supply a shape, a fixed flag or a model), the two services with effects of their own that the host names

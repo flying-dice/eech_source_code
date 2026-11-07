@@ -28,6 +28,7 @@ fn main() {
         "wn_flight.c",
         "cmb_step.c",
         "model_step.c",
+        "sector_height_raise.h",
         "terrain_ref.c",
         "terrain_ref.h",
         "env_ref.c",

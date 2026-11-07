@@ -172,7 +172,9 @@
  *              the sector's list has no more entries: the campaign resolves the key to its entity (mb_hostplace.c), still states whether it is the source or the target, offers it and reports the result.
  *              The question is a pure function of its facts and the host's roster. THE CAMPAIGN'S LISTS ARE A CONFORMANCE MIRROR: the campaign still reads them in the original's order and an entry the host
  *              serves that its list is not at, a key that names no entity, an ended, unknown or misplaced key, or a roster the host does not keep is a named refusal (entity_scan.roster_mirror,
- *              entity_scan.roster_key, entity_scan.key) and never an end, a miss or a fallback to the list. STILL THE CAMPAIGN'S, declared and required to move: the tallest structure of a sector, a city's
+ *              entity_scan.roster_key, entity_scan.key) and never an end, a miss or a fallback to the list. THE TALLEST STRUCTURE OF A SECTOR is the HOST's word since the host-owned sector height (Task49): the host
+ *              raises it at the ARRIVAL of a fixed structure (the first state statement under a sector placement's key), holds it in its roster, and the campaign asks it by the sector's coordinates (phase 17) and states a
+ *              session's saved word to it (phase 18); the campaign holds no word of its own in a hosted build. STILL THE CAMPAIGN'S, declared and required to move: a city's
  *              buildings, every entity's shape, flags and static pose, and the semantic identity of a structure (issued lazily, at the first time the campaign names it, as before). No raw pointer or
  *              index crosses: an entry is named by the host's key only. A state the phase does not allow (an excluded entry offered, a resolved hit continued, a served entry that is not offered or
  *              skipped, a cursor that is not whole numbers inside the map), a refusal, a missing provider or a scan that does not end in a bounded number of questions stops the engine by marker.
@@ -319,7 +321,11 @@ enum campaign_model_scan_phase
 	/* the CITY expansion (Task49): a building's link has expanded its city's bounding box; the host builds the box from the records it holds and answers it (see campaign_model_entity_city_expand) */
 	CAMPAIGN_SCAN_PHASE_CITY_EXPAND,
 	/* the CITY's release (Task49, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): the campaign's city entity ends (its heap slot is freed); the host ends the record it kept for the box it built (see campaign_model_entity_city) */
-	CAMPAIGN_SCAN_PHASE_CITY_RELEASE
+	CAMPAIGN_SCAN_PHASE_CITY_RELEASE,
+	/* the sector's HIGH-WATER HEIGHT (Task49, the host-owned sector height): the campaign asks the host for the word of a sector by its coordinates (every reader of the original's tallest structure height), and states a
+	   session's restored word to it (see campaign_model_sector_height and campaign_model_sector_height_restore) */
+	CAMPAIGN_SCAN_PHASE_SECTOR_HEIGHT,
+	CAMPAIGN_SCAN_PHASE_SECTOR_RESTORE
 };
 
 /* the facts of a FIXED_STATE report (the same question, phase CAMPAIGN_SCAN_PHASE_FIXED_STATE): the position (3 floats), the entity type, the heading, the shape (a whole scene index), the entity's SUB TYPE (a whole
@@ -346,10 +352,19 @@ enum campaign_model_scan_phase
 #define CAMPAIGN_CITY_BOX_MIN 3
 #define CAMPAIGN_CITY_BOX_MAX 6
 #define CAMPAIGN_CITY_SUBTYPE 10
-/* the floats of the state the campaign reads from a city (campaign_model_entity_city_state): position (3), box minimum (3), box maximum (3), sub type */
-#define CAMPAIGN_CITY_STATE_WORDS 10
+/* the city's SHAPE (a whole scene index; 0, OBJECT_3D_INVALID_OBJECT_INDEX, is what a city is created with): the one fact the host needs of a city to decide the sector's height raise the original makes at the city's arrival
+   when the shape is valid. Fact 9 is the fixed state report's withdrawal word and was stated by no city report, so it carries the shape there */
+#define CAMPAIGN_CITY_SHAPE 9
+/* the floats of the state the campaign reads from a city (campaign_model_entity_city_state): position (3), box minimum (3), box maximum (3), sub type, shape */
+#define CAMPAIGN_CITY_STATE_WORDS 11
 /* the floats of the box a city expansion answers (campaign_model_entity_city_expand): the bounding box minimum (3), then the maximum (3), as the host holds the words */
 #define CAMPAIGN_CITY_EXPAND_WORDS 6
+
+/* the SECTOR HEIGHT read and restore (the same question, phases CAMPAIGN_SCAN_PHASE_SECTOR_HEIGHT and _SECTOR_RESTORE; Task49): the sector's x and z in the cursor facts (whole numbers), every other fact zero but the phase and,
+   for a restore, the saved word RAW in fact 0; the identity place is empty. The reply (state HEIGHT or RESTORED) holds exactly CAMPAIGN_SECTOR_HEIGHT_REPLY_WORDS words: the x and z echoed, then the word the host holds. The word is
+   NEVER validated as finite, non-negative or non-NaN: a negative, infinite or quiet-NaN word the original saved is valid history and crosses exactly */
+#define CAMPAIGN_SECTOR_HEIGHT_WORD 0
+#define CAMPAIGN_SECTOR_HEIGHT_REPLY_WORDS 3
 
 enum campaign_model_scan_state
 {
@@ -363,7 +378,10 @@ enum campaign_model_scan_state
 	CAMPAIGN_MODEL_SCAN_REMOVED,
 	CAMPAIGN_MODEL_SCAN_CLEARED,
 	/* the answer to a city expansion: the host built the box (the reply's name is the city's key; its candidate_count is CAMPAIGN_CITY_EXPAND_WORDS and the words of candidate are the box minimum then maximum) */
-	CAMPAIGN_MODEL_SCAN_EXPANDED
+	CAMPAIGN_MODEL_SCAN_EXPANDED,
+	/* the answers to the sector height read and restore: the reply's candidate holds the sector's x and z as asked, then the word the host holds (the restored word as stored) */
+	CAMPAIGN_MODEL_SCAN_HEIGHT,
+	CAMPAIGN_MODEL_SCAN_RESTORED
 };
 
 /* the roster's insertion event: the position the campaign holds (the x, y and z words; the host decides the sector and compares a hosted mobile's with its own record), the entity's type, and the
@@ -588,6 +606,15 @@ void campaign_model_entity_fixed (int entity_type, const char *key, const float 
    served) is decided from it. The campaign states it every time it writes one of the fields: the insertion into a sector list (which a relink repeats), the shared fixed setter, and the expansion a building's link makes. The reply
    is checked completely (the state `placed` and the same key acknowledged); a refusal stops the engine with the host's reason. */
 void campaign_model_entity_city_state (const char *key, const float *state);
+/* ENTITY_SCAN, the sector's HIGH-WATER HEIGHT (phase CAMPAIGN_SCAN_PHASE_SECTOR_HEIGHT; Task49): the word the HOST holds for the sector (`x_sector`, `z_sector`), copied into `word` as the 32 bits it holds (never computed with
+   here). The campaign holds no word of its own in a hosted build: this is the one read behind the sector's float getter, so the scan, the fixed-wing clearance and the session pack all read the host's. The reply is checked
+   completely before the word is written: the state HEIGHT, no placement named, exactly three words, the sector echoed as asked and nothing beyond; a refusal, a missing provider or an answer that does not hold stops the engine by marker, and there is no fallback. */
+void campaign_model_sector_height (int x_sector, int z_sector, float *word);
+
+/* ENTITY_SCAN, the session RESTORE of a sector's height (phase CAMPAIGN_SCAN_PHASE_SECTOR_RESTORE; Task49): the saved word (`word`, the 32 raw bits) is stated to the host, which holds exactly these bits afterwards. The reply is
+   checked completely: the state RESTORED, the sector echoed as asked and the word stored equal, bit for bit, to the word stated. */
+void campaign_model_sector_height_restore (int x_sector, int z_sector, const float *word);
+
 /* ENTITY_SCAN, the CITY_EXPAND question (phase CAMPAIGN_SCAN_PHASE_CITY_EXPAND; Task49): the building the key `building` names (its place in the city's list) was linked to the city the key `city` names (its sector
    placement), and the city's bounding box is to be expanded for it. The campaign states no word of it: the host holds the city's own state (its position and the box it holds) and the building's fixed state (its
    position, heading and shape), takes the shape's bounds from the model data it owns, builds the new box with the original's arithmetic, holds it in its record of the city and answers it. `box` receives the

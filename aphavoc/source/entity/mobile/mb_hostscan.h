@@ -5,10 +5,11 @@
  * campaign's entity, states the one fact only the entity heap can (that the entry is the source or the target), offers the entry for its decisions (mb_hostoffer.h) and returns the result of that offer.
  *
  * THE CAMPAIGN'S LISTS ARE A CONFORMANCE MIRROR, never the answer.  The reads are still the original's, in its order (the sector entity, its tallest structure height, its first child, the walk to the end of the
- * list and the predecessor of an entry), because the campaign's own lists remain its entity state and the tallest-structure height is still its read; but the entry served is the one the HOST names, and
+ * list and the predecessor of an entry), because the campaign's own lists remain its entity state; the tallest-structure height is read through the sector's getter, which asks the HOST (the host-owned sector height, Task49);
+ * but the entry served is the one the HOST names, and
  * an entry the campaign's list does not agree with stops the engine by name (entity_scan.roster_mirror), as does a key that names no entity.  Nothing falls back to the campaign's list and a
  * disagreement is never read as an end or a miss.  A list cannot change inside one scan, because nothing in the scan links, unlinks or releases an entity (the two effectful getters it
- * performs, UPDATED and the terrain normal, change a flag word and the shared terrain record, never a list).  Still the campaign's, declared and required to move: the tallest structure of a sector, a
+ * performs, UPDATED and the terrain normal, change a flag word and the shared terrain record, never a list).  Still the campaign's, declared and required to move: a
  * city's buildings and every entity's shape, flags and static pose.
  *
  * The reads are the original's, in its order: for each sector the host names, the sector entity, its tallest structure height, its first child and the walk to the end of the list; for each

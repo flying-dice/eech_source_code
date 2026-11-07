@@ -920,6 +920,7 @@ static void campaign_entity_city_state_exchange (const char *key, const float *s
 	memcpy (&request.pose [CAMPAIGN_CITY_BOX_MIN], &state [3], 3 * sizeof (float));
 	memcpy (&request.pose [CAMPAIGN_CITY_BOX_MAX], &state [6], 3 * sizeof (float));
 	request.pose [CAMPAIGN_CITY_SUBTYPE] = state [9];
+	request.pose [CAMPAIGN_CITY_SHAPE] = state [10];
 
 	memcpy (request.host_id, key, strlen (key));
 
@@ -1031,6 +1032,94 @@ static void campaign_entity_city_expand_exchange (const char *city, const char *
 	check_city_expand_reply (&reply, city);
 
 	memcpy (box, reply.candidate, CAMPAIGN_CITY_EXPAND_WORDS * sizeof (float));
+}
+
+// The SECTOR HEIGHT read and restore (the same question; phases CAMPAIGN_SCAN_PHASE_SECTOR_HEIGHT and CAMPAIGN_SCAN_PHASE_SECTOR_RESTORE, Task49; see mb_hostmodel.h). The sector is stated by its whole-number coordinates (a
+// sector's index pair is never negative), and the host's reply is checked COMPLETELY before one word of the caller's is written: the state the phase allows, no placement named, exactly CAMPAIGN_SECTOR_HEIGHT_REPLY_WORDS words
+// and none beyond, the sector's x and z echoed bit for bit as asked (an answer for another sector is refused, never used) and, for a restore, the word the host stored equal bit for bit to the word stated. The height word
+// itself is read as bytes and is NEVER classified: a negative, infinite or NaN word is valid, and no floating-point value is loaded or compared here.
+static void check_sector_height_reply (const campaign_model_reply *reply, int phase, const float *asked, const float *stated)
+{
+	int
+		index,
+		wanted;
+
+	wanted = (phase == CAMPAIGN_SCAN_PHASE_SECTOR_HEIGHT) ? CAMPAIGN_MODEL_SCAN_HEIGHT : CAMPAIGN_MODEL_SCAN_RESTORED;
+
+	if (reply->candidate_state != wanted)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d for a sector height %s, which allows only state %d", reply->candidate_state, (phase == CAMPAIGN_SCAN_PHASE_SECTOR_HEIGHT) ? "read" : "restore", wanted);
+	}
+
+	check_reply_key (reply, "entity_scan");
+
+	if (reply->name [0] != 0)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the host named the placement \"%.40s\" for a sector height, which names none", reply->name);
+	}
+
+	if (reply->candidate_count != CAMPAIGN_SECTOR_HEIGHT_REPLY_WORDS)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.sector_height] the host answered %d words for a sector height, which carries %d", reply->candidate_count, CAMPAIGN_SECTOR_HEIGHT_REPLY_WORDS);
+	}
+
+	if (memcmp (&reply->candidate [0], asked, 2 * sizeof (float)) != 0)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.sector_height] the host answered a sector height for another sector than the one asked about");
+	}
+
+	if ((stated != NULL) && (memcmp (&reply->candidate [2], stated, sizeof (float)) != 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.sector_height] the host stored a word for the restore of a sector's height that is not the word stated");
+	}
+
+	for (index = CAMPAIGN_SECTOR_HEIGHT_REPLY_WORDS; index < CAMPAIGN_MODEL_CANDIDATE_POSE_MAX; index++)
+	{
+		if (!scan_word_is_zero (&reply->candidate [index]))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.sector_height] the host answered more than %d words for a sector height", CAMPAIGN_SECTOR_HEIGHT_REPLY_WORDS);
+		}
+	}
+}
+
+// `stated` is the saved word of a restore (NULL for a read); `word` receives the 32 bits the host answered, after the whole answer was checked
+static void campaign_entity_sector_height_exchange (int phase, int x_sector, int z_sector, const float *stated, float *word)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	float
+		asked [2];
+
+	if ((x_sector < 0) || (z_sector < 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.sector_height] a sector height names the sector (%d, %d), whose index is negative", x_sector, z_sector);
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_SCAN;
+	request.scene = 0;
+	request.pose_count = CAMPAIGN_MODEL_SCAN_FACTS;
+	request.pose [CAMPAIGN_SCAN_PHASE] = (float) phase;
+
+	asked [0] = (float) x_sector;
+	asked [1] = (float) z_sector;
+
+	memcpy (&request.pose [CAMPAIGN_SCAN_CURSOR], asked, sizeof (asked));
+
+	if (stated != NULL)
+	{
+		memcpy (&request.pose [CAMPAIGN_SECTOR_HEIGHT_WORD], stated, sizeof (float));
+	}
+
+	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
+
+	check_sector_height_reply (&reply, phase, asked, stated);
+
+	memcpy (word, &reply.candidate [2], sizeof (float));
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

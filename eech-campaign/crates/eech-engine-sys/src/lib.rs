@@ -1159,6 +1159,9 @@ pub const EECH_MODEL_SCAN_REMOVED: c_int = 7;
 pub const EECH_MODEL_SCAN_CLEARED: c_int = 8;
 /// the answer to a city's box expansion (the scan question's phase 15): the host built the box, and `candidate_count` (6) words of `candidate` are its minimum then its maximum
 pub const EECH_MODEL_SCAN_EXPANDED: c_int = 9;
+/// the answers to the sector height read and restore (the scan question's phases 17 and 18): `candidate_count` (3) words of `candidate` are the sector's x and z as asked, then the word the host holds (the restored word as stored)
+pub const EECH_MODEL_SCAN_HEIGHT: c_int = 10;
+pub const EECH_MODEL_SCAN_RESTORED: c_int = 11;
 /// ENTITY_POSE (EEDCS-49): an OBSERVATION of a mobile candidate's pose against the host's record of its identity (`depth` the stage, `kind` the entity's type, `definition` whether it is alive, `host_id` its
 /// host identity, 15 floats of `pose`); the answer's `candidate_state` is the class, `candidate_count` the kind of the host's record and `write_mask` the differences. Nothing decides from it
 pub const EECH_MODEL_ENTITY_POSE: c_int = 18;

@@ -57,6 +57,8 @@ fn main() {
     println!("cargo:rerun-if-changed=compat");
     println!("cargo:rerun-if-changed=csrc");
     println!("cargo:rerun-if-changed=sources.txt");
+    // the sector height control (csrc/eech_sector_height_check.c) compiles the host's raise expression beside the original response: the one header it shares with eech-world is an input too
+    println!("cargo:rerun-if-changed=../eech-world/csrc/sector_height_raise.h");
     // The original tree is an input too: its C, headers (textname.h feeds the generated texture names) and inlines are staged into OUT_DIR below
     // and compiled from the staged copies, so an edit under the resolved EECH_SOURCE_ROOT must rerun this script. Cargo scans a watched
     // directory recursively, so a file that appears or disappears reruns it as well.

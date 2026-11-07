@@ -1,0 +1,1182 @@
+{
+  "kind": "D3 sector-height PRODUCTION CODE_FROZEN: the Host-owned per-sector high-water height (UNREVIEWED; native UNRUN; the move is built in source, not accepted)",
+  "frozen_utc": "2026-11-07T08:06:06.303907+00:00",
+  "task": "EEDCS-49",
+  "stage": "the REQUIRED production move of the sector high-water scalar (not a preparation batch; the count stays 2)",
+  "source_before": "93495d1b6ddc519f8ec4fee9c6b1147d2c292f39",
+  "published_before_any_production_edit": {
+    "evidence_commit": "7e3d6afa0",
+    "metadata_commit": "93495d1b6",
+    "packet": "eech-campaign/reference/d3-entity-collision/sector-height-public-baseline-reviewed"
+  },
+  "sealed_inputs": {
+    "review": {
+      "path": "R:\\d3-evidence\\independent-sector-height-capacity-f01-native-20261107.json",
+      "sha256": "3665b264316b598b7d9892bb2bd66645a935c97bed68afdea0673141cbde498e"
+    },
+    "root_disposition": {
+      "path": "R:\\d3-evidence\\Root-sector-height-production-start-disposition-20261107.json",
+      "sha256": "91c6ffa51bb8b4e125a3c3cd27cef24b6f6ab83f8c6ccbd93236d0b50350cd28"
+    },
+    "root_feedback": {
+      "path": "R:\\d3-evidence\\Root-sector-height-production-feedback-20261107.json",
+      "sha256": "db6f66ab8a21d0a653830a1ed75fc483aa1ed87bea5521b1ae5e56161fb58ba5",
+      "timing": "it did not exist at the preflight listing and at the checkpoint guard run; it was written at 06:40Z during the work and I read it at 07:21Z, before the final PRE map and every final check; it is a publication readback with no scope or test request"
+    }
+  },
+  "design": {
+    "authority": "one word per sector in the host's roster (roster.rs), raised at the ARRIVAL = the first FIXED_STATE or CITY_STATE statement under a sector placement's key after its insertion; the host's own scene table gives the box top; the arithmetic is one C kernel (model_step.c, expression csrc/sector_height_raise.h) under the model kernels' environment guard",
+    "reads": "the sector float getter (sc_float.c) asks the host by the sector's coordinates (scan phase 17): the one read for the scan FIRST (unchanged text), the original-solver body, the fixed-wing clearance (unchanged text) and the pack; the candidate question's fact 12 is the host's word passed on and the host compares its bits",
+    "restore": "scan phase 18 states the unpacked raw word to the host, which stores exactly those bits; the campaign checks the acknowledgement before the load goes on",
+    "retired": "the legacy field is never written or read in a hosted build (census-guarded); no mirror, no fallback; the original body is compiled only where the original entity solver is kept (collision-fixture, model-fixture)",
+    "city": "CITY_STATE gains the shape word (fact 9): a city raises only with a valid shape; the accepted baseline's 14395 cities were all invalid",
+    "classifiers": "fact 12 is exempt from the finite classifiers (integer and floating mirror): any raw word is valid history"
+  },
+  "changed_paths": [
+    {
+      "status": "M",
+      "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "sha256": "3cc436f783210914fcb881453ed3aa49c67ee70e14632f2f5ff69a03f4471b77",
+      "git_blob_of_bytes": "67eea4ad3fb910c0a97a63c1e2f16aa10f400636"
+    },
+    {
+      "status": "M",
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "sha256": "c046e72f8a9107138065a26236164c3f0695b1a76bcba03c957d6335513217a9",
+      "git_blob_of_bytes": "e77d452d988b4241da32d10d7473915a347becef"
+    },
+    {
+      "status": "M",
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "sha256": "ea25e745d8da29d82ce5756d7d1899ffa2c573d907296445b75c4a4c12203962",
+      "git_blob_of_bytes": "81e362162367e1fd5070f6aa02e5a122c075222f"
+    },
+    {
+      "status": "M",
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "sha256": "21b293a402b3893c4797b194bd27d8e39fbf7477f093d9217c2f20724bcacc76",
+      "git_blob_of_bytes": "7a4991b6796c4365019ff93f6decd1ee521995eb"
+    },
+    {
+      "status": "M",
+      "path": "aphavoc/source/entity/mobile/mb_hostplace.c",
+      "sha256": "1ee778b2311f83b38a2a790a7249d9f8c1793d469d4fca2bd3b9d97fc80e7444",
+      "git_blob_of_bytes": "6a19107d258d453582e4b41c06c54fe1489742fc"
+    },
+    {
+      "status": "M",
+      "path": "aphavoc/source/entity/mobile/mb_hostscan.h",
+      "sha256": "f71155f117001c4a4989bdc9212a9a3d63ff6f980f1ef780e3fd1ce015b0bf10",
+      "git_blob_of_bytes": "04cb5189c51b474042085a2e886f14ad0b5d5256"
+    },
+    {
+      "status": "M",
+      "path": "aphavoc/source/entity/special/sector/sc_float.c",
+      "sha256": "36420596217db36d06ac3b0f9a8568af788277fe8c44709880c4855573cc1a93",
+      "git_blob_of_bytes": "54b64303e51909fb6eea501bbef6365b054c4063"
+    },
+    {
+      "status": "M",
+      "path": "aphavoc/source/entity/special/sector/sc_msgs.c",
+      "sha256": "0c03e2b3d1f0f529549acb72a1296d5d2a2f195abf9a48e2e4c95b3974af22c4",
+      "git_blob_of_bytes": "661e5f24dc99eec0a193a515bcf2d2a982956df3"
+    },
+    {
+      "status": "M",
+      "path": "aphavoc/source/entity/special/sector/sc_pack.c",
+      "sha256": "08d7c614d5bee85ad6da65b396bb0bb098a66e71a3310f18273cb09a55887deb",
+      "git_blob_of_bytes": "b15aa562afecf8b9bce9c452084a2c35d008006e"
+    },
+    {
+      "status": "M",
+      "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "sha256": "7f330b568500d4dce5812ef88179eca65df18e97462146b17ec0a25684aba29e",
+      "git_blob_of_bytes": "a3b936439bdd6757110714d5aafe7165d39b464e"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "sha256": "7d6d08e3d0188dff654fd5f8c1d3a53d05993a625b6fdd353d57ecbcf058e8be",
+      "git_blob_of_bytes": "5c1c0bf246a8382e78810dc75d4482b8059a6cc8"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "sha256": "7a37c0b41896315c9ce9e745b1339d0c9b873321c97fe998ecbc5a8647fdcc3a",
+      "git_blob_of_bytes": "328e35156fa06d8036704ba5b9c826439d2b6ddf"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "sha256": "715c5c8d5837b66c22178469b361a7780affbfd4a078ec6fe2d4eb48f51b6a33",
+      "git_blob_of_bytes": "6afeff7d1759fcaaa78d7ca96515ce8be8ce2727"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+      "sha256": "9ce4dde3632d8fcc8fd6ddf9a449ac0f97bdae0b41c1f0999c02628eb1292208",
+      "git_blob_of_bytes": "54785a50fd779cda46462bedfc82314c52068e0d"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+      "sha256": "7ab279de49e8781bcc3c5a382c9d5e17eaa6def53bab0cae13e7c67f23b4e3f3",
+      "git_blob_of_bytes": "697a4dee8ef9cf3aaa58df5f1c4c7bf1f0fe1e5c"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_sho_funnel_check.c",
+      "sha256": "77f86893629d84467bee3b82fe5cfa73fd7c1c3182268cdcde7b8ffc07c7cc47",
+      "git_blob_of_bytes": "8ceebb2a379ef5a0e5b793b31c108aa28f646857"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "sha256": "84bd839df81d831bb12aaa942d54fa57252d83cfce6e907990a67a118263f843",
+      "git_blob_of_bytes": "3139c4f15af62e561c7810935d1f4b63514b9e22"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+      "sha256": "4c2787526bdc3c5ca9440a5f3cae77ffc728b06a944a433443037d5d3151cd86",
+      "git_blob_of_bytes": "0895d8ab1d7ae999878e329461580e337a4b0dfb"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height.rs",
+      "sha256": "f74230462d42c014045672ce65483c44a2aefb92bffec525a68e6441e26e5619",
+      "git_blob_of_bytes": "653e3cc08bf6f75abe07bc62328ab45daab104b2"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs",
+      "sha256": "9c3a4beb4776f13c67f0cefdfee297e1a94d85ae4d4c460ed94577e2996100de",
+      "git_blob_of_bytes": "2e0596471225110c63f55edf4770c73b131a67bd"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs",
+      "sha256": "cf9e997258f4b4c847573b44a29a4ad813dec3e8c08b07eb3029940c4adf1ccb",
+      "git_blob_of_bytes": "046631720535fe723162ecad7c4552b93496a379"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "ccf35fff8abc337683a19ffa73becef73023624d87c9c16670a64c54bb2f5c31",
+      "git_blob_of_bytes": "853380529d54743f6fc0d54048964ba9ec47f235"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/build.rs",
+      "sha256": "995a2671ced9145b185edb8e8a0a928632984a1b09c3fbf2b9c15feded777714",
+      "git_blob_of_bytes": "558eaf48e4283d8561f57a944787ff5ce4fb6343"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/csrc/entity_scan_step.c",
+      "sha256": "a15d524a0b43949dfd2062f16a7b39e61672eaeb801d9e200e564de0672471c5",
+      "git_blob_of_bytes": "db62fa51252e294dbaf1aed6161839a177dfd09c"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+      "sha256": "f434bedb1b15f89f4e8843f97673ba4a695d93ebaa6afafb36fb0bdaa46e25bd",
+      "git_blob_of_bytes": "c472d545b3b0f9659b83eea0fbd5fc8465d43068"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "sha256": "a62586a904624a1c978593131bc455229b2d0a80b8f04e0371af0758646becac",
+      "git_blob_of_bytes": "1271850755f8a8773f40c2ef293a6bd5a7568494"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "sha256": "0b82441d74216b8dffe628712796077a7e08e8d8663480977ed480f1242d06e1",
+      "git_blob_of_bytes": "bc77f7417f58235dc43127176a36026ce0196763"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "sha256": "759f0ecdf8ebfc1f8386304f1b64b398a4ff5cddf265bc42dd1463e3c198d462",
+      "git_blob_of_bytes": "9b5c6b7a879213e540e49ef9902ffa87acb0c5a8"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "sha256": "bf60de30bb5a77141f0d549d10248ffa27bd7acae4cbf2ad306d169e8304f1dc",
+      "git_blob_of_bytes": "a9cfc1ce0389400b316177048b352be2c288a5e7"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/src/roster.rs",
+      "sha256": "8709e88b48f65e45111ef77d3841d5f0ebe3452800b12e1f198a57342ba31de0",
+      "git_blob_of_bytes": "7e05629ad4285e7d34427d5ecf8e6607f3641559"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "sha256": "fa4e1c4ff3b5762b8a7d8a7545712b9c4b604a355cc8bd69b35d7e34359422d1",
+      "git_blob_of_bytes": "31689f981e3ad05a9910159f85b2c413bd8feaec"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+      "sha256": "8cb4b5610796633812342646afb6c96c8f2c32b2ad3cdb9d30ffc380d5717d9c",
+      "git_blob_of_bytes": "7e9420a79c4aa36399ed2559e58cf4ea76f5501a"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/docs/d3-sector-height-contract.md",
+      "sha256": "264432b2679220370935f448cc9cce4394a98b69294e42cf665783e25f3d3024",
+      "git_blob_of_bytes": "e7efa47558b8e766b307fc90f481f1de4db568bd"
+    },
+    {
+      "status": "??",
+      "path": "eech-campaign/crates/eech-world/csrc/sector_height_raise.h",
+      "sha256": "b7391a77d8e9e26448de13b650a20e6f263c200608883a67cbe154371a307118",
+      "git_blob_of_bytes": "8f40a7a87d56891069215865172a0dde26b520f3"
+    },
+    {
+      "status": "??",
+      "path": "eech-campaign/crates/eech-world/tests/sector_height_host.rs",
+      "sha256": "1f0e7bf17ee7716257020fc9b834c6bcac8e148e3f6d5e284a1696e24ad6e423",
+      "git_blob_of_bytes": "4c4c364e165b9b7423e3eae6c5e23dd76c3712be"
+    },
+    {
+      "status": "??",
+      "path": "eech-campaign/crates/eech-world/tests/support/model_root.rs",
+      "sha256": "cd6078a03f3a269fcf5df6258d54c9886522b2e1fb479dbaa3b011c024d61853",
+      "git_blob_of_bytes": "93cb0d7b201bd71a9ebfb4672d5b1ee9838b49af"
+    },
+    {
+      "status": "??",
+      "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+      "sha256": "eb08581c01c8a38b98cf5095682fef182ce8417dbfcaf851c245a49187482c28",
+      "git_blob_of_bytes": "de24bbb5fbb4b83ac63d3b173f3d190c2d74b37c"
+    }
+  ],
+  "tracked_lines_deleted_by_file": {
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c": 1,
+    "aphavoc/source/entity/mobile/mb_hostmodel.h": 5,
+    "aphavoc/source/entity/mobile/mb_hostscan.h": 2,
+    "eech-campaign/crates/eech-dc/src/module.rs": 1,
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c": 2,
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c": 4,
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_sho_funnel_check.c": 4,
+    "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs": 1,
+    "eech-campaign/crates/eech-engine-sys/tests/sector_height.rs": 1,
+    "eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs": 10,
+    "eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs": 1,
+    "eech-campaign/crates/eech-world/csrc/entity_scan_step.c": 1,
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua": 5,
+    "eech-campaign/crates/eech-world/src/entity_host.rs": 3,
+    "eech-campaign/crates/eech-world/src/model_host.rs": 5,
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs": 6,
+    "eech-campaign/crates/eech-world/tests/model_target_point.rs": 3,
+    "eech-campaign/docs/d3-sector-height-contract.md": 1
+  },
+  "guards": {
+    "generic": 0,
+    "production-cutover": 0,
+    "fix-blocker sector-height-host-move-open-facts": 0,
+    "deliver (expected unmet)": 1
+  },
+  "runs": [
+    {
+      "label": "c1-check-world",
+      "final": false,
+      "command": "cargo check --locked -p eech-world --all-targets",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T06:30:46.160374+00:00",
+      "completed_utc": "2026-11-07T06:30:56.420597+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "9e5eb47206d687c26c738dc30082ce56983f484af795986dfffa795d5201d15d"
+    },
+    {
+      "label": "c10-engine-dc",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine -p eech-dc --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T06:52:54.991216+00:00",
+      "completed_utc": "2026-11-07T06:54:09.869007+00:00",
+      "tests_passed": 194,
+      "tests_failed": 0,
+      "stdout_sha256": "dfddbfcdc8d273a89e9a07bba0bcbb3319fbc2dbc93f757fd0c2ab882626dd64",
+      "stderr_sha256": "ee9738b2e2d4cea379fdf82243c200e0396791686d699c917e6054651fffe757"
+    },
+    {
+      "label": "c11-driver",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test entity_authority --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T06:55:07.269979+00:00",
+      "completed_utc": "2026-11-07T06:55:10.609621+00:00",
+      "tests_passed": 110,
+      "tests_failed": 1,
+      "stdout_sha256": "af4d616b4645145f8d5655409ddd1747730bd623b4b9f4857060dcae0b2cd826",
+      "stderr_sha256": "9141a1ff9e96512faabc36b8044e842fd391a772ae4c40d413194f798dc3b6bb"
+    },
+    {
+      "label": "c12-driver",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test entity_authority --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T06:55:27.318863+00:00",
+      "completed_utc": "2026-11-07T06:55:30.053276+00:00",
+      "tests_passed": 110,
+      "tests_failed": 1,
+      "stdout_sha256": "ec2a7072d2e9bb4e2ef6888bfdb4c073b5702738b06a27f92ed3842584447e63",
+      "stderr_sha256": "3641e4d79f82336d7490f0242b856c0222b4f8d598989fc6df216d45bb7ea516"
+    },
+    {
+      "label": "c13-driver",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test entity_authority --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T06:55:37.202399+00:00",
+      "completed_utc": "2026-11-07T06:55:39.929806+00:00",
+      "tests_passed": 111,
+      "tests_failed": 0,
+      "stdout_sha256": "6b6419ebf8c38f5b1088edefce07da2bcabbb6cf444e7775b093305a3b2387c5",
+      "stderr_sha256": "dc3f4cbbfc91163a26955a5eb4e60afae7afc3a7209b9be3e494e93e186a87fb"
+    },
+    {
+      "label": "c14-sys",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T06:55:45.049457+00:00",
+      "completed_utc": "2026-11-07T06:57:12.173915+00:00",
+      "tests_passed": 33,
+      "tests_failed": 4,
+      "stdout_sha256": "ff5f1061bddb7966dc79cd13a447c91a0ea8d98cb833819a2ed635f5335b3675",
+      "stderr_sha256": "2f8fc1d6fbfbf02ae86081d4f31ded59fccbd3f81eea58e8248ce5f7d2f7f3eb"
+    },
+    {
+      "label": "c15-sys",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T06:58:39.853983+00:00",
+      "completed_utc": "2026-11-07T06:59:07.117911+00:00",
+      "tests_passed": 37,
+      "tests_failed": 1,
+      "stdout_sha256": "ccecd04f448e8a8e88fb10fe5cf16d93139870b447f2d60f07566adc1c23c704",
+      "stderr_sha256": "4f6f7db6a23e69bbe5a76b1819d4e03ffebfc02bc38f0a62df19a65012e8985c"
+    },
+    {
+      "label": "c16-sys",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T06:59:15.154915+00:00",
+      "completed_utc": "2026-11-07T06:59:42.455614+00:00",
+      "tests_passed": 38,
+      "tests_failed": 0,
+      "stdout_sha256": "fa95dc8cca41cec5e0fc4a07189743a0b0fa5c2abfc6e9c57a87f398836761cb",
+      "stderr_sha256": "91a0aeeca15d8e816bfdee3fb0c833b8b851735cab82f10670726865926a8f93"
+    },
+    {
+      "label": "c17-obs-hosted",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check,sector-height-observer --test sector_height_observer",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T06:59:49.243608+00:00",
+      "completed_utc": "2026-11-07T07:00:38.527561+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "b5e826cef9fc7072b62c20993486e4ed6068bdc7e19bfb717ec6eddc73082c9a"
+    },
+    {
+      "label": "c18-obs-legacy",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check,sector-height-observer,collision-fixture --test sector_height_observer --test sector_height",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T07:01:23.468174+00:00",
+      "completed_utc": "2026-11-07T07:02:26.880384+00:00",
+      "tests_passed": 1,
+      "tests_failed": 1,
+      "stdout_sha256": "3fe24a80bbad4ada824a48fe16ca874b6c367e18d17284e483293ff3d6ce68fa",
+      "stderr_sha256": "3ed5efc3893e6f2f09a0d2e3c72c2ee9e978fcdcb4d44a214690aa6b0631fbe4"
+    },
+    {
+      "label": "c19-obs-legacy",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check,sector-height-observer,collision-fixture --test sector_height_observer --test sector_height",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:02:48.967542+00:00",
+      "completed_utc": "2026-11-07T07:02:52.763410+00:00",
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "stdout_sha256": "eed5f6ff9ddcfd1ef1bc51ac025d1cfa7d23b9d53ad28aea1cf6e250c9281bc5",
+      "stderr_sha256": "0a4ae4af329457ee903f3f022c76af0e0deab5e14afbd2a51f8dac7182f423f1"
+    },
+    {
+      "label": "c2-dialogue",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T06:36:48.530313+00:00",
+      "completed_utc": "2026-11-07T06:37:55.021522+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "4affe61cc4d03b0769516d200981a9925551d8e03e5017d30291ce35b740d158",
+      "stderr_sha256": "14d7f83b0e245d814ab6364907474ffcac5d372576f2fc1a2c444ae36aaafe78"
+    },
+    {
+      "label": "c20-obs-engine",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine --features sector-height-funnel-check --test sector_height_funnel --test sector_height_observer_chain --test sector_height_observer_cap",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:02:59.760733+00:00",
+      "completed_utc": "2026-11-07T07:04:04.054595+00:00",
+      "tests_passed": 3,
+      "tests_failed": 0,
+      "stdout_sha256": "cfc318711a2c26a411f05dc50ae1e243d833a6785e3a2ad2005e8d6a3172d668",
+      "stderr_sha256": "17c58f6bc6c3ffad26d4c30362f9aa5ecda239a7b04d4d80d241256075b35094"
+    },
+    {
+      "label": "c3-check-hosted",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T06:39:55.894627+00:00",
+      "completed_utc": "2026-11-07T06:40:59.386354+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "cc07a2813235cfd43f9e44885ad054e26834921d362d89b4aebbff53045a0350",
+      "stderr_sha256": "b413fe7fa18cf9082d40da057865cd396127f7a2fce4564b1eb3abbe49916662"
+    },
+    {
+      "label": "c4-check-legacy",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check,collision-fixture --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T06:41:05.318774+00:00",
+      "completed_utc": "2026-11-07T06:42:08.653492+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "16d4d616a676fd4fd4e3ae7ab7a0ab5a0b98dff619d0260c1190cae49b03c0ad",
+      "stderr_sha256": "6ed86e2538aca9820614dd33277d4dfbf41a8c60b78bb9ddedf5a47564aa2b5e"
+    },
+    {
+      "label": "c5-world-tests",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T06:42:18.169641+00:00",
+      "completed_utc": "2026-11-07T06:43:10.679763+00:00",
+      "tests_passed": 1182,
+      "tests_failed": 32,
+      "stdout_sha256": "2b995992ebd7e2f65723acc949ab7f537b26c1ce74dc73d98fa45a89f52bd5de",
+      "stderr_sha256": "f948f079fce6d0d2f77b1e1c6fa5e2e8f4f83d00b2b4e65f8a1c74c8fc6183f2"
+    },
+    {
+      "label": "c6-mtp",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test model_target_point --test entity_authority --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T06:45:48.314331+00:00",
+      "completed_utc": "2026-11-07T06:46:05.083012+00:00",
+      "tests_passed": 164,
+      "tests_failed": 14,
+      "stdout_sha256": "16345a72e907857c37e20172c3be0d5c57d0c7c3b43b971771261c12aa8d7a1b",
+      "stderr_sha256": "6279c00e79f0f81efdd78692932371ca9a2fa16283f91bc96af43139709d3cdb"
+    },
+    {
+      "label": "c7-mtp",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test model_target_point --test entity_authority --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T06:47:14.086101+00:00",
+      "completed_utc": "2026-11-07T06:47:29.813151+00:00",
+      "tests_passed": 176,
+      "tests_failed": 2,
+      "stdout_sha256": "2fcf1ddcca216b5890ea171424ad08cfc1c59a805b76d279a32b4288d8c74729",
+      "stderr_sha256": "b8f66b95f19a9b0fc15419548ede006232cc1070bd70dcdcc07a823809d20e86"
+    },
+    {
+      "label": "c8-world",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T06:51:01.237124+00:00",
+      "completed_utc": "2026-11-07T06:51:46.877159+00:00",
+      "tests_passed": 1225,
+      "tests_failed": 2,
+      "stdout_sha256": "92d4190ea231926f256c8824fabe4b20b46f008612cf5d0bc81405f2fbce6ffa",
+      "stderr_sha256": "b790d179d6f42e8d29f1287b2177f6e83806c4c940c2e065b6637f678592e453"
+    },
+    {
+      "label": "c9-world",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --lib --test sector_height_host --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T06:52:10.470774+00:00",
+      "completed_utc": "2026-11-07T06:52:15.417264+00:00",
+      "tests_passed": 384,
+      "tests_failed": 0,
+      "stdout_sha256": "a2898d93bf1d2c90b1b7b94efe5e5a3b4426f7b90e1571ff2ea7afe7e7e3cdc3",
+      "stderr_sha256": "e930ef1604649efdd648dceac8f08f280c42a3cd20978133a11a8cf34f9662d7"
+    },
+    {
+      "label": "f1-fmt-check",
+      "final": false,
+      "command": "cargo fmt --check",
+      "actual_exit": 1,
+      "started_utc": "2026-11-07T07:09:09.420384+00:00",
+      "completed_utc": "2026-11-07T07:09:14.103654+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "ddc1d431d6357152c9eb6e22ce3b7cc5e4b3786b270e3bc4f33c47b947e68078",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "f2-fmt-apply",
+      "final": false,
+      "command": "cargo fmt",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:09:21.711929+00:00",
+      "completed_utc": "2026-11-07T07:09:26.483926+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "f3-clippy",
+      "final": false,
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T07:09:32.891442+00:00",
+      "completed_utc": "2026-11-07T07:16:01.771186+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "addc8884a46a0282463249d9711facef0bb1d54bd41ade74329e310b7472140a"
+    },
+    {
+      "label": "f4-clippy",
+      "final": false,
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T07:16:19.236804+00:00",
+      "completed_utc": "2026-11-07T07:16:26.457373+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e46a7203c88d7ec07f9cbcf34bd42ba34f4e0332efb3d2e16becede3ec660800"
+    },
+    {
+      "label": "f5-clippy",
+      "final": false,
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:16:48.975510+00:00",
+      "completed_utc": "2026-11-07T07:16:55.891277+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ccdffd50f96461bef2f1614bfb52f70b6986564b8c09f17b164cb9510054fcf9"
+    },
+    {
+      "label": "f6-clippy-sys",
+      "final": false,
+      "command": "cargo clippy --locked -p eech-engine-sys --features sector-height-check,sector-height-observer,entity-dialogue-check,collision-fixture --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:17:06.252056+00:00",
+      "completed_utc": "2026-11-07T07:18:10.684590+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "13acf2a4f40e879f88f5db43107e801d678f8f8e208890b86ce355a233f91c38"
+    },
+    {
+      "label": "f7-clippy-engine",
+      "final": false,
+      "command": "cargo clippy --locked -p eech-engine --features sector-height-funnel-check --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:18:10.855618+00:00",
+      "completed_utc": "2026-11-07T07:19:16.999448+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "c6e698b313a120a85594980e7c32899aa22f754b4d688eb38184674b0179e2b2"
+    },
+    {
+      "label": "f8-fmt-apply",
+      "final": false,
+      "command": "cargo fmt",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:21:11.729596+00:00",
+      "completed_utc": "2026-11-07T07:21:16.435131+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "f9-fmt-check",
+      "final": false,
+      "command": "cargo fmt --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:21:16.519330+00:00",
+      "completed_utc": "2026-11-07T07:21:21.129745+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "i686-i1-legacy",
+      "final": false,
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-engine-sys --features sector-height-check,collision-fixture --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:04:44.623452+00:00",
+      "completed_utc": "2026-11-07T07:05:47.139391+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "16d4d616a676fd4fd4e3ae7ab7a0ab5a0b98dff619d0260c1190cae49b03c0ad",
+      "stderr_sha256": "c25c4def1e7af003b4663cfebbf97e0e988e7e1228a2e9dbe343e4ebbffd6217"
+    },
+    {
+      "label": "i686-i2-hosted",
+      "final": false,
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-engine-sys --features sector-height-check --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:05:53.143601+00:00",
+      "completed_utc": "2026-11-07T07:06:55.142489+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "cc07a2813235cfd43f9e44885ad054e26834921d362d89b4aebbff53045a0350",
+      "stderr_sha256": "44b22a81fb74f027ee2e5e9bf27a7c1e87eff50eb3fb3d472804f40fcdf9ff1f"
+    },
+    {
+      "label": "i686-i3-dialogue",
+      "final": false,
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:06:55.297491+00:00",
+      "completed_utc": "2026-11-07T07:08:00.774820+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "c510e35fc9b381d71eb6244d9ecaaa5b7bfd0499d659f528685e3c7e6500cc2a",
+      "stderr_sha256": "e635a7a983dc175a88b6c4bd20235c1c3b9b102955b741e1127cf99dfa652172"
+    },
+    {
+      "label": "i686-i4-world",
+      "final": false,
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:08:04.955948+00:00",
+      "completed_utc": "2026-11-07T07:09:03.454508+00:00",
+      "tests_passed": 1209,
+      "tests_failed": 0,
+      "stdout_sha256": "ee7dc0ef7ddbbc3afdd59f3634bd63130a89f25703833c8b0b4f344107894117",
+      "stderr_sha256": "16592f5e1237474dc3c049d43811d6fb1cc9534d04d068d3275a58c0e75da54f"
+    },
+    {
+      "label": "i686-t12-control-hosted-i686",
+      "final": true,
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-engine-sys --features sector-height-check --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:46:11.022512+00:00",
+      "completed_utc": "2026-11-07T07:47:19.590011+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "cc07a2813235cfd43f9e44885ad054e26834921d362d89b4aebbff53045a0350",
+      "stderr_sha256": "700ef011b998aead6efc6876f8e56d2f48378f2d25cc7baab0dd4c57e6985b7e"
+    },
+    {
+      "label": "i686-t13-control-legacy-i686",
+      "final": true,
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-engine-sys --features sector-height-check,collision-fixture --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:47:19.683319+00:00",
+      "completed_utc": "2026-11-07T07:48:27.598040+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "16d4d616a676fd4fd4e3ae7ab7a0ab5a0b98dff619d0260c1190cae49b03c0ad",
+      "stderr_sha256": "8fe323b337b66d2f5ac509f61c6f53660c51c79241649a0efd3f28b3709666f8"
+    },
+    {
+      "label": "i686-t14-dialogue-i686",
+      "final": true,
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:48:27.735792+00:00",
+      "completed_utc": "2026-11-07T07:49:55.594089+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "bd0c57f13071d5589ba3d2d3486e5e0643bdf35d431f7b05c79bb2126f51e5cf",
+      "stderr_sha256": "41557e0e517c7fa9c7b373fc333361b09061f9e72c85ed37718353f9ffc277b2"
+    },
+    {
+      "label": "i686-t15-workspace-tests-i686",
+      "final": true,
+      "command": "cargo test --locked --target i686-unknown-linux-gnu --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:49:55.689425+00:00",
+      "completed_utc": "2026-11-07T07:57:42.446588+00:00",
+      "tests_passed": 1461,
+      "tests_failed": 0,
+      "stdout_sha256": "1481fe29bd9d630279ee616815e017ebcf181bf7418edf22250db5346f426a2e",
+      "stderr_sha256": "57901d529f58bdd4a09cf6f60269876964a7392cf7f9690cc5c1dbfb8f8b3c2e"
+    },
+    {
+      "label": "i686-t16-workspace-tests-i686-stack",
+      "final": true,
+      "command": "env EECH_ORIGINAL_STACK_ATTRIBUTES=1 cargo test --locked --target i686-unknown-linux-gnu --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:57:42.526264+00:00",
+      "completed_utc": "2026-11-07T08:05:04.749843+00:00",
+      "tests_passed": 1461,
+      "tests_failed": 0,
+      "stdout_sha256": "c308cdce6d159f6d05184fc26259b785b2f4b6283bc4426df58e23d86eb8d80a",
+      "stderr_sha256": "f9a3889b495c004067c1f8e689860589d7d040e51bc550efc7e2e3bb200ed7a7"
+    },
+    {
+      "label": "t1-fmt-check",
+      "final": true,
+      "command": "cargo fmt --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:21:54.220249+00:00",
+      "completed_utc": "2026-11-07T07:21:58.881799+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "t10-observer-chain-engine",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine --features sector-height-funnel-check --test sector_height_funnel --test sector_height_observer_chain --test sector_height_observer_cap",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:37:21.337238+00:00",
+      "completed_utc": "2026-11-07T07:38:30.222814+00:00",
+      "tests_passed": 3,
+      "tests_failed": 0,
+      "stdout_sha256": "cfc318711a2c26a411f05dc50ae1e243d833a6785e3a2ad2005e8d6a3172d668",
+      "stderr_sha256": "e12917e2b8b4e1c18043558d27e043ada3eeed69dee3004d4a1b1b2f07beb0f8"
+    },
+    {
+      "label": "t11-workspace-tests-x64-copt2",
+      "final": true,
+      "command": "env EECH_C_OPT=2 cargo test --locked --target x86_64-unknown-linux-gnu --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:38:30.322593+00:00",
+      "completed_utc": "2026-11-07T07:46:10.928653+00:00",
+      "tests_passed": 1482,
+      "tests_failed": 0,
+      "stdout_sha256": "0f12c46bbaa6434e3d4e647c01e666a5a388ca290b97204e9588353cd38b5969",
+      "stderr_sha256": "b7bfa535bce5bd196d2c6493cb9deed76de88f9ec161d707ae2ca25da0e5af61"
+    },
+    {
+      "label": "t2-clippy-workspace",
+      "final": true,
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:21:58.960422+00:00",
+      "completed_utc": "2026-11-07T07:23:05.910991+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "5f558e9730767a0f6819dbc5aa9422598eec97a39df15c145ac5cb1a20ab8cb6"
+    },
+    {
+      "label": "t3-clippy-sys-features",
+      "final": true,
+      "command": "cargo clippy --locked -p eech-engine-sys --features sector-height-check,sector-height-observer,entity-dialogue-check,collision-fixture --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:23:05.992163+00:00",
+      "completed_utc": "2026-11-07T07:24:12.328794+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "1bc21eb0d2b9078dd2f6baa8e44dd58e237def868d51b34b0696fd5003952167"
+    },
+    {
+      "label": "t4-clippy-engine-funnel",
+      "final": true,
+      "command": "cargo clippy --locked -p eech-engine --features sector-height-funnel-check --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:24:12.412171+00:00",
+      "completed_utc": "2026-11-07T07:25:16.631932+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "8870ba1f7857e56e7b2f102671dd2c7bb798a798edf0b420806d8ed1fbb14e42"
+    },
+    {
+      "label": "t5-workspace-tests-x64",
+      "final": true,
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:25:16.717863+00:00",
+      "completed_utc": "2026-11-07T07:33:01.175287+00:00",
+      "tests_passed": 1482,
+      "tests_failed": 0,
+      "stdout_sha256": "027b6166d1b73171a810dfdb51ae897a6dc14e3f75905d68800d57ed4222d53a",
+      "stderr_sha256": "fd7a063e72b9d77b019316d9e6ea4adb738ed846ca10be2d76bd71f68207164d"
+    },
+    {
+      "label": "t6-control-hosted",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:33:01.258218+00:00",
+      "completed_utc": "2026-11-07T07:34:06.341716+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "cc07a2813235cfd43f9e44885ad054e26834921d362d89b4aebbff53045a0350",
+      "stderr_sha256": "b535b3e631cbcbf64058704a8ca93ec372094ca53dae6add7f9a9e67fae36800"
+    },
+    {
+      "label": "t7-control-legacy",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check,collision-fixture --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:34:06.430813+00:00",
+      "completed_utc": "2026-11-07T07:35:09.535942+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "16d4d616a676fd4fd4e3ae7ab7a0ab5a0b98dff619d0260c1190cae49b03c0ad",
+      "stderr_sha256": "f56aac3a9ad8fd2a3bade429051a89860b83ce4db6152a9df37bf9948e5bb1cd"
+    },
+    {
+      "label": "t8-observer-control-legacy",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check,sector-height-observer,collision-fixture --test sector_height_observer",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:35:09.624201+00:00",
+      "completed_utc": "2026-11-07T07:36:16.675979+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "41dcb66dc2ead724282d0eacef8c0f215c6967ea3acc2d2377ac61cf498a5f33",
+      "stderr_sha256": "ecc853a3dc7e5d7f6ab19568209768c2e12cae09bdfd2b2b4266f4284c9e27f4"
+    },
+    {
+      "label": "t9-dialogue-x64",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T07:36:16.763827+00:00",
+      "completed_utc": "2026-11-07T07:37:21.252734+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "stdout_sha256": "4affe61cc4d03b0769516d200981a9925551d8e03e5017d30291ce35b740d158",
+      "stderr_sha256": "e46315dfb9d1bb03d60a1ac08cf2267fca7d61f37ba896c2cb53f1734c26f44c"
+    }
+  ],
+  "retained_failures_and_recoveries": {
+    "c5-world-tests": {
+      "actual_exit": 101,
+      "why": "the whole eech-world suite over the first Host source: 32 fixtures failed (every fact-12 value the tests carried was not the host's word; the driver tests' real provider had no model installation; the city state's new shape fact) - the RED of the fixture changes"
+    },
+    "c6-mtp": {
+      "actual_exit": 101,
+      "why": "after the helper fixtures held 1000.0 and the driver tests had a root: 14 tests still failed (a root with no scene; negative sector words; the city shape fact)"
+    },
+    "c7-mtp": {
+      "actual_exit": 101,
+      "why": "2 failures left (the city state grammar fixture's stray fact 9 was now the shape; a city skip that needed the negative word again)"
+    },
+    "c8-world": {
+      "actual_exit": 101,
+      "why": "the raw candidate classifier test and a new test: both classifiers still demanded fact 12 be finite"
+    },
+    "c11-driver": {
+      "actual_exit": 101,
+      "why": "the new driver test: the window counters had no sector_height field"
+    },
+    "c12-driver": {
+      "actual_exit": 101,
+      "why": "the new driver test asserted the collision answer counter 'altered', which is not about the height"
+    },
+    "c14-sys": {
+      "actual_exit": 101,
+      "why": "the engine-sys guards pinned the old census (city state words, the pack and getter statements, the readers of the float type): the intentional census change"
+    },
+    "c15-sys": {
+      "actual_exit": 101,
+      "why": "one guard's enclosing-condition expectation missed the GET_LOCAL_REQUIRED wrapper"
+    },
+    "c17-obs-hosted": {
+      "actual_exit": 101,
+      "why": "the observer recorder's compile-time pin on the city statement width (10 words) met the 11-word statement"
+    },
+    "c18-obs-legacy": {
+      "actual_exit": 101,
+      "why": "the observer control pinned 179 expectations; the original-solver profile now runs 179 + 42 differential"
+    },
+    "f1-fmt-check": {
+      "actual_exit": 1,
+      "why": "rustfmt differences in the new tests and converters (applied by f2)"
+    },
+    "f3-clippy": {
+      "actual_exit": 101,
+      "why": "an unused field in the new host test (strict lints)"
+    },
+    "f4-clippy": {
+      "actual_exit": 101,
+      "why": "expect and panic in two lib tests of the strictly linted crates"
+    }
+  },
+  "input_maps": {
+    "files": {
+      "sector-height-production-inputmap-PRE-20261107.json": {
+        "bytes": 2039736,
+        "sha256": "c4454bb233503b941581e37ea14759a9f2796fc14890facd028c870c21f040c2",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-production-inputmap-POST-20261107.json": {
+        "bytes": 2039736,
+        "sha256": "c4454bb233503b941581e37ea14759a9f2796fc14890facd028c870c21f040c2",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-production-extra-identity-PRE-20261107.json": {
+        "bytes": 2756,
+        "sha256": "dc33715a8df4c6f65fd3073098d327bd189a243c393744fc8d171e589bd68cdb",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-production-extra-identity-POST-20261107.json": {
+        "bytes": 2756,
+        "sha256": "dc33715a8df4c6f65fd3073098d327bd189a243c393744fc8d171e589bd68cdb",
+        "location": "external (full per-file rows)"
+      }
+    },
+    "compare_pre_post": {
+      "pre_fingerprint": "ea577628b043a08cd67c4bb9817b7627cb85736e02c357b1c5224b31c10ac648",
+      "post_fingerprint": "ea577628b043a08cd67c4bb9817b7627cb85736e02c357b1c5224b31c10ac648",
+      "file_count_pre": 3970,
+      "file_count_post": 3970,
+      "rows_only_in_pre": [],
+      "rows_only_in_post": [],
+      "rows_that_differ": [],
+      "all_rows_equal": true,
+      "head_sha": "93495d1b6ddc519f8ec4fee9c6b1147d2c292f39",
+      "changed_from_head_count": [
+        37,
+        37
+      ],
+      "deleted_from_head": [
+        [],
+        []
+      ],
+      "raw_vs_git_filtered_disagreements": {
+        "pre": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ],
+        "post": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ]
+      },
+      "extra_identity_equal": true,
+      "extra_identity_aggregate": [
+        "4a6481d112997cf9f8c9dfe5791c418d8a7076df7c47e93a773aa0ff7641426e",
+        "4a6481d112997cf9f8c9dfe5791c418d8a7076df7c47e93a773aa0ff7641426e"
+      ]
+    },
+    "pre_utc": "2026-11-07T07:21:37Z",
+    "post_utc": "2026-11-07T08:05:13Z",
+    "post_utc_note": "recorded by `date -u` immediately before the POST capture; not reconstructed from a file time",
+    "no_source_write_between": "the final set t1-t16 ran between the maps; the packet files under reference/ are not inputs of any check and were written after the POST capture"
+  },
+  "scripts": [
+    {
+      "name": "run-sector-height-production-direct-20261107.py",
+      "sha256": "ea0052497e36b759372f94a16c9af4f949bf0451ec8faf7844ea49d509a71b4a"
+    },
+    {
+      "name": "run-sector-height-production-i686-20261107.py",
+      "sha256": "4223f5c45198213ad05d1af4076c95caa3c1cd6754eceb3fc59ae0b544961cee"
+    },
+    {
+      "name": "run-shp-final-set-20261107.sh",
+      "sha256": "54c3e66c15f6bfbb608348b9d086dbfe138175d0acf7d80735978e2114fb215d"
+    },
+    {
+      "name": "shp-extra-identity-20261107.py",
+      "sha256": "17bd057eb545eee2a5edf1ce7784286f212f49fc2b38fe333d35bfb62fb1a1f4"
+    },
+    {
+      "name": "sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "name": "build-sector-height-reviewed-packet-20261107.py",
+      "sha256": "96e0a2f71f429406189ed7196bfcf5770d97bf0a0482e8b003321c2b9090fc4f"
+    },
+    {
+      "name": "freeze-sector-height-production-20261107.py",
+      "sha256": "cea850ae5a4b44a62b5df405bca2ea987bc68cbb11daee6fc219ebe17cdef3cc"
+    },
+    {
+      "name": "patch_c_core.py",
+      "sha256": "4c3f5539db91f1b463f64ee7c606263d7d286f40951e164f38b59cd084951d5d"
+    },
+    {
+      "name": "patch_dialogue_check.py",
+      "sha256": "9d9565d0ee7552c981efc8089b1d052e82682c9f8dbca5173ef961666fcf7500"
+    },
+    {
+      "name": "patch_driver.py",
+      "sha256": "527f353848350892c190018ceb9a9f79683e5b5f6b5d54e30d0163098fe3ecd1"
+    },
+    {
+      "name": "patch_driver_tests.py",
+      "sha256": "bc7a35e07e67aa0f922e4ddb1a7b45cef006f3e30d9653018188e201fae81742"
+    },
+    {
+      "name": "patch_guards.py",
+      "sha256": "1b1c3fbf3c3d6e55116dc3b33683f4158f9d5ddb3e0500cc71b2fd392866a7b3"
+    },
+    {
+      "name": "patch_kernel_tests.py",
+      "sha256": "7b9ad18b74422d733cf4fc8ca2b90505b5f65e30141d619be931e7e0ddd3e52c"
+    },
+    {
+      "name": "patch_layers.py",
+      "sha256": "16107c639771de5f3820e2232e0f1c4c3fd987ec17bf2d1acad637c1cadbfe88"
+    },
+    {
+      "name": "patch_sector_check.py",
+      "sha256": "732462a75ee98251a3860b71e19dd8a9859da78fc5f4fdd83ececf89a25819ff"
+    },
+    {
+      "name": "ed_dc.py",
+      "sha256": "db31d49cdb3479953a36c32b63b9ade21f323b5f549a0c2584b16a4dc60ccd62"
+    },
+    {
+      "name": "ed_docs.py",
+      "sha256": "fe85daa3d121e35736e63c9dbc6233850738b89252c890ebc1084e2c4cf37b76"
+    },
+    {
+      "name": "ed_docs2.py",
+      "sha256": "934fb714e33a4671301251e035adc25e60b6d28975465cf2b49dbc9c9163835e"
+    },
+    {
+      "name": "ed_drv2.py",
+      "sha256": "11872e85243628b2c9f11016d4ebc54484ab97b6c334f44f1d64b4c715c3f611"
+    },
+    {
+      "name": "ed_eh.py",
+      "sha256": "e4d8e5897882bc78b74e77954c5e6c0a9a4c482b9baea45117e5b5ca6c90be97"
+    },
+    {
+      "name": "ed_eh2.py",
+      "sha256": "b737c2d487c1d39ecb5afa312d0d4d4c1fcb8790bf5a91d78f7e14fc35463738"
+    },
+    {
+      "name": "ed_eh3.py",
+      "sha256": "25a83bb7dee37b2cc2d847d44061f0cfea5dfd6c1ccb9e8fbefc2bca6eb26608"
+    },
+    {
+      "name": "ed_eng.py",
+      "sha256": "b9d3cd27fad9a83c8168afde91550b62df6fb9e30db7c973e88f83f9143e17cd"
+    },
+    {
+      "name": "ed_g2.py",
+      "sha256": "2f4dfe85d66f474981b3633d8e152693d255fa77ac8d92554a2894726e2906f5"
+    },
+    {
+      "name": "ed_lint.py",
+      "sha256": "a4333e46e5d46ac479f74065fc3db0add96ff180def04a3e1e0b47e9d2a65bda"
+    },
+    {
+      "name": "ed_obs.py",
+      "sha256": "d8fcab1c5190748c39a0f87ed616ed0d383bc42562890225b7a3791a2abced8b"
+    },
+    {
+      "name": "ed_obs2.py",
+      "sha256": "1d4946398954281535a1478558252171c0e94f66a99293933c74fa1401172e28"
+    },
+    {
+      "name": "ed_rt.py",
+      "sha256": "6614fe33f3618491dbf641bb81bc3060557f1d77f67e141cf0938c01cfaa246e"
+    },
+    {
+      "name": "ed_sho.py",
+      "sha256": "5505d7ce93ed3bf25584cb35440735099908a321280a8dbad9e424b860e41a04"
+    },
+    {
+      "name": "ed_sho2.py",
+      "sha256": "c803f8493dddd9e80c191bf382d7be7bd104e97d281a2cbd0227bddfd5710913"
+    },
+    {
+      "name": "ed_t2.py",
+      "sha256": "6ee2df7d0618a33fbb52be671bafd1a04ae69062aa03b3bf17f196751d5efadf"
+    },
+    {
+      "name": "ed_t3.py",
+      "sha256": "07a89a066c82c14b592136051d101383450ef9a5f5464a1d88d6643ba8fba32b"
+    },
+    {
+      "name": "ed_t4.py",
+      "sha256": "e31d9b312d9b9ab076c5a81098186cdb32d6907ac9b2418fd043efe880975b7f"
+    },
+    {
+      "name": "ed_t5.py",
+      "sha256": "614a09007e7f398dd78760df5c4dfd5840e2ac857dcbd54d513c4278fa398d7f"
+    },
+    {
+      "name": "ed_t6.py",
+      "sha256": "afdd0bfd16f34e0debb13808e1aeff2dbefef8d810c64874ec8e9dd1572a0d64"
+    },
+    {
+      "name": "ed_t7.py",
+      "sha256": "c8884987250603d3d7094afab87a80abdf8d38717247fec87074d9286ca1d1fb"
+    },
+    {
+      "name": "ed_t8.py",
+      "sha256": "d8beab9088f1c937d0f9b588b6937aa653603382ee0fb71fe0bc27d7208b2276"
+    }
+  ],
+  "cache": {
+    "volume": "eech-linux-d3-collision-driver-5416adb3b-20261029",
+    "image_x64": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+    "image_i686": "eech-d3-tree-i686-20261106:2",
+    "owners": "one (this lane); no container before or after",
+    "cleanup": "none performed"
+  },
+  "not_run": [
+    "Windows build",
+    "native, campaign or war launch",
+    "retail data",
+    "the sector-height observer baseline (it observes the retired original word)",
+    "signalling-NaN or engine -O2 measurement",
+    "agents/MCP/authentication/model change",
+    "cache or process deletion",
+    "merge"
+  ],
+  "limits": [
+    "source and Linux checks only; every native gate (fresh source/profile, observer-off ordinary short against the accepted 80fd files, the declared window compared word for word, the controlled public witnesses) is Root's after the SAME combined source review",
+    "the guarded fixed-wing clearance and the native server-session save and restore are UNREACHED: named blockers ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1 and ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1 stay OPEN",
+    "the host does not know the world map: a sector it never saw answers the zero word and the campaign only asks for sectors it holds; the word is never validated",
+    "no signalling-NaN, engine -O2 or exhaustive census claim; the host's raise expression is the original's text compared with the original response on x86-64 and i686 over 21 domain cases under both rounding modes",
+    "no baseline, input, seed, frame, duration or tolerance changed; no clock, random draw or order changed"
+  ],
+  "state": {
+    "sector-height-host-move-open-facts": "OPEN until the move is reviewed and its native authority, refusal and comparison evidence exist",
+    "P1": "ENV-ENTITY-POSE-LONG-RUN-MOTION-1 CLOSED at f734 (4de6d2e9)",
+    "claims": "no self-review, approval, native clearance, whole Task49 or D3, delivery",
+    "D3-CURRENT.json": "not edited (Root owns it)"
+  },
+  "hygiene_problems_at_freeze": []
+}

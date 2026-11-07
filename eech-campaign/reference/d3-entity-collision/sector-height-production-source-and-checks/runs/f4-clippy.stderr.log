@@ -1,0 +1,30 @@
+wsl: Failed to translate 'R:\d3-evidence'
+    Checking eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Checking eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+    Checking eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Checking eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Checking eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Checking eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+error: used `expect()` on an `Option` value
+     --> crates/eech-engine/src/lib.rs:11816:29
+      |
+11816 |                 let facts = seen.borrow().clone().expect("the question was asked");
+      |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      |
+      = note: if this value is `None`, it will panic
+      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#expect_used
+      = note: requested on the command line with `-D clippy::expect-used`
+
+error: could not compile `eech-engine` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: `panic` should not be present in production code
+    --> crates/eech-dc/src/module.rs:6377:22
+     |
+6377 |             other => panic!("not a sector height answer: {other:?}"),
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#panic
+     = note: requested on the command line with `-D clippy::panic`
+
+error: could not compile `eech-dc` (lib test) due to 1 previous error

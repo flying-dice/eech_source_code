@@ -1,0 +1,4 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 06s
+     Running tests/sector_height.rs (/target/i686-unknown-linux-gnu/debug/deps/sector_height-e0b1957a6040df50)

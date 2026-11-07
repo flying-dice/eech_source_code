@@ -102,7 +102,13 @@ clearance or authority is claimed.
 - **Observation to take**: per sector key, the word the campaign sends against the high-water the host computes from the fixed-state statements and its own scene table. The campaign's word is
   the reference; the host's is the candidate. A provider replay of the same words proves the provider, not the engine.
 
-## 6. The concrete next production move (after the long-run blocker closes; NOT built here)
+## 6. The concrete next production move (PROPOSED design; SUPERSEDED by the production contract)
+
+> **Update (7 November 2026, Task49).** This section was a proposal. The production move is built in source and its contract, corrected from the actual source, is
+> [d3-sector-height-production-contract.md](d3-sector-height-production-contract.md) (arrival detected by the key, no mirror, the getter as the one read, fact 12 as the host's word, the city's shape fact,
+> phases 17 and 18). Sections 1 to 4 above remain the characterization of the ORIGINAL; the original-solver profile (`collision-fixture`) keeps that body and the 179-expectation control runs there unchanged.
+> The text below is kept as written for the record.
+
 
 **One host-owned scalar per sector, written by the host's roster, read through the existing scan grammar.** No new framework, no second world, no mirror as sole authority.
 

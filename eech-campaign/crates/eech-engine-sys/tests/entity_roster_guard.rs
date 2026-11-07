@@ -1084,7 +1084,8 @@ fn the_reporter_states_the_sub_type_the_host_derives_its_rules_from_and_never_th
         "#define CAMPAIGN_CITY_SUBTYPE 10",
         "#define CAMPAIGN_FIXED_SUB_TYPES 15",
         "#define CAMPAIGN_FIXED_STATE_WORDS 6",
-        "#define CAMPAIGN_CITY_STATE_WORDS 10",
+        "#define CAMPAIGN_CITY_STATE_WORDS 11",
+        "#define CAMPAIGN_CITY_SHAPE 9",
     ] {
         assert!(model.contains(definition), "{definition}");
     }
@@ -1092,6 +1093,9 @@ fn the_reporter_states_the_sub_type_the_host_derives_its_rules_from_and_never_th
     let entity = code_of(&source("entity/mobile/mb_hostentity.h"));
     assert!(entity.contains("request.pose [CAMPAIGN_FIXED_SUBTYPE] = state [5];"));
     assert!(entity.contains("request.pose [CAMPAIGN_CITY_SUBTYPE] = state [9];"));
+    // the city's shape (Task49, the host-owned sector height): the one fact the host needs of a city to decide the raise at the city's arrival, stated in the fact the fixed report uses for its withdrawal word
+    assert!(entity.contains("request.pose [CAMPAIGN_CITY_SHAPE] = state [10];"));
+    assert!(function_code(&place, "static void place_city_read (").contains("state [10] = (float) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);"));
     assert!(!entity.contains("CAMPAIGN_FIXED_COLLISION") && !entity.contains("CAMPAIGN_FIXED_ALIGN"));
 }
 

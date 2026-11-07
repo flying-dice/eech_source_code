@@ -147,6 +147,8 @@ struct Entry {
     host_id: Option<String>,
     /// the record this placement belongs to: the entity's one physical record, which its other placements (a city building's place in its city's list) and its legacy object-report identity share
     record: u64,
+    /// whether the placement's ARRIVAL has been taken: false when the insertion issues the key, true after the first fixed or city state statement under it, the one event that may raise the sector's height
+    arrived: bool,
 }
 
 /// A building's place in its city's list (`LIST_TYPE_CITY_BUILDING`): the record of the city the list hangs from (stable across the city's sector relinks), and the record the building shares with its own sector placement.
@@ -292,6 +294,9 @@ pub struct SectorRoster {
     records: HashMap<u64, Record>,
     /// the object-report identities by record: an identity names one record
     objects: HashMap<String, u64>,
+    /// the sectors' high-water heights, as the bits of the float word the host holds (the ONE physical word of each sector: `sector_height`); a sector with no entry holds the all-zero word, which is
+    /// what a fresh sector starts from. Nothing lowers it; only an arrival (`raise_sector_height`) and a session restore (`restore_sector_height`) write it, and a boot's clear ends it
+    heights: HashMap<(i32, i32), u32>,
 }
 
 impl SectorRoster {
@@ -309,6 +314,7 @@ impl SectorRoster {
                 entity_type,
                 host_id: host_id.map(str::to_string),
                 record: key,
+                arrived: false,
             },
         );
         self.records.insert(
@@ -369,6 +375,43 @@ impl SectorRoster {
         if let Some(object) = self.records.remove(&record).and_then(|ended| ended.object) {
             self.objects.remove(&object);
         }
+    }
+
+    /// The high-water height word of a sector, as the host holds it: the bits of the float the original keeps in `tallest_structure_height`. A sector the host holds no word for (a fresh sector, or a boot's
+    /// clear) is the all-zero word, exactly the zero fill the original gives a new sector. The word is never read as a float here.
+    pub fn sector_height(&self, sector: (i32, i32)) -> u32 {
+        self.heights.get(&sector).copied().unwrap_or(0)
+    }
+
+    /// Whether the sector placement `key` has not yet had its ARRIVAL taken, and the sector it stands in: `Some` for a live sector entry whose first fixed or city state statement has not arrived (the one
+    /// moment the original's LINK_CHILD response raises the height), `None` for every other key (a city child, a key that ended, a placement whose arrival was taken).
+    pub fn awaiting_arrival(&self, key: u64) -> Option<(i32, i32)> {
+        self.entries.get(&key).filter(|entry| !entry.arrived).map(|entry| entry.sector)
+    }
+
+    /// Takes the ARRIVAL of the sector placement `key` and stores `word` as its sector's height when it is `Some` (the caller has computed the original's strict raise over the word `sector_height` held). A key that
+    /// is not awaiting its arrival changes nothing and is refused by name, so the one raise per insertion cannot be repeated by a later statement.
+    pub fn raise_sector_height(&mut self, key: u64, word: Option<u32>) -> Result<(), Refusal> {
+        let Some(entry) = self.entries.get_mut(&key) else {
+            return Err(Refusal::new(self.unknown(key)));
+        };
+        if entry.arrived {
+            return Err(Refusal::new(format!(
+                "the placement {key} has already arrived in its sector: only the arrival raises its height"
+            )));
+        }
+        entry.arrived = true;
+        let sector = entry.sector;
+        if let Some(word) = word {
+            self.heights.insert(sector, word);
+        }
+        Ok(())
+    }
+
+    /// States a session's saved word for a sector (the restore): the host holds exactly these bits afterwards, whatever they are (a negative, infinite or NaN word the original saved is valid history and is neither
+    /// clamped nor refused). The sector must be a whole-number pair inside the domain the roster's sectors have; nothing about the word is validated.
+    pub fn restore_sector_height(&mut self, sector: (i32, i32), word: u32) {
+        self.heights.insert(sector, word);
     }
 
     /// Whether the record is a city's that holds the box the host built and the campaign has not released: only then does it outlive its placements and its list.
@@ -930,6 +973,7 @@ impl SectorRoster {
         self.children.clear();
         self.records.clear();
         self.objects.clear();
+        self.heights.clear();
     }
 
     /// The reason `key` is not a city child: it names a sector entry, or it is unknown or ended.
@@ -1648,5 +1692,55 @@ mod tests {
         );
         assert!(!is_fixed_family(ENTITY_CITY));
         assert!(is_fixed_family(ENTITY_CITY_BUILDING));
+    }
+
+    #[test]
+    fn a_sectors_height_is_the_zero_word_until_an_arrival_or_a_restore_writes_it_and_a_clear_ends_every_word() {
+        let mut roster = SectorRoster::default();
+        assert_eq!(
+            roster.sector_height((3, 4)),
+            0,
+            "a sector the roster holds no word for is the zero fill of a new sector"
+        );
+        let key = roster.insert((3, 4), 17, None);
+        assert_eq!(roster.awaiting_arrival(key), Some((3, 4)), "the arrival is still to come at the insertion");
+        roster.raise_sector_height(key, Some(0x42ca_0000)).expect("the arrival");
+        assert_eq!(roster.sector_height((3, 4)), 0x42ca_0000);
+        assert_eq!(roster.sector_height((4, 3)), 0, "the word belongs to its own sector");
+        assert_eq!(roster.awaiting_arrival(key), None, "the arrival is taken once");
+        assert!(roster.raise_sector_height(key, Some(0x4348_0000)).unwrap_err().0.contains("already arrived"));
+        assert_eq!(roster.sector_height((3, 4)), 0x42ca_0000, "a refused second raise changes nothing");
+        // an arrival that leaves the word (None) still takes the arrival
+        let lower = roster.insert((3, 4), 17, None);
+        roster.raise_sector_height(lower, None).expect("an arrival that raises nothing");
+        assert_eq!(roster.awaiting_arrival(lower), None);
+        assert_eq!(roster.sector_height((3, 4)), 0x42ca_0000);
+        // a removal never lowers it and a key that ended is no arrival
+        roster.remove(key).expect("removed");
+        assert_eq!(roster.sector_height((3, 4)), 0x42ca_0000);
+        assert!(roster.raise_sector_height(key, Some(0)).unwrap_err().0.contains("has ended"));
+        assert_eq!(roster.awaiting_arrival(key), None);
+        // a restore states ANY raw word, and the clear of a boot ends every word
+        for word in [0x8000_0000u32, 0xff80_0000, 0x7f80_0000, 0x7fc0_f00d, 0xbf80_0000, 0] {
+            roster.restore_sector_height((3, 4), word);
+            assert_eq!(roster.sector_height((3, 4)), word);
+        }
+        roster.restore_sector_height((9, 9), 0x3f80_0000);
+        roster.clear();
+        assert_eq!((roster.sector_height((3, 4)), roster.sector_height((9, 9))), (0, 0));
+    }
+
+    #[test]
+    fn a_city_childs_key_names_no_sector_and_never_awaits_an_arrival() {
+        let mut roster = SectorRoster::default();
+        let city = roster.insert((0, 0), ENTITY_CITY, None);
+        let child = roster.child_insert(city, None, ENTITY_CITY_BUILDING).expect("listed");
+        assert_eq!(
+            roster.awaiting_arrival(child),
+            None,
+            "a building's place in its city's list is not an arrival in a sector"
+        );
+        assert!(roster.raise_sector_height(child, Some(1)).is_err());
+        assert_eq!(roster.awaiting_arrival(99), None, "a key never issued");
     }
 }

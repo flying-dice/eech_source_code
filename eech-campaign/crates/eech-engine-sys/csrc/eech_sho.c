@@ -43,7 +43,10 @@
 
 /* the statement word counts the observer stores must hold the host's contract widths */
 typedef char sho_fixed_words_fit [(CAMPAIGN_FIXED_STATE_WORDS <= 10) ? 1 : -1];
-typedef char sho_city_words_fit [(CAMPAIGN_CITY_STATE_WORDS <= 10) ? 1 : -1];
+/* the observer records the first ten words of a city statement (the position, the box and the sub type); the shape word the host's contract adds after them (CAMPAIGN_CITY_SHAPE, Task49) is the host's own input and is not
+   one the observer records. This instrument observes the ORIGINAL profile's campaign-held word: in a hosted build the original raise, getter and pack lines it hooks are compiled out */
+#define SHO_CITY_WORDS 10
+typedef char sho_city_words_fit [((CAMPAIGN_CITY_STATE_WORDS >= SHO_CITY_WORDS) && (CAMPAIGN_CITY_STATE_WORDS <= SHO_CITY_WORDS + 1)) ? 1 : -1];
 
 /* The event table bound. The finite public baseline (Lebanon, hours=0.001: 35 frames) attempted 304811 event records and 262144 fitted, so the report was correctly refused as incomplete (the
    actual native run of eff3b4b33). 524288 leaves 219477 slots of headroom for that declared window. The cost is diagnostic-feature-only static storage: the report states the record size it
@@ -839,15 +842,15 @@ void eech_sho_statement_fixed (const void *en, int type, int sector_placed, cons
 
 void eech_sho_statement_city (const void *en, int sector_placed, const char *key, const float *city)
 {
-	uint32_t words [CAMPAIGN_CITY_STATE_WORDS];
+	uint32_t words [SHO_CITY_WORDS];
 	int i;
 
-	for (i = 0; i < CAMPAIGN_CITY_STATE_WORDS; i++)
+	for (i = 0; i < SHO_CITY_WORDS; i++)
 	{
 		words [i] = bits (&city [i]);
 	}
 
-	eech_sho_core_statement ((int) get_local_entity_index ((entity *) en), (int) ENTITY_TYPE_CITY, SHO_FAMILY_CITY, sector_placed, key, words, CAMPAIGN_CITY_STATE_WORDS);
+	eech_sho_core_statement ((int) get_local_entity_index ((entity *) en), (int) ENTITY_TYPE_CITY, SHO_FAMILY_CITY, sector_placed, key, words, SHO_CITY_WORDS);
 }
 
 #endif

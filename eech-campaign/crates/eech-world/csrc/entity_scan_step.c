@@ -10,7 +10,7 @@
  * of the same question (phases 4 to 6, which this kernel is never asked about) and the host answers with a key it issued; this kernel decides the window, the traversal and the ends, and the entry a
  * sector's list serves (its oldest first, then what follows the entry the campaign is standing at) is the host's roster's. The campaign's own lists are only the conformance mirror of that order.
  *
- * What the campaign keeps, named and REQUIRED to move: the tallest structure of a sector, a city's buildings, the entities' live state and static pose, the semantic identity of a structure, and the
+ * What the campaign keeps, named and REQUIRED to move: a city's buildings (a sector's tallest structure is the host's word since Task49), the entities' live state and static pose, the semantic identity of a structure, and the
  * identity of the source and the target (a comparison only the entity heap can make, reported as a fact).
  *
  * It is a pure function of its facts, like entity_candidate_step.c: the host keeps nothing between questions and the cursor travels in the facts and the answer. The caller

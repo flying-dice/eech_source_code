@@ -1,0 +1,10 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 13s
+     Running unittests src/lib.rs (/target/debug/deps/eech_dc-1ae9eaede81ef035)
+     Running tests/lua_debug_layout.rs (/target/debug/deps/lua_debug_layout-b16402b33c09c832)
+     Running unittests src/lib.rs (/target/debug/deps/eech_engine-14b00a88a2e67f0a)
+   Doc-tests eech_dc
+   Doc-tests eech_engine

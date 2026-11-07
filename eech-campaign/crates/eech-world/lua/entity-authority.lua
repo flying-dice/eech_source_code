@@ -656,7 +656,7 @@ local function engine_marker (err) return string.match (first_line (err), FATAL)
 -- ---------------------------------------------------------------------------------------------------------------- the host's model provider, counted, altered only when armed
 local armed = false
 local reference -- the host's own model provider (host.model), resolved inside the owned close scope (main)
-local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, pose = 0 }
+local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, sector_height = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, sector_height = 0, pose = 0 }
 local altered = 0
 local cand_altered, cand_skipped = 0, 0
 local scan_altered, scan_none_answered = 0, 0
@@ -776,7 +776,7 @@ end
 -- entry the scan stands at in ENTRY and RESOLVED (a roster key: 1 to 20 decimal digits, no leading zero) and in no other scan phase; an INSERT's optional hosted-mobile identity; a REMOVE's key; nothing for a RESET.
 -- The facts an event does not state are zero.
 local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3, ["0x40800000"] = 4, ["0x40a00000"] = 5, ["0x40c00000"] = 6,
-	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12, ["0x41500000"] = 13, ["0x41600000"] = 14, ["0x41700000"] = 15, ["0x41800000"] = 16 }
+	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12, ["0x41500000"] = 13, ["0x41600000"] = 14, ["0x41700000"] = 15, ["0x41800000"] = 16, ["0x41880000"] = 17, ["0x41900000"] = 18 }
 local ROSTER_EVENTS = { [4] = "insert", [5] = "remove", [6] = "reset" }
 -- the facts an INSERT states (the position's x, y and z, the entity type, the side length: facts 1 to 3, 4 and 7) and the phase (12); all others are zero
 local INSERT_STATED = { [1] = true, [2] = true, [3] = true, [4] = true, [7] = true, [12] = true }
@@ -823,7 +823,7 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 	local words = words_of_text (text, 16)
 	if words == nil then return nil, "the facts text is not 16 comma separated 0x%08x patterns" end
 	local phase = PHASES [words [12]]
-	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 16" end
+	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 18" end
 	-- the identity place has the domain of its phase: a host identity or a key is 1 to 128 bytes, and a city NAME holds a key (20 digits at most), one space and an object identity of its own 1 to 128 bytes (149 in all)
 	local limit = phase == 12 and 20 + 1 + 128 or 128
 	if #identity > limit then
@@ -846,7 +846,7 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 	end
 	if phase == 14 then
 		-- a CITY_STATE report (Task49): the key of the city's sector placement, the position (1 to 3), the box minimum (4 to 6), the box maximum (7 to 9), the sub type (11) and the phase (12)
-		if not others_zero (words, scan.fixed.city_words) then return nil, "a city state report states nothing but the position, the box minimum, the box maximum, the sub type and its phase" end
+		if not others_zero (words, scan.fixed.city_words) then return nil, "a city state report states nothing but the position, the box minimum, the box maximum, the shape, the sub type and its phase" end
 		if not is_roster_key (identity) then return nil, "a city state report names \"" .. shown (identity) .. "\", which is not a roster key" end
 		return { kind = "city_state", words = words, phase = phase, event = "city_state", key = identity }
 	end
@@ -856,6 +856,14 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 		local city, child = string.match (identity, "^(%d+) (%d+)$")
 		if city == nil or not is_roster_key (city) or not is_roster_key (child) then return nil, "a city expansion names \"" .. shown (identity) .. "\", which is not a city key, one space and a building key" end
 		return { kind = "city_expand", words = words, phase = phase, event = "city_expand", city = city, child = child }
+	end
+	if phase == 17 or phase == 18 then
+		-- a sector height READ or RESTORE (Task49): the sector's x and z (facts 12 and 13: words 13 and 14), a restore's saved word RAW in fact 0 (word 1) and the phase; nothing else, and no identity place
+		local stated = { [12] = true, [13] = true, [14] = true }
+		if phase == 18 then stated [1] = true end
+		if not others_zero (words, stated) then return nil, "a sector height " .. (phase == 18 and "restore" or "read") .. " states nothing but the sector, its phase and, for a restore, the word" end
+		if identity ~= "" then return nil, "a sector height names no placement" end
+		return { kind = "sector_height", words = words, phase = phase, event = phase == 18 and "sector_restore" or "sector_height" }
 	end
 	if phase >= 7 then
 		-- a CITY event: nothing is stated but the phase (and an insertion's entity type, fact 4); the identity place holds the keys of the phase's grammar
@@ -1081,7 +1089,7 @@ scan.fixed = { total = 0, stated = 0, held = {}, by_key = {}, rule_eligible = 0,
 	-- acknowledged a city state for in either window (`city_held`), the staged questions that read the city's position and box over a held state (`city_joined`), the host's own withdrawal of one city's state
 	-- (withdrawn_city_state; 1 once acknowledged `removed`, -1 when it was not) with the placement it was made for and the kind of the next question that reached the city stage, and the facts (1-based) a report states
 	city_total = 0, city_stated = 0, city_held = {}, city_joined = 0, city_withdrawn = 0, city_withdrawn_key = "", city_withdrawn_next = "",
-	city_words = { [1] = true, [2] = true, [3] = true, [4] = true, [5] = true, [6] = true, [7] = true, [8] = true, [9] = true, [11] = true, [12] = true } }
+	city_words = { [1] = true, [2] = true, [3] = true, [4] = true, [5] = true, [6] = true, [7] = true, [8] = true, [9] = true, [10] = true, [11] = true, [12] = true } }
 -- A building holds up to two placements, its place in a city's list and its sector placement, and the host keeps both in ONE record with ONE fixed state (roster.rs `link`). The campaign states the building under its SECTOR key whenever it
 -- holds one (mb_hostplacemap.h place_fixed_state), also when it is listed in a city again under a NEW key (the lifecycle's relist: place_child_insert declares the LINK, then states the sector key), so such a city-list key is never reported
 -- on its own. `held` stays what was acknowledged under that very key; `shared` is a key whose record holds an acknowledged state through its OTHER placement, which only a positively acknowledged LINK (`peer`: the two keys of one record)
@@ -1114,6 +1122,8 @@ end
 -- state before the first eligible one (withdrawn_box_state; 1 once acknowledged `removed`, -1 when it was not, -2 when the question did not join the keys seen) with the building it was made for, and whether the
 -- question was eligible (`box_eligible`: the pair joined a city state and a building state the provider acknowledged)
 scan.fixed.expand_total, scan.fixed.expand_answered, scan.fixed.box_withdrawn, scan.fixed.box_withdrawn_key, scan.fixed.box_eligible = 0, 0, 0, "", 0
+-- the SECTOR HEIGHT reads and restores (phases 17 and 18, Task49), kept in the same table: the questions seen in either window and those answered well-formed. The word is the host's; this only counts and checks it
+scan.fixed.height_total, scan.fixed.height_answered, scan.fixed.restore_total, scan.fixed.restore_answered = 0, 0, 0, 0
 -- what the host's re-evaluation of the final placement question answered when it was NOT the provider's refusal (changed_fixed_rule): "" until then, then `answered <result>` or `raised <message>`; never an emitted field
 scan.fixed.rule_reeval = ""
 -- THE FINAL POSITIVE OF changed_fixed_rule IS HELD BACK FROM THE CAMPAIGN (it meets the provider's refusal of the same payload instead), so it must satisfy, BEFORE any credit, restatement or extra evaluation, what the campaign's own consumer
@@ -1172,6 +1182,20 @@ function scan.fixed.expand_reply_problem (answer, parsed)
 	end
 	return nil
 end
+-- the first problem of a REAL sector height reply against the contract, or nil: `height` for a read and `restored` for a restore, no placement named, exactly three patterns (the sector's x and z as asked, then the word),
+-- and for a restore the word as stated. The word itself is never classified: a negative, infinite or NaN word is valid
+function scan.fixed.height_reply_problem (answer, parsed)
+	if type (answer) ~= "table" then return "the reply is not a table" end
+	if answer.result == "refused" then return "result refused" end
+	local wanted = parsed.phase == 18 and "restored" or "height"
+	if answer.result ~= wanted then return "a sector height " .. (parsed.phase == 18 and "restore" or "read") .. " answered " .. tostring (answer.result) .. ", not " .. wanted end
+	if answer.name ~= nil and answer.name ~= "" then return "a sector height named the placement \"" .. shown (answer.name) .. "\"" end
+	local words = type (answer.p) == "string" and words_of_text (answer.p, 3) or nil
+	if words == nil then return "a sector height answered words that are not three 0x%08x patterns" end
+	if words [1] ~= parsed.words [13] or words [2] ~= parsed.words [14] then return "a sector height answered for another sector than the one asked about" end
+	if parsed.phase == 18 and words [3] ~= parsed.words [1] then return "the host stored a word for the restore of a sector's height that is not the word stated" end
+	return nil
+end
 -- the verdict of withdrawn_box_state (nil when credited), given the engine's stop at boot (`failure`, nil when the boot completed). The evidence row is closed FIRST and carries only what this wrapper itself kept: after a stop
 -- NOTHING is read from the engine, so every physical fact after it is unknown (-1), never a number. Credited only by (a) an ELIGIBLE question (the pair joined a city state and a building state the provider
 -- acknowledged), (b) the reached withdrawal of ONLY that building's state (acknowledged `removed`), (c) the very question delegated afterwards, unmodified, and (d) the provider's own named refusal as the only fault.
@@ -1181,6 +1205,7 @@ function scan.fixed.box_verdict (failure)
 		event = "authority", mode = mode, profile = profile, expected_marker = plan.marker or "", completed = false, incomplete = false,
 		failure_marker = failure and failure.marker or "", failure_line = failure and failure.line or "", boot_stop = failure ~= nil,
 		city_expand_before = before.city_expand, city_expand_after = after.city_expand, city_expand_total = f.expand_total, city_expand_answered = f.expand_answered,
+		sector_height_total = f.height_total, sector_height_answered = f.height_answered, sector_restore_total = f.restore_total, sector_restore_answered = f.restore_answered,
 		box_eligible = f.box_eligible, box_withdrawn = f.box_withdrawn, box_withdrawn_key = f.box_withdrawn_key,
 		box_withdrawn_cause = (failure and string.find (failure.line, "[roster.city_box.building_state]", 1, true) and string.find (failure.line, "withdrew", 1, true)) and "city_box_building_state_withdrawn" or "",
 		city_held_lifetime = (function () local held = 0 for _ in pairs (f.city_held) do held = held + 1 end return held end) (),
@@ -1370,6 +1395,24 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 		else
 			faults.reply = faults.reply + 1
 			first_fault = first_fault or ("scan reply: " .. expand_problem)
+		end
+		return real
+	end
+	-- a SECTOR HEIGHT read or restore (phases 17 and 18, Task49): counted in either window, its reply checked, never altered (the word is the host's: the campaign uses what the host answered and has no fallback)
+	if parsed ~= nil and parsed.kind == "sector_height" then
+		local f = scan.fixed
+		local read = parsed.phase == 17
+		if read then f.height_total = f.height_total + 1 else f.restore_total = f.restore_total + 1 end
+		if armed and joined then
+			faults.request = faults.request + 1
+			first_fault = first_fault or ("scan request: " .. joined)
+		end
+		local height_problem = f.height_reply_problem (real, parsed)
+		if height_problem == nil then
+			if read then f.height_answered = f.height_answered + 1 else f.restore_answered = f.restore_answered + 1 end
+		else
+			faults.reply = faults.reply + 1
+			first_fault = first_fault or ("scan reply: " .. height_problem)
 		end
 		return real
 	end
@@ -2515,6 +2558,7 @@ local function main ()
 			city_state_held_lifetime = (function () local held = 0 for _ in pairs (scan.fixed.city_held) do held = held + 1 end return held end) (),
 			city_state_withdrawn_cause = (failure and string.find (failure.line, "[candidate.city]", 1, true) and string.find (failure.line, "withdrew", 1, true)) and "city_state_withdrawn" or "",
 			city_expand_before = before.city_expand, city_expand_after = after.city_expand, city_expand_total = scan.fixed.expand_total, city_expand_answered = scan.fixed.expand_answered,
+			sector_height_total = scan.fixed.height_total, sector_height_answered = scan.fixed.height_answered, sector_restore_total = scan.fixed.restore_total, sector_restore_answered = scan.fixed.restore_answered,
 		target = watched or "", target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed,
 		target_need_placement = tgt.need_placement, target_need_normal = tgt.need_normal, target_buildings = tgt.buildings, target_test = tgt.test,
 		target_after_lift = tgt.after_lift, target_after_lift_test = tgt.after_lift_test,

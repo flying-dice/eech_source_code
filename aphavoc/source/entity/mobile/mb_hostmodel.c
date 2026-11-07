@@ -86,6 +86,8 @@ struct campaign_model_counters
 	/* ENTITY_POSE observations asked of the host (EEDCS-49), and the classes it answered: recorded, unrecorded, retired, unknown, no identity */
 	long entity_pose, pose_recorded, pose_unrecorded, pose_retired, pose_unknown, pose_no_id;
 	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
+	/* the SECTOR HEIGHT reads and restores (the same question, phases 17 and 18): the sector words the host answered and the saved words it stored */
+	long sector_height_read, sector_height_restored;
 };
 
 struct campaign_model_counters campaign_model_counts;
@@ -2085,6 +2087,29 @@ void campaign_model_entity_city_expand (const char *city, const char *building, 
 
 #ifdef EECH_MODEL_HOST_FIXTURE
 	campaign_model_counts.city_expanded++;
+#endif
+}
+
+// ENTITY_SCAN, the sector's HIGH-WATER HEIGHT read (mb_hostmodel.h; Task49): the word the host holds for a sector. The dialogue is mb_hostentity.h.
+void campaign_model_sector_height (int x_sector, int z_sector, float *word)
+{
+	campaign_entity_sector_height_exchange (CAMPAIGN_SCAN_PHASE_SECTOR_HEIGHT, x_sector, z_sector, NULL, word);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.sector_height_read++;
+#endif
+}
+
+// ENTITY_SCAN, the session RESTORE of a sector's height (mb_hostmodel.h; Task49): the saved word is stated to the host, which holds exactly these bits. The dialogue is mb_hostentity.h.
+void campaign_model_sector_height_restore (int x_sector, int z_sector, const float *word)
+{
+	float
+		stored;
+
+	campaign_entity_sector_height_exchange (CAMPAIGN_SCAN_PHASE_SECTOR_RESTORE, x_sector, z_sector, word, &stored);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.sector_height_restored++;
 #endif
 }
 
