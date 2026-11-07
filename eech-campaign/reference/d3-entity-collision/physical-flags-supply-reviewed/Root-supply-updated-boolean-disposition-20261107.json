@@ -1,0 +1,16 @@
+{
+  "kind": "Technical-lead disposition for ENV-PHYSICAL-FLAGS-SUPPLY-DESCRIPTOR-RAW-UPDATED-1; correction is NOT implemented or accepted yet",
+  "authority": "Starscream technical-lead role delegated by the user for completing wholeD3 under live M5 goal11534337v3 and ledger14548994; current proof still requires independent review and normal delivery",
+  "characterized_source": "ae367ca3ab45f6453bdb39d085c508b9a1c3a015",
+  "finding": "Actual gd_supply_arrival producer reads the destructive raw UPDATED getter into a descriptor consumed by the engine's existing checked_bool(updated) boundary. Both Original and hosted controls accept0/1 and refuse tested valid set masks2/4/bit30/bit31 before the host answer. Native retail reachability of that set-mask failure is unproved.",
+  "classification": "Existing defect in a required physical descriptor boundary, not a regression caused by the host store. The next bounded change is an explicitly intentional defect correction, not a behavior-preserving refactor. Preserve the original failing behavior and all prior evidence by exact source identity.",
+  "authorized_correction": "Normalize ONLY gd_supply_arrival descriptor.updated to the boolean required by its existing Rust contract: exactly one get_local_entity_int_value(member,INT_TYPE_UPDATED) call, zero->FALSE, every nonzero raw mask including negativebit31->TRUE. Use the existing C TRUE/FALSE convention. Do not normalize the getter/store or other consumers; preserve destructive neighboring-bit effects, quarter reset extent, RNG/FPU/order and campaign decisions.",
+  "required_before_delivery": [
+    "Same independent reviewer must first finish the current characterization disposition; resolve any current source blockers before the correction.",
+    "New boolean-descriptor expectation demonstrably RED on characterized ae367 before the fix, then GREEN in both profiles with the actual producer/real Rust boundary and real hosted store; keep positive prerequisites and raw destructive semantics explicit.",
+    "Keep raw-word/guide/collision controls unchanged and passing. Update documentation and the source guard to state the explicit defect correction; do not delete or relabel the retained old refusal evidence.",
+    "Fresh independent review of the correction, appropriate named source/build/profile checks, true new binaries when production C changes, established native/default recording comparisons with unchanged baselines/inputs/configuration/tolerances, and required final current full40/all8/fourinputs/CI/formalreview/normalmerge.",
+    "The defect row remains OPEN until correction evidence and reviewer disposition close its actual scope; whole NativeAcceptanceRow/all10/Task49/D3 remain OPEN. No claim that a native campaign reached the old failure; no automatic approval of other semantic repairs."
+  ],
+  "not_authorized": "Changing accepted baselines or tolerances, repairing the legacy destructive getter/reset behavior, new world/campaign authority, broad lifetime/epoch frameworks, D4/D5/TypeScript, or a formalGitHub approval/merge without actual gates"
+}

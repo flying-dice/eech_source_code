@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "independent-physical-flags-supply-ae367-source-20261107.json",
+      "bytes": 13811,
+      "sha256": "867a7a2add736f5875ae35bb9334a3999732b5bd6ae7f295f3b5883baf32d504"
+    },
+    {
+      "path": "physical-flags-supply-4eec-publication-Root-20261107.json",
+      "bytes": 6941,
+      "sha256": "690c79621ca59d2406104746d800a4e0b4c9ecbbb7531499b111b00cbf8a3486"
+    },
+    {
+      "path": "physical-flags-supply-ae367-Root-binding-20261107.json",
+      "bytes": 5212,
+      "sha256": "aaf0943a982ff5f48031eb886e0fc1535ba3d1422ed9df8df31e68640288bdc2"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1782,
+      "sha256": "66504a1b93d421c26c6d9dc7be8b2f2b5fa369fcda877d87b01497aa3fd0cfa5"
+    },
+    {
+      "path": "Root-supply-updated-boolean-disposition-20261107.json",
+      "bytes": 3099,
+      "sha256": "c8aeed190a0610db2b55b69d8b5ccea1171b17bf1ba1f2310ac6783625f23fab"
+    }
+  ]
+}
