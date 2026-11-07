@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "FiniteCITY retained; sectorheight characterization033defb4 closed batch1of2; the needed-consumer/DCS-API source disposition (2c6652f4d, UNREVIEWED) completes batch2of2. NO further preparation until the earlier personmotionfullpack blocker ENV-ENTITY-POSE-LONG-RUN-MOTION-1 (OPEN/blocks_cutovertrue) is closed by an actual complete corrected pack and independent review.",
+  "phase": "Source/API disposition2c665/meta2989 SAMEreviewcc70 requires twoP2 documentation corrections. Prep2of2; no newpreparation. Earlier longrunP1 OPEN/blocks_cutovertrue; no physicalcutover.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "After actual corrected fullpack and independent closure of ENV-ENTITY-POSE-LONG-RUN-MOTION-1, move required sectorheight/hints and writers/readers to Host, preserving characterized rawstate/highwater semantics. The remaining-consumer/DCS-API source disposition is complete (2c6652f4d); it is planning, not host authority or delivery.",
@@ -454,9 +454,29 @@
       "evidence": "Source disposition 2c6652f4dfcb1c31a0eb46bf74eb318976f4b9e6 (UNREVIEWED): reference/d3-needed-consumer-api-disposition/needed-consumer-api-matrix.json and docs/d3-needed-consumer-api-disposition.md. Every row keeps its disposition and concrete missing fact; nothing is closed by the existence of the report, and no row is called dormant by name, count, grep, missing export or one unreached run.",
       "missing_fact": "OPEN: D3G-01 DCS source of sector obstacle height and the unit-mixed clearance; D3G-02 DCS terrain normal workaround unproven; D3G-03 UPDATED truth value for a DCS-sampled pose, memset-domain reach, guide-reached host contract; D3G-04/05 measured boot CRT draw counts and consumer order; D3G-06/07 DCS object-blocking LOS or per-type geometry, tree/scenery declaration, Object.Category and volume constants, weapon-entity ownership rule of the DCS profile; D3G-08 per-sub-object pose and Controller task schemas; D3G-09 anchored route/sub-object contracts beyond the declared Airbase runway/parking/tower records; D3G-10 shared-RNG accounting decision for rotor/smoke effects; D3G-11 default-shape ownership and DCS type mapping; D3G-12/14 final compile/entry census; D3G-13 blocked by ENV-ENTITY-POSE-LONG-RUN-MOTION-1.",
       "next_fix": "Same reviewer reviews this delta only. Resolve rows through the named production moves in the matrix (first: host-owned sector scalar after the blocker closes) and verified declarations or reviewed bounded data; final actual compiled-consumer audit after the last code change. No further preparation batch before the production blocker is resolved."
+    },
+    {
+      "id": "ENV-D3-DISPOSITION-CALLER-PROFILE-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "severity": "P2",
+      "evidence": "R:\\d3-evidence\\independent-needed-consumer-api-disposition-2c6652f4d-20261107.json SHA256 cc70a2cefe7ae4d7877d8197eced100cbe539db1275103bc2571b6e562274d70",
+      "scope": "Documentation correction within completed preparation2; not a new preparation batch or physical clearance.",
+      "missing_fact": "Service feature gates and runtime caller conditions are conflated",
+      "next_fix": "Correct the matrix, generated narrative and affected summary wording to distinguish legacy versus hosted source and each actual service macro. State runtime guards separately from compiled inclusion; qualify any repeated every-waypoint sentence in the referenced current contract rather than relabelling an old test result. Preserve active mb_hostlos work and all OPEN consumer questions. Documentation-only correction; no new builds, tests or caller census requested."
+    },
+    {
+      "id": "ENV-D3-DISPOSITION-MOVING-COVERAGE-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "severity": "P2",
+      "evidence": "R:\\d3-evidence\\independent-needed-consumer-api-disposition-2c6652f4d-20261107.json SHA256 cc70a2cefe7ae4d7877d8197eced100cbe539db1275103bc2571b6e562274d70",
+      "scope": "Documentation correction within completed preparation2; not a new preparation batch or physical clearance.",
+      "missing_fact": "Unqualified public-moving absence contradicts accepted configured query-service coverage",
+      "next_fix": "Separate accepted configured public query-service coverage from the still-open natural campaign engagement and unreached-state obligations. Do not erase the accepted finite scope, broaden it into natural coverage, or close the long-run motion blocker."
     }
   ],
-  "next_action": "No further preparation batch (count 2 of 2). Observe the existing f734 full pack to actual completion without restarting it; ONE same independent reviewer reviews the disposition delta 2c6652f4d only. After an actual complete corrected pack and independent closure of ENV-ENTITY-POSE-LONG-RUN-MOTION-1, make the bounded sector-height/hints Host cutover (docs/d3-sector-height-contract.md section 6) as a named production change, not another diagnostic. All OPEN rows, All10 requirements, current final 40/all8/final inputs/CI/review/normal merge and whole D3 stay OPEN; no D4/D5/TypeScript.",
+  "next_action": "Fix named OPEN ENV-D3-DISPOSITION-CALLER-PROFILE-1 and ENV-D3-DISPOSITION-MOVING-COVERAGE-1 together in SAME SonnetHigh lane, plus post-bundle primary declaration wording; docs/evidence only. SAMEchanged-delta review thenSTOP. Preserve all10 and originalf734jobs; fullpackP1 unchanged.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
