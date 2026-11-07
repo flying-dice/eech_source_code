@@ -1,0 +1,53 @@
+{
+  "kind": "explicit actual-input join of the public-proof-plan correction against the frozen production source's final POST map",
+  "old_map": "R:\\d3-evidence\\sector-height-production-inputmap-POST-20261107.json",
+  "new_map": "R:\\d3-evidence\\sector-height-proofplan-inputmap-POST-20261107.json",
+  "rows_identical": 3963,
+  "rows_changed": 7,
+  "rows_added": 1,
+  "rows_removed": 0,
+  "rows": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "status": "changed",
+      "class": "one added [[test]] target (feature-gated); no dependency, feature or build change"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+      "status": "changed",
+      "class": "translation unit that preprocesses to nothing without EECH_SECTOR_HEIGHT_CHECK (one outer #ifdef...#endif pair in the old and the new text)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+      "status": "changed",
+      "class": "translation unit that preprocesses to nothing without EECH_SECTOR_HEIGHT_OBSERVER (one outer #ifdef...#endif pair in the old and the new text)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "status": "changed",
+      "class": "host Lua driver run by eech-world (not compiled into the campaign DLL); its tests are in this change"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua",
+      "status": "changed",
+      "class": "host Lua driver run by eech-world (not compiled into the campaign DLL); its tests are in this change"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "status": "changed",
+      "class": "not compiled into the DLL (test source or documentation)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+      "status": "changed",
+      "class": "not compiled into the DLL (test source or documentation)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height_hosted_clearance.rs",
+      "status": "added",
+      "class": "not compiled into the DLL (test source or documentation)"
+    }
+  ],
+  "problems": [],
+  "conclusion": "the ordinary hosted DLL's compiled inputs are unchanged (no aphavoc/ or modules/ path, no non-test crate source, only observer- or check-gated translation units, test sources, host Lua drivers and documentation changed): the 0be1dd846 matrices of the ordinary build (workspace tests, clippy of the unchanged crate sources, shared kernel and original-solver control) are reused at their own scope, and every changed row has its own affected check in this batch"
+}

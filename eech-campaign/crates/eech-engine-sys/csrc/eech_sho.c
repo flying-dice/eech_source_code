@@ -89,6 +89,8 @@ struct sho_clearance
 	int sx, sz;
 	uint32_t tallest, terrain, after_tallest, final_word;
 	int final_seen;
+	/* the consumed word was NOT captured (a hosted build: the getter's value is the Host's, returned inside the original statement, and the retired member is not read): the report says so instead of printing a word */
+	int uncaptured;
 };
 
 struct sho_scan_cell
@@ -126,6 +128,7 @@ static uint64_t leader_reached, follow_reached, clearance_total;
 static int pending_active;
 static uint32_t pending_before;
 static int pending_clearance = -1;
+static int next_uncaptured;
 static int has_first, first_x, first_z;
 static uint32_t first_word;
 
@@ -636,6 +639,10 @@ void eech_sho_core_clearance_follow (void)
 
 void eech_sho_core_clearance_tallest (int sx, int sz, uint32_t tallest, uint32_t terrain, uint32_t after_tallest)
 {
+	int uncaptured = next_uncaptured;
+
+	next_uncaptured = 0;
+
 	seq++;
 
 	clearance_total++;
@@ -665,6 +672,8 @@ void eech_sho_core_clearance_tallest (int sx, int sz, uint32_t tallest, uint32_t
 	clearances [pending_clearance].sz = sz;
 
 	clearances [pending_clearance].tallest = tallest;
+
+	clearances [pending_clearance].uncaptured = uncaptured;
 
 	clearances [pending_clearance].terrain = terrain;
 
@@ -879,7 +888,15 @@ void eech_sho_clearance_tallest (const void *sector_entity, const float *terrain
 {
 	sector *raw = (sector *) get_local_entity_data ((entity *) sector_entity);
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+	/* HOSTED: the word the clearance consumed is the Host's, returned by the sector getter INSIDE the original statement this hook follows. The legacy member is retired storage and a second query would not be the value
+	   the original consumed, so the word is NOT captured: the record keeps the sector, the terrain elevation and the min_height AFTER the statement (which carries the consumed word's effect) and says `tallest=uncaptured` */
+	next_uncaptured = 1;
+
+	eech_sho_core_clearance_tallest ((int) raw->x_sector, (int) raw->z_sector, 0, bits (terrain_elevation), bits (min_height));
+#else
 	eech_sho_core_clearance_tallest ((int) raw->x_sector, (int) raw->z_sector, bits (&raw->tallest_structure_height), bits (terrain_elevation), bits (min_height));
+#endif
 }
 
 void eech_sho_clearance_final (const float *min_height)
@@ -1075,8 +1092,16 @@ int eech_sho_clearance_run (int index, char *text, int capacity)
 	o.overflow = 0;
 	text [0] = '\0';
 
-	put (&o, "sho-clearance i=%d seq=%llu sx=%d sz=%d tallest=0x%08x terrain=0x%08x after_tallest=0x%08x final=0x%08x final_seen=%d\n",
-		index, U (c->seq), c->sx, c->sz, (unsigned) c->tallest, (unsigned) c->terrain, (unsigned) c->after_tallest, (unsigned) c->final_word, c->final_seen);
+	if (c->uncaptured)
+	{
+		put (&o, "sho-clearance i=%d seq=%llu sx=%d sz=%d tallest=uncaptured terrain=0x%08x after_tallest=0x%08x final=0x%08x final_seen=%d\n",
+			index, U (c->seq), c->sx, c->sz, (unsigned) c->terrain, (unsigned) c->after_tallest, (unsigned) c->final_word, c->final_seen);
+	}
+	else
+	{
+		put (&o, "sho-clearance i=%d seq=%llu sx=%d sz=%d tallest=0x%08x terrain=0x%08x after_tallest=0x%08x final=0x%08x final_seen=%d\n",
+			index, U (c->seq), c->sx, c->sz, (unsigned) c->tallest, (unsigned) c->terrain, (unsigned) c->after_tallest, (unsigned) c->final_word, c->final_seen);
+	}
 
 	return o.overflow ? -1 : 0;
 }

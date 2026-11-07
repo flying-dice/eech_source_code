@@ -962,6 +962,61 @@ static void run_hosted (struct check *c)
 
 #endif
 
+#if defined(EECH_SECTOR_HEIGHT_OBSERVER) && defined(EECH_CAMPAIGN_HOST_ENTITY)
+
+int eech_sho_clearance_run (int index, char *text, int capacity);
+
+/* ---- the observer's HOSTED clearance helper (Task49): the original statement it follows consumed the HOST's word through the getter, so the helper must not read the retired member (a canary here) nor ask the host again,
+   and its record must say `tallest=uncaptured`; the sector, the terrain elevation and the min_height after the statement are kept. Returns the record's own return code, or -2 if the host was asked ---- */
+int eech_sho_hosted_clearance_check (char *text, int capacity)
+{
+	entity
+		en;
+
+	float
+		terrain,
+		minimum;
+
+	sector
+		*raw;
+
+	int
+		asks,
+		result;
+
+	terrain = 12.5f;
+
+	minimum = 99.0f;
+
+	asks = host_height_asks;
+
+	make_sector (&en);
+
+	raw = (sector *) get_local_entity_data (&en);
+
+	raw->x_sector = 3;
+
+	raw->z_sector = 4;
+
+	store_word (&en, 0xc0ffee11u);
+
+	eech_sho_clearance_leader ();
+
+	eech_sho_clearance_follow ();
+
+	eech_sho_clearance_tallest (&en, &terrain, &minimum);
+
+	eech_sho_clearance_final (&minimum);
+
+	free_sector (&en);
+
+	result = (host_height_asks == asks) ? eech_sho_clearance_run (0, text, capacity) : -2;
+
+	return result;
+}
+
+#endif
+
 /* every dispatch table the initialisers write, saved whole and copied back */
 struct saved_table
 {

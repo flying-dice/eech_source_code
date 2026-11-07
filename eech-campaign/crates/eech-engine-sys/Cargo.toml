@@ -93,6 +93,11 @@ path = "tests/sector_height_observer.rs"
 required-features = ["sector-height-check", "sector-height-observer"]
 
 [[test]]
+name = "sector_height_hosted_clearance"
+path = "tests/sector_height_hosted_clearance.rs"
+required-features = ["sector-height-check", "sector-height-observer"]
+
+[[test]]
 name = "tree_dialogue"
 path = "tests/tree_dialogue.rs"
 required-features = ["tree-dialogue-check"]
