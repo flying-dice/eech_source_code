@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "Needed-consumer/API disposition reviewed SAMEb5d70724, bothP2closed, batch2of2 closed. STOPnewpreparation; earlierpersonmotionfullpackP1OPENblocks_cutovertrue. No physical/API implementation or Task49/D3 acceptance.",
+  "phase": "Parentf734 establishedFULLPACK independently verified4de, P1CLOSED. Nojobsrunning. Next REQUIREDproduction host-owned sectorheight/highwater; prep2of2 remains until actual cutover. All10/currentTask49D3shipping unaccepted.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
-  "next_production_change": "After actual corrected fullpack and independent closure of ENV-ENTITY-POSE-LONG-RUN-MOTION-1, move required sectorheight/hints and writers/readers to Host, preserving characterized rawstate/highwater semantics. The remaining-consumer/DCS-API source disposition is complete (2c6652f4d); it is planning, not host authority or delivery.",
+  "next_production_change": "Move required per-sector physical high-water scalar and writers/readers/save-restore to Host, after bounded characterization of the actual public funnel/CITY input. Preserve raw32bit restore, strictcomparison, no-lowering, source order/FPU and existing clearance policy. Core field is conformance mirror, never fallback. Reuse accepted179characterization/sourceAPI mapping; no optional preparation.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -78,7 +78,8 @@
     "Reviewed sectorheight characterization033defb4, findings[]/all3P2closed: reference/d3-entity-collision/sector-height-characterization-reviewed. Originala8ef179x64+i686/defaultO1,6guard/lints; correction3fac header/doc only and original82packet unchanged. No native/physicalcutover/production-design approval; prep1of2.",
     "NEEDED CONSUMER/API DISPOSITION (second and final preparation batch; documentation and source disposition only; UNREVIEWED): code 2c6652f4dfcb1c31a0eb46bf74eb318976f4b9e6 over c6426dc310796795a0d8c694cb985b65b86d8e7d. eech-campaign/docs/d3-needed-consumer-api-disposition.md and eech-campaign/reference/d3-needed-consumer-api-disposition/ (matrix, README, manifest, primary-file requests, freeze copy; external freeze R:/d3-evidence/D3-needed-consumer-api-disposition-CODE-FROZEN-20261107.json). 15 grouped rows (sector height, shared terrain record, destructive UPDATED/MOVED/ROTATED words, raw TREE/FOREST/CLOUD loader and CRT stream, constructors, entity collision primitive, tree/scenery blocking, model hierarchy, campaign-setup model consumers, rotor/smoke, default shape/clutter, six draw-align files, natural moving, final census, accepted reuse), 110 resolved source anchors, 45 declared DCS anchors (pinned tslua-dcs 1179554f plus Root's later optional Airbase.ts, blob d3d7dedd8), accepted Task47/48/50/51/52 and finite Task49 scopes reused at their stated scope. Source/build-derived inclusion and reachability, not a measured preprocessed/symbol/runtime census; declared shapes, not live DCS behaviour. No compiler, test, native run or code change; physical cutover clearance false; ENV-ENTITY-POSE-LONG-RUN-MOTION-1 untouched. Generator exit history retained: first run exit 1 (four wrong hand-typed line expectations), later runs 0.",
     "DISPOSITION CLARIFICATION (documentation only; UNREVIEWED; both findings ENV-D3-DISPOSITION-CALLER-PROFILE-1 and ENV-D3-DISPOSITION-MOVING-COVERAGE-1 stay OPEN until the SAME reviewer): code 2ab093b2cbca6f31dad44a8bffc95ec9570d4752 over 1dbf945281dc818d96491e5743e0e6237b07992f. Sibling packet eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/ (corrected matrix, README, freeze, literal copies of review cc70a2ce and Root response 394d31fd, manifest); external freeze R:/d3-evidence/D3-needed-consumer-api-clarification-CODE-FROZEN-20261107.json. The original six-file packet is byte-identical and historical. Inclusion macros, legacy-versus-active LOS and runtime guards are separated (HOST_LOS/TERRAIN/ENV unconditional; HOST_TREE excludes collision-fixture only; HOST_ENTITY excludes collision-fixture or model-fixture; mb_tgt.c:455/494 legacy #else of HOST_LOS versus campaign_los_query -> mb_hostlos.c:275; fixed-wing clearance only for a task leader with terrain_follow != NONE); the accepted CONFIGURED moving query-service scope is kept apart from the open NATURAL engagement and unreached states. Object.export Category and world.export VolumeType names are declared as numbers only; no values, volume params, coverage or Controller payload schemas; no OPEN row closed. Generator hygiene only (113 source anchors, 49 API anchors); no compiler, test, native run or runtime source change. No fullpack40/all8, physical clearance, review or delivery claim.",
-    "SAMEb5d70724 reviewed fifteen-group source/API documentation2ab/c9a; bothP2closed; original6packetliteral/new7manifest+5freezeoutputs/Root4a42. See needed-consumer-api-disposition-reviewed/manifest.json. No physicalclearance; prep2STOP; longrunP1unchanged."
+    "SAMEb5d70724 reviewed fifteen-group source/API documentation2ab/c9a; bothP2closed; original6packetliteral/new7manifest+5freezeoutputs/Root4a42. See needed-consumer-api-disposition-reviewed/manifest.json. No physicalclearance; prep2STOP; longrunP1unchanged.",
+    "Completed originalparentf734 fullpack accepted SAME4de:actualrunner/launcher/outer0, exact40PASS, all8COMPLETEdirectliteral, final4inputs0,88payloadsame, frozenf734clean. fixed-static-fullpack-reviewed/manifest.json. Closes ONLY ENV-ENTITY-POSE-LONG-RUN-MOTION-1; notcurrentTask49/D3shipping."
   ],
   "blockers": [
     {
@@ -141,7 +142,7 @@
       "id": "forest-geometry-retail-source",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "The reference host takes the forest triangles of scene FOREST_TREE_OBJECT from the campaign's own final announced-order model store (focused controls: a scene defined by two directories, the campaign's order versus the sorted image; before-finalization, sorted-image and wrong-root refusals). No retail data was available here. The native healthy control and matrix ran with no named refusal, but the independent report does not separately state the retail final-store fact, so it is not recorded as established here.",
+      "evidence": "The reference host takes the forest triangles of scene FOREST_TREE_OBJECT from the campaign's own final announced-order model store (focused controls: a scene defined by two directories, the campaign's order versus the sorted image; before-finalization, sorted-image and wrong-root refusals). No retail data was available here. The native healthy control and matrix ran with no named refusal, but the independent report does not separately state the retail final-store fact, so it is not recorded as established here.; Currentretail f734fullpack passed without named forest refusal; the original source-only capture lacked retail data. No explicit retail final-store Absent/End fact was separately observed, so this required question stays OPEN.",
       "missing_fact": "That the retail final store reports Absent or End at depth 0 for the forest tree object (the retail fact of the original capture, tf-forest geometry 0). Refused, no_scene or a pre-announcement store makes the host refuse and the first tree question stops the engine by name.",
       "next_fix": "Visible in the first native control as a named refusal. Correct the host source only if it appears; do not assume 'absent'."
     },
@@ -149,7 +150,7 @@
       "id": "core-tree-loader-forest-cloud-rng",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "The ordinary boot still reaches load_3d_terrain (eech_engine.c, zone_sc.c reload): the raw tree loader and the FOREST_TREE_OBJECT constructor, then the CLOUD constructor and, when session_cloud_puffs > 1 or == 1 outside DESERT, per-sector CRT rand() draws. co_force.c (player flight tree force) and terrgeom.c (renderer) are other compiled consumers. The seed is set (eech_engine.c, which srands the CRT) before the load and no later reseed was found in source.",
+      "evidence": "The ordinary boot still reaches load_3d_terrain (eech_engine.c, zone_sc.c reload): the raw tree loader and the FOREST_TREE_OBJECT constructor, then the CLOUD constructor and, when session_cloud_puffs > 1 or == 1 outside DESERT, per-sector CRT rand() draws. co_force.c (player flight tree force) and terrgeom.c (renderer) are other compiled consumers. The seed is set (eech_engine.c, which srands the CRT) before the load and no later reseed was found in source.; Reviewed source/API clarification2ab/c9a (SAMEb5d70724) finds the later session-creation reseed chain parser->ss_creat->session->random.c:srand. This refines the earlier no-reseed-found statement; consumers between load and reseed/effective draws remain unmeasured, not closed.",
       "missing_fact": "For Lebanon map5 and Georgia: the effective session_cloud_puffs and season at the boot load and the zone reload, the number of CRT rand() calls made inside load_3d_terrain, whether a srand precedes the first outside consumer afterwards, whether co_force.c/terrgeom.c are reachable in the supported headless boot, AND whether the forest (and CLOUD) constructor draws: construct_3d_object_by_name -> construct_3d_object -> skin_random draws when the object's effective skin.animation >= 0, which the lexical absence of rand() in terrdata.c does not exclude. The effective forest skin metadata and the constructor's call/seed behaviour are UNKNOWN until supported observations establish them. Unproven, so nothing was removed and nothing is called dormant.",
       "next_fix": "Smallest bounded capture: count CRT rand() inside load_3d_terrain per supported scenario with the existing rand-counting header (eech_tp_rand.h) and read the effective flags; then remove the loader/constructor/cloud block for the hosted build (explicit Original profile retained) only if no draw is consumed or the removal is baseline-approved. Required Task49/D3 work; no dummy draws."
     },
@@ -262,22 +263,32 @@
     },
     {
       "id": "ENV-ENTITY-POSE-LONG-RUN-MOTION-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": true,
-      "evidence": "Ordinaryea2b establishedpack actualrunner/helper/outer1,24PASS/16FAIL; all4native logs entity_pose.mirror mask20; recorded379.96s/10800. Fourpostinputs0/88payloadsame. Separate from new2fccc fixture. ROOT CAUSE (actual replay, bd6e diagnostic): the first mismatch is a living Person whose canonical held vector stayed the zero bind seed over 3752 begin/end pairs while Core held the host-returned walking vector (apply_person_pose). Corrected in source c2aa4f52b4d2c114cae89747208874c1bcd2d8b0 (UNREVIEWED, focused Linux only), RED/GREEN with the real Movers and C person kernel. Safe facts: eech-campaign/reference/d3-entity-collision/person-motion-retention/. Corrected3475 source reviewed; its short/healthy pass, old fullpack INTERRUPTED with unknown exits/no completion,4prefixesliteral4151.33/4141.37. Current f734 includes correction and starts established full40 on fresh roots; no full acceptance.",
-      "missing_fact": "Complete current ordinary runner exit0, exact40 PASS, all8 complete artifact bytes literal, all4 final retail input manifests and unchanged source/build identity. Partial old prefixes and finite witnesses do not close this gate.",
-      "next_fix": "Preserve active currentf734 pack; compare only on actual completion. Do not restart old3475 for handover or claim unknown interrupted exits.",
+      "evidence": "Ordinaryea2b establishedpack actualrunner/helper/outer1,24PASS/16FAIL; all4native logs entity_pose.mirror mask20; recorded379.96s/10800. Fourpostinputs0/88payloadsame. Separate from new2fccc fixture. ROOT CAUSE (actual replay, bd6e diagnostic): the first mismatch is a living Person whose canonical held vector stayed the zero bind seed over 3752 begin/end pairs while Core held the host-returned walking vector (apply_person_pose). Corrected in source c2aa4f52b4d2c114cae89747208874c1bcd2d8b0 (UNREVIEWED, focused Linux only), RED/GREEN with the real Movers and C person kernel. Safe facts: eech-campaign/reference/d3-entity-collision/person-motion-retention/. Corrected3475 source reviewed; its short/healthy pass, old fullpack INTERRUPTED with unknown exits/no completion,4prefixesliteral4151.33/4141.37. Current f734 includes correction and starts established full40 on fresh roots; no full acceptance.; CLOSED for parentf734 by actual complete originalrunner/launcher/controller0, exact40PASS/all8COMPLETEdirectliteral/final4inputs0/88payloadunchanged; SAMEreview4de6d2e91947f3f2cf664b1c26f23c0662b5644a2666be057d34b331acd914cd. See fixed-static-fullpack-reviewed/manifest.json.",
+      "missing_fact": "Closed for the corrected Person-motion parent fullrun only. Final-current Task49/D3 regression and remaining physical/needed-consumer/authority obligations remain required.",
+      "next_fix": "No replay of this accepted parent pack. Preserve original failed/interrupted attempts; proceed to required physical sectorheight with its own source/actual gates.",
       "source_correction_reviewed_at": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
       "source_review_sha256": "62f5641e61c2c470cb9cca17aed90d0d0e69f20c800d942c4b2974e212e24be1",
-      "source_scope": "Exact Person completion/pending fix reviewed; runtimeconformance remains OPEN until corrected actuals. Five frozenchecks0. Other oldfailing actors/remaining writers not inferred."
+      "source_scope": "Corrected Person completion/pending source3475 inherited byte-identically in f734; runtime longrun conformance now closed by4de. No other old failing actor class, natural engagement or remaining physical writer is inferred.",
+      "actual_acceptance": {
+        "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+        "report_sha256": "4de6d2e91947f3f2cf664b1c26f23c0662b5644a2666be057d34b331acd914cd",
+        "actual_exit": 0,
+        "exact_checks": 40,
+        "complete_literal_files": 8,
+        "final_inputs": 4,
+        "payloads": 88,
+        "scope": "Named parent regression only; currentTask49/D3/delivery false."
+      }
     },
     {
       "id": "sector-roster-source-review-native",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "Source d6ab/91a7 and actual9b7d clear finite sector-roster dependency;5frozenchecks0/3952Gitexact/mapsstable;3Windowsprofiles0/88;short3COMPLETEliteral80fd. Full current rostercandidate40/all8 pending.",
+      "evidence": "Source d6ab/91a7 and actual9b7d clear finite sector-roster dependency;5frozenchecks0/3952Gitexact/mapsstable;3Windowsprofiles0/88;short3COMPLETEliteral80fd. Full current rostercandidate40/all8 pending.; Qualified CITY backing/lifecycle finite closures8a/e8 retained; completedf734 parentfullpack4de adds regression evidence at f734 only, not finalcurrent shipping.",
       "missing_fact": "Whole-path city/static backing, current shipping40/all8,CI/finalreview/normalmerge; finite healthy+withdrawal is not wholephysical acceptance.",
-      "next_fix": "Required nextcitybuildinglist/structureplacementrecordsemanticlink; preserve source/contracts/order/IDs and establish new backing authority, no replayclosedsectorproof."
+      "next_fix": "Required residual sectorheight/hints/sharedUPDATED/terrain/neededservices and natural moving integration, final current40all8/CI/review/normalmerge. Do not replay closed sector/CITY finite proofs."
     },
     {
       "id": "city-own-state-source-review-native",
@@ -415,9 +426,9 @@
       "id": "sector-height-host-move-open-facts",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "The sector tallest-structure height is CHARACTERIZED (pack sector-height-characterization, code a8ef0ce66, UNREVIEWED): the contract, the writer/reader census, the input classes and the concrete move are in docs/d3-sector-height-contract.md. Real-C control (179 expectations x86_64 and i686) over declared hand-made data; source/build-derived guard 6 of 6.",
-      "missing_fact": "No native observation of the campaign's sector word against the host's high-water through the public driver (the message table is not the en_list funnel); whether any real CITY is created with a valid shape (its state carries no shape); the fixed-wing clearance formula (tallest - terrain_elevation) is preserved but unexplained; the broad DCS API and needed-consumer decision for sector clearance; no -O2 measurement of the engine C. Independent review of the characterization.",
-      "next_fix": "Same-reviewer review of the characterization only; Root decides the native observation through the named trigger (entity-authority.lua over the weapon-fixture DLL; ENTITY_CANDIDATE fact 12, the FIRST-sector read, fixed-wing terrain min_height). The physical move (host-owned per-sector scalar) stays blocked by ENV-ENTITY-POSE-LONG-RUN-MOTION-1."
+      "evidence": "Characterizationa8ef/12a and clarification3fac/7559 closed SAME033defb4, publishedc642; header/doc wording updated2ab.179expectations x64+i686/defaultengineO1,13savepatterns; broader raw domain source-derived. No publicen_list/native/host-ownedscalar acceptance. The contract/matrix describe the bounded next move, not measured production design.",
+      "missing_fact": "Actual public-funnel sector word/high-water and any real CITY valid shape; host-owned scalar across reset/arrival/allreaders/save/restore/guarded fixed-wing clearance; broad neededDCS clearance source. Preserve original unit mix/rawNaN/negative/Inf/FPU/order; no engineO2 measurement claimed.",
+      "next_fix": "NEXT required production extraction: characterize named public entity-authority/ordinary clearance path BEFORE moving, then implement host scalar and prove public authority/refusal on fresh roots. Reuse accepted179control and same033review. P1closed4de; contract earlier P1OPEN prose is historical. No standalone optional preparation batch."
     },
     {
       "id": "ENV-SECTOR-HEIGHT-SAVED-WORD-PLAN-1",
@@ -453,9 +464,9 @@
       "id": "needed-consumer-api-disposition-open-rows",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "Source disposition 2c6652f4dfcb1c31a0eb46bf74eb318976f4b9e6 (UNREVIEWED): reference/d3-needed-consumer-api-disposition/needed-consumer-api-matrix.json and docs/d3-needed-consumer-api-disposition.md. Every row keeps its disposition and concrete missing fact; nothing is closed by the existence of the report, and no row is called dormant by name, count, grep, missing export or one unreached run.",
-      "missing_fact": "OPEN: D3G-01 DCS source of sector obstacle height and the unit-mixed clearance; D3G-02 DCS terrain normal workaround unproven; D3G-03 UPDATED truth value for a DCS-sampled pose, memset-domain reach, guide-reached host contract; D3G-04/05 measured boot CRT draw counts and consumer order; D3G-06/07 DCS object-blocking LOS or per-type geometry, tree/scenery declaration, Object.Category and volume constants, weapon-entity ownership rule of the DCS profile; D3G-08 per-sub-object pose and Controller task schemas; D3G-09 anchored route/sub-object contracts beyond the declared Airbase runway/parking/tower records; D3G-10 shared-RNG accounting decision for rotor/smoke effects; D3G-11 default-shape ownership and DCS type mapping; D3G-12/14 final compile/entry census; D3G-13 blocked by ENV-ENTITY-POSE-LONG-RUN-MOTION-1.",
-      "next_fix": "Same reviewer reviews this delta only. Resolve rows through the named production moves in the matrix (first: host-owned sector scalar after the blocker closes) and verified declarations or reviewed bounded data; final actual compiled-consumer audit after the last code change. No further preparation batch before the production blocker is resolved."
+      "evidence": "Reviewed corrected source/API matrix2ab/c9a (SAMEb5d70724), clarification sibling/current narrative, original packet unchanged. Fifteen groups source-derived/declared; unknown needed facts remain OPEN. Additional394dprimary names qualified; no numericliteral/parameter/geometry/runtime guarantee inferred.",
+      "missing_fact": "OPEN: sector obstacle height/unitmix; terrain normal workaround; UPDATED truth/domain/guide contract; measured boot CRT/effective flags/consumer order; DCS object-blocking LOS/tree/scenery geometry and volume params/coverage (Category/VolumeType NAMES now declared, numeric literals alone not needed for symbolic use); weaponentity ownership rule; sub-object poses/Controller taskpayloads; anchored routes beyondAirbase records; rotor/smoke RNG; defaultshape/type mapping; final compile/entry census; NATURAL moving integration. ParentP1closed4de does not close these.",
+      "next_fix": "Resolve through named REQUIRED production moves, first physical sectorheight, with accepted source/API planning reused and needed DCS facts or reviewed bounded data. Final actual compile/consumer audit follows last code change; no optional inventory/prototype or repeat documentation review."
     },
     {
       "id": "ENV-D3-DISPOSITION-CALLER-PROFILE-1",
@@ -478,7 +489,7 @@
       "next_fix": "Separate accepted configured public query-service coverage from the still-open natural campaign engagement and unreached-state obligations. Do not erase the accepted finite scope, broaden it into natural coverage, or close the long-run motion blocker."
     }
   ],
-  "next_action": "Preserve original f734fullpack and await actualcomplete40PASS/all8literal/final4inputs/sourcebinidentities+SAMEreview to resolve ENV-ENTITY-POSE-LONG-RUN-MOTION-1. Georgia complete metricsliteral but actualexitUNKNOWNpendingparent;3originalLebjobs live. Prep2STOP; no optionaldiagnostic/newwar/physicalcutover. Keep currentCI/evidence/Jira/ledger and all10required remainders.",
+  "next_action": "Run intended production-cutover guard; ONE Sonnet5.5High lane for REQUIREDsectorheight extraction, characterizing existing actualpublic behavior before implementation, then same deterministic native/control comparisons and SAMEreview. Source/native launch gates still apply; P1closure alone grants no arbitrarynewnative. Prep2STOPoptional batches; all10/finalCURRENT40all8/final4inputs/currentCI/review/normalmerge/finalcensus/wholeD3 remain.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",

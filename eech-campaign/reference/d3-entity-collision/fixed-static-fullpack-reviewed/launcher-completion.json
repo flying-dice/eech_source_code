@@ -1,0 +1,22 @@
+{
+  "when_utc": "2026-11-07T03:52:24.521683+00:00",
+  "original_pack_exit": 0,
+  "expected_check_set_all_pass": true,
+  "post_inputs": {
+    "georgia": {
+      "exit_code": 0,
+      "log": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-georgia.log"
+    },
+    "lebanon": {
+      "exit_code": 0,
+      "log": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-lebanon.log"
+    },
+    "lebanon_repeat": {
+      "exit_code": 0,
+      "log": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-lebanon_repeat.log"
+    }
+  },
+  "source_build_accepted_identity_unchanged": true,
+  "launcher_gate_passed": true,
+  "remaining": "Complete artifact comparison, review and delivery are separate gates"
+}

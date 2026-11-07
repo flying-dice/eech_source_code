@@ -1,0 +1,680 @@
+{
+  "kind": "Root completed parent-fullpack literal-byte and identity binding; SAME independent actual review pending",
+  "when_utc": "2026-11-07T03:55:44.053875+00:00",
+  "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+  "source_snapshot": "D:\\EECH-Migration-Evidence\\fixed-static-corrected-f734-20261106-source",
+  "frozen_head_clean": true,
+  "no_original_process_live": true,
+  "other_reused_PIDs": [],
+  "actual_exits": {
+    "original_runner": 0,
+    "launcher": 0,
+    "outer_controller": 0,
+    "complete_comparison": 0,
+    "fourth_input": 0
+  },
+  "accepted_exact_check_set": [
+    "blindspot.georgia_resupply",
+    "evidence.artifacts",
+    "evidence.checkers",
+    "evidence.manifests",
+    "evidence.reproduce.chains",
+    "evidence.reproduce.loss",
+    "evidence.reproduce.m2_check",
+    "evidence.reproduce.m3_check",
+    "governance.fixture",
+    "governance.lineage",
+    "inputs.georgia",
+    "inputs.lebanon",
+    "inputs.lebanon_repeat",
+    "lifecycle.bad_arguments",
+    "lifecycle.boot_twice",
+    "lifecycle.missing_campaign",
+    "lifecycle.missing_map",
+    "lifecycle.missing_root",
+    "lifecycle.no_reuse",
+    "reference.baseline",
+    "reference.loss_chain",
+    "reference.observation_check",
+    "reference.observed_equals_unobserved",
+    "reference.repeatable",
+    "reference.supply_chains",
+    "regress.georgia.exact",
+    "regress.georgia.expectations",
+    "regress.lebanon.exact",
+    "regress.lebanon.expectations.mechanics",
+    "regress.lebanon.expectations.resupply",
+    "retained.chains_report",
+    "retained.check_report",
+    "retained.loss_report",
+    "retained.observations",
+    "retained.recording",
+    "sensitivity.loss_chain_check",
+    "sensitivity.observation_check",
+    "sensitivity.s3_exact",
+    "sensitivity.s3_lebanon_expectation",
+    "sensitivity.supply_chain_check"
+  ],
+  "all_40_pass": true,
+  "all_eight_complete_files_literal": [
+    {
+      "file": "reference/run1/recording.acmi",
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "complete_literal_byte_stream_equal": true
+    },
+    {
+      "file": "reference/run1/observations.jsonl",
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "complete_literal_byte_stream_equal": true
+    },
+    {
+      "file": "reference/run1/metrics.json",
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+      "complete_literal_byte_stream_equal": true
+    },
+    {
+      "file": "reference/run2/recording.acmi",
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "complete_literal_byte_stream_equal": true
+    },
+    {
+      "file": "reference/run2/observations.jsonl",
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "complete_literal_byte_stream_equal": true
+    },
+    {
+      "file": "reference/run2/metrics.json",
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+      "complete_literal_byte_stream_equal": true
+    },
+    {
+      "file": "regress/georgia_retail.json",
+      "bytes": 22427,
+      "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d",
+      "complete_literal_byte_stream_equal": true
+    },
+    {
+      "file": "regress/lebanon_retail.json",
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+      "complete_literal_byte_stream_equal": true
+    }
+  ],
+  "payload_files_rehashed": [
+    {
+      "file": "eech_dc.dll",
+      "bytes": 18763310,
+      "sha256": "76489a15c70ff7668f8200832e512669337112b8aa30600aa23d163cdc0a0c8d"
+    },
+    {
+      "file": "eech-world.exe",
+      "bytes": 4502974,
+      "sha256": "7136c127a6174985ef98b7d4524c5567aa707286c577b02a9a97cb8c060d8ba4"
+    },
+    {
+      "file": "lua.dll",
+      "bytes": 615397,
+      "sha256": "4546b494257f2e3a53e6f1f7efd3a55ff6e34488414f0680161d3568728e4693"
+    },
+    {
+      "file": "lua/aim-characterization.lua",
+      "bytes": 5227,
+      "sha256": "e1bd82c07880e46375d939793fe79fed8ccddd92817829a8fcd1603751388181"
+    },
+    {
+      "file": "lua/aim-lead-probe.lua",
+      "bytes": 10700,
+      "sha256": "083f9ca1dda35a9e3b13f5dcf24dbdee06e6af3538ba6bc634ee4d21bbba6805"
+    },
+    {
+      "file": "lua/aim-malformed.lua",
+      "bytes": 15311,
+      "sha256": "1fa81d7ba056ef3b8ca74c848a3089a1bbdea36a355b9483d2c873353e470285"
+    },
+    {
+      "file": "lua/aim-person-case.lua",
+      "bytes": 17214,
+      "sha256": "6c549c86214b25ef9f415caa02238190d2e3e57353e27b4a5e9ff67112a13bb3"
+    },
+    {
+      "file": "lua/aim-provider.lua",
+      "bytes": 42272,
+      "sha256": "429e2d118d9d57938e781154eeeef31107cbe4c1ea9cac36fb003d251583c80b"
+    },
+    {
+      "file": "lua/aircraft-arrivals.lua",
+      "bytes": 6651,
+      "sha256": "510eadd0b1ea8ae7f6f2089e4bd38b69a8fd964852edcb1e710ddea86e2e3168"
+    },
+    {
+      "file": "lua/bridge-case.lua",
+      "bytes": 13986,
+      "sha256": "264c25cc3a4f236b62e75ab68c28bafc3047fc0e33af6220b143807975219823"
+    },
+    {
+      "file": "lua/campaign.lua",
+      "bytes": 12574,
+      "sha256": "0ddf607ef416eef144186e8063a74225ef29a5122ccba6a59daee97c841426fe"
+    },
+    {
+      "file": "lua/collision-characterization.lua",
+      "bytes": 79830,
+      "sha256": "f5c1078fcd083239370c32c59dd203d67e551143b466c098364df534818a2926"
+    },
+    {
+      "file": "lua/combat-case.lua",
+      "bytes": 20815,
+      "sha256": "972d3f63dab496e8782dbaae2b6fa3493bb51a3894343759e40d98adbaa8bade"
+    },
+    {
+      "file": "lua/combat-characterization.lua",
+      "bytes": 5361,
+      "sha256": "901c83bb95a4536fd4cb1b4efc97c8518afb97f0b08bb5db12e54fd7ba780663"
+    },
+    {
+      "file": "lua/combat-counters.lua",
+      "bytes": 2213,
+      "sha256": "cf5a4c270240a06106ba7c2226f26e9857e380278a418f7453f1ae5ca724b900"
+    },
+    {
+      "file": "lua/combat-plan.lua",
+      "bytes": 4303,
+      "sha256": "8c08f1f3cd4ec4ffe953edf4b39edae0c8588497d0d179ae8855f4e55b8224bd"
+    },
+    {
+      "file": "lua/combat-report.lua",
+      "bytes": 2976,
+      "sha256": "5acc3856920a4259208426603dfdba9ab713073b185f1ca119e2b2c82f111a4e"
+    },
+    {
+      "file": "lua/convoy-movement.lua",
+      "bytes": 7914,
+      "sha256": "7bb51d300cd502d7ceab1cbcfc180f39d616fbc53608273ad6e8b5fa8aa6696c"
+    },
+    {
+      "file": "lua/dependent-carry.lua",
+      "bytes": 6648,
+      "sha256": "6a6913a2c33b45753cc12bf53e6d52e0c7e6e32b5a211c8e200203a24cbddd1a"
+    },
+    {
+      "file": "lua/dependent-fixture.lua",
+      "bytes": 16729,
+      "sha256": "76c67585920d0a70c9ef093bdd3b24a6e837a2d26797f81a642caefbea20a976"
+    },
+    {
+      "file": "lua/entity-authority.lua",
+      "bytes": 183249,
+      "sha256": "0dcbd38cf2829f983af2884cf725a23d73259e838777b835941527cc9f402b03"
+    },
+    {
+      "file": "lua/env-ambient-authority.lua",
+      "bytes": 22621,
+      "sha256": "f8f749acb2e9176095563dcd81ba93785a515494e5e1e2040cb5de63a960e33e"
+    },
+    {
+      "file": "lua/env-characterization.lua",
+      "bytes": 101973,
+      "sha256": "cd8522d009caf09860c98473d0b858b3533798b32ddd6729cc5df283ea64dff5"
+    },
+    {
+      "file": "lua/env-lightning-host-witness.lua",
+      "bytes": 19781,
+      "sha256": "9563e7429fc44e4a3edfef2b92df58558da271c12601fcb80ecaa6793e1b4a38"
+    },
+    {
+      "file": "lua/env-lightning-queue.lua",
+      "bytes": 21939,
+      "sha256": "a2f0e63296df696dad0ae36bf06816889f99a6c268b20927c5c4ea091ef73240"
+    },
+    {
+      "file": "lua/env-play-elided-parent.lua",
+      "bytes": 46082,
+      "sha256": "f6a0c303e0c75ef4c747446bf57984b0ee9e32a169f1c31030acc4977ca986c1"
+    },
+    {
+      "file": "lua/env-play-resumed-parent.lua",
+      "bytes": 50000,
+      "sha256": "b78a9d90bb0d0ae29637169add0871df1fe94d6a2d11f398c91480e0d3da9511"
+    },
+    {
+      "file": "lua/env-rotor-host-witness.lua",
+      "bytes": 38367,
+      "sha256": "ee0df5407d4a3b7a602d9bd320649d2b38f6f72319e8c7804c52809e076da471"
+    },
+    {
+      "file": "lua/env-rotor-sounds.lua",
+      "bytes": 47120,
+      "sha256": "d586a814d2bb6669bf435179ef58ac66088f9eec59b832291ebd753765c6d661"
+    },
+    {
+      "file": "lua/env-sector-authority.lua",
+      "bytes": 20538,
+      "sha256": "faa62475f540a872a2b6f69338a7f3eff49922d398bedf5a544c3ad584c71915"
+    },
+    {
+      "file": "lua/env-sector-characterization.lua",
+      "bytes": 10371,
+      "sha256": "b55fae31d274c948a2a572acc87f9cb533f3bff03b06565de449795192707add"
+    },
+    {
+      "file": "lua/env-sound-backend-host-witness.lua",
+      "bytes": 22733,
+      "sha256": "af1803cc2d40c3259b40ac7074616e4f1e905670d81365ec81e5a6284fd60035"
+    },
+    {
+      "file": "lua/env-sound-characterization.lua",
+      "bytes": 17838,
+      "sha256": "06461063b484ba1b6314735891c3c8c4828fb54322f744e45d0811a39bfd5dcd"
+    },
+    {
+      "file": "lua/env-sound-data-host-witness.lua",
+      "bytes": 24376,
+      "sha256": "f1df246194706b8317593a7d64a52739c6058d68586dd9980322de81be9f4919"
+    },
+    {
+      "file": "lua/env-sound-handle-guard.lua",
+      "bytes": 11301,
+      "sha256": "444255f382a4c09e50428feab21869d0c5ae2ab44447a934fe096fad5bd2fb75"
+    },
+    {
+      "file": "lua/env-sound-handle.lua",
+      "bytes": 34857,
+      "sha256": "9db6e3b841aa43d23e77ef81a8274f0bbfe401563600babcfaa2e1ae5072cecb"
+    },
+    {
+      "file": "lua/env-sound-host-witness.lua",
+      "bytes": 27763,
+      "sha256": "b82e018ff324194e1702872d564d5866ca4d412a168f38a12c01e27df22614be"
+    },
+    {
+      "file": "lua/env-sound-init-backend.lua",
+      "bytes": 40526,
+      "sha256": "17e16c7d2bf1c5052355927ea293aebc20e5dfa9696490270c13b3c70705a42b"
+    },
+    {
+      "file": "lua/env-sound-init-host.lua",
+      "bytes": 36286,
+      "sha256": "d784999006dfb63d9c08b2fa74bc0ec1d7b327defda76fbdcbf0f59faa4eb38e"
+    },
+    {
+      "file": "lua/env-sound-init.lua",
+      "bytes": 30049,
+      "sha256": "75ecbd6d5646331b13c9e9948b45c685891fa77d8f903f5acee234cae78143b1"
+    },
+    {
+      "file": "lua/env-sound-lifetime.lua",
+      "bytes": 67299,
+      "sha256": "70ff1e013b281080bef62aee9d927a9494e417e00495aaf1f528f7125f790ac9"
+    },
+    {
+      "file": "lua/env-sound-native-guard.lua",
+      "bytes": 11793,
+      "sha256": "1206b23e4ed7a2b8ea2ca135ea96fa0488692dd5129a5adc3e08a68598a5aee9"
+    },
+    {
+      "file": "lua/env-sound-route.lua",
+      "bytes": 32620,
+      "sha256": "9c96c2c2d468d28788009040bce1a51fb3bf6dad8926feb42aa24c72080fd37e"
+    },
+    {
+      "file": "lua/env-sound-wide-children.lua",
+      "bytes": 16235,
+      "sha256": "c543d328a8a02f5cfa9ec0b738282aa67d163e9a9667fb4f117fe5090ee80a24"
+    },
+    {
+      "file": "lua/env-wind-authority.lua",
+      "bytes": 28545,
+      "sha256": "dfaffa803004e15cbb4e5957d4000113f4756c83ce4cd0de5f9fc7b12631c103"
+    },
+    {
+      "file": "lua/fixed-wing-movement.lua",
+      "bytes": 8170,
+      "sha256": "b60dfe8de84f36bb2d8acae461c66c37e879e37faafca76a84686d9180135bce"
+    },
+    {
+      "file": "lua/ground-authority.lua",
+      "bytes": 21295,
+      "sha256": "fcc6001d23898126515b3d56dae7421a191488fc8fa82dddf4f98c8e6e2f3302"
+    },
+    {
+      "file": "lua/ground-characterization.lua",
+      "bytes": 39404,
+      "sha256": "7e22a9a352fc06b76f87770edb5e84c724f7a67ebd72fdea19ea5f0f0a5b01a7"
+    },
+    {
+      "file": "lua/ground-handoff-verdict.lua",
+      "bytes": 3105,
+      "sha256": "269004b16d26135eb5a29aef45755170e1c2817a0b63d420870e3e0ce02d2775"
+    },
+    {
+      "file": "lua/ground-handoff.lua",
+      "bytes": 4927,
+      "sha256": "29c05f07a484a83740fae215d7c957bc5f5497529d1cb6aa241c3282bf8c0b91"
+    },
+    {
+      "file": "lua/ground-provider-transport.lua",
+      "bytes": 16463,
+      "sha256": "4e2addef34f0042afca66000a5a9ad643348e733b2edf5c0977b334eda577f3f"
+    },
+    {
+      "file": "lua/helicopter-lifecycle.lua",
+      "bytes": 11946,
+      "sha256": "15b20cbd81f61bf1921cc8f5ef87848ae057acafcca0ff6e4cc0a0da5e8c2d13"
+    },
+    {
+      "file": "lua/helicopter-movement.lua",
+      "bytes": 10240,
+      "sha256": "0e5c43f9f6de072da5072aa7fae1365a31cae5ff00619d386c286cad56d0fdb3"
+    },
+    {
+      "file": "lua/host-identities-lifecycle.lua",
+      "bytes": 10557,
+      "sha256": "ffcbd537db7cb3eb7eda4a1ed433ca20b9214ac23e8916210df994ffc2d390e7"
+    },
+    {
+      "file": "lua/host-identities.lua",
+      "bytes": 5378,
+      "sha256": "996068cd1a861aaf13e0fd5efc90a1becaab3c6461f5871b002dab0ea365b650"
+    },
+    {
+      "file": "lua/json-lines-check.lua",
+      "bytes": 2725,
+      "sha256": "794e70767895bb7f3e2fd10b485c16afa43adca8ba0baa8cc4c162e646cf6adf"
+    },
+    {
+      "file": "lua/json-lines.lua",
+      "bytes": 3318,
+      "sha256": "8b8b367ae1026548f39bf4561aa57604044ca5c128e4a9c10ece29fcd9f7fb99"
+    },
+    {
+      "file": "lua/lifecycle.lua",
+      "bytes": 4476,
+      "sha256": "a7c170a7308b4993ca7f8011c7e204a0895e6115529cbaf60b40a63a663224a9"
+    },
+    {
+      "file": "lua/los-characterization.lua",
+      "bytes": 8029,
+      "sha256": "2f434c87d355128bab16aba96ff56ba43eb92ba4854a5a64516f158bb34274e9"
+    },
+    {
+      "file": "lua/los-controls.lua",
+      "bytes": 6291,
+      "sha256": "703e3fe6dd07b7b8594c5db75808f76c5ef24248ed2c8edc3b979a42e6894d78"
+    },
+    {
+      "file": "lua/los-provider.lua",
+      "bytes": 7016,
+      "sha256": "c76684c2e9a605fd8c7f797244f18dc7c935766938d7b740600e3a0db9a9eb8a"
+    },
+    {
+      "file": "lua/loss-all-family.lua",
+      "bytes": 36719,
+      "sha256": "f2164452ed3c154915621b7b9f49f6086beb698b7ce38ab242bb31f3f5af82d2"
+    },
+    {
+      "file": "lua/metrics.lua",
+      "bytes": 6903,
+      "sha256": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053"
+    },
+    {
+      "file": "lua/model-animation-characterization.lua",
+      "bytes": 24210,
+      "sha256": "3c21d3708f5cfd17416c0d49faed5c96fe414bbe9a100cc9364f06a5f05bfa45"
+    },
+    {
+      "file": "lua/model-authority.lua",
+      "bytes": 88692,
+      "sha256": "bd6ac08064b7f6a2ef93d7c0a5f1311a3e437f746c3f04afe2517a0c09b56c8f"
+    },
+    {
+      "file": "lua/model-characterization.lua",
+      "bytes": 23653,
+      "sha256": "ffba01750612790d6268e8626e83bbd48179194f51a62138ef3f9ecd42051db9"
+    },
+    {
+      "file": "lua/model-horizon-control.lua",
+      "bytes": 17442,
+      "sha256": "975d0591cfa70e5ae3fc754a3b9c930abf0c5d8514bfaa1d0888026eeb95f3a1"
+    },
+    {
+      "file": "lua/model-host-compare.lua",
+      "bytes": 7796,
+      "sha256": "66b137122920362053ca867c4863bf341c848dd00246d8d3b5d1a930a1dc3018"
+    },
+    {
+      "file": "lua/model-provider-check.lua",
+      "bytes": 3610,
+      "sha256": "b8fa9e26e07074a4ed70680c78125f57789a26d58f7d3ebc2813ae86d10019af"
+    },
+    {
+      "file": "lua/object-report-case.lua",
+      "bytes": 12160,
+      "sha256": "0fe9ed14945aefabc92257970371f2cca59c0b4eada57eca6fb18af89817486c"
+    },
+    {
+      "file": "lua/observations.lua",
+      "bytes": 7229,
+      "sha256": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+    },
+    {
+      "file": "lua/own-model.lua",
+      "bytes": 4083,
+      "sha256": "1bfc0c23f29cd08fd899c098ad4e7c1c0be03722c69f743ecb5bfad5fca2d603"
+    },
+    {
+      "file": "lua/own-weapon.lua",
+      "bytes": 13663,
+      "sha256": "ca1c8487ed4c17feffdd5079b2eb070cf5606d10327f1fa5c123647de0289499"
+    },
+    {
+      "file": "lua/remaining-arrivals.lua",
+      "bytes": 13677,
+      "sha256": "e935aecd837acdfb31f71ef1eb066216294d56e3c0b34c4d212206b1a8337373"
+    },
+    {
+      "file": "lua/route-characterization.lua",
+      "bytes": 35200,
+      "sha256": "8a10ac6e8a49879c1440afc084be6a8f81b9373a2c763204be80e4ff2f0819c4"
+    },
+    {
+      "file": "lua/sense-provider.lua",
+      "bytes": 10180,
+      "sha256": "3bebc89e3d91a2f33dc0a8655235bd0de391e01078396eb996bdde588dfc8551"
+    },
+    {
+      "file": "lua/sensor-characterization.lua",
+      "bytes": 7336,
+      "sha256": "bb89f6112725e981539fa2989ffa1a0e70468d2ca1c3f37501c35650ce8fe7c0"
+    },
+    {
+      "file": "lua/supply-arrivals-lifecycle.lua",
+      "bytes": 3803,
+      "sha256": "5e604dc31e3c800aac238de609f98b6345b07c35d7cd3e7da018e9806ca5725a"
+    },
+    {
+      "file": "lua/supply-arrivals.lua",
+      "bytes": 7691,
+      "sha256": "bff42d78da1706d9e19f6a738a0dd8cf531d0219202b28fb111889fd0adbf646"
+    },
+    {
+      "file": "lua/surface-movement.lua",
+      "bytes": 10741,
+      "sha256": "26d6e122ede36f37180c0205f76e8ed8a0820b4ee699ef2683b82abc4cd6bcf9"
+    },
+    {
+      "file": "lua/target-point-characterization.lua",
+      "bytes": 90793,
+      "sha256": "b56099344d63b54a533a392383dc13b7c66eb9e35ab01ed5d1af14fcfd331260"
+    },
+    {
+      "file": "lua/terrain-characterization.lua",
+      "bytes": 12025,
+      "sha256": "6628ede38ba9d177c152045f830823ad53fe725eeadefc0ee16579143fe1af7d"
+    },
+    {
+      "file": "lua/terrain-has-face.lua",
+      "bytes": 6098,
+      "sha256": "27d00ca6124cfbaa4878a1239960ca421905a179d9121561091475e268c1ea62"
+    },
+    {
+      "file": "lua/terrain-provider.lua",
+      "bytes": 16033,
+      "sha256": "9d2938ee5ea785164595ffc55a166a2ab762291a26f2285f6a48dc531b861dd5"
+    },
+    {
+      "file": "lua/tree-authority.lua",
+      "bytes": 45099,
+      "sha256": "0feb86a0ed7bbf08da4b298531c793f969455524f0fcc6916dc91451bf33ae2a"
+    },
+    {
+      "file": "lua/tree-collision-replay.lua",
+      "bytes": 9245,
+      "sha256": "820d6609ad44446b4b4cc25825913cfab3124b73630f405e9d77d7e1375fcfd8"
+    },
+    {
+      "file": "lua/weapon-case.lua",
+      "bytes": 24247,
+      "sha256": "c4dcdfac9a036afde0f61ca42e443294d9bdca5b7879921ab603aebf100bc05e"
+    },
+    {
+      "file": "lua/weapon-characterization.lua",
+      "bytes": 7525,
+      "sha256": "d00cca417b5c1bc46b62ba3af670e803932f514fb075f9354a873d06c26aed9a"
+    }
+  ],
+  "payload_count": 88,
+  "three_post_inputs_exit0": {
+    "georgia": {
+      "exit_code": 0,
+      "log": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-georgia.log"
+    },
+    "lebanon": {
+      "exit_code": 0,
+      "log": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-lebanon.log"
+    },
+    "lebanon_repeat": {
+      "exit_code": 0,
+      "log": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-lebanon_repeat.log"
+    }
+  },
+  "fourth_post_input_exit0": true,
+  "all_four_input_logs": [
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-georgia.log",
+      "sha256": "a6fb8f10bd7192a6bc3b062276ee0c7a6f088aef6a5a2fb6a8e3252389dcca6f",
+      "text": "D:\\EECH-Migration-Evidence\\fixed-static-fullpack-roots-f734-20261106\\georgia: 1174 input files, 142,522,166 bytes, combined SHA-256 d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2\ninputs IDENTICAL to D:\\EECH-Migration-Evidence\\fixed-static-corrected-f734-20261106-source\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json\n"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-lebanon.log",
+      "sha256": "2fe06c067fc9bf4049dae865e9280246b0cd28f05fb8c71ae11f0a1da11723c3",
+      "text": "D:\\EECH-Migration-Evidence\\fixed-static-fullpack-roots-f734-20261106\\lebanon: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09\ninputs IDENTICAL to D:\\EECH-Migration-Evidence\\fixed-static-corrected-f734-20261106-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json\n"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-lebanon_repeat.log",
+      "sha256": "59852c23f89cc22beaa4add4dce15605ab38ae8a6c1b1d455a438b0f9861e25a",
+      "text": "D:\\EECH-Migration-Evidence\\fixed-static-fullpack-roots-f734-20261106\\lebanon-repeat: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09\ninputs IDENTICAL to D:\\EECH-Migration-Evidence\\fixed-static-corrected-f734-20261106-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json\n"
+    },
+    {
+      "path": "R:\\d3-evidence\\fixed-static-shipping-f734-20261106-internal-input.log",
+      "sha256": "b076f234de8e146ad0978b611c28615acee0db0341b9468dfdd44e470c82cf8d",
+      "text": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\roots\\lebanon-regress: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09\ninputs IDENTICAL to D:\\EECH-Migration-Evidence\\fixed-static-corrected-f734-20261106-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json\n"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "R:\\d3-evidence\\fixed-static-shipping-f734-20261106-completion.json",
+      "bytes": 2864,
+      "sha256": "042285acacc1ca9455cdb5bb9815d01a56a84a490be8752d63f08a4602eb6553"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\run.json",
+      "bytes": 934,
+      "sha256": "6dd919e7fcf0b383634bec272b716f9a2b97dd9f38a8d16570cc72af57f06efc"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\completion.json",
+      "bytes": 817,
+      "sha256": "c8e856461a27ac86e5243286f24165b1ad4071d86b53ad551aee2c994877acde"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\report.json",
+      "bytes": 39506,
+      "sha256": "9a262b888abdeafc31bbb51e885926aff63534570a574ffc5e98a39ad765e77d"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\preflight.json",
+      "bytes": 16839,
+      "sha256": "055b79f0accf605007f84d6a0fafa7a113ec4f555b62c10e175a9bc3d2897546"
+    },
+    {
+      "path": "R:\\d3-evidence\\fixed-static-shipping-complete-comparison-f734-20261106.json",
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    {
+      "path": "R:\\d3-evidence\\fixed-static-shipping-f734-20261106-process.json",
+      "bytes": 2864,
+      "sha256": "042285acacc1ca9455cdb5bb9815d01a56a84a490be8752d63f08a4602eb6553"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-fixed-static-shipping-f734-20261106.py",
+      "bytes": 6087,
+      "sha256": "3cf2d43de3323f6332dbdaed667e2de973c70604d24318d3d993aade769e91b6"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\logs\\regress.txt",
+      "bytes": 3209,
+      "sha256": "2ffe3d0a2b8f959f2639d9bda2c1dd976ee8b8b69eb2b60b709501cd395d0417"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\logs\\reference.txt",
+      "bytes": 1383,
+      "sha256": "fc244c85d90cc6aff5c3559a419295812e7c8223684886e90320aa9cf98c4df1"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\reference\\summary.txt",
+      "bytes": 1410,
+      "sha256": "393d5ca4034fb8d550d88a388beb6976ba340a05de8f7bc0f499ede02f5d6b2f"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-georgia.log",
+      "bytes": 349,
+      "sha256": "a6fb8f10bd7192a6bc3b062276ee0c7a6f088aef6a5a2fb6a8e3252389dcca6f"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-lebanon.log",
+      "bytes": 337,
+      "sha256": "2fe06c067fc9bf4049dae865e9280246b0cd28f05fb8c71ae11f0a1da11723c3"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-shipping-f734fdfc0-20261106\\post-inputs-lebanon_repeat.log",
+      "bytes": 344,
+      "sha256": "59852c23f89cc22beaa4add4dce15605ab38ae8a6c1b1d455a438b0f9861e25a"
+    },
+    {
+      "path": "R:\\d3-evidence\\fixed-static-shipping-f734-20261106-internal-input.log",
+      "bytes": 350,
+      "sha256": "b076f234de8e146ad0978b611c28615acee0db0341b9468dfdd44e470c82cf8d"
+    }
+  ],
+  "baseline_accepted_report_unchanged": {
+    "path": "R:\\eech_source_code\\eech-campaign\\reference\\m5-all-family-loss\\final-pack\\report.json",
+    "sha256": "d7e89d6443197f756702631928725aa93ea7160bf06600167d696c2a74c6e99c"
+  },
+  "report_claim_counts": {
+    "PASS - directly protected": 17,
+    "PASS - baseline-sensitive": 12,
+    "NOT COVERED": 8,
+    "EVIDENCE ONLY - not automatically checked": 8
+  },
+  "qualification": "40 checks pass; existing report NOT COVERED/EVIDENCE ONLY claims stay qualified and do not waive D3 requirements. Per-native/PowerShell codes were not independently persisted; original scripts hold/wait/read ExitCode and reject nonzero before checks. Numeric full runner/launcher/controller0 receipts are actual. Prior component unknown-exit qualifications remain historical. No baseline/input/seed/frame/duration/tolerance identity change.",
+  "scope": "Completed f734 parent regression can resolve earlier person-motion full-run finding only after SAME review. This is not final-current59b shipping, physical authority, natural moving, Task49 or whole-D3 acceptance. All10 and remaining physical/API/RNG/hierarchy/consumer/compile/full-delivery gates remain required.",
+  "physical_cutover_clearance": false,
+  "whole_D3_accepted": false
+}
