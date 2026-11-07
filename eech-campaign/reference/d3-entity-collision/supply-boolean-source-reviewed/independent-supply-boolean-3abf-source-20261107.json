@@ -1,0 +1,281 @@
+{
+  "schema": "independent-bounded-source-review/v1",
+  "reviewed_utc": "2026-11-07T23:02:31.448259+00:00",
+  "reviewer": "same independent Task49 reviewer",
+  "scope": "Only the new intentional supply descriptor boolean defect correction and its changed tests, guard, contract and provenance. Correctness, clean code and boundary safety reviewed together; no tests, builds, native runs, cache operations, source edits or delegated reviews performed.",
+  "source": {
+    "commit": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+    "parent": "120581ac4f14fe98be8b7bb8a524b682554234c2",
+    "metadata_commit": "442a834a5b52793249145f7253ba9b68c68e3182",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_head_exact_and_full_status_clean": true,
+    "changed_raw_git_blobs": [
+      {
+        "path": "aphavoc/source/entity/special/guide/gd_supply_arrival.c",
+        "git_blob": "4fb337afd99d6a0adeae3be2a11b0ba07859261c",
+        "bytes": 22014,
+        "sha256": "c2ab9f1578f1934ee0f029175daabb724688f69a94727c0019d3102137df5f52"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+        "git_blob": "45ad740cd5b7e17631e9cc1ba6af3c6f8e644608",
+        "bytes": 28752,
+        "sha256": "f824d5e9b197fc8a22816e83a00c321bb5c2cced6e90541962b60776048e974b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/tests/physical_flags_supply.rs",
+        "git_blob": "072ca4bf349ce4d42e3bd7a6cd5f697afd021a07",
+        "bytes": 18704,
+        "sha256": "e4debf892f40880dccd188b1b1112af152fca9d90df96366cbe840111fe219c8"
+      },
+      {
+        "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+        "git_blob": "03187b9aadfe75b1a658cf7cdfdcbb9ea7b10666",
+        "bytes": 54985,
+        "sha256": "8aab9cae3fbd839b24925b60ece44e7bbab328a3cc759df0af7d00432fd3ba9b"
+      }
+    ],
+    "metadata_delta": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ]
+  },
+  "evidence": {
+    "freeze": {
+      "path": "R:/d3-evidence/D3-SUPPLY-DESCRIPTOR-BOOLEAN-CODE-FROZEN-20261107.json",
+      "bytes": 25845,
+      "sha256": "88b4e6ecc3649b26c3e8671b9f7705bdc592a482b6bb8c00e89f5e5a88e69633"
+    },
+    "source_binding": {
+      "path": "R:/d3-evidence/supply-boolean-3abf-Root-binding-20261107.json",
+      "bytes": 5603,
+      "sha256": "cb77e86f3e4fe5930e711f85876b554ecc57b8da4ab65cfe9e57d912ef8c7011"
+    },
+    "publication_binding": {
+      "path": "R:/d3-evidence/supply-boolean-442a-publication-Root-20261107.json",
+      "bytes": 4533,
+      "sha256": "5abed0a631ef8bdf77ce7b074150f88abf7df54471aff95b76491608bc6156e0"
+    },
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-supply-boolean-fix-20261107-completion.json",
+      "bytes": 1734,
+      "sha256": "27960989516f289e5e0df977640b7be336085cfa667c7072371bb158f7043009"
+    },
+    "lead_disposition": {
+      "path": "R:/d3-evidence/Root-supply-updated-boolean-disposition-20261107.json",
+      "bytes": 3099,
+      "sha256": "c8aeed190a0610db2b55b69d8b5ccea1171b17bf1ba1f2310ac6783625f23fab"
+    },
+    "fresh_snapshot": {
+      "path": "R:/d3-evidence/supply-boolean-native-source-snapshot-3abf-20261107.json",
+      "bytes": 3594,
+      "sha256": "12f48bc313a7951d294b29fece157170c8f832e5cc1c206a983a9d1e85c80fc7"
+    },
+    "prior_characterization": {
+      "path": "R:/d3-evidence/independent-physical-flags-supply-ae367-source-20261107.json",
+      "bytes": 13811,
+      "sha256": "867a7a2add736f5875ae35bb9334a3999732b5bd6ae7f295f3b5883baf32d504"
+    }
+  },
+  "findings": [],
+  "decision": {
+    "status": "SOURCE_CLEAR_CONDITIONAL_FRESH_RUNTIME_GATES",
+    "windows_build_clearance": true,
+    "native_launch_clearance": false,
+    "native_default_plan_source_clearance": true,
+    "native_controller_launch_clearance": false,
+    "meaning": "Root may build fresh exact-source ordinary and explicit Original profiles and bind their actual profile/object/export/payload evidence. The reviewed source permits subsequent unchanged finite native/default comparisons after the concrete controller, complete inputs and new binaries are bound. This report alone does not authorize an unspecified native controller or accept native authority.",
+    "finding_disposition": {
+      "id": "ENV-PHYSICAL-FLAGS-SUPPLY-DESCRIPTOR-RAW-UPDATED-1",
+      "source_status": "FIXED_AT_REVIEWED_SOURCE",
+      "overall_status": "OPEN_PENDING_FRESH_RUNTIME_GATES",
+      "blocks_cutover": true
+    },
+    "native_authority_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "source_assessment": [
+    {
+      "topic": "Intentional semantic correction",
+      "evidence": "gd_supply_arrival.c:305",
+      "result": "Exactly one production assignment now projects the one raw UPDATED getter result to TRUE/FALSE. Zero becomes false and every nonzero signed mask, including bit31, becomes true. The recorded technical-lead decision preceded implementation. This is an intentional defect correction, not a behavior-preserving refactor or a changed baseline/tolerance."
+    },
+    {
+      "topic": "Single destructive read and unchanged ownership",
+      "result": "The getter is evaluated once in the same fixed-wing branch and position before the remaining descriptor gathering and Host request. Replacement-back is byte-identical to the parent producer. Raw getter/store words, destructive cross-entity read, quarter-reset extent, scheduling/order and all other consumers are unchanged; mb_hostmodel.c is unchanged from the parent. No added floating arithmetic, RNG call, API, ABI, layout, Host owner or duplicate state."
+    },
+    {
+      "topic": "Boundary contract and clean code",
+      "result": "The existing C boolean convention is used locally. Rust checked_bool remains strict 0/1; no generic validator loosening or global normalization. The guard pins the new assignment, one getter occurrence and unchanged strict Rust contract. No new abstraction or repeated read is introduced."
+    },
+    {
+      "topic": "Behavioral controls",
+      "result": "Both real-producer/real-Rust-boundary profile controls now deliver14 descriptors. Tested raw masks0,1,2,4,bit30 and bit31 retain raw getter assertions; corrected descriptor is false for0 and true for the tested nonzero masks. Both neighbor orders still demonstrate first-read true then destructive-cleared second-read false. Reset extent and missing identity before the getter remain asserted. General nonzero projection is source-derived C semantics, not a measured all-lane/native claim."
+    },
+    {
+      "topic": "Chronology and evidence honesty",
+      "result": "The changed boolean expectations failed on the unchanged producer in both profiles at raw mask2, actual101, before the final GREEN PRE capture. Their retained sequence/log records support meaningful behavioral RED; the final PRE/POST is not misrepresented as a RED-time map. Later GREEN and final receipts are kept distinct."
+    }
+  ],
+  "checks": {
+    "final_direct_commands": [
+      {
+        "label": "s1-fmt-check",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "result_rows": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s2-clippy-engine-hosted",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "result_rows": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s3-clippy-engine-original",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "result_rows": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s4-clippy-defaults",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "result_rows": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s5-supply-hosted",
+        "actual_exit": 0,
+        "selected_test_instances": 1,
+        "result_rows": 1,
+        "selected_targets": {
+          "physical_flags_supply": 1
+        },
+        "descriptors_delivered": 14,
+        "actual_host_traffic_diagnostic": [
+          12,
+          13,
+          19,
+          6,
+          12
+        ]
+      },
+      {
+        "label": "s6-supply-original",
+        "actual_exit": 0,
+        "selected_test_instances": 1,
+        "result_rows": 1,
+        "selected_targets": {
+          "physical_flags_supply": 1
+        },
+        "descriptors_delivered": 14
+      },
+      {
+        "label": "s7-flags-guard",
+        "actual_exit": 0,
+        "selected_test_instances": 7,
+        "result_rows": 1,
+        "selected_targets": {
+          "physical_flags_guard": 7
+        }
+      },
+      {
+        "label": "s8-flags-controls-hosted",
+        "actual_exit": 0,
+        "selected_test_instances": 3,
+        "result_rows": 3,
+        "selected_targets": {
+          "physical_flags": 1,
+          "physical_flags_consumer": 1,
+          "physical_flags_collision": 1
+        }
+      },
+      {
+        "label": "s9-flags-controls-original",
+        "actual_exit": 0,
+        "selected_test_instances": 3,
+        "result_rows": 3,
+        "selected_targets": {
+          "physical_flags": 1,
+          "physical_flags_consumer": 1,
+          "physical_flags_collision": 1
+        }
+      },
+      {
+        "label": "s10-engine-default",
+        "actual_exit": 0,
+        "selected_test_instances": 123,
+        "result_rows": 2,
+        "selected_targets": {
+          "unittests src/lib": 123
+        }
+      },
+      {
+        "label": "s11-build-dc",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "result_rows": 0,
+        "selected_targets": {}
+      }
+    ],
+    "selected_test_result_instances": 138,
+    "C_expectations_preserved": {
+      "raw": 199,
+      "guide": 56,
+      "collision_hosted": 16,
+      "collision_original": 15
+    },
+    "hosted_traffic_diagnostic_only": {
+      "group": 12,
+      "set": 13,
+      "read": 19,
+      "reset": 6,
+      "fresh": 12
+    },
+    "meaningful_parent_reds": [
+      {
+        "label": "r1-red-supply-hosted",
+        "actual_exit": 101,
+        "reason": "New boolean contract fails at rawmask2 on old producer; final PRE/POST applies to GREEN, RED sequence provenance retained separately",
+        "record_sha256": "5dd8f532ad40c25e6c808b131586a6908f2c2c8cdfff2935f1515aacf7ea6fe5"
+      },
+      {
+        "label": "r2-red-supply-original",
+        "actual_exit": 101,
+        "reason": "New boolean contract fails at rawmask2 on old producer; final PRE/POST applies to GREEN, RED sequence provenance retained separately",
+        "record_sha256": "430ddcde99d6697c07227233a23f6f6f2a52cbd060bb520d7a203e0c27bd8919"
+      }
+    ],
+    "coverage_limits": "Dedicated declared fixture and feature-gated engine seam over real producer and real Rust validator; not shipped Engine boot, retail native consumer reachability, whole process/FPU preservation, other mobile families or all consumers."
+  },
+  "provenance": {
+    "whole_source_rows": 3995,
+    "final_green_PRE_utc": "2026-11-07T22:47:44Z",
+    "final_green_POST_utc": "2026-11-07T22:56:08Z",
+    "PRE_POST_current_raw_equal": true,
+    "extras_count": 34,
+    "all_11_PRE_readers_current": true,
+    "raw_git_qualification": "Exactly the three inherited uncompiled tree-geometry Lua files retain raw CRLF/Git LF qualifications; no input normalization or universal raw-byte-equality claim.",
+    "publication": "85 committed manifest entries and82 external literal copies verified by Root; metadata only STATUS/card. Actual producer terminal0/resultfalse; clean/upstream identity442a. Runtime checkpoint still described the earlier active stage when read; final completion, source and publication receipts provide the later bounded state, to be reconciled by Root.",
+    "snapshot": "Fresh detached3abf snapshot is bound by the snapshot receipt, clean with longpaths configured before checkout and no hardlinks/alternates. This is source evidence, not a successful build."
+  },
+  "required_next_gates": [
+    "Fresh ordinary and explicit Original production builds at exact3abf; preserve each actual producer identity immediately and bind the actual staged producer/object, features, private exports, test-hook absence and payload manifests. Old020 binaries cannot be reused or relabeled for changed production C.",
+    "Derive the complete new payload set from this source/build rather than assuming the prior90 files. Root currently derives88 Lua scripts and expected91 payloads per profile; actual sealed manifests must establish the set.",
+    "Bind the concrete finite controller, reviewed source, fresh binaries/profiles, input tool/reference, unchanged retail inputs and accepted default baseline before execution. Preserve actual native/controller/input exits, full pre/post manifests and complete literal output comparisons.",
+    "Run unchanged finite ordinary/Original default compatibility comparisons on fresh verified roots under the established seed/frame/duration/recording configuration. Preserve all failed or UNREACHED evidence; ordinary default equality does not establish that the supply consumer was reached.",
+    "Keep the overall descriptor finding open until required new runtime evidence is independently joined. Any claim of real public consumer authority requires an actual positive path, not these feature controls or default recordings alone."
+  ],
+  "limits": [
+    "No claim that retail native execution reached the old refusal or reaches this corrected consumer. No universal defect repair or normalization authorization.",
+    "Prior ae367 characterization,020 key-source/default comparisons and5d2c native17 PASS/6 UNREACHED remain accepted only at their original identities and scopes; none is a new3abf runtime result.",
+    "Generic flag NativeAcceptanceRow/read-change authority, all consumers, replacement/session lifetimes, whole FPU preservation, DCS mapping, whole height, current final40/all8/four inputs/current CI/review/normal merge/final census and all ten D3 requirements remain open as applicable.",
+    "Original764 full regression processes and immutable inputs/binaries were not touched. Partial prefixes are not full acceptance. No formal approval, merge, Task49/D3 or delivery acceptance."
+  ]
+}

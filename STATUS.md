@@ -1,4 +1,14 @@
-# CURRENT — D3 Task49: the supply descriptor's boolean correction is frozen as an UNREVIEWED candidate, RED then GREEN in both profiles; native, Windows and default recordings UNRUN (7 November 2026)
+# CURRENT — D3 Task49: descriptor correction source reviewed; fresh Windows validation underway (7 November 2026)
+
+**Corrected and reviewed:** source3abf03e51, SAMEbbfdb6b0 findings empty. Exactly one UPDATED getter evaluation is projected to the existing boolean contract ONLY in the supply descriptor. Intentional defect correction; raw getter/store/destructive neighbors/reset extent/order/campaign policy unchanged. Genuine oldproducerRED bothprofiles, thenGREEN14descriptors each and unchanged hostedtraffic. [Literal source review and Root bindings](eech-campaign/reference/d3-entity-collision/supply-boolean-source-reviewed/README.md):3995source rows/34extras/11final0/138instances/85packetentries82externals. Oldae367 refusal evidence retained.
+
+**Current gate:** the descriptor defect stays OPEN/blocks_cutover until fresh runtime gates. Root builds ordinary/Original exact3abf snapshot, then profile/payload and newnative/default comparisons. Each actual producer is retained before the next build. New payloadset derives88Lua+3native=91/profile; old020 binaries keep their own identity. No new native/recording result yet.
+
+**Tacview:** prior020 sixCOMPLETEdefault files still byte-identical80fd at ownscope; priornative17PASS/6unreached not relabeled. Original764full40/all8 stillrunning on originaljobs, prefix equality only.
+
+**StillOPEN:** descriptor runtimegate, wholeflags/nativeREAD/otherconsumers/lifetimes/DCS, wholeheight/sharedterrain/RNG/hierarchy/services/naturalmoving/finalcensus/current40/all8/fourinputs/currentCI/formalreview/normalmerge/all10/Task49/D3. NoD4/D5/TS; prep2retained. D3-CURRENT.json holds actualjobs.
+
+# HISTORICAL (source review superseded this summary) — D3 Task49: the supply descriptor's boolean correction is frozen as an UNREVIEWED candidate, RED then GREEN in both profiles; native, Windows and default recordings UNRUN (7 November 2026)
 
 **What changed** (candidate 3abf03e51, [reference/d3-entity-collision/physical-flags-supply-bool-fix](eech-campaign/reference/d3-entity-collision/physical-flags-supply-bool-fix/README.md)): ONE product assignment, `descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED) ? TRUE : FALSE;` in `gd_supply_arrival.c`, as the technical lead decided: one getter call, zero FALSE, every nonzero raw mask (bit 31 too) TRUE, so the existing Rust `checked_bool` is satisfied, not weakened. This is an INTENTIONAL defect correction, not a refactor; the getter, the host store, the other consumers, the destructive neighbour read, the reset extent, update order, RNG, FPU and campaign policy are untouched.
 

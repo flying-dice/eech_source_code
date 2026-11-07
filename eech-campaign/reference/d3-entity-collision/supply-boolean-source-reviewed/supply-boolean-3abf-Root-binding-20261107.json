@@ -1,0 +1,158 @@
+{
+  "kind": "Root read-only descriptor-only boolean correction source/direct-check binding; not native/delivery acceptance",
+  "utc": "2026-11-07T22:58:15.659287+00:00",
+  "code": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+  "whole_source_rows": 3995,
+  "all_raw_PRE_POST_current_equal": true,
+  "all_actual_Git_blobs_joined": true,
+  "raw_vs_Git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "Git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "Git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "Git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+    }
+  ],
+  "extras_PRE_POST_current_equal": true,
+  "extras_count": 34,
+  "all_PRE_readers_current": true,
+  "final_commands": [
+    {
+      "label": "s1-fmt-check",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s2-clippy-engine-hosted",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s3-clippy-engine-original",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s4-clippy-defaults",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s5-supply-hosted",
+      "actual_exit": 0,
+      "selected_test_instances": 1,
+      "result_rows": 1,
+      "selected_targets": {
+        "physical_flags_supply": 1
+      },
+      "descriptors_delivered": 14,
+      "actual_host_traffic_diagnostic": [
+        12,
+        13,
+        19,
+        6,
+        12
+      ]
+    },
+    {
+      "label": "s6-supply-original",
+      "actual_exit": 0,
+      "selected_test_instances": 1,
+      "result_rows": 1,
+      "selected_targets": {
+        "physical_flags_supply": 1
+      },
+      "descriptors_delivered": 14
+    },
+    {
+      "label": "s7-flags-guard",
+      "actual_exit": 0,
+      "selected_test_instances": 7,
+      "result_rows": 1,
+      "selected_targets": {
+        "physical_flags_guard": 7
+      }
+    },
+    {
+      "label": "s8-flags-controls-hosted",
+      "actual_exit": 0,
+      "selected_test_instances": 3,
+      "result_rows": 3,
+      "selected_targets": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      }
+    },
+    {
+      "label": "s9-flags-controls-original",
+      "actual_exit": 0,
+      "selected_test_instances": 3,
+      "result_rows": 3,
+      "selected_targets": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      }
+    },
+    {
+      "label": "s10-engine-default",
+      "actual_exit": 0,
+      "selected_test_instances": 123,
+      "result_rows": 2,
+      "selected_targets": {
+        "unittests src/lib": 123
+      }
+    },
+    {
+      "label": "s11-build-dc",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    }
+  ],
+  "selected_test_instances": 138,
+  "consumer_original_hosted_delivery_equal_nonzero": true,
+  "producer_delta_exact_one_descriptor_assignment": true,
+  "mb_hostmodel_unchanged_from_parent": true,
+  "meaningful_red_both_profiles": [
+    {
+      "label": "r1-red-supply-hosted",
+      "actual_exit": 101,
+      "reason": "New boolean contract fails at rawmask2 on old producer; final PRE/POST applies to GREEN, RED sequence provenance retained separately",
+      "record_sha256": "5dd8f532ad40c25e6c808b131586a6908f2c2c8cdfff2935f1515aacf7ea6fe5"
+    },
+    {
+      "label": "r2-red-supply-original",
+      "actual_exit": 101,
+      "reason": "New boolean contract fails at rawmask2 on old producer; final PRE/POST applies to GREEN, RED sequence provenance retained separately",
+      "record_sha256": "430ddcde99d6697c07227233a23f6f6f2a52cbd060bb520d7a203e0c27bd8919"
+    }
+  ],
+  "changed_source_files": [
+    "aphavoc/source/entity/special/guide/gd_supply_arrival.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/crates/eech-engine/tests/physical_flags_supply.rs"
+  ],
+  "freeze_sha256": "88b4e6ecc3649b26c3e8671b9f7705bdc592a482b6bb8c00e89f5e5a88e69633",
+  "author_completion_sha256": "27960989516f289e5e0df977640b7be336085cfa667c7072371bb158f7043009",
+  "scope": "EXPLICITlead-authorized intentional descriptor boolean defect correction ONLY: one destructive rawgetter call,0FALSE/nonzeroTRUE includingbit31. Oldae367 refusal evidence retained, rawgetter/store/neighbor/reset/order unchanged;14descriptors perprofile/hosttrafficunchanged. Dedicated declaredfixture, not shippedEngineboot/publicnative/Windows/O2/lifetime/FPU/fullpack. ProductionC changed; newbinary/profile/native/defaultbytecomparisons stillUNRUN and required. Old020+Lua5d2c17/6/defaults unchanged ownidentities. SAMEsource review/all10/Task49/D3OPEN."
+}

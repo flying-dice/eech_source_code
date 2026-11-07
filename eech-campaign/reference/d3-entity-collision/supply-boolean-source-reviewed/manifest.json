@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "independent-supply-boolean-3abf-source-20261107.json",
+      "bytes": 14251,
+      "sha256": "bbfdb6b0fc39a8285d0447e58b1991ef219aef9688c9492a5dc097df2e692ff8"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2045,
+      "sha256": "fbdda0ad0ac7f83baff559c1c1ce0a9d836ac20f631efd9e1e5eb4d5a117f4cf"
+    },
+    {
+      "path": "supply-boolean-3abf-Root-binding-20261107.json",
+      "bytes": 5603,
+      "sha256": "cb77e86f3e4fe5930e711f85876b554ecc57b8da4ab65cfe9e57d912ef8c7011"
+    },
+    {
+      "path": "supply-boolean-442a-publication-Root-20261107.json",
+      "bytes": 4533,
+      "sha256": "5abed0a631ef8bdf77ce7b074150f88abf7df54471aff95b76491608bc6156e0"
+    },
+    {
+      "path": "supply-boolean-native-source-snapshot-3abf-20261107.json",
+      "bytes": 3594,
+      "sha256": "12f48bc313a7951d294b29fece157170c8f832e5cc1c206a983a9d1e85c80fc7"
+    }
+  ]
+}
