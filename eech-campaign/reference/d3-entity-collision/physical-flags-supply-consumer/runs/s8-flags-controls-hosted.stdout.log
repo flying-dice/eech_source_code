@@ -1,0 +1,30 @@
+
+running 1 test
+physical flags expectations made: 199
+physical-flags-check: words=16384 array_bytes=65536 reset_bytes=16384 reset_indices=131072
+
+host traffic (groups, sets, reads, resets, fresh bindings): (42, 54, 64, 3, 33)
+test the_per_entity_updated_moved_rotated_word_is_a_mask_the_getter_destroys_neighbours_of_and_the_reset_only_reaches_a_quarter_of ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+physical flags collision expectations made: 16
+physical-flags-collision: consumer=get_line_of_sight_collision_entity (moving mobile pass-through, original profile)
+
+questions asked of the provider (scan, candidate, pose, collision, flag, other): [63, 33, 20, 6, 21, 3027]; candidate decisions: ["need_updated", "need_updated", "test", "need_updated", "test", "need_updated", "need_updated", "test", "need_updated", "test", "need_updated", "need_updated", "need_updated", "need_updated", "test", "need_updated", "test", "need_updated", "need_updated"]
+test the_moving_mobile_pass_through_of_the_collision_query_reads_the_raw_updated_word_destructively_and_swaps_the_path_it_tests ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+
+running 1 test
+physical flags consumer expectations made: 56
+physical-flags-consumer: consumer=response_to_check_mobile_reached_guide via message_responses[FIXED_WING][CHECK_MOBILE_REACHED_GUIDE]
+
+host traffic (groups, sets, reads, resets, fresh bindings): (14, 18, 37, 4, 14)
+test the_original_fixed_wing_arrival_response_reads_the_raw_updated_mask_destructively_only_on_its_pass_through_branch ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -50,6 +50,12 @@ sector-height-witness = ["eech-engine-sys/sector-height-witness"]
 route-original = ["eech-engine-sys/route-original"]
 # TEST-ONLY (EEDCS-52, D3): see eech-engine-sys.
 target-point-fixture = ["eech-engine-sys/target-point-fixture"]
+# TEST-ONLY (EEDCS-49, D3, Task49): the supply arrival descriptor control of the UPDATED word: see eech-engine-sys. With it on, `eech_engine::supply_check` hands the engine's OWN `supply_reached` boundary to the test; absent from every other build.
+physical-flags-supply-check = ["eech-engine-sys/physical-flags-supply-check"]
+
+[dev-dependencies]
+# the flag control's test host: the REAL store of eech-world behind the engine's model callback (the same support file as eech-engine-sys/tests/physical_flags_consumer.rs)
+eech-world = { path = "../eech-world" }
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
@@ -57,6 +63,11 @@ unsafe_op_in_unsafe_fn = "deny"
 [lints.clippy]
 unwrap_used = "deny"
 expect_used = "deny"
+
+[[test]]
+name = "physical_flags_supply"
+path = "tests/physical_flags_supply.rs"
+required-features = ["physical-flags-supply-check"]
 
 [[test]]
 name = "sector_height_observer_chain"

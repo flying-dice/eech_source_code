@@ -4398,6 +4398,63 @@ where
     }
 }
 
+/// TEST-ONLY seam (EEDCS-49, D3, Task49; feature `physical-flags-supply-check`, absent from every other build): hands a test the engine's OWN `supply_reached` boundary (the function `with_host` offers the campaign's
+/// arrival host, with its descriptor conversion and `checked_bool` refusals) for a supply answer the test supplies, so that the real C producer (`campaign_supply_arrival_check`) can be driven against the real
+/// Rust boundary without a boot. No other host callback is served (each refuses by name if the campaign asked it) and nothing here converts, validates or decides anything itself.
+#[cfg(feature = "physical-flags-supply-check")]
+pub mod supply_check {
+    use super::*;
+
+    /// the C callback type the arrival host takes, and the user pointer its context needs, valid for the duration of `call`
+    pub fn with_supply_boundary<H, R>(answer: &mut H, call: impl FnOnce(sys::eech_supply_reached_callback, *mut c_void) -> R) -> R
+    where
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+    {
+        let mut bind = |_: MemberDescriptor| -> Result<String, String> { Err("the supply boundary seam serves no bind_mobile".into()) };
+        let mut loss = |_: LossDescriptor| -> Result<LossDecision, String> { Err("the supply boundary seam serves no observe_loss".into()) };
+        let mut movement = |_: MovementStep| -> Result<MovementResult, String> { Err("the supply boundary seam serves no move_vehicle".into()) };
+        let mut los = |_: LosMessage| -> Result<LosReply, String> { Err("the supply boundary seam serves no line_of_sight".into()) };
+        let mut sense = |_: SenseMessage| -> Result<SenseReply, String> { Err("the supply boundary seam serves no sense".into()) };
+        let mut aim = |_: AimRequest| -> Result<AimReply, String> { Err("the supply boundary seam serves no aim".into()) };
+        boundary(&mut bind, &mut loss, answer, &mut movement, &mut los, &mut sense, &mut aim, call)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn boundary<F, G, H, M, L, D, A, R>(
+        bind: &mut F,
+        loss: &mut G,
+        answer: &mut H,
+        movement: &mut M,
+        los: &mut L,
+        sense: &mut D,
+        aim: &mut A,
+        call: impl FnOnce(sys::eech_supply_reached_callback, *mut c_void) -> R,
+    ) -> R
+    where
+        F: FnMut(MemberDescriptor) -> Result<String, String>,
+        G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+        H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+        M: FnMut(MovementStep) -> Result<MovementResult, String>,
+        L: FnMut(LosMessage) -> Result<LosReply, String>,
+        D: FnMut(SenseMessage) -> Result<SenseReply, String>,
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        let mut context = HostContext {
+            bind_mobile: bind,
+            observe_loss: loss,
+            supply_reached: answer,
+            move_vehicle: movement,
+            line_of_sight: los,
+            sense,
+            aim,
+        };
+        call(
+            supply_reached::<F, G, H, M, L, D, A>,
+            (&mut context as *mut HostContext<'_, F, G, H, M, L, D, A>).cast::<c_void>(),
+        )
+    }
+}
+
 /// Reads a NUL-terminated host identity out of a fixed buffer: an empty one is `None`, one that is not UTF-8 is refused.
 fn los_host_id(buffer: &[c_char], role: &str) -> Result<Option<String>, String> {
     let bytes: Vec<u8> = buffer.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();

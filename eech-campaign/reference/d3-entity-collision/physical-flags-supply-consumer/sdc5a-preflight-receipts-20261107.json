@@ -1,0 +1,169 @@
+{
+  "prefix": "flags-sdc5a-",
+  "label_regex": "^d\\d+-",
+  "declared_helper": "check-physical-flags-sdc5a-linux-20261107.sh",
+  "records": 20,
+  "rows": [
+    {
+      "record": "flags-sdc5a-d1-hosted-first.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d10-clippy-engine-hosted.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d11-clippy-engine-original.json",
+      "state": "terminal",
+      "actual_exit": 1,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d12-clippy-engine-sys-default-and-engine-default.json",
+      "state": "terminal",
+      "actual_exit": 1,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d13-clippy-engine-original.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d14-clippy-defaults.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d15-supply-hosted-after-fmt.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d16-supply-original-after-fmt.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d17-flags-guard.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d18-engine-default.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d19-flags-controls-hosted.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d2-hosted-lint-scope.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d20-flags-controls-original.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d3-hosted-gated-helpers.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d4-hosted-trace.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d5-hosted-trace-fixed.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d6-hosted-trace-waypoint-link.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d7-hosted-unlinked-outside-member-list.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d8-original-first.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sdc5a-d9-fmt-apply.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    }
+  ],
+  "problems": []
+}

@@ -63,6 +63,8 @@ physical-flags-check = []
 physical-flags-consumer-check = []
 # TEST-ONLY (EEDCS-49, D3, Task49): the second real immediate-consumer control of the UPDATED word: the moving-mobile pass-through of get_line_of_sight_collision_entity through the real public function in the ORIGINAL profile (csrc/eech_physical_flags_collision_check.c); the hosted profile runs nothing and says why. Never enabled in the shipping build.
 physical-flags-collision-check = []
+# TEST-ONLY (EEDCS-49, D3, Task49): the world of the third real immediate-consumer control of the UPDATED word: the SHIPPING supply arrival descriptor (gd_supply_arrival.c campaign_supply_arrival_check) handed to the engine's own Rust boundary (csrc/eech_physical_flags_supply_check.c; the test is eech-engine/tests/physical_flags_supply.rs). Never enabled in the shipping build.
+physical-flags-supply-check = []
 
 # TEST-ONLY (EEDCS-49, D3): the read-only observer of the sector tallest-structure word on the real public path: staged hooks (build/patches.rs SECTOR_HEIGHT_OBSERVER_PATCHES), csrc/eech_sho.c, and four
 # read-only report entries. Never enabled in the shipping build; with it off no hook, patch or definition exists.

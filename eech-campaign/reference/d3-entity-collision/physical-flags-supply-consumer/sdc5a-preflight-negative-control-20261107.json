@@ -1,0 +1,10 @@
+{
+  "prefix": "flags-sdc5b-",
+  "label_regex": "^d\\d+-",
+  "declared_helper": "check-physical-flags-sdc5a-linux-20261107.sh",
+  "records": 0,
+  "rows": [],
+  "problems": [
+    "no run record matches flags-sdc5b-^d\\d+-"
+  ]
+}

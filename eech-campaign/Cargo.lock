@@ -127,6 +127,7 @@ name = "eech-engine"
 version = "0.1.0"
 dependencies = [
  "eech-engine-sys",
+ "eech-world",
  "serde",
 ]
 

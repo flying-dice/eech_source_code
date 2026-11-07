@@ -2184,9 +2184,9 @@ static const char *flag_group_key (int slot)
 	return flag_key_of_group [group];
 }
 
-#if defined(EECH_PHYSICAL_FLAGS_CHECK) || defined(EECH_PHYSICAL_FLAGS_CONSUMER_CHECK) || defined(EECH_PHYSICAL_FLAGS_COLLISION_CHECK)
+#if defined(EECH_PHYSICAL_FLAGS_CHECK) || defined(EECH_PHYSICAL_FLAGS_CONSUMER_CHECK) || defined(EECH_PHYSICAL_FLAGS_COLLISION_CHECK) || defined(EECH_PHYSICAL_FLAGS_SUPPLY_CHECK)
 
-// TEST-ONLY (features physical-flags-check, physical-flags-consumer-check and physical-flags-collision-check; never in the shipping build): the real-C controls start every scenario from a fresh host binding, which means a fresh store in the host and no key
+// TEST-ONLY (features physical-flags-check, physical-flags-consumer-check, physical-flags-collision-check and physical-flags-supply-check; never in the shipping build): the real-C controls start every scenario from a fresh host binding, which means a fresh store in the host and no key
 // of the previous one here, and they ask which key the campaign holds for a slot's group in order to ask the host (not the campaign) what the group's words are. Neither answers a flag: the table still holds identity only.
 const char *campaign_model_flag_key_for_test (int slot)
 {

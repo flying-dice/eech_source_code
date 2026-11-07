@@ -338,6 +338,9 @@ fn main() {
     if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_CONSUMER_CHECK").is_some() {
         build.define("EECH_PHYSICAL_FLAGS_CONSUMER_CHECK", None);
     }
+    if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_SUPPLY_CHECK").is_some() {
+        build.define("EECH_PHYSICAL_FLAGS_SUPPLY_CHECK", None);
+    }
     if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_COLLISION_CHECK").is_some() {
         build.define("EECH_PHYSICAL_FLAGS_COLLISION_CHECK", None);
         // the collision control's test bridge runs the real reference provider in a Lua state of its own (tests/support/lua_provider.rs), so its test binary needs the host's Lua 5.1 as eech-world's own tests do (eech-world/build.rs)

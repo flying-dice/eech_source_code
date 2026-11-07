@@ -191,7 +191,8 @@ fn the_getter_the_setter_and_the_reset_are_the_source_the_characterisation_ran()
 
 #[test]
 fn the_supply_arrival_descriptor_carries_the_raw_mask_into_a_field_the_rust_side_accepts_only_as_zero_or_one() {
-    // a SOURCE-DERIVED contract mismatch (not executed end to end: the Rust half is a private callback): the C side stores the getter's MASK, the Rust side validates a boolean
+    // a contract mismatch, derived from this source text and CONFIRMED by the supply control (eech-engine/tests/physical_flags_supply.rs: the real producer against the engine's own Rust boundary, both profiles): the C side stores
+    // the getter's MASK, the Rust side validates a boolean, so every mask but lane 0's 1 is refused by name. It is left as it is; this test pins the text the control ran
     let c = strip_comments(&read(&aphavoc().join("entity/special/guide/gd_supply_arrival.c")));
     assert!(
         c.contains("descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED);"),
@@ -435,5 +436,76 @@ fn the_collision_pass_through_source_is_the_one_the_collision_control_ran_and_th
         offer.contains("facts [CAMPAIGN_CANDIDATE_UPDATED] = CAMPAIGN_OFFER_UPDATED (target) ? 2.0f : 1.0f;")
             && offer.matches("CAMPAIGN_OFFER_UPDATED (").count() == 1,
         "the hosted offer reads the raw word once, when the host asks for it, and states a state, not the mask"
+    );
+}
+
+#[test]
+fn the_supply_control_seam_exists_only_behind_its_feature_and_the_consumer_reads_the_getter_once_before_it_asks_the_host() {
+    let manifests = [
+        "eech-engine-sys",
+        "eech-engine",
+        "eech-dc",
+        "eech-world",
+        "eech-campaign",
+        "eech-harness",
+        "eech-sys",
+        "eech-map",
+    ];
+    for name in manifests {
+        let text = std::fs::read_to_string(crate_dir().join("..").join(name).join("Cargo.toml")).unwrap();
+        let mentions = text.matches("physical-flags-supply-check").count();
+        match name {
+            "eech-engine-sys" => assert_eq!(mentions, 1, "the feature is declared once, empty: {text}"),
+            "eech-engine" => assert_eq!(mentions, 3, "declared, forwarded and the one test that requires it: {name}"),
+            _ => assert_eq!(mentions, 0, "{name} must not enable the supply control feature"),
+        }
+        let default = text.lines().find(|l| l.trim_start().starts_with("default")).unwrap_or("");
+        assert!(!default.contains("supply"), "{name}: a default feature enables the control: {default}");
+    }
+    let sys = std::fs::read_to_string(crate_dir().join("Cargo.toml")).unwrap();
+    assert!(sys.contains("\nphysical-flags-supply-check = []\n"));
+    let build = std::fs::read_to_string(crate_dir().join("build/main.rs")).unwrap();
+    assert_eq!(build.matches("EECH_PHYSICAL_FLAGS_SUPPLY_CHECK").count(), 1);
+    assert!(build.contains(
+        "if env::var_os(\"CARGO_FEATURE_PHYSICAL_FLAGS_SUPPLY_CHECK\").is_some() {\n        build.define(\"EECH_PHYSICAL_FLAGS_SUPPLY_CHECK\", None);"
+    ));
+    // the C world is entirely behind the define
+    let fixture = read(&crate_dir().join("csrc/eech_physical_flags_supply_check.c"));
+    let code = strip_comments(&fixture);
+    assert!(
+        code.trim_start().starts_with("#ifdef EECH_PHYSICAL_FLAGS_SUPPLY_CHECK") && code.trim_end().ends_with("#endif"),
+        "the fixture is not wholly behind its define"
+    );
+    assert_eq!(code.matches("#ifdef EECH_PHYSICAL_FLAGS_SUPPLY_CHECK").count(), 1);
+    // the engine's seam is behind the feature, is the one `pub` name added to the crate, and serves no other callback
+    let lib = std::fs::read_to_string(crate_dir().join("../eech-engine/src/lib.rs")).unwrap();
+    assert_eq!(lib.matches("pub mod supply_check").count(), 1);
+    assert!(lib.contains("#[cfg(feature = \"physical-flags-supply-check\")]\npub mod supply_check {"));
+    // the test-only key helpers of mb_hostmodel.c: the feature joins the gate they already had
+    let model = read(&aphavoc().join("entity/mobile/mb_hostmodel.c"));
+    assert!(
+        model.contains("|| defined(EECH_PHYSICAL_FLAGS_SUPPLY_CHECK)\n"),
+        "the gate of the test-only key helpers no longer names the supply control"
+    );
+    // the CONSUMER, unchanged: the fixed-wing branch reads the raw getter into the descriptor, ONCE, and the host is asked after it (before any gate)
+    let consumer = strip_comments(&read(&aphavoc().join("entity/special/guide/gd_supply_arrival.c")));
+    assert_eq!(
+        consumer.matches("INT_TYPE_UPDATED").count(),
+        1,
+        "the supply arrival reads the word in one place"
+    );
+    let read_at = consumer
+        .find("descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED);")
+        .expect("the descriptor read");
+    let branch_at = consumer
+        .find("if (mobile == CAMPAIGN_SUPPLY_MOBILE_FIXED_WING)\n\t{")
+        .expect("the fixed-wing branch");
+    let helicopter_at = consumer
+        .find("else if (mobile == CAMPAIGN_SUPPLY_MOBILE_HELICOPTER)\n\t{")
+        .expect("the helicopter branch");
+    let ask_at = consumer.find("result = ask_host (&descriptor);").expect("the host question");
+    assert!(
+        branch_at < read_at && read_at < helicopter_at && helicopter_at < ask_at,
+        "the read is in the fixed-wing branch and before the question to the host: {branch_at} {read_at} {helicopter_at} {ask_at}"
     );
 }

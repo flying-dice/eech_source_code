@@ -1,0 +1,4 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.19s
+     Running tests/physical_flags.rs (/target/t/debug/deps/physical_flags-686c49e3e5a9b4df)
+     Running tests/physical_flags_collision.rs (/target/t/debug/deps/physical_flags_collision-29946765ed22ef07)
+     Running tests/physical_flags_consumer.rs (/target/t/debug/deps/physical_flags_consumer-6d7718d66b744162)
