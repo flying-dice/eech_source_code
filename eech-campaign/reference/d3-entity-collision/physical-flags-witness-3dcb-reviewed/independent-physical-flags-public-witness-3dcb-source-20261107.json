@@ -1,0 +1,218 @@
+{
+  "schema": 1,
+  "kind": "Independent changed-material public physical-flag witness correction review",
+  "created_utc": "2026-11-07T21:10:14.687785+00:00",
+  "source": {
+    "before": "4d373c8f7a8074c91a6fc78d68424a035acc8524",
+    "commit": "3dcb094804ab5ef41284d493df7acb14f2ae1fbf",
+    "metadata_commit": "6fce9aa4bfb8e1153e5e36d3b19400fda2029514",
+    "compiled_runtime_commit": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "observed_HEAD_exact_and_full_clean": true,
+    "reviewed_delta": "Only the new Lua reference/latch corrections, scripted tests, contract and their new provenance/plan. No re-review of closed product/key/height/default proofs.",
+    "changed_inputs": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+        "bytes": 59393,
+        "sha256": "dc58dcc421b1b91d3c582bdbfc6920e6cd164a09ac75b4207a88192a2ae6c460",
+        "git_blob": "442463ffb0227360fc6a03871515a68121c670b7"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs",
+        "bytes": 60538,
+        "sha256": "616fe1d63a78b37b0ac8c3edec0abd35eb54422e99c312dd19987f2e8677b270",
+        "git_blob": "b74f6ba1cb519daa9147efedbae4368fc84017cd"
+      },
+      {
+        "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+        "bytes": 45846,
+        "sha256": "d245c258075683f57f6af6daa1ade17fafd53649d1c5ae93d29d9ef5a752a33d",
+        "git_blob": "428465451434d74d21903b10aaccf50d20cc521c"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/physical-flags-public-witness-fix-020/physical-flags-public-witness-plan.json",
+        "bytes": 18071,
+        "sha256": "29ca2e719daee7607523b4bae23827862998ce4592476bbeb5cd6c224c776cd9",
+        "git_blob": "0d3296869230e3135844434f3a9738489ac82e67"
+      }
+    ]
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED_TWO_SAME_ID_BOUNDED_RESIDUALS",
+    "native_launch_clearance": false,
+    "witness_native_launch_clearance": false,
+    "findings": [
+      "ENV-PHYSICAL-FLAGS-WITNESS-REFERENCE-COMPLETE-1",
+      "ENV-PHYSICAL-FLAGS-WITNESS-REFUSAL-CAUSAL-1"
+    ],
+    "product_build_input_defect_identified": false,
+    "compiled020_reuse_possible_after_Lua_correction_and_exact_join": true,
+    "physical_flag_authority_accepted": false,
+    "wholeheight_Task49_D3_delivery_accepted": false,
+    "reason": "Both original P2s improve substantially but each retains one concrete false-positive path. Correct only these Lua/test/doc relationships before the23-step plan; no C/Rust change, new Windows build or completed-default replay is warranted for this diagnostic-only correction."
+  },
+  "findings": [
+    {
+      "id": "ENV-PHYSICAL-FLAGS-WITNESS-REFERENCE-COMPLETE-1",
+      "severity": "P2",
+      "status": "OPEN_RESIDUAL",
+      "title": "Distinct base events can still share one transaction ordinal",
+      "evidence": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+          "lines": "297-327",
+          "detail": "First-event order is nondecreasing. Equal ordinals are accepted when frame and before_* prefixes match, without requiring the two tags to describe the same actual READ transaction."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs",
+          "lines": "a_damaged_paired_control_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_unlocks_its_cases",
+          "detail": "New controls check missing/duplicate events, out-of-order rows and individual bounds, but not distinct base events sharing one otherwise coherent ordinal/prefix."
+        }
+      ],
+      "source_derived_counterexample": "In the generated healthy BASE_P control, first RESET has ordinal1/frame1/all-zero prefix. First GROUP has ordinal2/frame1/before_reset1 and other prefix counts0. Editing only the GROUP relationship tuple to ordinal1/before_reset0 makes it share the RESET prefix. Other rows, all counts and the PASS verdict stay unchanged. Current validation accepts it: equal-prefix equality is permitted, GROUP is still before SET/READ/second GROUP, and all bounds hold. One question cannot simultaneously be GROUP and RESET. A SET-refusal case can still unlock at its unaffected real trajectory using this damaged positive. No test/probe was run by reviewer.",
+      "minimum_fix": [
+        "Require distinct base events to have strictly increasing ordinals. Permit an equal ordinal only for the legitimate ordered first READ followed by read_consumable tag of that same READ, with identical frame and complete prefix. This is a bounded existing-schema check, not a full history reconstruction or new report framework.",
+        "Add a positive-first damaged GROUP/RESET equal-ordinal relationship control that rejects before output/preparation/boot/provider/effect for the ordinal relationship. Keep the valid same-READ read/read_consumable positive and the legitimate group/set/reset-only control. Retain genuine parent RED and corrected focused GREEN."
+      ],
+      "prior_subcases_closed_at_source": "Missing oracle, exact key sets/order, canonical numbers, Original all-zero flag traffic, count/key/oracle cross-joins, missing/invalid consumption tuples and the previously named damaged-reference cases are now guarded. The remaining ordinal alias prevents full closure of the SAME original finding."
+    },
+    {
+      "id": "ENV-PHYSICAL-FLAGS-WITNESS-REFUSAL-CAUSAL-1",
+      "severity": "P2",
+      "status": "OPEN_RESIDUAL",
+      "title": "Terrain and environment callbacks bypass the continuation latch",
+      "evidence": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+          "lines": "407-412,597-599,662-668,685-701,768-775",
+          "detail": "note_callback is called by model and settling wrappers, but boot_config passes the functions returned by host.terrain_provider and host.env_provider directly to Engine. Those provider invocations are not recorded as continuation."
+        },
+        {
+          "path": "eech-campaign/crates/eech-dc/src/module.rs at compiled020",
+          "lines": "4866-4896",
+          "detail": "The public boot contract takes actual terrain and environment Lua functions; these are genuine host callback surfaces, not setup-only values. The environment function is also the default sound metadata/backend provider."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs",
+          "lines": "IGNORES / a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards",
+          "detail": "The new continued-fault control only calls config.bind_mobile before rethrowing the same marker. It never exercises config.terrain or config.environment."
+        }
+      ],
+      "source_derived_counterexample": "After ignoring an injected fault, a scripted campaign can invoke config.terrain or config.environment and then raise the original expected marker in the same engine entry. r.callback stays nil and the new fatal.entry join matches r.entry, so the refusal still receives PASS even though another host callback continued past the bad answer. No experiment was replayed.",
+      "minimum_fix": [
+        "Transparently wrap both actual returned provider callables through the same continuation tracking, forwarding every argument and every result exactly once without adding physical/provider queries or changing their errors, state or order. Cover the real callback functions rather than merely the provider factories.",
+        "Use the genuine direct-refusal positive first, then ignored-fault->terrain callback->same-marker and ignored-fault->environment callback->same-marker negatives during both relevant boot/frame entries. They must fail for continued callback; preserve direct immediate refusal, normal-return failure, other-marker failure and valid changed-answer cases. No native damaged-input run or C/Rust/build change is needed."
+      ],
+      "prior_subcases_closed_at_source": "The new pending refusal latch, model/named-callback continuation checks, normal-return stop, actual boot/frame fatal capture and same-entry comparison close the originally demonstrated bind_mobile/delayed-frame cases. Missing two callback surfaces prevents closure of the SAME original finding."
+    }
+  ],
+  "immutable_evidence": {
+    "prior_canonical_review": {
+      "path": "R:\\d3-evidence\\independent-physical-flags-public-witness-f4d-source-20261107-v2.json",
+      "bytes": 21571,
+      "sha256": "9b0ee1e27ecfb5d8395d21c985fa6c7978b661716aa9a1f6b9e16d3851e5e19e"
+    },
+    "freeze": {
+      "path": "R:\\d3-evidence\\D3-PHYSICAL-FLAGS-PUBLIC-WITNESS-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 17192,
+      "sha256": "d6454f50d7bd711b841f7c11c3c5e13d3cc3f3cbb4db79934ed19e7b859fc58e"
+    },
+    "Root_source_checks": {
+      "path": "R:\\d3-evidence\\physical-flags-witfix-3dcb-Root-binding-20261107.json",
+      "bytes": 14621,
+      "sha256": "4c2a954b66360df352ad58251fd041ebc72ed7b9e2a6b8c155ce936cb90ade05"
+    },
+    "Root_publication": {
+      "path": "R:\\d3-evidence\\physical-flags-witfix-6fce-publication-Root-20261107.json",
+      "bytes": 4940,
+      "sha256": "e2a1cc472080b42b193da69f1654c07f12363292b9746644639d130dd20489ac"
+    },
+    "producer": {
+      "path": "R:\\d3-evidence\\claude-d3-physical-flags-witness-fix-20261107-completion.json",
+      "bytes": 1622,
+      "sha256": "1548cf652e3e9d759ceb8d784570781f31c76c387933a014c3de503c47a9d061"
+    },
+    "namespace_recovery": {
+      "path": "R:\\d3-evidence\\hwcr-recovery-receipt-20261107.json",
+      "bytes": 5099,
+      "sha256": "2b2b5ae00b55f26ff241d4fa9d8d419388ccb420f1e7380a70c78a97a5d31d73"
+    },
+    "Root_namespace_recovery": {
+      "path": "R:\\d3-evidence\\hwcr-namespace-recovery-Root-binding-20261107.json",
+      "bytes": 2995,
+      "sha256": "57115c4ace2d23cef76734193a27ee7ee28cfad6ac13b9f2728e793bccd481a5"
+    }
+  },
+  "joined_source_checks": {
+    "producer_actual_exit": 0,
+    "result_is_error": false,
+    "actual_model": "claude-sonnet-5-5",
+    "completed_utc": "2026-11-07T21:02:34.459665+00:00",
+    "PRE_utc": "2026-11-07T20:59:55Z",
+    "POST_utc": "2026-11-07T21:01:37Z",
+    "whole_map_rows": 3993,
+    "PRE_POST_current_raw_equal": true,
+    "actual_Git_qualification": "Root actual Git-byte join; only3 inherited uncompiled test Lua rawCRLF/GitLF qualifications. No raw normalization or filtered-identity substitution.",
+    "extra_rows": 47,
+    "all_extras_and_PRE_readers_current": true,
+    "compiled_product_rows_unchanged_from020": 3805,
+    "final_direct_actual_exits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "test_result_instances": 1358,
+    "test_components": {
+      "scripted_driver_real_provider": 25,
+      "whole_World_including_same_driver": 1307,
+      "Sys_source_guards": 26
+    },
+    "test_scope": "Scripted campaign stand-in + real reference provider, not native Engineboot/C authority.25 driver results appear again in wholeWorld and are result instances, not distinct native observations.",
+    "meaningful_RED": "Parentf4d Lua with the new controls yielded20pass/5fail; corrected25GREEN. Partial24pass/1 assertion-message failure and later corrected attempts retained. These controls establish the corrected subcases, not the two untested residuals.",
+    "Root_reader_qualification": "Initial source binder retained old w3/w4/w5 selectors while final correction labels are f3/f4/f5. Attempt1 was retained and read-only selector fixed; no source/test/build/native replay.",
+    "publication": {
+      "manifest_entries": 79,
+      "external_literal_copies": 75,
+      "all_actualGit_current_literal": true,
+      "clean_pushed_exact": "6fce9aa4bfb8e1153e5e36d3b19400fda2029514",
+      "metadata_delta": "STATUS/card only"
+    },
+    "publication_reader_qualification": "Two discarded broad-prefix derivations stopped before creating the audit script. Explicit reader then succeeded; retained failures do not change source/check evidence."
+  },
+  "namespace_recovery_disposition": {
+    "status": "QUALIFIED_RECOVERY_NO_NEW_REPLAY_REQUIRED",
+    "facts": [
+      "Three old external hwfix helpers were accidentally overwritten during new draft preparation before realPRE. They were restored byte-for-byte from accepted Git before the real hwcr family PRE/checks.",
+      "Root57115 independently joins all five old map byte sizes/SHAs to the actual old sealed Git/freeze identities, and all three current helper bytes to accepted Git. Old accepted Git packets, baselines, binaries and raw results are retained.",
+      "The author restored before preserving the new colliding drafts as exact original-storage bytes, contrary to the requested order. Retained derived-* versions are renamed/derived copies, explicitly not original storage; no claim that their exact overwritten storage bytes or original metadata were retained.",
+      "New hwcr namespace, positive/negative name guards, recovery receipt and real timed PRE/POST distinguish the dry/fake-UTC artifacts from real final checks. The old PRE-version/publisher chronology qualification remains intact."
+    ],
+    "limits": "This is evidence recovery, not corrected-witness source/native clearance and not a reason to replay accepted C/native experiments. Preserve literal failed readers and the disclosed storage limitation."
+  },
+  "clean_code_boundary_assessment": [
+    "The new exact schema/count helpers centralize the positive contract instead of accepting loose subsets. Role-specific Original/control validation and pre-effect timing are appropriate; source inspection identified only the named ordinal residual within this changed relationship pass.",
+    "The refusal state is localized to each Lua process and actual boot/frame entry, without changing product callbacks or adding a store. The two providers must join that same latch rather than introducing another decision mechanism.",
+    "Fatal reporting uses Lua-owned telemetry and the exclusive report file; no getters/counters/metrics/engine close are called through a poisoned Engine. The source still claims only observed carried candidate fact, not changed physical collision outcome.",
+    "Contract now correctly distinguishes44 payload words with only fact21 changed, phase totals from per-array/consumer coverage, and scripted single-process controls from native/FPU/lifetime claims. No further scope expansion or old control replay is needed for these precision fixes."
+  ],
+  "retained_accepted_facts": {
+    "key_source": "3e74: KEY-CAPACITY-1 and ISSUED-GROUP-ALIAS-1 CLOSED_SOURCE, unchanged product inputs; not reopened.",
+    "defaults": "Canonical prior9b0 V2 accepted both true02035-frame/3.5s default cases via Root40e. Native/controller/pre/post0, all six complete files literal80fd,180 sealed payloads unchanged. No replay or new acceptance beyond that finite scope.",
+    "build_profiles": "True020 ordinary and Original90-payload bins; actual build8def/profile5a1f/release2272 with30COFF/26staged sources and absent ordinary6591 producer/resident Originalde45 read-only reader qualification remain own identities."
+  },
+  "native_plan_limits": {
+    "current23_step_launch_clearance": false,
+    "plan_structure": "Original first, same-setup paired hosted control, read_changed, then20 single-fault cases at predeclared hours0.001/frame100ms/seed1/fresh verified retail roots. Reachability learned without actor/window/geometry search; absent read/event remains UNREACHED.",
+    "after_residual_correction": [
+      "Same reviewer changed-material closure, exact Git/blob/SHA external Lua materialization and exact compiled-input equivalence to true020; do not overwrite or reidentify its90 sealed payloads or run the older bundled entity-authority helpers as the new witness.",
+      "Root must bind final actual controller/plan/root/reference/payload/profile hashes before native, and enforce whole positive reports/event trajectory before each intervention. No authority acceptance follows from plan/source clearance alone.",
+      "Observed traffic only: phase totals cannot establish every array/consumer/lifetime. Native actual reports and matched causal evidence remain required; unobserved domains stay open."
+    ]
+  },
+  "remaining_requirements": [
+    "All ten D3 requirements, other consumers, lifetimes, DCS, wholeheight, final current40/all8/fourinputs/currentCI/census/review/normalmerge/Task49/D3/delivery remain open at actual scope. No D4/D5/TypeScript work or formal GitHub approval.",
+    "Existing764 fullshipping original jobs/source/bin/roots/raw remain untouched. Partial equal prefixes are not complete764 or020 acceptance.",
+    "Reviewer did no test/build/cache/native/war/checker replay, tracked source/card/canonical edit or nested agent. Only this new immutable external UTF8-LF JSON is written. Root owns publication and finding/task disposition."
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "kind": "Root READ_ONLY independent binding of evidence namespace recovery, no test/build/native replay",
+  "utc": "2026-11-07T21:08:33.847986+00:00",
+  "accepted_old_Git_commit": "4d373c8f7a8074c91a6fc78d68424a035acc8524",
+  "old_frozen_receipt_sha256": "2fe9732d2831be8c35ce0160caa986eada44102face18ff0afb7c15e361dc446",
+  "all_five_old_full_maps_unchanged": [
+    {
+      "file": "hwfix-inputmap-PRE-20261107.json",
+      "bytes": 2041962,
+      "sha256": "b06295202bd731deb29cfae6fe5d17728bfbaee42484897dfd117390e260459d",
+      "equals_original_sealed_identity": true
+    },
+    {
+      "file": "hwfix-inputmap-POST-20261107.json",
+      "bytes": 2041962,
+      "sha256": "b06295202bd731deb29cfae6fe5d17728bfbaee42484897dfd117390e260459d",
+      "equals_original_sealed_identity": true
+    },
+    {
+      "file": "hwfix-extra-identity-PRE-20261107.json",
+      "bytes": 5875,
+      "sha256": "7c97a85e84c398866dd22747e28d88d7aa170bbe24812b55407ebd0073ee5310",
+      "equals_original_sealed_identity": true
+    },
+    {
+      "file": "hwfix-extra-identity-POST-20261107.json",
+      "bytes": 5875,
+      "sha256": "7c97a85e84c398866dd22747e28d88d7aa170bbe24812b55407ebd0073ee5310",
+      "equals_original_sealed_identity": true
+    },
+    {
+      "file": "hw-inputmap-POST-20261107.json",
+      "bytes": 2041398,
+      "sha256": "5a9e789508ca30baf08538dc9144653351f0dd7ece7f27dd42ce022d0f038b7d",
+      "equals_original_sealed_identity": true
+    }
+  ],
+  "all_three_overwritten_helpers_current_equals_accepted_Git": [
+    {
+      "file": "freeze-hwfix-20261107.py",
+      "bytes": 27576,
+      "sha256": "cfc428df6fdf947117944981a53f8c189eb258af32aec7567966828947511750",
+      "current_equals_accepted_Git_literal": true
+    },
+    {
+      "file": "hwfix-extra-identity-20261107.py",
+      "bytes": 3367,
+      "sha256": "01c388b699c3e379e8039258d56561d4ef033301d294029f0d5b1c56fa2f9d6d",
+      "current_equals_accepted_Git_literal": true
+    },
+    {
+      "file": "run-hwfix-final-set-20261107.sh",
+      "bytes": 3334,
+      "sha256": "7c846cacf907210c6dc30e175173038ed41c7ff99b1adc6912f3a99bed5257cf",
+      "current_equals_accepted_Git_literal": true
+    }
+  ],
+  "author_recovery_receipt": "hwcr-recovery-receipt-20261107.json",
+  "author_recovery_receipt_sha256": "2b2b5ae00b55f26ff241d4fa9d8d419388ccb420f1e7380a70c78a97a5d31d73",
+  "qualification": "Old external helper storage was temporarily overwritten, then restored from accepted Git. New colliding mutable drafts were restored/renamed before byte-exact originals of those new drafts were retained; retained derived-* copies are DERIVED, not original storage. This order deviation is explicit in author receipt. No real correction PRE occurred until after namespace hwcr/recovery/name guards; old accepted baselines/bins/results/Git packets remain intact.",
+  "scope": "Artifact provenance only; no corrected witness source/native clearance. Prior finite020 defaults remain accepted, full764 pack/wholeD3 remain open."
+}
