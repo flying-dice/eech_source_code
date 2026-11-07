@@ -1,0 +1,168 @@
+{
+  "schema": 1,
+  "kind": "Independent combined changed-material physical-flags keyfix and moving-collision consumer source/check review",
+  "created_utc": "2026-11-07T19:48:45.423876+00:00",
+  "source": {
+    "commit": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "metadata_commit": "684f30d94a09b814ee436aa6c1ce183c08056aff",
+    "review_base": "9c63a09674ae5326c442bdeb1d2c9f8c2b829192",
+    "prior_review_sha256": "0269234c4559916934dba5b2bfbc4661696bf4f517c6abe6e7a607b3eb1c6587",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "clean_and_pushed_at_binding": true,
+    "critical_input_identities": [
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+        "bytes": 60865,
+        "sha256": "48354a1e2f58df6b91bb1a3b701b7b1fd8d8781a9e2046aaa13e744791c7216a"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+        "bytes": 96529,
+        "sha256": "bbed6d231c17f495efaf4cc77d17ea8a6566f0201ca49e68d57b8c1121accd2b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/flags.rs",
+        "bytes": 12810,
+        "sha256": "c857fa2d6fc205379b2febefa3b15489057bcee0adf5e8fdcabb1b92d4baa714"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c",
+        "bytes": 21327,
+        "sha256": "0af95137b64e02cbbcfaca19eef29c38370dc736fa8c3a79a3f1e7a699b45da3"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/support/lua_provider.rs",
+        "bytes": 19333,
+        "sha256": "88fa488884bbdba1c5bb1aad45f9e7b474be01cccab35325d654bd612257d9b2"
+      }
+    ],
+    "method": "Immutable Git delta and retained receipts/maps/readers. No reviewer tests, builds, native/campaign/checker replay, cache/process/source modification or nested agent. Closed original characterization/height/kernel proofs were not replayed or re-reviewed."
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_CONDITIONAL_WINDOWS_BUILD",
+    "findings": [],
+    "closed_source_ids": [
+      "ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1",
+      "ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1"
+    ],
+    "source_clearance": true,
+    "windows_build_clearance": true,
+    "native_launch_clearance": false,
+    "native_authority_accepted": false,
+    "reason_for_native_limit": "This disposition permits Root to compile fresh exact-source profiles. It does not supply an approved concrete public Host-Lua/native-module/Host physical flag authority run; that path and new native/default results remain unrun.",
+    "moving_collision_consumer_finite_control_verified": true,
+    "all_consumer_or_lifetime_coverage_accepted": false,
+    "whole_sector_height_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "current_full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-PHYSICAL-FLAGS-KEYFIX-CODE-FROZEN-20261107.json",
+      "bytes": 91406,
+      "sha256": "abd58d59b6c00a29c067510fbd2940345e98eb894151708b88607e742f0d204b"
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-keyfix-020-Root-binding-20261107.json",
+      "bytes": 32024,
+      "sha256": "5fe5f8e4d28194182dd52c498c0d73d816c15de5dc73ba61762437c73b7ba919"
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-keyfix-684-publication-Root-20261107.json",
+      "bytes": 38460,
+      "sha256": "9c19f15913dc45001df62444c95c78ca2b3d15c7bff5c6461a42c000679a9eb3"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-physical-flags-key-fix-20261107-completion.json",
+      "bytes": 1522,
+      "sha256": "0a6ea9926cfc2d54bc22614f1264d7ae3b27955ffa89cf26995792bca1bc826c"
+    }
+  ],
+  "prior_finding_dispositions": [
+    {
+      "id": "ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1",
+      "status": "CLOSED_SOURCE",
+      "basis": "flag_key_is_valid now requires f, first digit1..9, remaining ASCII digits and total length<=20 before NUL. It rejects the deciding digit at index20 before copying; exact20 bytes plus NUL fit the21-byte identity slot. Complete reply validation still precedes copy. Rust key grammar matches; the generic127-byte Engine/module name path remains unchanged and is separately tested untruncated at20/21/127, rejecting128.",
+      "controls": "Real C exchange canary slots cover exact20 positive/NUL/neighbours and single21/22/100/127/noncanonical faults with output and neighbour bytes unchanged; malformed named request keys reject before asking. Real cache/Host identity control85 exercises distinct exact20 keys, malformed-key faults and subsequent corrected requests. It is not merely a string helper test."
+    },
+    {
+      "id": "ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1",
+      "status": "CLOSED_SOURCE",
+      "basis": "flag_group_key receives the fully validated issuance into a local21-byte staging buffer, compares it to all other nonempty group bindings, refuses an already-bound key by name and only then copies to the cache. Cache remains identity-only.",
+      "controls": "Positive independent groups/words precede duplicate-first-live-key, duplicate-second-live-key and duplicate-live-key for a reset-ineligible new group. Existing bindings and Host words are preserved, rejected entry remains unbound, no set/read occurs through it, and corrected distinct keys work with the proper reset extent. The public diagnostic driver tracks successful new issuance and records duplicate replies as faults only after complete request/reply checks."
+    }
+  ],
+  "new_collision_consumer_review": {
+    "verified_scope": "The same15 moving-mobile get_line_of_sight_collision_entity expectations pass in true Original and Hosted profiles; Hosted adds one matched no-identity refusal, for16. No shipping campaign/native bridge ran.",
+    "actual_path": "The fixture calls the actual public collision function over actual sector map/list/getter/dt collaborators. Original compiles its retained moving-mobile body and bounding-box collision routine. Hosted follows campaign_scan_entities/offer into real provider roster, candidate, pose, narrow-phase and flag store decisions through the declared test bridge.",
+    "positive_before_effect": "Hosted mobiles are linked through campaign_roster_link_member before sector placement. The private bind_member collaborator issues a Host identity and initializes its real Movers record from the actual creation descriptor/pose/motion. This is registration before query, not query-time seeding, zero fallback or a fabricated collision reply. The no-ID refusal remains strict.",
+    "behavior": "With the same synthetic scene/segments, unset UPDATED chooses the future path; changing only the real flag selects the previous path and swaps hit/miss. Own-bit persistence and tail-first shared-word neighbour destruction are observed in both insertion orders. The no-ID negative follows these positives.",
+    "model_input": "One declared synthetic model field is set to collision-object -1 in the real minimal model file before installation. Both profiles use that same valid no-collision-object scene/body-box case. This is not a changed retail baseline or a substitute collision answer.",
+    "reported_traffic_not_contract_counts": {
+      "scan": 63,
+      "candidate": 33,
+      "pose": 20,
+      "collision": 6,
+      "flag": 21
+    },
+    "test_bridge_limit": "tests/support/lua_provider.rs is an explicitly scoped test converter over real host.model/roster/Movers/model store; it is not shipped Engine::boot/model_callback/call_model and does not prove that complete public boundary. Its permissive/minimal operation conversion is test plumbing, not new production validation.",
+    "earlier_failures": "Retained unregistered-mobile/zero-check observations are setup failures and not consumer coverage. Feedback1916 arrived before final PRE; final genuine registration and16 checks supply the required positive. Other fixture geometry/list/link failures remain separate development records."
+  },
+  "clean_code_boundary_and_lifetime": [
+    "The product correction is bounded: canonical string validation and staged identity-only uniqueness commit. It does not introduce physical flag data in Core, change raw masks/destructive read/reset/TRUE-only/raw-local semantics, alter campaign policy or narrow other operation families name domains.",
+    "The supported reference scope is one persistent SharedRoster/FlagStore binding per process. Prose now correctly admits that replacement restarts fN and can alias stale keys; it no longer promises universal old-key refusal. Real session/heap/provider replacement and other legitimate lifecycle dispositions remain required where needed, not silently excluded by the word unsupported.",
+    "The identity control traps the real fatal and restores test poison state to exercise matched corrections. Production does not acquire a recovery/continue-after-fatal path. Neither the validator nor cache check rolls back arbitrary Host callback physical effects; no second authoritative store is created for rollback.",
+    "Whole FPU-state preservation, x87/subnormal transport, i686/Windows/native and O2 guarantees remain unmeasured. New flag key checks are integer/text operations. The new collision geometry control executes floating arithmetic, so restoration of listed globals is not a whole-FPU preservation assertion.",
+    "Nonblocking fixture-isolation qualification: its header overstates gives everything back/dispatch tables copied whole. The initializer also changes float and attitude setter tables absent from saved_tables, while installed model/roster callbacks and private scene/placement state are not restored. It is a dedicated single-test process, not a reusable active-campaign utility; no production path invokes it. Preserve this process-isolation limit rather than infer full-global restoration. The stale no hosted profile header clause and original profile footer are labels, not actual16-case evidence. Root may qualify these in metadata without CPP/test/native replay.",
+    "Test feature wiring confines the new collision function/hooks to physical-flags-collision-check; default product bodies are not replaced by that fixture. Adapted Host observations remain test-only; the accepted original199/guide56 controls retain their true roles and do not mask a Core bit mirror."
+  ],
+  "checks_and_provenance": {
+    "PRE_utc": "2026-11-07T19:27:53Z",
+    "POST_utc": "2026-11-07T19:40:23Z",
+    "full_rows": 3991,
+    "literal_PRE_POST_sha256": "4199fd798a25844ce6a64d3a6296c45a6d14ca8896857a96781eca2e9870113a",
+    "current_raw_and_actual_Git_joined": true,
+    "inherited_qualifications": "Same three unchanged uncompiled Lua workingCRLF/committedLF dual identities; no input normalization.",
+    "final_direct_commands": 13,
+    "all_actual_exit_zero": true,
+    "selected_instances": 1569,
+    "breakdown": {
+      "SysDefault": 51,
+      "HostedFlagControls": 12,
+      "OriginalFlagControls": 9,
+      "HostedHeight": 8,
+      "OriginalHeight": 8,
+      "World": 1282,
+      "EngineDC": 199
+    },
+    "control_counts": {
+      "original_word": 199,
+      "guide": 56,
+      "key_identity": 85,
+      "collision_Original": 15,
+      "collision_Hosted": 16
+    },
+    "RED_qualification": "New controls were run against restored0d0 sources after implementation; they fail/abort on the actual key boundary defects, not a pristine before-edit chronology claim. Fixed-source copies/restoration hashes and all failed setup/RED records remain retained. Final source maps bind the final tested bytes.",
+    "extras": {
+      "PRE_POST_equal": 34,
+      "current_equal": 33,
+      "exception": "Only freeze publisher changed after POST: retained PRE-version/diff from993c840a3570c6af6c9d1d74693f53e598b653ff2e717c8e669dcec47c99f2fa to010288d36d1b9fd27d9fd4a18fcbe62d90a15648a619e2e871322d277296bf72. Initial publisher path-typo FileNotFound is preserved. All other readers stable; no source/test/build/native replay."
+    },
+    "publication": "165 published manifest entries actualGit/current literal;162 external copies literal. Frozen earlier count163 precedes README/literalcheck additions and is not relabelled. Root reader attempts used a guessed join filename/count, stopped and were corrected read-only with originals retained. Only STATUS/card differ between020 and clean pushed684.",
+    "producer": {
+      "actual_exit": 0,
+      "result_is_error": false,
+      "completed_utc": "2026-11-07T19:42:18.693860+00:00",
+      "model": "claude-sonnet-5-5"
+    }
+  },
+  "conditional_next_gates": [
+    "Root may compile fresh exact020/684 ordinary/Original/needed fixture profiles after sole cache-owner handoff, using a clean immutable no-hardlink/no-alternate snapshot with longpaths before checkout, exact source identity, staged/profile/object/export checks and new payload seals. No existing764 binary is relabelled020.",
+    "Before native physical-authority execution, bind a concrete fresh-root Host-owned Lua -> native EECH_DC -> Host plan/literal and positive-first changed/withheld/error contracts to those new payloads. This report grants build clearance, not generic native authority launch or acceptance. Unchanged-argument complete ordinary/default comparisons and current candidate full40/all8/four-input shipping remain required subsequent actual gates.",
+    "Supply/Tacview/weapon-vector and remaining family consumers, actual session/heap/callback lifetimes, supported architecture/FPU behavior and all needed DCS/API/physical responsibilities stay in scope. The two isolated collision profiles do not close them.",
+    "Protect the independent764 fullpack and original process/source/bin/root identities; current prefixes remain partial. Prior finite height/M5/M6/P1 evidence retains its own scope and is not replayed or promoted to020 shipping acceptance.",
+    "All ten D3 requirements, wholeheight, Task49/D3 delivery, current CI, independent review/normal merge/final census remain open. Preparation remains2; no D4/D5 or historical TypeScript port."
+  ]
+}
