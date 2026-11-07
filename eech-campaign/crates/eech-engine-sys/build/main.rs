@@ -332,6 +332,9 @@ fn main() {
     if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_CHECK").is_some() {
         build.define("EECH_SECTOR_HEIGHT_CHECK", None);
     }
+    if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_CHECK").is_some() {
+        build.define("EECH_PHYSICAL_FLAGS_CHECK", None);
+    }
     if env::var_os("CARGO_FEATURE_MQ_REPORT_CHECK").is_some() {
         build.define("EECH_MQ_REPORT_CHECK", None);
     }

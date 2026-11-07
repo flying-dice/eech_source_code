@@ -57,6 +57,8 @@ mq-report-check = []
 
 # TEST-ONLY (EEDCS-49, D3): the characterisation of the sector's tallest-structure high-water value against the REAL sector insertion response, float getter and session pack/unpack linked into the engine (csrc/eech_sector_height_check.c). Never enabled in the shipping build.
 sector-height-check = []
+# TEST-ONLY (EEDCS-49, D3): the characterisation of the per-entity UPDATED / MOVED / ROTATED word against the REAL mobile getter and setter, the three flag arrays and the real update reset linked into the engine (csrc/eech_physical_flags_check.c). Never enabled in the shipping build.
+physical-flags-check = []
 
 # TEST-ONLY (EEDCS-49, D3): the read-only observer of the sector tallest-structure word on the real public path: staged hooks (build/patches.rs SECTOR_HEIGHT_OBSERVER_PATCHES), csrc/eech_sho.c, and four
 # read-only report entries. Never enabled in the shipping build; with it off no hook, patch or definition exists.
@@ -85,6 +87,11 @@ required-features = ["entity-dialogue-check"]
 name = "mq_report"
 path = "tests/mq_report.rs"
 required-features = ["mq-report-check"]
+
+[[test]]
+name = "physical_flags"
+path = "tests/physical_flags.rs"
+required-features = ["physical-flags-check"]
 
 [[test]]
 name = "sector_height"
