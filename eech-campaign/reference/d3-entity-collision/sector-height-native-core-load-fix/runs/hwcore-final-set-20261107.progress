@@ -1,0 +1,10 @@
+s1-fmt-check exit=0
+s2-clippy-workspace exit=0
+s3-clippy-witness-features exit=0
+s4-engine-sys-default exit=0
+s5-control-hosted exit=0
+s6-control-original-solver exit=0
+s7-witness-c-and-guards exit=0
+s8-engine-dc-default exit=0
+s9-engine-dc-witness exit=0
+DONE

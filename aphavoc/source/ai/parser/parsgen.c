@@ -2222,7 +2222,8 @@ int parser_campaign_file (const char *filename, int *offset)
 				int
 					server_version_number,
 					client_version_number,
-					campaign_size;
+					campaign_size,
+					bytes_read;
 
 				FILE
 					*saved_file_ptr;
@@ -2272,13 +2273,34 @@ int parser_campaign_file (const char *filename, int *offset)
 				// load .save file
 				saved_file_ptr = safe_fopen (filename, "rb");
 
-				campaign_size = file_size (filename);
+				// The saved data is binary and is read WHOLE from the handle opened for it. Its size is that handle's own length (the text-mode file_size () helper opens the file a second time as text, and what a text
+				// stream counts or stops at is the C runtime's decision, not the file's), every byte must arrive (a short read of the old one-element-of-size+1 form returned 0 and was ignored), and a buffer that ends
+				// before the unpack does is a fatal below: either one silently yields a world of zeros (every sector word 0, every list root index 0, i.e. the sector with index 0) that is no saved campaign.
+				fseek (saved_file_ptr, 0, SEEK_END);
+
+				campaign_size = (int) ftell (saved_file_ptr);
+
+				fseek (saved_file_ptr, 0, SEEK_SET);
+
+				if (campaign_size <= (int) sizeof (int))
+				{
+
+					debug_fatal ("PARSGEN: saved campaign data %s holds %d bytes, not even its version number", filename, campaign_size);
+				}
 
 				campaign_buffer = (unsigned char *) malloc_heap_mem (sizeof (char) * (campaign_size + 1));
 
 				load_ptr = campaign_buffer;
 
-				fread (campaign_buffer, campaign_size + 1, 1, saved_file_ptr);
+				bytes_read = (int) fread (campaign_buffer, 1, campaign_size, saved_file_ptr);
+
+				if (bytes_read != campaign_size)
+				{
+
+					debug_fatal ("PARSGEN: saved campaign data %s: read %d of its %d bytes", filename, bytes_read, campaign_size);
+				}
+
+				campaign_buffer [campaign_size] = 0;
 
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				// check version number
@@ -2299,7 +2321,12 @@ int parser_campaign_file (const char *filename, int *offset)
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				// unpack session
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				unpack_session (load_ptr, campaign_size, PACK_MODE_SERVER_SESSION);
+				// pack_session sizes the data to the last (partly used) byte, so an unpack of what was packed never runs past it: the overflow flag means the data is truncated or damaged
+				if (unpack_session (load_ptr, campaign_size, PACK_MODE_SERVER_SESSION))
+				{
+
+					debug_fatal ("PARSGEN: saved campaign data %s ended before its unpack finished (%d bytes after the version number)", filename, campaign_size);
+				}
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 				fclose (saved_file_ptr);

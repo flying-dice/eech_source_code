@@ -250,6 +250,20 @@ The SAME review closed the three other corrections at source and left two facts 
   The finiteness rule is ONLY for these physical fields: the saved raw HEIGHT histories of M6 (a quiet NaN, an infinity, a negative word) are untouched.
 - **Controls** (`tests/sector_height_witness_driver.rs`): positive first (the coherent pair, the valid changed-word run with a stated real effect, the explicit-default override pair, the save-to-generated-script load with NaN and infinite seeds), then ONE removal or ONE damage at a time: each physical word dropped, `nil`, short, non-hex, infinite, NaN; host id, phase, ordinal, sector, counts, trajectory; a changed effective campaign or map of the control, the original, the run or the save report. Each is refused with no output and no log.
 
+### 12.6 The real Core load of the generated saved script (`ENV-SECTOR-HEIGHT-NATIVE-CORE-LOAD-LIST-1`)
+
+**What happened (Root's first native M6 positive run, the exact 17f save-feature profile).** The real Core save passed native 0 (1748 sectors, one attempt, a 300873-byte data file of session version 272 and a generated script that holds `SAVED_CAMPAIGN` of `LEBANON.CHC`). A FRESH Core boot of that actual generated script stopped native 1
+after all 1748 sector restores with `Invalid list type (entity type = ENTITY_TYPE_SECTOR, index = 0, list type = LIST_TYPE_FORCE)` at `en_list.c:356`. **The fatal is a symptom** (aggregate-only evidence: `reference/d3-entity-collision/sector-height-native-core-load/`): decoding the saved sector section with the Core's own bit
+routines reproduces the save report's 1748 words (1027 non-zero) exactly, so pack and unpack are symmetric, but the load STATED ZERO for every sector (the host stores exactly the bits stated, checked in `mb_hostentity.h`), so the unpack input was zero where the file holds data. An all-zero stream reads the session's force-list root as the 20-bit signed
+index 0, which is `entities[0]`, the sector 0 entity (an empty pointer is index -1), and `unpack_session`'s force loop asks that entity for a force-list successor.
+
+**The weakness** (`parsgen.c`, `FILE_TAG_SAVED_CAMPAIGN`): the legacy loader sized the data with `file_size ()`, which opens the BINARY data a second time in TEXT mode (what a text stream counts or stops at is the C runtime's decision, and the data holds 1593 Ctrl-Z bytes, the first at offset 167, 48 bytes after the side RLE), read it with
+`fread (buffer, size + 1, 1, f)` (a short read returns 0 elements and was never checked) and discarded `unpack_session`'s overflow return, while `unpack_unsigned_data` and `unpack_signed_data` answer 0 forever once their buffer is exhausted. The exact C-runtime mechanism was not observed: no native replay was made for context.
+
+**The bounded correction** (product C, `parsgen.c` only, no campaign decision, pack format, host contract or sector-height rule): the loader sizes the data from the handle opened for it, reads `fread (buffer, 1, size, f)` and requires every byte, and treats an unpack overflow as a fatal that names the file and sizes. `pack_session` sizes its data to the last partly used byte (`close_pack_buffer`), so a correct unpack never overflows.
+`eech-engine-sys/tests/saved_campaign_load_guard.rs` pins this and its premises (RED on the previous loader retained). **It does not show that the load works**: a Linux run cannot reproduce the Windows C runtime's text-mode and partial-element behaviour. Product C changed, so new Windows binaries need NEW source (the 17f binaries are not reused for it) and only a native run of the real positive pair
+(the real Core save, then the real fresh Core boot of its generated script, with every restored word equal to the saved word in order) can show it. Until then no negative save/load is credited and M6 stays OPEN.
+
 ### 12.3 What this does NOT establish
 
 Nothing in section 12 has been run natively. The scripted tests prove the driver credits only what it intervened on and refuses every single-fault variant of its controls; they never reach `fw_move.c`, `store_session`, `pack_session` or `unpack_session`. The C refusals test proves the method's

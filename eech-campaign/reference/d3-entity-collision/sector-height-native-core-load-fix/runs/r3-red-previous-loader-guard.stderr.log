@@ -1,0 +1,6 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 03s
+     Running tests/saved_campaign_load_guard.rs (/target/t/debug/deps/saved_campaign_load_guard-67511c950852cd87)
+error: test failed, to rerun pass `-p eech-engine-sys --test saved_campaign_load_guard`
+error: 1 target failed:
+    `-p eech-engine-sys --test saved_campaign_load_guard`
