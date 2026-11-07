@@ -1,0 +1,27 @@
+{
+  "kind": "chronology erratum of the audit reader that changed after POST in the M5/M6 witness freeze (6e4139043); the frozen report and the original packet are preserved unchanged",
+  "frozen_statement_that_is_false_as_written": "D3-SECTOR-HEIGHT-NATIVE-WITNESSES-CODE-FROZEN-20261107.json audit_reader_timing: 'this freeze script, the join, the extra-identity script, the final-set runner, the runner and the check script were FINAL before the PRE identity capture; no reader changed after the POST capture'",
+  "what_is_true": {
+    "pre_utc": "2026-11-07T11:35:17Z",
+    "post_utc": "2026-11-07T11:36:44Z",
+    "reader": "R:/d3-evidence/freeze-hw-witnesses-20261107.py",
+    "bytes_and_sha256_at_PRE_POST": [
+      21298,
+      "0f02f842ec40615da4134adad34633cdccc8c86fb90475ce140979812af6bdd3"
+    ],
+    "bytes_and_sha256_current": [
+      21620,
+      "47e382c7abd3d09fe6c0587ceb95049b62ab74152d7c826c3190b8fd2bd34bae"
+    ],
+    "last_write": "2026-11-07T11:38:19 (after POST)",
+    "cause": "the author's own edit, made after POST and before the final freeze run: the freeze copied the first attempt's full per-file PRE input map (over 200 KB) into the packet; the edit keeps files over 200000 bytes external and records their size and SHA-256 instead. It changed what the PACKET copies, no check, source, map or compiled input",
+    "other_extras": "the other 16 extra identity entries are stable between PRE and POST and equal to the current files",
+    "current_reader_is_literal_in": "the frozen packet's scripts/ and the Git packet (Root's binding v3 verified)"
+  },
+  "not_inferred": [
+    "compiler, test or source drift",
+    "that all 17 extras are current literals (16 are)",
+    "a need to replay any check for a publisher-only edit"
+  ],
+  "qualification_of_provenance": "the original packet stays literal; this erratum, the review and Root's binding v3 qualify it. Root's earlier strict extra-reader assertion and the v2 all-runs-final assumption errors are retained by Root; v3 filters the actual final=true receipts"
+}

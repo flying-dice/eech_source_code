@@ -1,0 +1,204 @@
+{
+  "kind": "independent_new_native_witness_source_review",
+  "sealed_utc": "2026-11-07T11:50:20.602510+00:00",
+  "source": {
+    "commit": "6e41390439fc59f4fe091cf65ae13ab43aafba90",
+    "metadata_commit": "579427c555bdb07ca8f8eb9dacc8c76afb3f3286",
+    "parent": "00823df40addb6c141feac3e048f3ef771eccd80",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_clean_HEAD_at_review_start": "579427c555bdb07ca8f8eb9dacc8c76afb3f3286",
+    "changed_paths": [
+      "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "eech-campaign/crates/eech-dc/Cargo.toml",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_hw_witness.c",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs",
+      "eech-campaign/crates/eech-engine/Cargo.toml",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs",
+      "eech-campaign/docs/d3-sector-height-production-contract.md",
+      "eech-campaign/tools/build-windows-sector-height-witness.sh"
+    ],
+    "native_prior_source": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982"
+  },
+  "scope": "One same-reviewer combined correctness, clean-code, boundary-safety and evidence pass over only the new M5/M6 driver, gated C/Rust/Lua bridge/save entry, tests/build wrapper and current plan. Closed height math/kernel/finite1b89/CI635/P1 and other accepted proofs were not replayed or re-reviewed.",
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "findings": [
+      {
+        "id": "ENV-SECTOR-HEIGHT-M5-ROUNDING-ORACLE-1",
+        "severity": "P2",
+        "status": "OPEN",
+        "locations": [
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:184",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:561",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:573",
+          "eech-campaign/crates/eech-world/src/reference_arithmetic.rs:3",
+          "aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c:1243",
+          "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:231"
+        ],
+        "problem": "The new to_single oracle explicitly rounds nearest/ties-even, but the native driver selects the accepted SSE round-toward-zero profile before boot and the real clearance float subtraction executes under that profile. The scripted test stubs use_reference_arithmetic and computes HANDOFF with ordinary Rust f32 operations, so its selected exact-valued controls do not establish the native rounding contract. A finite non-exact subtraction may legitimately produce the accepted RTZ word yet differ from the new expected word; changed_word then reports UNREACHED despite a reached, correctly consuming branch. The control lower-bound oracle can likewise be too high.",
+        "minimum_fix": "Use the accepted native rounding contract for the expected subtraction, without changing the original C expression, physical solver, tolerance or baseline. Distinguish clean non-dominance from an incorrectly formed expected word.",
+        "focused_controls": [
+          "One finite, non-exact subtraction where nearest and RTZ differ, with the actual selected reference profile and saved/restored test FP state, must accept the correct RTZ handoff.",
+          "Keep an exact positive and a genuinely wrong handoff rejected. No new broad FP programme or native bad-input experiment is requested."
+        ]
+      },
+      {
+        "id": "ENV-SECTOR-HEIGHT-M6-PACK-RETRY-1",
+        "severity": "P2",
+        "status": "OPEN",
+        "locations": [
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:349",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:678",
+          "aphavoc/source/ui_menu/session/uisession.c:1113",
+          "aphavoc/source/ui_menu/session/uisession.c:1120"
+        ],
+        "problem": "The real store_session retries pack_session while growing its buffer. Sector packing is repeated on those valid writer attempts; a repeated getter read does not mean that the final saved stream contains a duplicate sector. The new driver treats any repeated sector read during save as pack_duplicates and fails unconditionally, including during the second save of load. Thus it rejects a legitimate original writer path before proving native M6. The scripted pack_twice failure models every repeat as a defect and does not model the real overflow/repack path. No claim is made that a particular native campaign has already overflowed its initial buffer.",
+        "minimum_fix": "Reconcile and report consistent repeat reads from the actual store_session retry lifecycle, retaining the unique final saved-sector relationship and rejecting inconsistent words/unsupported repetition rather than banning all repeated reads. Do not replace store_session or pack_session with a synthetic writer or suppress real faults.",
+        "focused_controls": [
+          "A coherent scripted real-writer-order overflow/retry then successful save, and the same in load second-pack, must pass with repeat telemetry qualified.",
+          "Damage one repeated raw word or omit a required saved/restored sector and require failure. Preserve actual native file/load equality gates."
+        ]
+      },
+      {
+        "id": "ENV-SECTOR-HEIGHT-M6-SAVE-PATH-BOUND-1",
+        "severity": "P2",
+        "status": "OPEN",
+        "locations": [
+          "eech-campaign/crates/eech-engine-sys/csrc/eech_hw_witness.c:84",
+          "eech-campaign/crates/eech-engine-sys/csrc/eech_hw_witness.c:118",
+          "eech-campaign/crates/eech-engine-sys/csrc/eech_hw_witness.c:135",
+          "aphavoc/source/ui_menu/session/session.h:121",
+          "aphavoc/source/ui_menu/session/uisession.c:763",
+          "aphavoc/source/ui_menu/session/uisession.c:789",
+          "aphavoc/source/ui_menu/session/uisession.c:876"
+        ],
+        "problem": "The new wrapper checks complete paths against 320-byte temporaries, then calls the original writer, whose data/script path buffers are 256 bytes and are populated with sprintf/strcat. The declared session data_path[256] and campaign_directory[64] domains can construct paths of 256 through319 bytes that pass the new guard but overflow the actual writer buffers. Restricting the saved basename to24 bytes does not bound the complete path. This is a new fixture-entry precondition gap; no damaged native run is needed to establish it.",
+        "minimum_fix": "Before store_session or its effects, bound both complete saved paths, including suffix and NUL, to the actual smallest original writer buffer capacity. Keep normal valid paths and the original save implementation unchanged.",
+        "focused_controls": [
+          "Use the actual shared path check invoked by the wrapper: a fitting boundary path accepted, the first non-fitting path and both data/script suffix variants refused before any store_session call/file effect.",
+          "Retain safe-name, no-session and no-overwrite refusals. Existing unbooted C tests only reach bad-name/no-session paths and do not establish this long-path precondition."
+        ]
+      },
+      {
+        "id": "ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1",
+        "severity": "P2",
+        "status": "OPEN",
+        "locations": [
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:199",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:262",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:400",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:494",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:577",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:620"
+        ],
+        "problem": "The newly claimed current/paired consumption proof is incomplete. M5 uses global lookahead_pending and pending.lookahead booleans without binding lookahead and movement to the same valid host_id; pending state can survive unrelated callbacks. A different caller can therefore satisfy the handoff predicate. Credit checks only finite elevation/min_height, permitting missing identity/pre_y/answered_y/phase evidence, and changed physical comparison can classify an absent answer as different. original= accepts a matching handoff line without a complete successful original report or matching setup. M6 expect= accepts just save-word lines from a truncated/failed/unmatched save report. The seed/positive reply parsers also omit complete raw-list/name/sector-echo checks before some credit/intervention paths; comma-splitting silently discards empty fields. These are diagnostic consumer/attribution gaps, not a claim that the unchanged production provider has emitted malformed data.",
+        "minimum_fix": [
+          "Bind the actual clearance window/read sequence and same-caller lookahead/movement relation using available semantic identities and complete current input/answer evidence. Reject competing/missing identities or an intervening incompatible callback before consumption credit; never infer paired sameness from an arbitrary ordinal alone. If current source cannot establish the needed relation before intervention, use the already-authorized bounded test-only real task-leader/guide fixture rather than claiming an unproved relation. No production API or actor hunt is required.",
+          "Validate the full supported successful original/save report, unique ordered records, terminal PASS and setup/source/artifact relationship before using it as a paired reference. With a supplied reference, reject partial/failed/duplicate/unmatched reports. A standalone unpaired control may remain explicitly unpaired, not parity.",
+          "Check the complete relevant request/real positive reply and seed ACK/read echo before eligibility, intervention or seed credit, following the existing public C raw-word/name/phase/sector contract. A malformed positive is failure, not the configured single fault. Missing physical answer fields cannot claim changed physical output.",
+          "Any fatal or request/reply fault takes precedence over clean UNREACHED. No postfatal engine reads/close; retain unknown facts rather than invent measurements."
+        ],
+        "focused_controls": [
+          "Start from a coherent same-caller control and each actual intervention positive, then change only the lookahead/move identity or required answer field; require no consumption/physical-effect credit.",
+          "Start from complete original/save references, then remove terminal PASS, introduce duplicate/failed/other-setup reference or damage one ordered record; require non-pass.",
+          "From a valid positive, damage only the real height ACK/name/sector/word grammar (including extra commas) or a seed echo before intervention and require no intervention credit.",
+          "Retain same-marker-before-intervention and wrong-marker-after-intervention failures, honest clean absence and the real Core save/load path."
+        ]
+      }
+    ],
+    "native_launch_clearance": false,
+    "Windows_build_clearance": false,
+    "M5_guarded_fixed_wing_accepted": false,
+    "M6_native_Core_save_load_accepted": false,
+    "whole_sector_height_extraction_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-SECTOR-HEIGHT-NATIVE-WITNESSES-CODE-FROZEN-20261107.json",
+      "bytes": 51809,
+      "sha256": "5b6cbb38df8106b61059c3ca296a9f9e5fea7c8473a1d12c6f9b460e6110b485"
+    },
+    {
+      "path": "R:/d3-evidence/height-witness-Root-binding-579-v3-20261107.json",
+      "bytes": 2472,
+      "sha256": "4ef8c75045809c6baa2e7cc16330011407848112cb2130bf8da5897047a50203"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-sector-height-native-witnesses-20261107-completion.json",
+      "bytes": 1472,
+      "sha256": "9318149ae5613ed2d9ab98cd61adb9f34ae1eb3a7d2510eb9f6cd395c90ac66c"
+    },
+    {
+      "path": "R:/d3-evidence/independent-sector-height-finite-native-1b89-ci-lua-635-20261107.json",
+      "bytes": 20359,
+      "sha256": "8edddd934b091ea58567d43e3a71f4eaab378431de7b0b378990ae2703e77c32"
+    }
+  ],
+  "retained_check_join": {
+    "full_source_PRE_POST_rows": 3976,
+    "full_PRE_POST_JSON_literal_equal": true,
+    "source_map_sha256": "5a9e789508ca30baf08538dc9144653351f0dd7ece7f27dd42ce022d0f038b7d",
+    "PRE_utc": "2026-11-07T11:35:17Z",
+    "POST_utc": "2026-11-07T11:36:44Z",
+    "changed_source_paths_raw_Git_literal": 18,
+    "packet_entries_current_and_Git_literal": 150,
+    "final_direct_children": 10,
+    "final_actual_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "passing_test_instances": 664,
+    "counts_qualification": "226 World;42 Sys default;1 hosted control(150 expectations);1 original control(221 expectations);5 C refusal/guard;194 Engine/DC default;195 witness-feature. Expectations are not separate Cargo test instances.",
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_terminal_utc": "2026-11-07T11:39:16Z",
+    "retained_failures": "hw-attempt1 inventory63-versus64 failure retained; expected inventory updated, then a distinct full final cycle. Development w11 exit0 selected zero tests and supplies no coverage; corrected w12 selects one filename guard.",
+    "scope": "Scripted collaborators check the driver, not real fw_move/store_session/pack_session/unpack_session. The unbooted real-C refusals do not execute a live save. No Windows/native result, no i686 or engine C-O2 claim."
+  },
+  "provenance_qualifications": [
+    "Direct immutable Git/raw comparison qualifies the same three inherited test Lua CRLF-versus-Git-LF differences and four Core filter-only identities whose raw bytes equal Git. No input normalization was performed.",
+    "All17 extra PRE/POST entries are stable to each other, but only16 match current files. freeze-hw-witnesses-20261107.py changed afterPOST: old21298B SHA2560f02f842ec40615da4134adad34633cdccc8c86fb90475ce140979812af6bdd3; current21620B SHA25647e382c7abd3d09fe6c0587ceb95049b62ab74152d7c826c3190b8fd2bd34bae, file time11:38:19 versusPOST11:36:44. It is a publisher reader, not a compiled/test source input. The frozen audit_reader_timing statement that no reader changed is false as written. Preserve the frozen report and add an explicit chronology erratum/new corrected publication statement; do not claim all17 extras current or infer source drift. Exact edit cause was not established by the supplied proof, so none is invented.",
+    "Initial Root strict extra-reader assertion and subsequent v2 all-runs-versus-final-runs assertion failures are preserved. v3 correctly binds actual final=true receipts; no source/test replay occurred.",
+    "Fmt/clippy components were installed only in ephemeral leased containers before PRE, disclosed at the same toolchain version. No persistent image/global/compiler/cache-state equivalence beyond the supplied receipt identities is inferred."
+  ],
+  "scoped_positive_observations": [
+    "The proposed M6 call reaches the actual original store_session and later saved-script boot, rather than hand-packing/unpacking or bypassing the campaign. New C definition, sys/Engine/DC method and build flag are test-feature gated. Name validation occurs in Rust before engine entry and in C; existing keep_case_reason avoids reading fatal/poison/state-error output. Feature-off shipping/profile isolation still needs its new actual build proof after correction.",
+    "The driver delegates the same provider, explicitly declares host raw-history seeding and avoids postfatal engine API reads. The old two-corner constructor, fixed rules and production sector-height owner/kernel are unchanged; this review found no new defect in those closed paths.",
+    "A natural fixed-window positive-first M5 plan is not intrinsically invalid, and no new finding is invented merely because reach is not guaranteed. Three simulated hours is a declared maximum, not evidence the branch will occur. Absence must stay UNREACHED and no actor/time/geometry/window search is authorized. If an efficient controlled case is needed, test-only legitimate task-leader/guide inputs that reach the real collaborators are authorized; they do not require changing shipping campaign policy.",
+    "Current malformed/withheld modes and scripted successes are unrun native plans, not M5/M6 closure. A changed handoff with unchanged physical answer can only claim its observed handoff effect; it cannot claim a physical-result change."
+  ],
+  "minimum_next_batch": "Correct the four bounded groups together in the relevant sole-author context; retain all old failures. Use focused actual shared path checks, real-writer-order retry controls, accepted-profile arithmetic and sociable driver single-fault controls with honest final PRE/POST identities. No unchanged original solver/kernel/big matrix/old native replay or new framework is requested. Review corrected immutable source before any Windows or native launch.",
+  "future_native_prerequisites": [
+    "Fresh exact corrected source snapshot/profile/payload gates, including witness-feature exclusion from ordinary shipping and the declared original-solver/hosted distinction; no old binary relabelling.",
+    "The declared M5 successful original/control pair must be complete, same setup and causally bound before any matched intervention. An unreached positive does not unlock negatives or a tuned longer search.",
+    "M6 must retain and bind both newly produced saved-script and data files, copy only the authorized generated artifacts into separate fresh roots, preserve all original retail inputs, and gate negative loads on a successful real save/load positive. Post-effect save failures preserve their consumed roots/partial files and are failures, not pre-effect no-mutation claims.",
+    "All actual exits/complete default output comparisons/source and full input/payload identities and real protected error behavior require a later same-reviewer actual join."
+  ],
+  "remaining_required": [
+    "M5 guarded fixed-wing and M6 native Core save/load remain REQUIRED OPEN inside the height extraction; height-open-facts stays open.",
+    "All ten D3 requirements, remaining services/couplings/API and DCS/hierarchy/RNG dispositions, natural moving/engagement gaps, current final full40/all8/four inputs/current CI/review/normal merge/final census remain required. Prep2 is unchanged/STOP; no D4/D5/historical TypeScript work.",
+    "Prior8edddd finite1b89/CI635 and closed long-run P1/fullpack proofs retain their exact prior identities and limits. No new build/native/campaign/replay/source/cache edit or nested agent was used by reviewer."
+  ]
+}
