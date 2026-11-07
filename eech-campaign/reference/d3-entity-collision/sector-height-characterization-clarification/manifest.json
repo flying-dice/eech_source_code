@@ -1,0 +1,45 @@
+{
+  "description": "sha256 of the raw bytes of every other file in this packet; the review, the Root binding, the CRLF qualification and inputmap-construction.js are literal copies",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5800,
+      "sha256": "ce92d9917dbb49eabd6a99a0197c31c24936c6a92abbc4caef36a140d724f523"
+    },
+    {
+      "path": "clarification-proofs.json",
+      "bytes": 5533,
+      "sha256": "16bda3490c7235d52af4e1f54dc19984e438f0e8e5eab062be6cf57de64e85ae"
+    },
+    {
+      "path": "identification-map-new-inputs-NOT-A-CHECK.json",
+      "bytes": 731,
+      "sha256": "43cf76f4cfc604ff5d6f1abfbd44058663abaf652e40ac7938f18d542d665c0b"
+    },
+    {
+      "path": "independent-sector-height-characterization-source-a8ef-20261107.json",
+      "bytes": 12664,
+      "sha256": "7471e653366196803eb7a66dbc9b12287aacc140c1b19388a3b805c27a3904b9"
+    },
+    {
+      "path": "inputmap-construction.js",
+      "bytes": 2240,
+      "sha256": "deb82b3721665a9048e883f719cf4c19ca2ad84653eac20c2047b0cdf883ad78"
+    },
+    {
+      "path": "sector-height-Root-inherited-Lua-CRLF-qualification-20261107.json",
+      "bytes": 2115,
+      "sha256": "0b74e4b84f3f7ff81eced9c1124b43d533d8d59ce0e593f3a0d0a5830c7356ee"
+    },
+    {
+      "path": "sector-height-Root-source-binding-a8ef-12a-20261107.json",
+      "bytes": 2436,
+      "sha256": "ee4b981c6820360526b2859e2458dfe92bbd3e8797f8f1752f3aecc523fb40fa"
+    },
+    {
+      "path": "sector-height-characterization-clarification-CODE-FROZEN-20261107.json",
+      "bytes": 4822,
+      "sha256": "6c9f127e645b5a76b17704b2f33093449cd3ead6af5d86f6ec127158aaf13beb"
+    }
+  ]
+}

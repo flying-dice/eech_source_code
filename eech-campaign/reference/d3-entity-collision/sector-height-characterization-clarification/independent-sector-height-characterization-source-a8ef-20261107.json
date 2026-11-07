@@ -1,0 +1,175 @@
+{
+  "schema": "d3-independent-sector-height-characterization-review.v1",
+  "created_utc": "2026-11-07T00:38:41.755902+00:00",
+  "reviewer": "SAME sole independent Codex reviewer",
+  "scope": "One combined correctness, clean-code, boundary-safety and retained-evidence review of the new sector-height characterization only. No source edits, tests/build/native/campaign/cache/process operations or nested agents by reviewer; no closed CITY/source replay.",
+  "source": {
+    "commit": "a8ef0ce662df0528dcae414287ffe45b2847cd8f",
+    "metadata_commit": "12a2235567c9c30a13b0813dface15822ad9aab5",
+    "base": "8a525b145c8c54f2b22863c20d908ee3389759e5",
+    "observed_metadata_HEAD_clean": true,
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+        "bytes": 5206,
+        "sha256": "ff3d85cbf646ea8f7c0701991a2bd2585c6ae7ce0b93d82eac9b85bb2a16a026"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "bytes": 24523,
+        "sha256": "bb3fb1caa56d0d3d9e78831c463b1d9f2b02df2ceed7bd23895d9f9327abf2e6"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+        "bytes": 28381,
+        "sha256": "7b80c8e323dca3ef7cd797d6e8c192163db18bc4087bc8c2eb45e9a8b4e3e20f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height.rs",
+        "bytes": 2082,
+        "sha256": "2a9afe1a72a67eb56a709236a5484e92e14219096ee46b77e5c8b3b4972dfd14"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs",
+        "bytes": 27064,
+        "sha256": "21115adda21df87326f6457dca128246062f1cfd2f24bfc217d05a7bc155811f"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sector-height-contract.md",
+        "bytes": 14444,
+        "sha256": "3f1fdea570d3234abc0688edd1c3f952e29ed8e3869195e5fdd25d60237cc80c"
+      }
+    ],
+    "production_aphavoc_modules_delta": false,
+    "metadata_only_paths": 84
+  },
+  "decision": {
+    "status": "CHARACTERIZATION_CONTROLS_VERIFIED_CONTRACT_CHANGES_REQUIRED",
+    "findings": [
+      {
+        "id": "ENV-SECTOR-HEIGHT-SAVED-WORD-PLAN-1",
+        "severity": "P2",
+        "title": "The next-step refusal plan must preserve the original raw saved-word domain",
+        "evidence": [
+          "d3-sector-height-contract.md section3 admits raw saved finite words, both infinities and a quiet NaN; section6.5 nevertheless lists a NaN generically as a wrong-word refusal.",
+          "Unchanged sc_pack.c restores the raw float word; sc_msgs.c:138-143 applies strict height > actual stored value. The zero floor follows zero initialization, not a clamp after arbitrary restoration. A restored negative word can be raised by a larger negative arrival; a restored NaN makes every strict comparison false."
+        ],
+        "minimum_fix": "Distinguish malformed/mismatched provider replies from valid raw saved-word restoration, including quiet NaN/infinities/negative values. Qualify zero-floor statements as zero-initialized histories. Do not blanket refuse NaN or re-clamp restored state to zero in the next move. This is a plan/document correction; no new C-control replay is required."
+      },
+      {
+        "id": "ENV-SECTOR-HEIGHT-MEASURED-DOMAIN-PRECISION-1",
+        "severity": "P2",
+        "title": "Thirteen measured save patterns are described as every finite word",
+        "evidence": [
+          "csrc/eech_sector_height_check.c:29 says the pack/unpack is exercised on every finite word.",
+          "save_words at503-506 contains13 representative raw patterns. The linked controls pass those samples; the broader unpacked32-bit domain is source-derived, not exhaustive measurement."
+        ],
+        "minimum_fix": "Say13 representative save patterns, including the tested finite edges, infinities and one quiet NaN. Keep source-derived general domain reasoning separate; do not claim exhaustive finite-bit enumeration or signaling-NaN coverage. Header/document qualification only; unchanged control code need not rerun."
+      },
+      {
+        "id": "ENV-SECTOR-HEIGHT-RAW-BINDING-PRECISION-1",
+        "severity": "P2",
+        "title": "The freeze overstates literal Git equality outside the guard delta",
+        "evidence": [
+          "Frozen input_maps.binding says every other file is its base Git blob.",
+          "Root binding proves4077 of4080 raw inputs literal Git plus3 unchanged inherited test-Lua CRLF/Git-LF differences; PRE1 is reconstructed from final rows and the recorded old guard digest, not a retained original full-row capture."
+        ],
+        "minimum_fix": "Retain the frozen historical report literally and add a precise qualification/current wording:4077 literal+3 inherited CRLF-only, final PRE2/POST rows literal, PRE1 reconstruction explicitly labelled. Do not normalize source/input/baseline bytes or replay controls to repair prose."
+      }
+    ],
+    "characterization_controls_verified": true,
+    "characterization_contract_approved_for_production": false,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "code_and_boundary_assessment": {
+    "result": "No additional executable control defect found in this finite pass; findings concern contract/evidence precision.",
+    "linked_code": "The control calls the actual linked sector LINK_CHILD/UNLINK_CHILD handlers through message_responses, actual dispatch getter and actual pack/unpack stream. Entities, sector map and one scripted scene provider are handmade and declared. It does not invoke the public en_list roster/list-write funnel, boot retail data or prove Host authority.",
+    "feature_isolation": "Independent sector-height-check enables EECH_SECTOR_HEIGHT_CHECK; the entire C control is inside that guard. Its Rust test requires the feature. Default shipping configuration and production source behavior are unchanged; no new public shipping ABI/trigger is claimed.",
+    "restoration": "Normal-return dispatch tables, map pointers, nested pack/unpack buffer state and rounding mode are restored/checked. Installed model scenes/callback remain private global residue. Safety is the isolated test process with one test, not reuse inside a live campaign or concurrent tests. No full FP flags/masks/MXCSR restoration proof is claimed.",
+    "semantics": "High-water, strict arrival-time sum/comparison, non-lowering removal, zero initialization, invalid-shape skip and raw server-session restore are characterized. Sender classification is nine fixed families at source; CITY shape reachability remains unknown and its Host state lacks a shape. Nonfixed coverage exercises default not-fixed tables, not mobile bookkeeping.",
+    "census_and_native_plan": "The six guards are source/build-derived text checks, not exhaustive preprocessed-symbol/runtime/caller census. Public entity-query/sector FIRST and fixed-wing terrain min-height triggers are named for later observation only. The per-sector Host design is unimplemented/unapproved and cannot bypass valid legacy words, actual lifecycle/order or unresolved CITY input.",
+    "FPU_scope": "Measured stored words under FE_TOWARDZERO and FE_TONEAREST on local x64 and actual i686. Engine-C default-O1 scope is retained; no full control/status/exception, DAZ/FTZ-variation, Windows game or universal x87 claim."
+  },
+  "retained_checks": {
+    "x64_linked_control": {
+      "label": "shf2-control-x86_64",
+      "actual_exit": 0,
+      "expectations": 179,
+      "tests_passed": 1
+    },
+    "i686_linked_control": {
+      "label": "shf7-control-i686",
+      "actual_exit": 0,
+      "expectations": 179,
+      "tests_passed": 1
+    },
+    "final_guard": {
+      "label": "shg2-guard-x86_64",
+      "actual_exit": 0,
+      "tests_passed": 6
+    },
+    "affected_format_and_default_feature_Clippy": "Final shg1/shg3/shg4 direct exits0; no whole-workspace/current-CI claim.",
+    "existing_guards": {
+      "label": "shf4-existing-guards",
+      "actual_exit": 0,
+      "passing_instances": 31,
+      "result_rows": 4
+    },
+    "failed_guard": "shf3 actual101 retained; an English-comment assumption was replaced by actual source-selection checks. That guard edit alone separates PRE1 from final inputs; linked C/control/build inputs remain unchanged.",
+    "sensitivity": "Four real-source sensitivity mutations produced actual101 (20,4,17,20 failed expectations), then production sources were restored. These are harness sensitivity results, not four discovered product defects or native proof. The original working-source/restoration and staged-copy qualifications remain.",
+    "noop": "shf8 EECH_C_OPT=2 exited0 but reused the same i686 binary without Compiling. Engine reads EECH_ENGINE_OPT, so this is a duplicate execution, not an engine-C-O2 build/result.",
+    "failures_preserved": "Initial abort/missing scenes, arithmetic/stream-decode and guard failures remain literal. No failed or NOOP stage is promoted to final GREEN evidence."
+  },
+  "identity_and_provenance": {
+    "freeze": {
+      "path": "R:/d3-evidence/sector-height-characterization-CODE-FROZEN-20261106.json",
+      "sha256": "88e2b06df5188a4d4ce99ad8b6db09bcb5e7fae9d406711bb4d69f908d36fa4b"
+    },
+    "freeze_external_repo_relation": "Literal byte equality; no schema normalization.",
+    "Root_source_binding": {
+      "path": "R:/d3-evidence/sector-height-Root-source-binding-a8ef-12a-20261107.json",
+      "sha256": "ee4b981c6820360526b2859e2458dfe92bbd3e8797f8f1752f3aecc523fb40fa"
+    },
+    "inherited_Lua_qualification": {
+      "path": "R:/d3-evidence/sector-height-Root-inherited-Lua-CRLF-qualification-20261107.json",
+      "sha256": "0b74e4b84f3f7ff81eced9c1124b43d533d8d59ce0e593f3a0d0a5830c7356ee"
+    },
+    "Root_production_C_restoration": {
+      "path": "R:/d3-evidence/sector-height-Root-production-C-restored-20261107.json",
+      "sha256": "acba243fb41524f8810898a54319f6860e670bf21f20d003f026575d3fe83693"
+    },
+    "pack": {
+      "git_prefix": "eech-campaign/reference/d3-entity-collision/sector-height-characterization",
+      "listed_files_verified": 81,
+      "files_including_manifest": 82,
+      "manifest_sha256": "bd06f6d07ca11ad245fe66d7087e080c725c93baa8f7175b227cdce7eb3695bf",
+      "all_sizes_SHA256_verified_against_actual_Git": true
+    },
+    "final_raw_rows": {
+      "count": 4080,
+      "PRE2_POST_TSV_literal_equal": true,
+      "TSV_bytes": 465889,
+      "TSV_sha256": "622b349f1dc2c302ee24c35b16788bb619b1b87168f15d00def8bbe4529c492c",
+      "aggregate_sha256": "c365ecb7e10dee238815e322897bdf44fa573594115372e90038f579928a8792",
+      "raw_Git_literal": 4077,
+      "inherited_CRLF_only": 3
+    },
+    "PRE1": "Original aggregate b41eb0e9ffa8a9c3000c07eabde893bdfea1db845e8079e69cc0b4c5b11d2f52 reproduced using retained constructor and final rows with old guard digest. Root labels this reconstructed, not an original full-row capture; old guard raw content/bytecount was not independently recaptured. Named control/C/build inputs are unchanged across that guard-only delta.",
+    "source_binding": "Five mapped code/test inputs match their final Git raw hashes; the sixth changed file is the reviewed contract document, outside the Cargo input map. No production source delta, baseline normalization or runtime-source equivalence beyond this test-only scope is inferred.",
+    "producer": {
+      "path": "R:/d3-evidence/claude-d3-sector-height-characterization-20261106-completion.json",
+      "sha256": "2b5420f95aa4ae8d2aa61667a50b8558b03e560f9eaafae71f3a087fc42563b5",
+      "actual_exit": 0,
+      "result_is_error": false,
+      "completed_utc": "2026-11-07T00:29:38.556571+00:00",
+      "model": "claude-sonnet-5-5"
+    }
+  },
+  "required_next_action": "One bounded header/document/provenance clarification batch for the three findings, then this SAME reviewer inspects only that changed material/raw relation. Reuse unchanged linked controls; no speculative extra matrix, native experiment or full-war replay requested.",
+  "remaining_limits": "ENV-ENTITY-POSE-LONG-RUN-MOTION-1 remains OPEN/blocks_cutover=true; protected f734 fullpack remains unaccepted and must not be touched. Preparation count1of2 is unchanged. All ten D3 requirements, physical services/needed-consumer and DCS disposition, natural moving integration, current final40/all8/final inputs/CI/review/normal merge/final census remain open. No D4/D5 or historical TypeScript work, production cutover, native/Windows/retail authority or delivery acceptance follows."
+}

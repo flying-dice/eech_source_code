@@ -1,0 +1,15 @@
+{
+  "label": "sector-height-clarification-IDENTIFICATION-map-20261107",
+  "head": "3fac41f0448bfc3f1330e0fd4c8ff72f1ee3fdce",
+  "branch": "codex/d3-object-tree-collision",
+  "files": 4080,
+  "missing": 0,
+  "aggregate_sha256": "1d2a42e2e2e1ab7afc2eb119def77ab5279b676366f85128098d7b061c9cdc46",
+  "status_porcelain": [
+    " M docs/handover/ACTIVE-EXTRACTION.json",
+    "?? eech-campaign/reference/d3-entity-collision/sector-height-characterization-clarification/"
+  ],
+  "scope": "tracked and untracked-non-ignored files under aphavoc/, modules/ and eech-campaign/ except docs, reference, target, tools: the inputs of the cargo checks; raw working-tree bytes",
+  "taken_utc": "2026-11-07T00:44:47.710Z",
+  "changed_vs_head": {}
+}
