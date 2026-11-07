@@ -1,0 +1,52 @@
+{
+  "kind": "Root response to optional primary-source requests; no campaign/runtime acceptance",
+  "when_utc": "2026-11-07T01:18:49.403119+00:00",
+  "ref": "1179554fcafcef92d71313336cc09500febf8245",
+  "files": [
+    {
+      "file": "D:\\EECH-Migration-Evidence\\d3-needed-api-reference-1179554-20261107\\world.export.ts",
+      "git_blob": "ee4b977637c49c93446cc6c2a4a8d24f4919834f",
+      "sha256": "834de8509b11f71b552f1c975c538c87d160c8c74c8d95e662dab544a7eb7961",
+      "bytes": 3520,
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/exports/world.export.ts"
+    },
+    {
+      "file": "D:\\EECH-Migration-Evidence\\d3-needed-api-reference-1179554-20261107\\Object.export.ts",
+      "git_blob": "9ee344379e27c7ef5657c892a8dccd6cbf1b20cc",
+      "sha256": "c119487227c4ca9d4b724d94639c96025ea6d880f28eb11053cb9ac8cccf68a5",
+      "bytes": 1802,
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/exports/Object.export.ts"
+    },
+    {
+      "file": "D:\\EECH-Migration-Evidence\\d3-needed-api-reference-1179554-20261107\\AI.ts",
+      "git_blob": "ed41fa8afd57744289a8a3b3313b16ed571c70c0",
+      "sha256": "a876ff1d5d455a5b20cce07fb204c69e81203aa8619bb90a63a0c9433a9a8f1a",
+      "bytes": 104,
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/AI.ts"
+    },
+    {
+      "file": "D:\\EECH-Migration-Evidence\\d3-needed-api-reference-1179554-20261107\\index.ts",
+      "git_blob": "ba60b600d9713bc14af5d138251d01c7cc2fcc51",
+      "sha256": "b18edde50e2ed340c8859b9eb0aa4bd0fca9473027e00b7be4b2b0280f6d153c",
+      "bytes": 2739,
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/index.ts"
+    },
+    {
+      "file": "D:\\EECH-Migration-Evidence\\d3-needed-api-reference-1179554-20261107\\AI.export.ts",
+      "git_blob": "285799ed0ed7d6dcbd24e37e1d06609bfa04f249",
+      "sha256": "ffa53ea8dafa19a6d9f8b0275bdea0a557b4848b8f64232791b402251ef57921",
+      "bytes": 3374,
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/exports/AI.export.ts"
+    }
+  ],
+  "directory_snapshot": "D:\\EECH-Migration-Evidence\\d3-needed-api-reference-1179554-20261107\\src-directory-at-1179554.json",
+  "Airbase": "Already verified Airbase.ts and ADDITIONAL-AIRBASE-PROVENANCE.json in same bundle; original8-file manifest unchanged.",
+  "observations": [
+    "world.export.ts declares VolumeType BOX/PYRAMID/SEGMENT/SPHERE as number fields; no numeric values or volume params schema established.",
+    "Object.export.ts declares Category BASE/CARGO/SCENERY/STATIC/UNIT/VOID/WEAPON as number fields; no numeric values established.",
+    "Top-level src directory, index.ts and AI.ts->AI.export.ts inspected at requested ref; AI export declares option ids/values as number fields, not typed Controller attack/fire/route task payload contracts. No exhaustive repository/API absence claim.",
+    "Nothing fetched alone closes any OPEN row. Raw declarations are declared shapes, not measured DCS runtime behavior or a supported physical workaround."
+  ],
+  "scope_changed": false,
+  "physical_cutover_clearance": false
+}

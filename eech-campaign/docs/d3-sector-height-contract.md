@@ -42,7 +42,7 @@ except the getter and the pack read. Readers of `FLOAT_TYPE_TALLEST_STRUCTURE_HE
 |---|---|---|
 | `mb_hostscan.h` through `CAMPAIGN_SCAN_TALLEST` (`en_cllsn.c`) | once per sector the host names (the FIRST case), then passed unchanged into every offer of that sector | every build except the two that keep the original solver |
 | `en_cllsn.c` `get_line_of_sight_collision_entity` original scan | once per sector of the window: `source_min_position.y > tallest` sets `ignore_all_fixed_entities_in_sector` | only the `#else` of `EECH_CAMPAIGN_HOST_ENTITY` (collision-fixture, model-fixture) |
-| `fw_move.c` fixed-wing terrain follow | every waypoint step: `min_height = max (min_height, tallest - terrain_elevation)`, then `max (waypoint altitude, min_height)`; BEFORE the `EECH_CAMPAIGN_HOST_MOVEMENT` block hands `terrain->min_height` to the host | unconditional |
+| `fw_move.c` fixed-wing terrain follow | only for a task leader (`INT_TYPE_TASK_LEADER`, line 1208) whose guide has `terrain_follow != GUIDE_TERRAIN_FOLLOW_NONE` (line 1218): `min_height = max (min_height, tallest - terrain_elevation)`, then `max (waypoint altitude, min_height)`; BEFORE the `EECH_CAMPAIGN_HOST_MOVEMENT` block hands `terrain->min_height` to the host | compiled outside any feature macro; read only under those two runtime guards (whether a supported run reaches them is unmeasured; corrected 7 November 2026, see `d3-needed-consumer-api-disposition.md`) |
 | `sc_pack.c` | save | every build |
 
 The host already takes the value as a FACT: `mb_hostoffer.h` sends it as fact 12 (`CAMPAIGN_CANDIDATE_TALLEST`) of every candidate question and `entity_candidate_step.c` compares

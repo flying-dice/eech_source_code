@@ -1,6 +1,16 @@
 # D3 needed-consumer and DCS API disposition (second and final preparation batch)
 
-Task EEDCS-49 (D3), 7 November 2026. Source `c6426dc310796795a0d8c694cb985b65b86d8e7d` (clean). **Documentation and source disposition only**: no physical implementation, numeric prototype, Rust/C/Lua/runtime/build/ABI change, test, compiler or native run. `physical_cutover_clearance` stays false and `ENV-ENTITY-POSE-LONG-RUN-MOTION-1` stays OPEN with `blocks_cutover=true`. The machine-readable matrix is [`needed-consumer-api-matrix.json`](../reference/d3-needed-consumer-api-disposition/needed-consumer-api-matrix.json); every file/line below is resolved from that clean tree by the generator, not typed. Authority: live M5 goal 11534337 v3 and ledger 14548994 v171, which outrank Jira, the historical roadmap and the old W07/W08 labels.
+Task EEDCS-49 (D3), 7 November 2026. Source `1dbf945281dc818d96491e5743e0e6237b07992f` (clean). **Documentation and source disposition only**: no physical implementation, numeric prototype, Rust/C/Lua/runtime/build/ABI change, test, compiler or native run. `physical_cutover_clearance` stays false and `ENV-ENTITY-POSE-LONG-RUN-MOTION-1` stays OPEN with `blocks_cutover=true`. The machine-readable matrix is [`needed-consumer-api-matrix.json`](../reference/d3-needed-consumer-api-disposition-clarification/needed-consumer-api-matrix.json) (the CORRECTED matrix; the original packet [`d3-needed-consumer-api-disposition`](../reference/d3-needed-consumer-api-disposition/README.md) is kept literally and is historical); every file/line below is resolved from that clean tree by the generator, not typed. Authority: live M5 goal 11534337 v3 and ledger 14548994 v171, which outrank Jira, the historical roadmap and the old W07/W08 labels.
+
+## Correction of 7 November 2026 (documentation only)
+
+The SAME independent reviewer (report `cc70a2ce...`, `DOCUMENTATION_CHANGES_REQUIRED`) found two P2 documentation findings in the original of this document (`2c6652f4d`); both stay OPEN until that reviewer examines this correction. Each repeated statement below is the corrected one; the earlier wording is historical in the original packet.
+
+- **ENV-D3-DISPOSITION-CALLER-PROFILE-1:** Inclusion macros, legacy-versus-active LOS source, and runtime guards are stated separately: HOST_LOS/TERRAIN/ENV unconditional (main.rs:271-273); HOST_TREE excludes collision-fixture only (:323-328); HOST_ENTITY excludes collision-fixture or model-fixture (:338-339); mb_tgt.c:455/494 are the legacy #else of HOST_LOS (mb_tgt.c:94/128) distinct from campaign_los_query -> mb_hostlos.c:275; the fixed-wing clearance (fw_move.c:1243) is compiled outside a macro and runtime-reached only for a task leader (:1208) with terrain_follow != NONE (:1218). Rows D3G-01, 02, 06, 07 corrected; the current contract document row corrected.
+- **ENV-D3-DISPOSITION-MOVING-COVERAGE-1:** The accepted CONFIGURED moving query-service scope is reused as R-CONFIGURED-MOVING at its own identity and kept apart from the still-open NATURAL campaign weapon engagement and unreached states in D3G-06 and D3G-13; not rerun, not broadened; the long-run blocker is untouched.
+- **Post-freeze primary response** (`Root-needed-consumer-api-reference-response-20261107.json`): named Object.Category and world VolumeType properties and AI/index declarations cited with their own provenance; outstanding-file wording updated; no OPEN row closed
+
+Inclusion (a compile-time macro or `sources.txt`), runtime condition (a branch guard), measurement and source-derived reach are four different claims here and are never merged.
 
 Labels: **source-derived** = read in the current tree (inclusion and reachability inferred from `sources.txt`, `#if` structure and call chains, not a measured preprocessed/symbol/runtime census); **declared** = a pinned `flying-dice/tslua-dcs` declaration (commit `1179554f`), a shape and never live DCS behaviour; **reported** = from a retained record, not reproduced here.
 
@@ -20,7 +30,7 @@ Labels: **source-derived** = read in the current tree (inclusion and reachabilit
 | D3G-10 | Rotor damage, blade fragments and smoke attachment (physical services with shared RNG) | REQUIRED_OPEN | NOT_A_DCS_API_QUESTION |
 | D3G-11 | Default shape and ground-radar-clutter columns | REQUIRED_OPEN | OPEN_WORKAROUND_NAMED |
 | D3G-12 | Six compiled draw files reading fixed_database[].align_with_terrain | CENSUS_OPEN_SOURCE_DERIVED_UNREACHED | NOT_REQUIRED_PENDING_FINAL_CENSUS |
-| D3G-13 | Natural moving and public authority | BLOCKED_BY_ENV_ENTITY_POSE_LONG_RUN_MOTION_1 | DECLARED_SHAPES_PRESENT_BEHAVIOUR_UNVERIFIED |
+| D3G-13 | Natural moving and public authority (configured moving query-service scope accepted separately) | BLOCKED_BY_ENV_ENTITY_POSE_LONG_RUN_MOTION_1 | DECLARED_SHAPES_PRESENT_BEHAVIOUR_UNVERIFIED |
 | D3G-14 | Final active-consumer and compile census: player, view, HUD, cockpit, camera, UI and gunship dynamics | CENSUS_OPEN | NOT_REQUIRED_PENDING_FINAL_CENSUS |
 | D3G-15 | Accepted scopes reused by exact proof (not reopened) | ACCEPTED_REUSE | ACCEPTED_REUSE_PER_SCOPE |
 
@@ -29,7 +39,7 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 ## D3G-01. Sector high-water height: writers, readers, save and restore
 
 - **Requirements:** 1, 2, 6. **Disposition:** `REQUIRED_NEXT_PHYSICAL_AFTER_BLOCKER`.
-- **Branch/profile:** Writers and restore in every build; hosted scan and candidate fact in every build except the two original-solver profiles; fixed-wing clearance unconditional (source/build-derived, docs/d3-sector-height-contract.md section 2).
+- **Branch/profile:** INCLUSION: writers and restore in every build; the hosted scan and candidate fact where EECH_CAMPAIGN_HOST_ENTITY is defined, i.e. all builds except collision-fixture or model-fixture (build/main.rs:338-339); the fixed-wing clearance read is compiled outside any feature macro. RUNTIME CONDITION (separate): the clearance is read only for a task leader (fw_move.c:1208) whose guide has terrain_follow != NONE (:1218), not at every waypoint step; whether a supported run reaches it is unmeasured. Source/build-derived (docs/d3-sector-height-contract.md section 2, corrected there).
 - **Source chain (function, caller or reader):**
   - `aphavoc/source/entity/special/sector/sector.h:81` `tallest_structure_height` - one float per sector
   - `aphavoc/source/entity/special/sector/sc_seccreat.c:236` `memset (raw, 0, sizeof (sector))` - zero fill at creation
@@ -42,13 +52,15 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
   - `aphavoc/source/entity/mobile/mb_hostoffer.h:133` `facts [CAMPAIGN_CANDIDATE_TALLEST]` - fact 12 of every candidate question
   - `eech-campaign/crates/eech-world/csrc/entity_candidate_step.c:446` `source_min_position.y > facts[12]` - host kernel compares it
   - `aphavoc/source/entity/en_misc/en_maths/en_cllsn.c:1384` `FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT))` - original scan reader (the #else, original-solver profiles only)
-  - `aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c:1243` `get_local_entity_float_value (sector, FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT) - terrain_elevation` - fixed-wing clearance, unconditional, before the hosted movement block (:1247)
+  - `aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c:1243` `get_local_entity_float_value (sector, FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT) - terrain_elevation` - fixed-wing clearance: compiled outside any feature macro, runtime-reached only inside the branches below; read before the hosted movement block (:1247)
+  - `aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c:1208` `if (get_local_entity_int_value (en, INT_TYPE_TASK_LEADER))` - runtime guard 1: the task leader follows the guide (other members follow the leader)
+  - `aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c:1218` `if (terrain_follow != GUIDE_TERRAIN_FOLLOW_NONE)` - runtime guard 2: the guide asks for terrain following
 - **Ownership now:** Core physical state (writer, save/restore, getter); Host already consumes the word as candidate fact 12 and already owns the box top (Task50) and the fixed position/shape statements.
-- **What the same DLL needs when DCS supplies physical movement and combat:** The fixed-wing waypoint-altitude clearance (a campaign movement input) and, only if the DCS profile asks the EECH narrow phase at all (D3G-06), the candidate skip fact. The save needs the word to round-trip raw (13 measured patterns; wider domain source-derived; 033defb4).
+- **What the same DLL needs when DCS supplies physical movement and combat:** The fixed-wing waypoint-altitude clearance (a campaign movement input, task leaders with terrain following only) and, only if the DCS profile asks the EECH narrow phase at all (D3G-06), the candidate skip fact. The save needs the word to round-trip raw (13 measured patterns; wider domain source-derived; 033defb4).
 - **Host contract already present:** ENTITY_SCAN grammar and ENTITY_CANDIDATE fact 12 carry the word from Core to the host today. No host-owned scalar, no restore acknowledgement phase, no host answer for the clearance read yet.
 - **Bounded required outcome:** One host-owned per-sector high-water scalar, raised by the host's fixed-state statements under the characterised strict-greater / toward-zero / raw-restore rules, read through the existing scan grammar plus two new exact phases (clearance/save, restore acknowledgement), Core's field kept as a conformance mirror until only the save reads it (contract section 6). Not built here.
 - **DCS:** status `OPEN`; declared calls: `land.getHeight` (land.ts:41).
-  - Missing fact: No verified call returns the tallest obstacle in an EECH sector. land.getHeight is terrain only; world.searchObjects needs unverified Category/volume constants and only UnitDesc.box (units) is declared. Either a verified static/scenery obstacle declaration or a versioned per-map per-sector clearance table with provenance (not defined), or an approved semantic change of the clearance policy (technical lead), is required. The `tallest - terrain_elevation` unit mix is preserved, not approved.
+  - Missing fact: No verified call returns the tallest obstacle in an EECH sector. land.getHeight is terrain only; world.searchObjects needs a category and a volume: the names Object.Category.SCENERY and VolumeType.BOX/SPHERE are now declared as numbers (post-freeze response) without values, volume parameter structure, object coverage or heights, and only UnitDesc.box (units) is declared. Either a verified static/scenery obstacle declaration or a versioned per-map per-sector clearance table with provenance (not defined), or an approved semantic change of the clearance policy (technical lead), is required. The `tallest - terrain_elevation` unit mix is preserved, not approved.
 - **Reach evidence (source/build-derived):** list funnel en_list.c:506 -> sc_msgs.c response_to_link_child; fixed-wing movement step fw_move.c:1243; session pack/unpack sc_pack.c:287/407. Not proved: native observation of campaign word vs a host high-water through the public driver; whether any real CITY is created with a valid shape; engine C at -O2.
 - **Reuses (exact scope):** R-T47, R-T50, R-FINITE.
 - **Open items kept:** sector-height-host-move-open-facts; city shape unknown; no public-driver observation.
@@ -56,7 +68,7 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 ## D3G-02. Terrain point record, sector hint token and the face-normal question (effectful shared terrain state)
 
 - **Requirements:** 1, 6. **Disposition:** `ACCEPTED_REUSE_WITH_RESIDUAL_OPEN`.
-- **Branch/profile:** EECH_CAMPAIGN_HOST_TERRAIN builds (all but the original-solver profiles). Hint, last_elevation, stored type and normal are the host's answer kept in Core's record; the query order and which record each query writes are the original's.
+- **Branch/profile:** EECH_CAMPAIGN_HOST_TERRAIN, HOST_LOS and HOST_ENV are defined unconditionally by the current builders (build/main.rs:271-273); HOST_TREE and HOST_ENTITY are separate services with their own exclusions (D3G-06, D3G-07). Hint, last_elevation, stored type and normal are the host's answer kept in Core's record; the query order and which record each query writes are the original's.
 - **Source chain (function, caller or reader):**
   - `aphavoc/source/entity/mobile/mb_hostterrain.c:22` `system_point_data;` - Core shared value cache for queries that pass no record
   - `aphavoc/source/entity/mobile/mb_hostterrain.c:135` `system_point_data.hint[0] = '\0';` - hint forgotten at map load, as the original
@@ -161,29 +173,30 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 ## D3G-06. Entity and object collision primitive: narrow phase, candidate decision and which Core callers need a DCS-facing primitive
 
 - **Requirements:** 2, 5, 6. **Disposition:** `REQUIRED_OPEN`.
-- **Branch/profile:** Hosted in every build except collision-fixture and model-fixture. Finite stationary, candidate, scan, narrow-phase scopes are closed; the moving public path, natural moving and every unreached state are not.
+- **Branch/profile:** INCLUSION: the hosted entity decision and narrow phase exist where EECH_CAMPAIGN_HOST_ENTITY is defined, i.e. every build except collision-fixture OR model-fixture (main.rs:338-339); HOST_LOS is defined in every current build. Finite stationary, candidate, scan, narrow-phase scopes and the CONFIGURED moving query-service scope (R-CONFIGURED-MOVING) are accepted at their own identity; a NATURAL campaign weapon engagement and every unreached state are not.
 - **Source chain (function, caller or reader):**
-  - `aphavoc/source/entity/mobile/mb_tgt.c:455` `collision_en = get_line_of_sight_collision_entity` - check_position_line_of_sight (:218): campaign target-LOS decision (second call :494)
-  - `aphavoc/source/entity/mobile/mb_hostlos.c:275` `collision_en = get_line_of_sight_collision_entity (source, target` - ask_host (:79): hosted LOS, accepted D2 phases
+  - `aphavoc/source/entity/mobile/mb_tgt.c:94` `#ifdef EECH_CAMPAIGN_HOST_LOS` - active branch: check_entity_line_of_sight (:98) and check_position_line_of_sight (:123) forward to campaign_los_query (:120, :125)
+  - `aphavoc/source/entity/mobile/mb_tgt.c:455` `collision_en = get_line_of_sight_collision_entity` - LEGACY: inside the #else (:128) of HOST_LOS, not compiled into current builds (HOST_LOS defined, main.rs:271); second call :494
+  - `aphavoc/source/entity/mobile/mb_hostlos.c:275` `collision_en = get_line_of_sight_collision_entity (source, target` - ask_host (:79): the ACTIVE hosted campaign LOS reached through campaign_los_query, accepted D2 phases
   - `aphavoc/source/entity/mobile/weapon/wn_move.c:466` `hit = get_line_of_sight_collision_entity` - answer_weapon_step_lookup (:213): the lookup callback handed to the host's weapon step
   - `aphavoc/source/entity/mobile/weapon/wn_move.c:776` `campaign_aim_weapon_step (&step, answer_weapon_step_lookup, &context)` - the host's weapon step asks the lookups; Core only answers
   - `aphavoc/source/gunships/avionics/common/co_radar.c:683` `get_line_of_sight_collision_entity` - player radar (also :705, :733); co_force.c:1266/1334 player dynamics
   - `aphavoc/source/entity/en_misc/en_maths/en_cllsn.c:448` `#ifdef EECH_CAMPAIGN_HOST_ENTITY` - hosted body; original kept in the #else (collision-fixture, model-fixture only)
   - `aphavoc/source/entity/mobile/mb_hostmodel.h:103` `ENTITY_COLLISION` - narrow-phase operation
 - **Ownership now:** Host reference implements the decision and the narrow phase; Core offers candidates in stages and keeps the effectful getters (D3G-03) and the consequences of a hit.
-- **What the same DLL needs when DCS supplies physical movement and combat:** Two classes of caller. (1) Campaign decisions that need line of sight through objects: mb_tgt.c:455/494 and the hosted LOS question mb_hostlos.c:275. (2) The weapon-flight lookup wn_move.c:466 is asked from inside the host's weapon step (wn_move.c:776 hands answer_weapon_step_lookup to campaign_aim_weapon_step); when DCS flies its own weapons, no EECH weapon step runs and these lookups never arrive, so it is reference-backend-only PROVIDED the DCS profile does not instantiate EECH weapon-flight entities: that architectural fact is not yet recorded. Player radar/dynamics callers: see D3G-14.
+- **What the same DLL needs when DCS supplies physical movement and combat:** Two classes of caller. (1) Campaign decisions that need line of sight through objects: in current builds these go through campaign_los_query to the hosted question mb_hostlos.c:275 (the mb_tgt.c:455/494 object-collision calls are the legacy #else of HOST_LOS and are not active). (2) The weapon-flight lookup wn_move.c:466 is asked from inside the host's weapon step (wn_move.c:776 hands answer_weapon_step_lookup to campaign_aim_weapon_step); when DCS flies its own weapons, no EECH weapon step runs and these lookups never arrive, so it is reference-backend-only PROVIDED the DCS profile does not instantiate EECH weapon-flight entities: that architectural fact is not yet recorded. Player radar/dynamics callers: see D3G-14.
 - **Host contract already present:** ENTITY_CANDIDATE, ENTITY_SCAN, ENTITY_COLLISION, ENTITY_POSE with exact refusals (reference host); LOS host phases (D2).
 - **Bounded required outcome:** Name the DCS profile's rule for each caller class. For class (1) a verified object-blocking LOS declaration or a bounded, versioned per-type geometry workaround with provenance; unknown objects and unsupported child state refuse by name, never miss. A UnitDesc box is a different physical model and is not an approved substitute.
 - **DCS:** status `OPEN`; declared calls: `world.searchObjects` (world.ts:285), `Object.getPosition` (Object.ts:43), `Object.getVelocity` (Object.ts:61), `Object.getTypeName` (Object.ts:52), `Unit.getDesc` (Unit.ts:482), `UnitDesc.box` (Unit.ts:115), `land.isVisible` (land.ts:111).
-  - Missing fact: A declared ray/LOS-against-objects call or per-type geometry data with provenance and supported types; the weapon-entity ownership rule of the DCS profile; the Object.Category and volume constants for world.searchObjects. land.isVisible is terrain-only by its own declaration (land.ts:103).
-- **Reach evidence (source-derived):** caller list above; hosted under EECH_CAMPAIGN_HOST_ENTITY; kernel in eech-world csrc. Not proved: which callers a DCS profile ticks; the moving public path; per-weapon attribution.
-- **Reuses (exact scope):** R-T50, R-FINITE, R-D1D2.
+  - Missing fact: A declared ray/LOS-against-objects call or per-type geometry data with provenance and supported types; the weapon-entity ownership rule of the DCS profile; numeric Object.Category/VolumeType values and the volume parameter structure for world.searchObjects (names are declared as numbers in the post-freeze response; values and params are not). land.isVisible is terrain-only by its own declaration (land.ts:103).
+- **Reach evidence (source-derived):** caller list above; hosted under EECH_CAMPAIGN_HOST_ENTITY; kernel in eech-world csrc. Not proved: which callers a DCS profile ticks; a NATURAL campaign weapon engagement reaching a moving candidate; per-weapon attribution; every unreached state.
+- **Reuses (exact scope):** R-T50, R-FINITE, R-CONFIGURED-MOVING, R-D1D2.
 - **Open items kept:** entity-object-collision; dcs-entity-collision-mapping-unresolved; entity-host-sourced-live-pose.
 
 ## D3G-07. Tree, forest and scenery blocking (weapon TREES lookup, LOS through trees)
 
 - **Requirements:** 1, 2, 5. **Disposition:** `REQUIRED_OPEN`.
-- **Branch/profile:** Hosted under EECH_CAMPAIGN_HOST_TREE (with HOST_ENTITY); finite TREE authority closed (report 7ad1a698, 11 cases, 87 payloads each).
+- **Branch/profile:** INCLUSION: EECH_CAMPAIGN_HOST_TREE is defined in every build except collision-fixture (build/main.rs:323-328); it is a separate service from HOST_ENTITY, which also excludes model-fixture (:338-339), so a model-fixture-only build has HOST_TREE without HOST_ENTITY. Finite TREE authority closed (report 7ad1a698, 11 cases, 87 payloads each).
 - **Source chain (function, caller or reader):**
   - `aphavoc/source/entity/mobile/weapon/wn_move.c:493` `get_line_of_sight_collision_tree (&p, &q` - weapon-step TREES lookup (host-initiated)
   - `aphavoc/source/entity/en_misc/en_maths/en_cllsn.c:1893` `#ifdef EECH_CAMPAIGN_HOST_TREE` - hosted tree body
@@ -193,7 +206,7 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 - **Host contract already present:** TREE_BEGIN/TREE_TERRAIN; a DCS host must refuse tree_begin by name until a source exists.
 - **Bounded required outcome:** A verified DCS tree/forest/scenery declaration or a versioned per-map dataset with provenance; until then refusal by name. done{hit=false} for an unsupported query was withdrawn: an unknown service is not a measured absence.
 - **DCS:** status `OPEN`; declared calls: `world.searchObjects` (world.ts:285).
-  - Missing fact: A declaration of scenery/tree objects (Object.Category constants and the volume schema live in exports/*.export.ts, not in the bundle) or a bounded versioned map dataset with provenance.
+  - Missing fact: A declaration of which scenery/tree objects a search returns, their geometry and coverage, or a bounded versioned map dataset with provenance. Object.Category.SCENERY and VolumeType names are declared as numbers (Object.export.ts, world.export.ts; post-freeze response) with no numeric values, volume parameter structure or runtime behaviour; the numbers must not be guessed.
 - **Reach evidence (source-derived):** wn_move.c:493; co_* player callers. Not proved: retail forest store fact (forest-geometry-retail-source).
 - **Reuses (exact scope):** R-FINITE, R-T50.
 - **Open items kept:** dcs-tree-capability-unresolved; forest-geometry-retail-source.
@@ -220,7 +233,7 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 - **Bounded required outcome:** A semantic host hierarchy service (sub-object presence per package, world viewpoints with actual pose) shared by the callers above, or the explicit decision that the DCS profile ticks none of them; do not copy solvers into adapters. Animated joint state is unsupported unless a verified call exists.
 - **DCS:** status `OPEN`; declared calls: `Unit.getDrawArgumentValue` (Unit.ts:537), `Object.getPosition` (Object.ts:43), `Controller.setTask` (Controller.ts:165), `Controller.pushTask` (Controller.ts:85), `Controller.ControllerAction` (Controller.ts:8).
   - Bounded workaround: per-type device-presence and rigid muzzle/station offsets as versioned host data (the Task52 target-point catalogue pattern), with provenance and supported types stated per type
-  - Missing fact: No declared per-sub-object pose; Unit.getDrawArgumentValue is a normalised draw argument. ControllerAction.params has no per-task schema in the bundle (Fire/Attack task ids and fields). The profile rule for Core-ticked weapon systems.
+  - Missing fact: No declared per-sub-object pose; Unit.getDrawArgumentValue is a normalised draw argument. ControllerAction.params has no per-task schema (Controller.ts:8-11); AI.ts, index.ts and AI.export.ts (post-freeze response) declare constant groups, not typed attack/fire/route payloads (Fire/Attack task ids and fields remain undeclared). The profile rule for Core-ticked weapon systems.
 - **Reach evidence (source-derived):** fw_updt.c:182/327, hc_updt.c:314..., aa/ps/rv_updt.c; wn_creat.c:423; HUD callers are player-only. Not proved: which callers a DCS profile reaches.
 - **Reuses (exact scope):** R-T50, R-T52, R-D1D2.
 - **Open items kept:** hierarchy service; Controller task schemas.
@@ -315,21 +328,21 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 - **Reuses (exact scope):** R-FINITE.
 - **Open items kept:** fixed-draw-align-direct-reads-final-census.
 
-## D3G-13. Natural moving and public authority
+## D3G-13. Natural moving and public authority (configured moving query-service scope accepted separately)
 
 - **Requirements:** 2, 6, 7. **Disposition:** `BLOCKED_BY_ENV_ENTITY_POSE_LONG_RUN_MOTION_1`.
-- **Branch/profile:** Public finite scopes cover stationary candidates, configured moving queries and the person-motion correction; ENV-ENTITY-POSE-LONG-RUN-MOTION-1 (blocks_cutover=true) is open until the corrected full ordinary pack completes with independent review (f734, running).
+- **Branch/profile:** ACCEPTED (finite, own identity): stationary candidates, the CONFIGURED moving query-service scope (R-CONFIGURED-MOVING: the real public path reached HostCandidate, NeedUpdated and moving16 with matched controlled input and Original) and the person-motion correction. STILL OPEN: a NATURAL campaign weapon engagement reaching a moving candidate and every unreached state. ENV-ENTITY-POSE-LONG-RUN-MOTION-1 (blocks_cutover=true) is open until the corrected full ordinary pack completes with independent review (f734, running).
 - **Source chain (function, caller or reader):**
   - `aphavoc/source/entity/mobile/mb_hostoffer.h:193` `case CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED:` - moving candidate stage; sweep needs UPDATED (D3G-03)
   - `aphavoc/source/entity/mobile/mb_hostscan.h:164` `sector_tallest_structure_height = CAMPAIGN_SCAN_TALLEST (sector);` - scan over the host's roster order
-- **Ownership now:** Host Movers record owns mobile poses; Core mirror is a conformance assertion (entity_pose.mirror). No legitimately reached MOVING candidate has been observed on the public path.
+- **Ownership now:** Host Movers record owns mobile poses; Core mirror is a conformance assertion (entity_pose.mirror). The configured moving public query-service path has been observed (accepted, finite, controlled input); no NATURAL campaign weapon engagement reaching a moving candidate has been observed.
 - **What the same DLL needs when DCS supplies physical movement and combat:** Poses of real campaign movers sampled from DCS (Object.getPosition/getVelocity) feeding the same candidate, LOS and arrival decisions.
 - **Host contract already present:** ENTITY_POSE and the Movers record; DCS side of pose sampling is declared (Object.getPoint/getPosition/getVelocity) but its coordinate/basis conversion needs an actual DCS check (M6).
-- **Bounded required outcome:** After the blocker closes: one witness driven by actual campaign engagement and host callbacks that reaches a moving candidate (candidate_need_updated and moving counters positive), plus disposition of every unreached state (no identity, unrecorded, retired, wreck).
+- **Bounded required outcome:** After the blocker closes: one witness driven by an actual NATURAL campaign engagement and host callbacks that reaches a moving candidate (candidate_need_updated and moving counters positive), beyond the accepted configured-input scope, plus disposition of every unreached state (no identity, unrecorded, retired, wreck). The accepted configured proof is neither rerun nor broadened.
 - **DCS:** status `DECLARED_SHAPES_PRESENT_BEHAVIOUR_UNVERIFIED`; declared calls: `Object.getPoint` (Object.ts:34), `Object.getPosition` (Object.ts:43), `Object.getVelocity` (Object.ts:61), `Object.isExist` (Object.ts:79), `Object.getTypeName` (Object.ts:52).
   - Missing fact: Coordinate/basis conversion and the UPDATED truth value (D3G-03); live behaviour is M6.
-- **Reach evidence (reported (card)):** entity-host-sourced-live-pose blocker text. Not proved: moving public path, natural coverage.
-- **Reuses (exact scope):** R-FINITE.
+- **Reach evidence (reported (card)):** entity-host-sourced-live-pose blocker text. Not proved: a NATURAL campaign weapon engagement, per-weapon attribution, every unreached state (the configured moving public query-service path is accepted separately).
+- **Reuses (exact scope):** R-FINITE, R-CONFIGURED-MOVING.
 - **Open items kept:** ENV-ENTITY-POSE-LONG-RUN-MOTION-1; entity-host-sourced-live-pose.
 
 ## D3G-14. Final active-consumer and compile census: player, view, HUD, cockpit, camera, UI and gunship dynamics
@@ -362,7 +375,7 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
   - Bounded workaround: as recorded in those documents
   - Missing fact: Their own qualifications stand (for example weather mapping rows, normal workaround, live behaviour at M6).
 - **Reach evidence (reported accepted evidence):** n/a. Not proved: n/a.
-- **Reuses (exact scope):** R-D1D2, R-T47, R-T48, R-T51, R-T50, R-T52, R-FINITE.
+- **Reuses (exact scope):** R-D1D2, R-T47, R-T48, R-T51, R-T50, R-T52, R-CONFIGURED-MOVING, R-FINITE.
 
 ## Accepted scopes reused (not reopened)
 
@@ -374,7 +387,8 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 | R-T51 | EEDCS-51 weather, wind and environment time inputs | Done PR111 a42d86e758812d7aed75c1bb5f8dc09d4aea1544; eech-campaign/docs/d3-environment-time-DCS-mapping.md | terrain, objects, model hierarchy; the DCS weather row mapping qualifications stay in that document |
 | R-T50 | EEDCS-50 collision-model loading, triangle decoding, bounds and radius | Done PR110 normal merge 873a172d9d26d0f2e437aa491187ea3cc3ef6cb2; Task50-actual-delivery-873a172d9-20261105.json | model hierarchy, sub-objects, viewpoints, devices, muzzles, rotor and smoke services |
 | R-T52 | EEDCS-52 model target-point offsets and the live target point | Done PR112 normal merge 84775522f9eb9c7182ff89f75387115b9e3883fd; Task52-actual-delivery-84775522f-20261105.json; eech-campaign/docs/d3-model-target-point-DCS-mapping.md | device, muzzle, station, rotor-damage and smoke-attachment consumers; the gd_attck.c direct offset read stays Core policy |
-| R-FINITE | Finite closed Task49 scopes: stationary entity handoff, candidate, scan, narrow phase, TREE collision, sector roster, city own state/list/box/lifecycle, fixed physical rules, constructor math, configured moving | closed_evidence of D3-CURRENT.json and the reference/d3-entity-collision and reference/d3-tree-collision-production finite-authority manifests | all entity types, natural moving, sector height, UPDATED/shared terrain, loader RNG, hierarchy, whole Task49 or D3 |
+| R-CONFIGURED-MOVING | Accepted finite CONFIGURED speed-input moving query-service scope: the real public get_line_of_sight_collision_entity path reached HostCandidate, NeedUpdated and moving16 questions; hosted and Original physical rows match with a declared controlled host input | reference/d3-entity-collision/configured-speed-query-authority (compiled source 3475fb93b, Lua 6fb7ff43a, source review 742afe73, actual review 85390f06): all four native/helper/outer exits 0, eight full 1179 input checks, 88 payloads per case, HostedA 3 NeedUpdated and 3 moving16, full physical query lines equal HostedA to OriginalA and HostedB to OriginalB; reused at its own identity, not rerun | a NATURAL campaign weapon engagement, per-weapon attribution, every unreached state (no identity, unrecorded, retired, wreck), terrain authority, a whole physical cutover, the Person long-run blocker, whole Task49 or D3; the controlled input deliberately changes the solver's received speed demand |
+| R-FINITE | Finite closed Task49 scopes: stationary entity handoff, candidate, scan, narrow phase, TREE collision, sector roster, city own state/list/box/lifecycle, fixed physical rules, constructor math, configured moving | closed_evidence of D3-CURRENT.json and the reference/d3-entity-collision and reference/d3-tree-collision-production finite-authority manifests | all entity types, NATURAL moving (the configured scope is R-CONFIGURED-MOVING), sector height, UPDATED/shared terrain, loader RNG, hierarchy, whole Task49 or D3 |
 
 ## Declared DCS shapes used (pinned `1179554f`)
 
@@ -395,8 +409,8 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 | `timer.getAbsTime` | timer.ts:42 |  |
 | `timer.getPause` | timer.ts:27 |  |
 | `timer.scheduleFunction` | timer.ts:86 |  |
-| `world.searchObjects` | world.ts:285 | category is a bare number or number[]; the Object.Category values are NOT in the bundle |
-| `world.WorldVolume` | world.ts:7 | id: number and opaque params only; the volume-type constants and param schemas are NOT in the bundle |
+| `world.searchObjects` | world.ts:285 | category is a bare number or number[]; the named Object.Category properties are declared in Object.export.ts (post-freeze response) as numbers without values |
+| `world.WorldVolume` | world.ts:7 | id: number and opaque params only; VolumeType names are declared in world.export.ts (post-freeze response) as numbers; numeric values and param structures are not declared |
 | `world.getAirbases` | world.ts:338 | returns l_Airbase[]; Airbase.ts is the later additional file (Root addition, blob d3d7dedd8), not one of the original 8 |
 | `Object.getPoint` | Object.ts:34 |  |
 | `Object.getPosition` | Object.ts:43 |  |
@@ -419,6 +433,10 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 | `Airbase.getCategoryEx` | Airbase.ts:338 | airdrome, helipad/FARP or ship; Airbase.Category values not declared in the file |
 | `Airbase.getByName` | Airbase.ts:372 |  |
 | `AirbaseDesc` | Airbase.ts:23 | life, attributes, category, typeName, displayName: no geometry |
+| `Object.export.Category` | Object.export.ts:5 | named properties BASE, CARGO, SCENERY, STATIC, UNIT, VOID, WEAPON typed number; no numeric values declared |
+| `Object.export.Category.SCENERY` | Object.export.ts:8 | a declared name only; says nothing about which scenery objects exist, their geometry or the numeric value |
+| `world.export.VolumeType` | world.export.ts:16 | named properties BOX, PYRAMID, SEGMENT, SPHERE typed number; no numeric values and no volume params structure declared |
+| `AI.export.Task` | AI.export.ts:124 | string-typed constant groups (AltitudeType, Designation, OrbitPattern, TurnMethod, VehicleFormation ...); not typed Controller attack/fire/route payload schemas |
 | `Controller.ControllerAction` | Controller.ts:8 | id plus params: Record<string, unknown>; each task id's schema is not declared here |
 | `Controller.setTask` | Controller.ts:165 |  |
 | `Controller.pushTask` | Controller.ts:85 |  |
@@ -429,10 +447,10 @@ The CRT draw consumers are listed once (D3G-04/05). Groups 12 and 14 are census 
 Verified bundle files (Git blob, SHA-256 and URL) are listed in the matrix `api_bundle.files`. Declared absences within the bundle (not exhaustive):
 
 - land.ts declares no terrain-normal call (not an exhaustive absence proof: other files of the repository were not read).
-- No file of the bundle declares a tree, forest or scenery query; `Object.Category` and the `world` volume-type constants live in files not fetched (exports/*.export.ts).
+- No file read declares a tree, forest or scenery QUERY. Object.export.ts declares a Category property named SCENERY and world.export.ts declares VolumeType properties BOX, PYRAMID, SEGMENT and SPHERE, each typed number: names only, no numeric literal values, no volume parameter structures, no object coverage and no runtime behaviour.
 - Object.ts, Unit.ts and StaticObject.ts declare no collision mesh, hit/intercept/normal, named child pose or sub-object transform.
 - Airbase.ts (the later additional file) declares runway records, parking spots, a tower position, category and a point, but no landing or takeoff route polylines, approach paths or named anchored sub-objects; it does not establish carrier, helipad or parking universality, geometry equivalence or live behaviour.
-- The per-task parameter schemas behind ControllerAction are not in the bundle; Airbase.Category, Object.Category and the volume constants are not declared in the files read.
+- The per-task parameter schemas behind ControllerAction are not established: AI.ts, index.ts and AI.export.ts (post-freeze response) declare option and task constant groups as string or number fields, not typed attack/fire/route payload contracts; Airbase.Category values are not declared in the files read. No exhaustive repository or API absence is claimed.
 
 ## Next physical moves (high level, gated; not a backlog)
 
@@ -444,8 +462,8 @@ Verified bundle files (Git blob, SHA-256 and URL) are listed in the matrix `api_
 
 ## Primary files that would settle OPEN rows
 
-- `flying-dice/tslua-dcs` @ `1179554f`: `packages/tslua-dcs-mission-types/src/exports/world.export.ts` - world volume-type constants and params schema; Object.Category constants (a sibling exports/Object.export.ts) so world.searchObjects category/volume can be named exactly (D3G-01, 06, 07; Airbase.ts names Object.Category.BASE without declaring the values)
-- `flying-dice/tslua-dcs` @ `1179554f`: `UNKNOWN: directory listing of packages/tslua-dcs-mission-types/src and the file declaring Controller task/command ids and params` - per-task parameter schemas behind ControllerAction (attack/fire task ids) for D3G-08
+- `flying-dice/tslua-dcs` @ `1179554f`: `UNKNOWN: a declaration giving the numeric values of Object.Category and VolumeType and the params structure of each volume type` - Names are declared (Object.export.ts, world.export.ts) as numbers; the literal values and the volume parameter structures are not, so world.searchObjects cannot be called from declarations alone (D3G-01, 06, 07). Values must not be guessed.
+- `flying-dice/tslua-dcs` @ `1179554f`: `UNKNOWN: the declaration of Controller task and command ids and their typed payloads (src-directory-at-1179554.json lists the top-level files; AI.export.ts declares constant groups only)` - Typed attack/fire/route task payload schemas behind ControllerAction (D3G-08).
 
 ## Limits
 
@@ -455,6 +473,7 @@ Verified bundle files (Git blob, SHA-256 and URL) are listed in the matrix `api_
 - OPEN rows stay open and reduce no D3 scope; accepted scopes are reused at their stated scope only.
 - ENV-ENTITY-POSE-LONG-RUN-MOTION-1 stays OPEN/blocks_cutover=true; the four original f734 natives are untouched.
 - Reported evidence (Task52 CRT capture, card blocker texts, accepted-scope proofs) is cited as reported and not reproduced here.
-- The original 8-file bundle manifest is unchanged; Airbase.ts is a later optional addition from Root with its own provenance file and hash.
+- The original 8-file bundle manifest is unchanged; Airbase.ts is a later optional addition from Root with its own provenance file and hash; Object.export.ts, world.export.ts, AI.ts, index.ts and AI.export.ts arrived after the original freeze in Root's own response (R:/d3-evidence/Root-needed-consumer-api-reference-response-20261107.json) with their own hashes. None of them closes an OPEN row.
+- Original packet facts and results (2c6652f4d, its freeze 7d33d600) are historical and are not relabelled; this sibling corrects wording and adds provenance only.
 
 Preparation counts 2 of 2 on completion of this audit. No further preparation batch starts until the production blocker is resolved by an actual complete corrected pack and independent review. Whole D3 and Task49 remain open; no D4/D5/TypeScript.

@@ -1,0 +1,215 @@
+{
+  "kind": "D3-needed-consumer-api-clarification CODE_FROZEN (documentation clarification only; UNREVIEWED)",
+  "frozen_utc": "2026-11-07T01:34:32.920861+00:00",
+  "task": "EEDCS-49",
+  "context": "one bounded documentation correction inside the completed preparation batch 2 of 2; not another preparation or a physical extraction",
+  "source_before": "1dbf945281dc818d96491e5743e0e6237b07992f",
+  "working_tree_tracked_changes_before_commit": [
+    "M eech-campaign/docs/d3-needed-consumer-api-disposition.md",
+    " M eech-campaign/docs/d3-sector-height-contract.md"
+  ],
+  "corrects": {
+    "code": "2c6652f4dfcb1c31a0eb46bf74eb318976f4b9e6",
+    "metadata": "2989a275b1793e58c9e6ebcd9205939dae2daa8e",
+    "original_freeze_sha256": "7d33d600d00419d1d0a030006787be552c4282cb5fec698917f587ceadad5cf7",
+    "original_packet_six_git_files_unchanged": [
+      {
+        "path": "eech-campaign/reference/d3-needed-consumer-api-disposition/.gitattributes",
+        "git_blob": "fa1385d99a319b43c06f5309d1aae9fdd3adea46",
+        "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+      },
+      {
+        "path": "eech-campaign/reference/d3-needed-consumer-api-disposition/D3-needed-consumer-api-disposition-CODE-FROZEN-20261107.json",
+        "git_blob": "7e0516ff073886e2db29f90ca3b41e1408f16627",
+        "sha256": "7d33d600d00419d1d0a030006787be552c4282cb5fec698917f587ceadad5cf7"
+      },
+      {
+        "path": "eech-campaign/reference/d3-needed-consumer-api-disposition/manifest.json",
+        "git_blob": "799ead28bcf00bd6b10fc35b03ea7dd811ec31f6",
+        "sha256": "81ec065465406d8ba0b99c2eb419c88d528f1fc6a4d5b27471ea086047c8c41a"
+      },
+      {
+        "path": "eech-campaign/reference/d3-needed-consumer-api-disposition/needed-consumer-api-matrix.json",
+        "git_blob": "3843f6c1aa143670558b3cf2cbc181f8dc9656d5",
+        "sha256": "54322da78c8a0f1946594e12956f4d6bf377e10bb5cf9ea592e31a6e77f2e85a"
+      },
+      {
+        "path": "eech-campaign/reference/d3-needed-consumer-api-disposition/needed-consumer-api-reference-requests-20261107.json",
+        "git_blob": "023a64d6e0ab5dd95dd0b2d1adc1820575513700",
+        "sha256": "521e67dae17e1083223c32d53efbb721fc8917642437ffd2f8ed5de6fb6f8e32"
+      },
+      {
+        "path": "eech-campaign/reference/d3-needed-consumer-api-disposition/README.md",
+        "git_blob": "dedebbc5ac9550606b2a26ffa612f93efa71a02b",
+        "sha256": "82f84ac4d085bf86287a30e64b0cad3f482f0dea1edfd24d406932bf46d923ec"
+      }
+    ]
+  },
+  "review": {
+    "path": "R:\\d3-evidence\\independent-needed-consumer-api-disposition-2c6652f4d-20261107.json",
+    "sha256": "cc70a2cefe7ae4d7877d8197eced100cbe539db1275103bc2571b6e562274d70",
+    "decision": "DOCUMENTATION_CHANGES_REQUIRED",
+    "findings_still_open_until_same_reviewer": [
+      "ENV-D3-DISPOSITION-CALLER-PROFILE-1",
+      "ENV-D3-DISPOSITION-MOVING-COVERAGE-1"
+    ]
+  },
+  "post_freeze_primary_response": {
+    "path": "R:\\d3-evidence\\Root-needed-consumer-api-reference-response-20261107.json",
+    "sha256": "394d31fdf292004eb90327dd053a6f2d7ede783979eac8ee3e6713fa3b810d6b"
+  },
+  "api_bundle_files": {
+    "world.ts": {
+      "sha256": "1b795da9386a879e31ff6f0bb8c062e02ae0928a29604df5290c5dfa7b0f231b",
+      "git_blob": "903e0759ce5cce27295e09fb214d773475b65514",
+      "matches_provenance": true
+    },
+    "Object.ts": {
+      "sha256": "3dfb8e733f653cf771d0233739504219ba39f0f6fbb60e1593f4b582650b4036",
+      "git_blob": "3e4863261901fba73af2fda1b31f47ee034bd16d",
+      "matches_provenance": true
+    },
+    "Unit.ts": {
+      "sha256": "67cb202ec657c890c2924ace0cd31b2e05b7abaaa1fd0388178a9b9e7c416854",
+      "git_blob": "98bd6a7f0a57b6039481a3d91e773cf355332987",
+      "matches_provenance": true
+    },
+    "StaticObject.ts": {
+      "sha256": "7a645cd741ffbb8d0b2ecf377e1b95e658ba116a79f355ca945bdebfcbaeb6ef",
+      "git_blob": "0378b1f371fc57bc2d4f2b22dd4ed64653e92cad",
+      "matches_provenance": true
+    },
+    "land.ts": {
+      "sha256": "f5578b02a4650185b5374d994f0f785336d0a1217b54b6b4d1bf72e6edd8bfa0",
+      "git_blob": "9e5fd4557fd94b7da38f613a36040439b6086fb3",
+      "matches_provenance": true
+    },
+    "atmosphere.ts": {
+      "sha256": "80a63a4718e163ae6f30a5baca4ab20bbe7e924cb26cf61cd8de52a46d28032b",
+      "git_blob": "421e6f651978137ea35ed6f6b36bb6954edf3114",
+      "matches_provenance": true
+    },
+    "timer.ts": {
+      "sha256": "c66c6ca8dbd99c99160eb9d81f8bfe55096e6d593234c1e200493a47780388d9",
+      "git_blob": "abc1b98a108c48974cf2b84f3c55792fd30c5521",
+      "matches_provenance": true
+    },
+    "Controller.ts": {
+      "sha256": "e95dfadcd36a5505eb6881ab4ec1825d7d10a7cb36fed519c45d9b76657cf457",
+      "git_blob": "36563560b1df733011794229d85d65da99f00b89",
+      "matches_provenance": true
+    },
+    "Airbase.ts": {
+      "sha256": "88cd28189fb221ed2f05b542820536bb7b1b9daf397604ec5a052854fabc675b",
+      "git_blob": "d3d7dedd81babeb779c65ceab45933cc5e932139",
+      "matches_provenance": true
+    },
+    "world.export.ts": {
+      "sha256": "834de8509b11f71b552f1c975c538c87d160c8c74c8d95e662dab544a7eb7961",
+      "git_blob": "ee4b977637c49c93446cc6c2a4a8d24f4919834f",
+      "matches_provenance": true
+    },
+    "Object.export.ts": {
+      "sha256": "c119487227c4ca9d4b724d94639c96025ea6d880f28eb11053cb9ac8cccf68a5",
+      "git_blob": "9ee344379e27c7ef5657c892a8dccd6cbf1b20cc",
+      "matches_provenance": true
+    },
+    "AI.ts": {
+      "sha256": "a876ff1d5d455a5b20cce07fb204c69e81203aa8619bb90a63a0c9433a9a8f1a",
+      "git_blob": "ed41fa8afd57744289a8a3b3313b16ed571c70c0",
+      "matches_provenance": true
+    },
+    "index.ts": {
+      "sha256": "b18edde50e2ed340c8859b9eb0aa4bd0fca9473027e00b7be4b2b0280f6d153c",
+      "git_blob": "ba60b600d9713bc14af5d138251d01c7cc2fcc51",
+      "matches_provenance": true
+    },
+    "AI.export.ts": {
+      "sha256": "ffa53ea8dafa19a6d9f8b0275bdea0a557b4848b8f64232791b402251ef57921",
+      "git_blob": "285799ed0ed7d6dcbd24e37e1d06609bfa04f249",
+      "matches_provenance": true
+    }
+  },
+  "outputs": {
+    "narrative": {
+      "path": "eech-campaign/docs/d3-needed-consumer-api-disposition.md",
+      "sha256": "62b58907b489544f8e374dc7ae4f49305af37c48a4abe9a1f7016275e756de39"
+    },
+    "contract_row_corrected": {
+      "path": "eech-campaign/docs/d3-sector-height-contract.md",
+      "sha256": "e174f7a8179d3888a156f5505469e0745b60f0b7976be713d2720766831576f4"
+    },
+    "matrix": {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/needed-consumer-api-matrix.json",
+      "sha256": "7b0d2b07ed036a5dd21b144d172388357d2c2e51e8b197498487379e67d019d6"
+    },
+    "readme": {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/README.md",
+      "sha256": "1115d399b21be6ff39d2ca74fab4ac6146c80fb897325e49fc677b0ad2dd6b4c"
+    },
+    "clarified_requests": {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/needed-consumer-api-reference-requests-clarified-20261107.json",
+      "sha256": "800326d4e2b4aceb89181635fa4d7969d3db58df58d131b19499d61f6ef06422"
+    }
+  },
+  "counts": {
+    "groups": 15,
+    "source_anchors": 113,
+    "api_refs": 49,
+    "distinct_cited_source_files": 64
+  },
+  "commands": [
+    {
+      "id": "c1",
+      "command": "migration-progress.py --action fix-blocker --blocker ENV-D3-DISPOSITION-CALLER-PROFILE-1 (Windows Python -B -X utf8)",
+      "actual_exit": 0
+    },
+    {
+      "id": "c2",
+      "command": "migration-progress.py --action fix-blocker --blocker ENV-D3-DISPOSITION-MOVING-COVERAGE-1",
+      "actual_exit": 0
+    },
+    {
+      "id": "c3",
+      "command": "build-needed-consumer-api-clarification-pack-20261107.py (adapted from the original generator by patch-clarification-needed-consumer-api-20261107.py; Windows Python -I -B -X utf8), one run",
+      "actual_exit": 0,
+      "note": "no hygiene problems; 113 source anchors, 49 API anchors; runtime sources unchanged since c6426dc31 by git diff"
+    },
+    {
+      "id": "c4",
+      "command": "freeze-needed-consumer-api-clarification-20261107.py",
+      "actual_exit": 0,
+      "note": "this record"
+    }
+  ],
+  "hygiene_problems_at_freeze": [],
+  "not_run": [
+    "compilers",
+    "cargo",
+    "tests",
+    "mutation",
+    "native/Windows/war/full pack/matrix",
+    "benchmarks",
+    "new API catalogue",
+    "agents/MCP/authentication/model change",
+    "cache/process/root/bin/config/priority/affinity/drive operations",
+    "merge"
+  ],
+  "limits": [
+    "Documentation and source disposition only: no compiler, test, native, Windows, war, physical change; physical_cutover_clearance remains false.",
+    "Source anchors are resolved from the clean tree at the recorded HEAD; inclusion/reachability statements are source/build-derived and labelled, not an exhaustive measured preprocessed/symbol/runtime census.",
+    "DCS declarations are declared shapes of the pinned author-maintained commit, not measured live DCS contracts, exhaustive absence, universal bounds or collision-mesh guarantees; no live DCS/M6 execution is claimed.",
+    "OPEN rows stay open and reduce no D3 scope; accepted scopes are reused at their stated scope only.",
+    "ENV-ENTITY-POSE-LONG-RUN-MOTION-1 stays OPEN/blocks_cutover=true; the four original f734 natives are untouched.",
+    "Reported evidence (Task52 CRT capture, card blocker texts, accepted-scope proofs) is cited as reported and not reproduced here.",
+    "The original 8-file bundle manifest is unchanged; Airbase.ts is a later optional addition from Root with its own provenance file and hash; Object.export.ts, world.export.ts, AI.ts, index.ts and AI.export.ts arrived after the original freeze in Root's own response (R:/d3-evidence/Root-needed-consumer-api-reference-response-20261107.json) with their own hashes. None of them closes an OPEN row.",
+    "Original packet facts and results (2c6652f4d, its freeze 7d33d600) are historical and are not relabelled; this sibling corrects wording and adds provenance only."
+  ],
+  "state": {
+    "preparation": "count stays 2 of 2; no further preparation",
+    "ENV-ENTITY-POSE-LONG-RUN-MOTION-1": "OPEN, blocks_cutover=true, untouched",
+    "physical_cutover_clearance": false,
+    "claims": "none of fullpack 40/all8, physical clearance, review, approval or delivery",
+    "D3-CURRENT.json": "not edited (Root owns it)"
+  }
+}
