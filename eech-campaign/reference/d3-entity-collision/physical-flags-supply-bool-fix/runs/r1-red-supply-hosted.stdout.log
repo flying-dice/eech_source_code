@@ -1,0 +1,11 @@
+
+running 1 test
+test the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_hands_the_real_rust_boundary_a_boolean ... FAILED
+
+failures:
+
+failures:
+    the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_hands_the_real_rust_boundary_a_boolean
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

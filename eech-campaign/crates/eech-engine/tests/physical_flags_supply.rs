@@ -3,16 +3,21 @@
 //! and hands the descriptor to the engine's OWN Rust boundary (`supply_reached`, eech-engine, reached through the feature-gated seam `eech_engine::supply_check`), which converts it with
 //! `checked_bool ("updated", ...)`: only 0 and 1 are accepted. The C world around the producer is `csrc/eech_physical_flags_supply_check.c` (it declares every hand-made collaborator and what is not run).
 //!
-//! WHAT THIS CHARACTERISES, with no repair and no normalisation: the descriptor the boundary receives (the facts the real getters and the real arrival gather), the RAW word the getter returns (the lane's mask, bit 31
-//! as INT_MIN), what the real Rust boundary does with it (a lane-0 mask is 1 and passes as `true`; every other mask is refused by name, `invalid updated flag <mask>`, which the campaign turns into its own fatal), the
-//! destructive neighbour read and its order dependence, the reset extent, the unlinked member (no host identity: refused BEFORE the getter is read), and the shipping profile's single read per call.
+//! HISTORY AND CURRENT CONTRACT. The characterised ae367ca3a producer stored the RAW getter word in the descriptor, so every set lane but 0 (mask 2, 4, ..., bit 31 as INT_MIN) was REFUSED by the Rust boundary
+//! (`invalid updated flag <mask>`, which the campaign turns into its own fatal); that measured refusal is retained at that source and in its packet. The technical lead's decision made this file's lane expectations the
+//! INTENTIONAL CORRECTION of that defect: the descriptor carries ONLY ITS OWN value as the C boolean the boundary requires (zero is false, every nonzero raw word, the negative bit 31 too, is true), from the SAME single
+//! getter call. The getter, the store, the destructive neighbour read, the reset extent and every other consumer are unchanged, and this file still asserts the raw mask the getter returns.
+//!
+//! WHAT THIS ASSERTS: the descriptor the boundary receives (the facts the real getters and the real arrival gather), the RAW word the getter returns (the lane's mask, bit 31 as INT_MIN), that the real Rust boundary
+//! accepts and the host's answer receives `updated: true` for every set lane and `false` for zero, the destructive neighbour read and its order dependence, the reset extent, the unlinked member (no host identity:
+//! refused BEFORE the getter is read), and the shipping profile's single read per call.
 //!
 //! TWO PROFILES, the SAME scenarios and assertions in both: the ORIGINAL profile (`--features physical-flags-supply-check,collision-fixture`) over the engine's own global arrays, and the HOSTED profile (the default
 //! build) over the real getter, setter and reset whose words are the HOST's, served by the REAL store of eech-world (`eech-engine-sys/tests/support/flags_host.rs`, the same support file as the other flag controls).
 //! The producer, the descriptor and the Rust boundary are the same in both; only the backing of the word differs.
 //!
 //! NOT CLAIMED: a helicopter (its descriptor does not read the getter by the source text), the other mobile kinds, a boot, the shipped `Engine::boot` bridge, a native or Windows run, the weapon-vector path, the
-//! semantic repair of the raw-versus-boolean mismatch (it is OBSERVED here and left as it is), any lifetime of the host's store, a full save or the global/FPU state beyond what the C world declares.
+//! native reachability of the old refusal or of the corrected path (not shown), any lifetime of the host's store, a full save or the global/FPU state beyond what the C world declares.
 use eech_engine::supply_check::with_supply_boundary;
 use eech_engine::{ArrivalAnswer, ArrivalQuery, SupplyMobile, SupplyReachDescriptor};
 use std::cell::RefCell;
@@ -104,7 +109,7 @@ fn reads() -> usize {
 }
 
 #[test]
-fn the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_the_real_rust_boundary_accepts_only_zero_and_one() {
+fn the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_hands_the_real_rust_boundary_a_boolean() {
     #[cfg(not(feature = "collision-fixture"))]
     // SAFETY: the provider, fresh-binding entry and observation are the test support's, valid for the process
     unsafe {
@@ -180,7 +185,8 @@ fn the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_the_
         assert!(d.updated, "a set lane 0 reads 1: updated is true");
         assert_eq!(word(BASE), 1, "the consumer's read kept the entity's own bit");
 
-        // ---- THE MISMATCH, characterised: every OTHER lane's raw word is its mask (2, 4, 0x40000000, INT_MIN): the real boundary REFUSES it by name and the campaign stops; the descriptor is never delivered ----
+        // ---- THE CORRECTED DESCRIPTOR CONTRACT (an intentional defect correction; the characterised ae367 producer REFUSED every one of these): every OTHER lane's raw word is still its mask (2, 4, 0x40000000, INT_MIN),
+        // the getter is not changed, and the descriptor now carries it as the boolean the Rust boundary's `checked_bool` requires: any nonzero raw word, the negative bit 31 too, is `updated: true` and reaches the host's answer ----
         for offset in [1, 2, 30, 31] {
             let index = BASE + offset;
             begin();
@@ -190,23 +196,23 @@ fn the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_the_
             assert_eq!(
                 raw,
                 mask(index) as i32,
-                "the raw word the producer reads is the lane's mask, never a boolean: lane {offset}"
+                "the raw word the getter returns is still the lane's mask, never a boolean: lane {offset}"
             );
-            let before = delivered();
+            let before = (delivered(), reads());
             let out = check(index);
-            assert!(out.stopped, "lane {offset}: the boundary accepted the raw mask {raw}: {}", out.text);
             assert!(
-                out.text.contains("supply_reached failed") && out.text.contains(&format!("invalid updated flag {raw}")),
-                "lane {offset}: the refusal is named: {}",
+                !out.stopped,
+                "lane {offset}: the boundary refused the raw mask {raw} (the descriptor carries a non-boolean): {}",
                 out.text
             );
-            assert_eq!(delivered(), before, "lane {offset}: a refused descriptor never reached the host's answer");
-            assert_eq!(
-                word(index),
-                mask(index),
-                "lane {offset}: the producer's read kept the entity's own bit before the refusal"
-            );
-            facts.push(format!("lane {offset}: raw {raw} refused: {}", out.text));
+            assert_eq!(out.arrival, 1, "lane {offset}: the host's answer (gates passed) is the arrival");
+            assert_eq!(delivered(), before.0 + 1, "lane {offset}: the descriptor reached the host's answer");
+            let Some(d) = last() else { panic!("no descriptor") };
+            assert!(d.updated, "lane {offset}: a set flag (raw {raw}) is updated: true");
+            #[cfg(not(feature = "collision-fixture"))]
+            assert_eq!(reads() - before.1, 1, "HOSTED: lane {offset}: exactly one destructive host read for the call");
+            assert_eq!(word(index), mask(index), "lane {offset}: the producer's read kept the entity's own bit");
+            facts.push(format!("lane {offset}: raw {raw} accepted as updated {}", d.updated));
         }
 
         // ---- the producer's own fixed-wing precondition: an UNSET flag at those lanes is a legal 0 (the refusal above is the SET word, not the lane) ----
@@ -233,28 +239,26 @@ fn the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_the_
             let out_first = check(first);
             assert_eq!(word(BASE), mask(first), "the first consumer's destructive read kept only its own bit");
             let out_second = check(second);
-            // lane 0's mask (1) is a legal boolean and lane 1's (2) is refused; whichever is read second finds its bit destroyed by the first's read, reads 0 and passes with `updated: false`
+            // whichever is read first finds its own bit (raw mask 1 or 2, both now `updated: true`); whichever is read second finds its bit destroyed by the first's read, reads 0 and passes with `updated: false`
+            assert!(
+                !out_first.stopped,
+                "the first consumer reads its own set bit (raw mask {}), now a boolean true: {}",
+                mask(first),
+                out_first.text
+            );
             assert!(
                 !out_second.stopped,
                 "the second consumer's bit was destroyed by the first's read, so it reads 0 and passes: {}",
                 out_second.text
             );
-            let Some(d) = last() else { panic!("no descriptor") };
+            let delivered_now = seen.borrow();
+            assert_eq!(delivered_now.len(), before + 2, "both descriptors reached the host's answer");
+            let (d_first, d_second) = (&delivered_now[before], &delivered_now[before + 1]);
+            assert!(d_first.updated, "the first read set flag is updated: true (lane 0 first: {})", !first_is_lane1);
             assert!(
-                !d.updated,
+                !d_second.updated,
                 "the second entity was SET, but the earlier destructive read cleared its bit: updated is false"
             );
-            if first_is_lane1 {
-                assert!(
-                    out_first.stopped && out_first.text.contains("invalid updated flag 2"),
-                    "lane 1 first: its raw mask 2 is refused: {}",
-                    out_first.text
-                );
-                assert_eq!(delivered(), before + 1, "only the second consumer's descriptor reached the host's answer");
-            } else {
-                assert!(!out_first.stopped, "lane 0 first reads its own mask 1: {}", out_first.text);
-                assert_eq!(delivered(), before + 2, "both descriptors reached the host's answer");
-            }
         }
 
         // ---- the RESET EXTENT: the real update iteration clears the array below 131072 slots and not above ----
@@ -304,7 +308,7 @@ fn the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_the_
     for fact in &facts {
         println!("{fact}");
     }
-    // the count of the scenarios above (the positive, lane 0 set, two unset lanes, the order pair's three, the two reset cases): a group of cases that did not run changes it
+    // the count of the scenarios above (the positive, lane 0 set, the four other set lanes, two unset lanes, the order pair's two each, the two reset cases): a group of cases that did not run changes it
     assert_eq!(
         total, EXPECTED_DESCRIPTORS,
         "the real boundary delivered {total} descriptors, not the {EXPECTED_DESCRIPTORS} of the scenarios: the consumer was not reached by a group of cases"
@@ -333,4 +337,5 @@ fn the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_the_
     }
 }
 
-const EXPECTED_DESCRIPTORS: usize = 9;
+/// the ae367ca3a producer delivered 9 of these scenarios (the four other set lanes and the first read of the order pair were refused); the corrected producer delivers all 14
+const EXPECTED_DESCRIPTORS: usize = 14;

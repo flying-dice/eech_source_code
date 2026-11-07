@@ -1,0 +1,9 @@
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.89s
+     Running tests/physical_flags_supply.rs (/target/t/debug/deps/physical_flags_supply-4b134fa9334328e9)
+eech: debug_fatal: supply arrival: host supply_reached failed: invalid updated flag 2
+
+thread 'the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_hands_the_real_rust_boundary_a_boolean' (122) panicked at crates/eech-engine/tests/physical_flags_supply.rs:203:13:
+lane 1: the boundary refused the raw mask 2 (the descriptor carries a non-boolean): supply arrival: host supply_reached failed: invalid updated flag 2
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-engine --test physical_flags_supply`

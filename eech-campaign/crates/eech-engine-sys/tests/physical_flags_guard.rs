@@ -190,19 +190,20 @@ fn the_getter_the_setter_and_the_reset_are_the_source_the_characterisation_ran()
 }
 
 #[test]
-fn the_supply_arrival_descriptor_carries_the_raw_mask_into_a_field_the_rust_side_accepts_only_as_zero_or_one() {
-    // a contract mismatch, derived from this source text and CONFIRMED by the supply control (eech-engine/tests/physical_flags_supply.rs: the real producer against the engine's own Rust boundary, both profiles): the C side stores
-    // the getter's MASK, the Rust side validates a boolean, so every mask but lane 0's 1 is refused by name. It is left as it is; this test pins the text the control ran
+fn the_supply_arrival_descriptor_normalises_only_its_own_value_to_the_boolean_the_rust_side_requires() {
+    // HISTORY: the characterised ae367ca3a producer stored the getter's raw MASK in the descriptor (`descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED);`), which the Rust side's
+    // boolean check refused for every mask but lane 0's 1 (measured by the supply control in both profiles; that evidence and source are retained). The technical lead's decision corrected exactly that one
+    // assignment, and ONLY the descriptor's own value: the single getter call is unchanged and the Rust boundary is NOT weakened. This test pins the corrected text the control now runs against
     let c = strip_comments(&read(&aphavoc().join("entity/special/guide/gd_supply_arrival.c")));
     assert!(
-        c.contains("descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED);"),
-        "the descriptor still carries the raw getter value"
+        c.contains("descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED) ? TRUE : FALSE;"),
+        "the descriptor carries the getter's value as the C boolean: zero is FALSE, every nonzero raw mask (bit 31 too) is TRUE"
     );
     assert!(
-        !c.contains("descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED) ?")
-            && !c.contains("descriptor.updated = (get_local_entity_int_value"),
-        "no normalisation to a boolean at the descriptor"
+        !c.contains("descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED);"),
+        "the raw assignment of ae367ca3a is gone"
     );
+    // the Rust boundary is exactly as characterised: it accepts only 0 and 1 (the correction satisfies it, it does not widen it)
     let rust = std::fs::read_to_string(crate_dir().join("../eech-engine/src/lib.rs")).unwrap();
     assert!(rust.contains("updated: checked_bool(\"updated\", source.updated)?,"));
     let start = rust.find("fn checked_bool(name: &str, value: c_int)").expect("checked_bool");
@@ -211,7 +212,7 @@ fn the_supply_arrival_descriptor_carries_the_raw_mask_into_a_field_the_rust_side
         body.contains("0 => Ok(false)") && body.contains("1 => Ok(true)") && body.contains("_ => Err("),
         "checked_bool accepts exactly 0 and 1: {body}"
     );
-    // the neighbouring flag of the same function IS normalised (`? TRUE : FALSE`): the asymmetry is the finding
+    // the neighbouring flag of the same function was already normalised the same way: the descriptor is now symmetric
     assert!(c.contains("get_local_entity_int_value (member, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID) ? TRUE : FALSE"));
 }
 
@@ -487,7 +488,7 @@ fn the_supply_control_seam_exists_only_behind_its_feature_and_the_consumer_reads
         model.contains("|| defined(EECH_PHYSICAL_FLAGS_SUPPLY_CHECK)\n"),
         "the gate of the test-only key helpers no longer names the supply control"
     );
-    // the CONSUMER, unchanged: the fixed-wing branch reads the raw getter into the descriptor, ONCE, and the host is asked after it (before any gate)
+    // the CONSUMER: the fixed-wing branch reads the getter into the descriptor (as the corrected boolean), ONCE, and the host is asked after it (before any gate)
     let consumer = strip_comments(&read(&aphavoc().join("entity/special/guide/gd_supply_arrival.c")));
     assert_eq!(
         consumer.matches("INT_TYPE_UPDATED").count(),
@@ -495,7 +496,7 @@ fn the_supply_control_seam_exists_only_behind_its_feature_and_the_consumer_reads
         "the supply arrival reads the word in one place"
     );
     let read_at = consumer
-        .find("descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED);")
+        .find("descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED) ? TRUE : FALSE;")
         .expect("the descriptor read");
     let branch_at = consumer
         .find("if (mobile == CAMPAIGN_SUPPLY_MOBILE_FIXED_WING)\n\t{")

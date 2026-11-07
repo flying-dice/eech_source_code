@@ -1,0 +1,16 @@
+{
+  "read": {
+    "Root-physical-flags-witness-feedback-20261107-2012.json": "read in full in earlier batches (the finite witness batches); not about this correction",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json": "read in full in an earlier batch; not about this correction",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2148.json": "read in full in the characterisation batch (sdc5a); its supplemental publication identity belongs to that packet",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2150.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2154.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2201.json": "read in full in the characterisation batch (sdc5a); the product-source delta of THIS batch is declared in the README without any all-compiled-raw-unchanged claim",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2205.json": "read in full in the characterisation batch (sdc5a); adopted again: Write/Edit for source",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2215.json": "read in full in the characterisation batch (sdc5a); adopted again: rustup component add and the version in every fmt/clippy invocation",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2222.json": "read in full in the characterisation batch (sdc5a); adopted again: counts parsed from the final receipts after completion, none pinned in advance",
+    "Root-supply-boolean-fix-feedback-20261107-2242.json": "read in full at 22:43:14Z (printed by the runner before the first RED run, and listed): Root's live readback of the explicit lead decision (ledger v188, Jira, PR); no additional scope; its two receipts are published as literals",
+    "Root-supply-boolean-fix-feedback-20261107-2243.json": "read in full at 22:43:14Z (the same print): Root's immutable publication identity and the exact CI clarification (the 4eec campaign workflow was CANCELLED after the newer metadata push, not all-9 success); its receipts are published as literals; continue only the authorized descriptor boolean fix"
+  },
+  "note": "the whole directory is listed (never `tail -1`) at the start, before PRE, at the freeze and at the stop; the runner of this family also prints every Root-supply-boolean-fix-feedback*.json it finds before each run. No file named Root-supply-boolean-fix-feedback* was present at the start of the batch (22:3x); the two above appeared at about 22:42."
+}

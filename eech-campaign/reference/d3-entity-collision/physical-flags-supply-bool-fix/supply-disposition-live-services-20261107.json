@@ -1,0 +1,25 @@
+{
+  "ledger": {
+    "page": "14548994",
+    "snapshot": "v:188",
+    "previous_characters": 530232,
+    "entire_previous_body_literal_prefix": true,
+    "all_five_macro_parameters_literal": true,
+    "new_section_readback_equal_ignoring_generated_new_local_ids": true
+  },
+  "jira": {
+    "id": "EEDCS-49",
+    "comment": "11021",
+    "exactHTMLreadback": true,
+    "entire_prior_comment_preserved": true
+  },
+  "PR": {
+    "number": 109,
+    "head": "120581ac4f14fe98be8b7bb8a524b682554234c2",
+    "base": "84775522f9eb9c7182ff89f75387115b9e3883fd",
+    "state": "open",
+    "draft": true,
+    "body_exact_readback": true
+  },
+  "scope": "SAME867a7a finite supply characterization accepted; technical-lead explicit descriptor-only boolean defect correction authorized, not implemented/reviewed/accepted. All10/NativeAcceptanceRow/fullcurrentregression/Task49/D3OPEN."
+}

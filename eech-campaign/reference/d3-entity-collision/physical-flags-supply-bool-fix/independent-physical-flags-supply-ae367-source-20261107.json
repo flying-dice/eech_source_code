@@ -1,0 +1,194 @@
+{
+  "schema": 1,
+  "kind": "Independent bounded physical-flag supply descriptor source/characterization review",
+  "created_utc": "2026-11-07T22:37:06.090332+00:00",
+  "source": {
+    "commit": "ae367ca3ab45f6453bdb39d085c508b9a1c3a015",
+    "parent": "c5a3ed3bb9ce9e061006640ab1a0070dd475c180",
+    "metadata_commit": "4eec43115c14c9fa68d8658bac8dbe081b5c21e2",
+    "observed_HEAD_exact_and_fullclean": true,
+    "review_scope": "Only new gated C fixture, Rust boundary seam/test, feature/build/dev-dependency/sourceguard and documentation/evidence changes. No re-review/replay of earlier flag/height/native/default proofs.",
+    "inputs": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_supply_check.c",
+        "bytes": 17928,
+        "sha256": "4e831ece7ad3adbcdb043c8b7cfe248927dcc9471b8ee75edbd3bf80fa88c77a",
+        "git_blob": "9213125bccc1a0c0977de93ca32f2ddb4ec63fa4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/tests/physical_flags_supply.rs",
+        "bytes": 17391,
+        "sha256": "f9047a3072d8e34f2a6179237e2bec22113cc72d45871c1fda989af3df701be4",
+        "git_blob": "08a3b5b82aa9ec8a0baf3891ba51a632021eb50d"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "bytes": 722776,
+        "sha256": "de3ec2f272a4bd8c02a696bc81014449f253c03101d2bf4bd1fd49563716faf8",
+        "git_blob": "364b9dc7121eab182696712db9371c9bdcd647ef"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+        "bytes": 96603,
+        "sha256": "a28ebb350493a763601e0cabd0fb42ae52d50bca4b127db0e7ff4741ceaa9a9a",
+        "git_blob": "00a7567672805a71e27d35c8ab2d093ba64d77f1"
+      },
+      {
+        "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+        "bytes": 51324,
+        "sha256": "daf502999f2192245ed4b1cb9934c51738edc45b1579bc6e98fb4f5b16a315cf",
+        "git_blob": "b6772324350bc21b2b74c7f093263b031003475b"
+      }
+    ]
+  },
+  "decision": {
+    "status": "ACCEPT_FINITE_CONSUMER_CHARACTERIZATION_ONLY",
+    "findings": [],
+    "source_characterization_clearance": true,
+    "finite_original_hosted_consumer_characterization_accepted": true,
+    "raw_updated_bool_mismatch_confirmed": true,
+    "native_launch_clearance": false,
+    "production_cutover_clearance": false,
+    "semantic_repair_or_normalization_approved": false,
+    "native_flag_authority_accepted": false,
+    "allconsumer_lifetime_FPU_DCS_accepted": false,
+    "wholeheight_Task49_D3_fullshipping_delivery_accepted": false,
+    "meaning": "This finite control genuinely connects the shipping supply descriptor producer to the engine own Rust boundary in both profiles. It characterizes and preserves the existing failure; it neither fixes nor excuses it, and it authorizes no native/cutover/normalization."
+  },
+  "findings": [],
+  "required_existing_defect": {
+    "id": "ENV-PHYSICAL-FLAGS-SUPPLY-DESCRIPTOR-RAW-UPDATED-1",
+    "status": "OPEN",
+    "blocks_cutover": true,
+    "confirmation": "Fixed-wing campaign_supply_arrival_check gathers the raw destructive UPDATED getter into descriptor.updated, while the real Rust supply_reached boundary applies checked_bool accepting only0 and1. Set lane0 raw1 passes; tested set lanes1/2/30/31 produce2/4/0x40000000/signed bit31 and are refused before the Host answer in both Original and Hosted. The producer read keeps its own bit and destroys word-mate bits as before.",
+    "disposition": "Required compatibility/boundary resolution remains new production work with its own source and actual gates. No blanket boolean normalization, raw-getter repair, baseline change or native reachability assumption is approved here."
+  },
+  "evidence": {
+    "freeze": {
+      "path": "R:\\d3-evidence\\D3-PHYSICAL-FLAGS-SUPPLY-DESCRIPTOR-CODE-FROZEN-20261107.json",
+      "bytes": 45920,
+      "sha256": "231a392029a5931cbd4bd3efd2e05050f5d464d552c51df845290effd25eccf0"
+    },
+    "Root_source_checks": {
+      "path": "R:\\d3-evidence\\physical-flags-supply-ae367-Root-binding-20261107.json",
+      "bytes": 5212,
+      "sha256": "aaf0943a982ff5f48031eb886e0fc1535ba3d1422ed9df8df31e68640288bdc2"
+    },
+    "Root_publication": {
+      "path": "R:\\d3-evidence\\physical-flags-supply-4eec-publication-Root-20261107.json",
+      "bytes": 6941,
+      "sha256": "690c79621ca59d2406104746d800a4e0b4c9ecbbb7531499b111b00cbf8a3486"
+    },
+    "producer": {
+      "path": "R:\\d3-evidence\\claude-d3-physical-flags-supply-consumer-20261107-completion.json",
+      "bytes": 1735,
+      "sha256": "249bc286c845c50346eba02d01d929e44cdb51047d5f47e028ec351d910a0dfa"
+    }
+  },
+  "evidence_join": {
+    "producer_actual_exit": 0,
+    "result_is_error": false,
+    "actual_model": "claude-sonnet-5-5",
+    "completed_utc": "2026-11-07T22:33:52.551867+00:00",
+    "PRE_utc": "2026-11-07T22:28:22Z",
+    "POST_utc": "2026-11-07T22:31:13Z",
+    "whole_map_rows": 3995,
+    "PRE_POST_current_raw_equal": true,
+    "actual_Git_join": "Root directly joins immutable/current raw bytes;3 inherited uncompiled Lua rawCRLF/GitLF qualifications retained. No input normalization or filtered-identity substitution.",
+    "extras": 41,
+    "all_11_PRE_readers_current": true,
+    "final_direct_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "selected_test_result_instances": 138,
+    "components": {
+      "new_supply_tests_one_each_profile": 2,
+      "flags_guards": 7,
+      "existing_control_tests_three_each_profile": 6,
+      "default_engine_tests": 123
+    },
+    "other_checks": "Formatting, strict hosted/Original/default clippy and defaultDC build all0. Original199 raw+56 guide+15 collision and Hosted199+56+16 collision expectations are retained under their actual recorded profiles; Rust test result instances are not individual C expectations.",
+    "publication": {
+      "actualGit_current_literal_manifest_entries": 133,
+      "external_literal_copies": 130,
+      "clean_pushed_exact": "4eec43115c14c9fa68d8658bac8dbe081b5c21e2",
+      "metadata_only_delta": "STATUS/card"
+    },
+    "retained_failures": "d1-6 setup/lint/gated-helper/segfault/list-notification assertions remain literal. They are setup failures, not semantic production REDs. Earlier d18-20 completed controls remain retained; no completed experiment was replayed merely to recover a count. Both new Root audits passed first execution without reader mutation."
+  },
+  "actual_consumer_path": [
+    {
+      "source": "eech_physical_flags_supply_check.c / campaign_supply_arrival_check",
+      "facts": "Fixture uses an allocated real entity pool and raw fixed-wing/group/guide/waypoint/task records, real getter/list/criteria/reset functions and the real shipping supply arrival producer. initialise_entity_message_responses installs the actual group/guide handlers, so list insertion invokes their real handling; explicit campaign_roster_link_member is additional/idempotent. The private bind_member collaborator supplies a synthetic host identity, not a fabricated descriptor."
+    },
+    {
+      "source": "eech-engine/src/lib.rs supply_check / supply_reached",
+      "facts": "The cfg-gated seam supplies a scoped real HostContext and SAME private supply_reached function used by the engine. No alternate conversion/validator is substituted. Supply descriptor context remains alive through the closure and C supply host is removed before its normal end; other callbacks in the seam refuse. The strict checked_bool error occurs before context.supply_reached is called."
+    },
+    {
+      "source": "Original versus Hosted",
+      "facts": "Original collision-fixture profile uses real original flag arrays. Hosted uses the real C getter/setter/reset, opaque group key cache and shared real eech-world FlagStore through declared test support, not a second campaign bit mirror. Same scenarios/assertions run both profiles; this is a test bridge, not shipped Engineboot/native/public Lua coverage."
+    }
+  ],
+  "finite_measured_behavior": {
+    "descriptors_delivered_to_Host_answer_each_profile": 9,
+    "positive": "Linked fixed-wing task leader with unset raw0 is delivered once with updatedfalse and expected descriptor fields/arrival answer; set lane0 raw1 is delivered as updatedtrue. The Hosted first positive independently checks exactly one Host destructive read by the consumer.",
+    "raw_refusal_cases_measured": [
+      {
+        "lane": 1,
+        "raw": 2
+      },
+      {
+        "lane": 2,
+        "raw": 4
+      },
+      {
+        "lane": 30,
+        "raw_hex": "0x40000000"
+      },
+      {
+        "lane": 31,
+        "raw_signed": "INT_MIN"
+      }
+    ],
+    "refusal": "Each tested set nonzero lane other than0 reaches the real Rust bool validator, returns the named invalid updated flag error and produces the campaign supply_reached fatal before the Host answer; own raw bit remains. Unset lanes1 and31 are matched accepted0 positives.",
+    "order": "With set neighboring lanes0 and1, the first consumer read keeps only its own mask and destroys the second bit. Lane1 first is refused for2; whichever entity is read second reads0 and is delivered with updatedfalse. This preserves the destructive/order-dependent legacy semantics.",
+    "reset": "Real update_client_server_entities with an empty update list resets below the original quarter-array extent; a set bit inside clears and a lane0 above131072 survives and is read as raw1. This is finite reset/consumer evidence, not all lifetime/index-reuse behavior.",
+    "missing_identity": "Unlinked matched member is refused before the getter; no descriptor/Host read occurs and neighboring set bits remain. It is not used as positive identity coverage.",
+    "hosted_traffic_diagnostic": {
+      "group": 12,
+      "set": 13,
+      "read": 19,
+      "reset": 6,
+      "fresh_test_bindings": 12
+    },
+    "traffic_qualification": "These exact totals are diagnostic evidence, not a protocol contract; assertions require actual nonzero coverage and zero off-grammar/refused flag-store questions. Fresh test bindings are deliberate scenario resets, not supported production store replacement.",
+    "measurement_precision": "The controls measure0/1 plus masks2/4/bit30/bit31. General rejection of every other possible raw mask follows from the unchanged checked_bool0/1 source domain; it is not a measured all31-lane matrix. Both profiles deliver9 descriptors under the same assertions, not an independent serialization/parity comparison of every field of all9 tuples."
+  },
+  "isolation_and_boundary_limits": [
+    "Sys feature is empty/test-only; engine forwards it and only the named test requires it. No default/shipping manifest enables it. build/main.rs defines the C macro only for this feature; the entire new C fixture and Rust supply_check module are gated. Existing build discovery includes C files but the fixture body is excluded with the macro off. No new public native DLL API/consumer decision/store is introduced.",
+    "mb_hostmodel.c RAW bytes do change: only test-helper gate/comment adds the new feature. Root reverse-delta joins the unchanged parent body; gd_supply_arrival producer is literal unchanged. Cargo manifests/dev-dependency/Cargo.lock/test seam/build inputs are new and are NOT claimed raw-identical020 or exercised by earlier sealed020 binaries.",
+    "Hand-made world includes raw waypoint parent to the task because real task-list insertion invokes task behavior the isolated world does not supply; other relevant lists/getters are real. Synthetic records/criteria, private roster collaborator and manual delta/comms are fixture inputs, not native campaign setup/hierarchy evidence.",
+    "Dedicated one-test process; declared tables/arrays/entities/update pointers/comms/delta/raw allocations are restored on normal close, but not whole global/session/private roster state or all setter tables. C TRAP deliberately restores the saved fatal target and poison state to inspect matched controls; it is not a production permission to query/resume a poisoned Engine. Callback errors return from Rust before the C fatal is trapped.",
+    "No whole-FPU/environment/RNG/state restoration, Windows/native/Engineboot, i686/O2, helicopter/weapon-vector/allconsumer/currentshipping proof. There is no blanket production refusal/native defect incidence inferred from a synthesized finite state; whether/when a real campaign reaches set nonzero lanes at this consumer remains unmeasured."
+  ],
+  "scope_next": {
+    "allowed_conclusion": "The next-needed supply immediate-consumer characterization is met at declared C->real Rust-boundary/Original+Hosted test scope. Preserve this confirmation when planning the required named defect resolution.",
+    "not_authorized": "No automatic normalization/semantic repair, production cutover, new native family or broader profile/physical acceptance. A future source change requires its own exact changed-material review and selected gates."
+  },
+  "retained_requirements": [
+    "Prior source73bec/controller0573/default finite and17PASS/6UNREACHED native1ae remain closed only at their own identities. Their actual READ/changed-answer/allconsumer native-acceptance gaps are not closed by this test.",
+    "All ten D3 requirements, named raw-updated mismatch/cutover blocker, other consumers, supported lifetime/DCS/wholeheight/current full40/all8/fourinputs/currentCI/census/review/normalmerge/Task49/D3 remain open. No D4/D5/TypeScript/formalapproval.",
+    "Original764 fullshipping jobs/source/bin/roots/raw stay untouched and independent; no partial-prefix acceptance. Reviewer did no test/build/cache/native/scenario/checker replay, tracked source/canonical mutation or nested agents. Only this immutable safe report is written; Root owns finding/task publication."
+  ]
+}

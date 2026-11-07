@@ -1,0 +1,501 @@
+{
+  "kind": "CODE_FROZEN receipt of the supply-descriptor BOOLEAN CORRECTION: the one assignment of descriptor.updated in gd_supply_arrival.c (zero FALSE, every nonzero raw mask TRUE), the existing supply control's expectations RED on ae367ca3a then GREEN, ORIGINAL and HOSTED profile (intentional defect correction; UNREVIEWED; native, Windows and default recordings UNRUN)",
+  "frozen_utc": "2026-11-07T22:56:17.885942+00:00",
+  "dry": false,
+  "source_before": "120581ac4f14fe98be8b7bb8a524b682554234c2",
+  "checkpoint": "120581ac4",
+  "pre_utc": "2026-11-07T22:47:44Z",
+  "post_utc": "2026-11-07T22:56:08Z",
+  "lease": {
+    "volume": "eech-linux-d3-physical-flags-9d247-20261107",
+    "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+    "root_leased_names_asserted": {
+      "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+      "volume": "eech-linux-d3-physical-flags-9d247-20261107"
+    }
+  },
+  "changed_files": [
+    {
+      "path": "aphavoc/source/entity/special/guide/gd_supply_arrival.c",
+      "bytes": 22014,
+      "sha256": "c2ab9f1578f1934ee0f029175daabb724688f69a94727c0019d3102137df5f52",
+      "git_blob_of_raw_bytes": "4fb337afd99d6a0adeae3be2a11b0ba07859261c",
+      "head_blob": "6b85b6ca72bd58d459f291fe1eeec86ccf3ac739"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+      "bytes": 28752,
+      "sha256": "f824d5e9b197fc8a22816e83a00c321bb5c2cced6e90541962b60776048e974b",
+      "git_blob_of_raw_bytes": "45ad740cd5b7e17631e9cc1ba6af3c6f8e644608",
+      "head_blob": "94821185473a6105444710abea9eae3e2ef6e5c5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/tests/physical_flags_supply.rs",
+      "bytes": 18704,
+      "sha256": "e4debf892f40880dccd188b1b1112af152fca9d90df96366cbe840111fe219c8",
+      "git_blob_of_raw_bytes": "072ca4bf349ce4d42e3bd7a6cd5f697afd021a07",
+      "head_blob": "08a3b5b82aa9ec8a0baf3891ba51a632021eb50d"
+    }
+  ],
+  "expected_changed_files": [
+    "aphavoc/source/entity/special/guide/gd_supply_arrival.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/crates/eech-engine/tests/physical_flags_supply.rs"
+  ],
+  "inherited_raw_versus_git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "git_blob_of_raw_bytes": "41780e08e6f192c4f90d27052f61beadf5a8ae40",
+      "head_blob": "41780e08e6f192c4f90d27052f61beadf5a8ae40"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "git_blob_of_raw_bytes": "ec7dd360f70821a2213efe82db9f93ad46f20ee0",
+      "head_blob": "ec7dd360f70821a2213efe82db9f93ad46f20ee0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "git_blob_of_raw_bytes": "fb767e110002096f637c48c4e65d48ff5c6168fc",
+      "head_blob": "fb767e110002096f637c48c4e65d48ff5c6168fc"
+    }
+  ],
+  "final_runs": {
+    "s1-fmt-check": {
+      "label": "s1-fmt-check",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:47:53.522944+00:00",
+      "completed_utc": "2026-11-07T22:47:59.835984+00:00",
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "record_sha256": "10712f68cbda858b11d923e360f80bea18e49188ed367459e4b2a560fe12b9a4",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s2-clippy-engine-hosted": {
+      "label": "s2-clippy-engine-hosted",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:47:59.954780+00:00",
+      "completed_utc": "2026-11-07T22:49:15.043356+00:00",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine --features physical-flags-supply-check --all-targets -- -D warnings",
+      "record_sha256": "b1ec5824bc7d46d062c5bbd6299636a966f325bda9ffe25482ad65b98311e4d1",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "8d9f413032773cdee34c1090e9a758cb6f9cb02cca27e5db9777a302f061e243",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s3-clippy-engine-original": {
+      "label": "s3-clippy-engine-original",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:49:15.156709+00:00",
+      "completed_utc": "2026-11-07T22:50:28.744969+00:00",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine --features physical-flags-supply-check,collision-fixture --all-targets -- -D warnings",
+      "record_sha256": "73656f17a1ddaaa4b79c9079ec094c0d8429e5f969e94f2e0804e4f049209238",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "77b9dd81b2432a8e0ef32f1321c07614e9921ffb2ad4fa09370b83b18cc70b8a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s4-clippy-defaults": {
+      "label": "s4-clippy-defaults",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:50:28.874842+00:00",
+      "completed_utc": "2026-11-07T22:51:43.865799+00:00",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets -- -D warnings",
+      "record_sha256": "2c1d0e15431497f20ae55dfbd62aaf1ad1404da3b65fcf99f3b7ee7d2cf34323",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "2414ccd638f92458bd4a6e547ea17cd7f4b9898cc4bab6042c88b5c3af7601d9",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s5-supply-hosted": {
+      "label": "s5-supply-hosted",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:51:44.000547+00:00",
+      "completed_utc": "2026-11-07T22:51:48.818676+00:00",
+      "command": "cargo --version && cargo test --locked -p eech-engine --features physical-flags-supply-check --test physical_flags_supply -- --nocapture",
+      "record_sha256": "1b1678efec78de20df2919c6f665a2611e0233aebba5ad26b1053f064ab9b304",
+      "stdout_sha256": "ac8d5a7a7e7e4ac1d56f30947d940f2dd0d1a2cb804c0dce400e05f61b8ce08c",
+      "stderr_sha256": "972ebb8624f90d7d3c606e500f201b62446cb44bfe7ebe31e70b1be4daa66edb",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_supply": 1
+      },
+      "descriptors_delivered": 14,
+      "hosted_traffic_groups_sets_reads_resets_fresh": [
+        12,
+        13,
+        19,
+        6,
+        12
+      ]
+    },
+    "s6-supply-original": {
+      "label": "s6-supply-original",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:51:48.951154+00:00",
+      "completed_utc": "2026-11-07T22:51:53.401067+00:00",
+      "command": "cargo test --locked -p eech-engine --features physical-flags-supply-check,collision-fixture --test physical_flags_supply -- --nocapture",
+      "record_sha256": "0416e0fb9d96f5f5140a164019070cddcbde1fb37aafc382cb03aa6d822a960f",
+      "stdout_sha256": "aaab6465df51019de5f267c4fd97007d5145d690cd4f04229a14c348d7de4c60",
+      "stderr_sha256": "dd8a15ff0dc43821d1c9cfa3b55d1cfba3b8be10c7a2d4e357ee2ece644e70d9",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_supply": 1
+      },
+      "descriptors_delivered": 14
+    },
+    "s7-flags-guard": {
+      "label": "s7-flags-guard",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:51:53.532198+00:00",
+      "completed_utc": "2026-11-07T22:53:15.205298+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast --test physical_flags_guard",
+      "record_sha256": "a0b8f48361fa714ef747c20cada02e4fac8256e4ad77c313a95f8c91764cc2d5",
+      "stdout_sha256": "c86e29d233c0f594a2f7211dcfe9afab7ebd54b8218bbabc499041e6a4629a0e",
+      "stderr_sha256": "3c48c3501389e659cfefc10f3f9dcf98f6e1a13fccd0d678618ec33f5c96fc64",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 7,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_guard": 7
+      }
+    },
+    "s8-flags-controls-hosted": {
+      "label": "s8-flags-controls-hosted",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:53:15.340301+00:00",
+      "completed_utc": "2026-11-07T22:54:30.322225+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check,physical-flags-collision-check --no-fail-fast --test physical_flags --test physical_flags_consumer --test physical_flags_collision -- --nocapture",
+      "record_sha256": "c5288afd910316edba0d6f561301a0ab06525894babb8ca3f775ce80eedf16cc",
+      "stdout_sha256": "576ceaf1cf1cf031bb51728c0ed89a5b8dd752b45fa830a819ad7f67900bfdc0",
+      "stderr_sha256": "9794817892fbc9ecc64ffb66f5412ba944e45dc5f8c3e10a7abd1911ee6463dc",
+      "uses_declared_helper": true,
+      "test_binaries": 3,
+      "tests_passed": 3,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      },
+      "hosted_traffic_groups_sets_reads_resets_fresh": [
+        14,
+        18,
+        37,
+        4,
+        14
+      ],
+      "expectations_made": [
+        199,
+        16,
+        56
+      ]
+    },
+    "s9-flags-controls-original": {
+      "label": "s9-flags-controls-original",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:54:30.445232+00:00",
+      "completed_utc": "2026-11-07T22:55:46.220181+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check,physical-flags-collision-check,collision-fixture --no-fail-fast --test physical_flags --test physical_flags_consumer --test physical_flags_collision -- --nocapture",
+      "record_sha256": "98f61a9fa99fd7a9069a50f90ba4135fff63764a62ad45d084daac898aa285b5",
+      "stdout_sha256": "f18970083e32ab05932e91b26b70395315a566f849a84a6699ecdbe824c5172a",
+      "stderr_sha256": "344f6528d8348bfd53ea4db8a82800d57fbd90c97c12f87b8c41661bccba3e52",
+      "uses_declared_helper": true,
+      "test_binaries": 3,
+      "tests_passed": 3,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      },
+      "expectations_made": [
+        199,
+        15,
+        56
+      ]
+    },
+    "s10-engine-default": {
+      "label": "s10-engine-default",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:55:46.343156+00:00",
+      "completed_utc": "2026-11-07T22:55:52.587044+00:00",
+      "command": "cargo test --locked -p eech-engine --no-fail-fast",
+      "record_sha256": "9524ff85079088a0f40968c8e0e0e8559f37cb5312a48ee03976ae0cd6760827",
+      "stdout_sha256": "f73394bc18da0c07df64e0bb135427b72d04daab4d15983c0dbe420ef8580e0e",
+      "stderr_sha256": "0dd33bde9cca2c5cc7b365370dc8baed66bcb6425c2c07237482534d32251e17",
+      "uses_declared_helper": true,
+      "test_binaries": 2,
+      "tests_passed": 123,
+      "tests_failed": 0,
+      "selected_counts": {
+        "unittests src/lib": 123
+      }
+    },
+    "s11-build-dc": {
+      "label": "s11-build-dc",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:55:52.732250+00:00",
+      "completed_utc": "2026-11-07T22:55:56.442916+00:00",
+      "command": "cargo build --locked -p eech-dc",
+      "record_sha256": "32f58ccae0992751881cf100723c32fe6bd7d0c7ba07c61354534a60ad47418e",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a4e97fcbda1d8b65c34b7d00d2d3c090c46883685286a643d82bf55f7aee7393",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    }
+  },
+  "retained_development_runs": [
+    {
+      "label": "d1-fmt-apply",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:46:16.242479+00:00",
+      "completed_utc": "2026-11-07T22:46:19.450196+00:00",
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt -p eech-engine -p eech-engine-sys",
+      "record_sha256": "36336f8a708f68d9daabfbd7610c679199c7712c3be36a237f4fd65545d6ae91",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {},
+      "why": "cargo fmt -p eech-engine -p eech-engine-sys applied after the test and guard edits (rustup component add rustfmt in the same ephemeral container); git status afterwards showed only this batch's four files modified (the product C, the test, the guard, the contract)"
+    },
+    {
+      "label": "g1-green-supply-hosted",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:43:41.642220+00:00",
+      "completed_utc": "2026-11-07T22:44:57.619362+00:00",
+      "command": "cargo test --locked -p eech-engine --features physical-flags-supply-check --test physical_flags_supply -- --nocapture",
+      "record_sha256": "ef8991ff43e7105ee0b9bbb00400d654121740c07154d10a7d12da38a6acddba",
+      "stdout_sha256": "eabd09335f222d7186c417c38952ce76fe0d6b38705f94bdff465435b68cec77",
+      "stderr_sha256": "44effe646e27e84c08e1de6a843cc6c950640ac77c4c950f62d092a1bf65bba6",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_supply": 1
+      },
+      "descriptors_delivered": 14,
+      "hosted_traffic_groups_sets_reads_resets_fresh": [
+        12,
+        13,
+        19,
+        6,
+        12
+      ],
+      "why": "GREEN, HOSTED profile, after the ONE assignment of descriptor.updated changed to '? TRUE : FALSE': the same test passes, 14 descriptors delivered, lanes 1/2/30/31 (raw 2, 4, 1073741824, -2147483648) accepted as updated true, host traffic nonzero in every kind (a developer run, repeated inside the final set s5)"
+    },
+    {
+      "label": "g2-green-supply-original",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T22:44:57.751472+00:00",
+      "completed_utc": "2026-11-07T22:46:10.962473+00:00",
+      "command": "cargo test --locked -p eech-engine --features physical-flags-supply-check,collision-fixture --test physical_flags_supply -- --nocapture",
+      "record_sha256": "0b04bef65b55240784e6e4735512a8e7fe3d09f9a3b5caab103faa7d3f8431a8",
+      "stdout_sha256": "aaab6465df51019de5f267c4fd97007d5145d690cd4f04229a14c348d7de4c60",
+      "stderr_sha256": "47b77d81370f14d60b53817ae53408fb11505271dbe34e2549602b143bfce967",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_supply": 1
+      },
+      "descriptors_delivered": 14,
+      "why": "GREEN, ORIGINAL profile (collision-fixture), after the same one-assignment correction: the same test passes, 14 descriptors delivered, the same four masks accepted as updated true (a developer run, repeated inside the final set s6)"
+    },
+    {
+      "label": "r1-red-supply-hosted",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T22:42:58.004778+00:00",
+      "completed_utc": "2026-11-07T22:43:04.357130+00:00",
+      "command": "cargo test --locked -p eech-engine --features physical-flags-supply-check --test physical_flags_supply -- --nocapture",
+      "record_sha256": "5dd8f532ad40c25e6c808b131586a6908f2c2c8cdfff2935f1515aacf7ea6fe5",
+      "stdout_sha256": "946796a110443459198b9b67a825f4a4804bf10a9f9ff2af39fe4ee92dec9cd1",
+      "stderr_sha256": "b1a50e871035c6d68636a764c2ea8a6d1504f15d962b8efe0d533759a7471491",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 0,
+      "tests_failed": 1,
+      "selected_counts": {},
+      "why": "RED, HOSTED profile, on the UNCHANGED producer (ae367ca3a's gd_supply_arrival.c) with the supply control's expectations already changed to the corrected contract: the test panicked at lane 1, 'the boundary refused the raw mask 2: supply arrival: host supply_reached failed: invalid updated flag 2' (a real behavioural red: the old refusal, not a setup or compile failure)"
+    },
+    {
+      "label": "r2-red-supply-original",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T22:43:09.118432+00:00",
+      "completed_utc": "2026-11-07T22:43:14.304918+00:00",
+      "command": "cargo test --locked -p eech-engine --features physical-flags-supply-check,collision-fixture --test physical_flags_supply -- --nocapture",
+      "record_sha256": "430ddcde99d6697c07227233a23f6f6f2a52cbd060bb520d7a203e0c27bd8919",
+      "stdout_sha256": "946796a110443459198b9b67a825f4a4804bf10a9f9ff2af39fe4ee92dec9cd1",
+      "stderr_sha256": "dfd05bedb88c842b79360837738655ae929649aa41ba9d0d112ed669c89ebda2",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 0,
+      "tests_failed": 1,
+      "selected_counts": {},
+      "why": "RED, ORIGINAL profile (collision-fixture), on the UNCHANGED producer, the same changed expectations: the same panic at lane 1 with the same refusal (invalid updated flag 2)"
+    }
+  ],
+  "run_file_short_names": {
+    "flags-sb120-s1-fmt-check.json": "runs/s1-fmt-check.json",
+    "flags-sb120-s1-fmt-check.stdout.log": "runs/s1-fmt-check.stdout.log",
+    "flags-sb120-s1-fmt-check.stderr.log": "runs/s1-fmt-check.stderr.log",
+    "flags-sb120-s2-clippy-engine-hosted.json": "runs/s2-clippy-engine-hosted.json",
+    "flags-sb120-s2-clippy-engine-hosted.stdout.log": "runs/s2-clippy-engine-hosted.stdout.log",
+    "flags-sb120-s2-clippy-engine-hosted.stderr.log": "runs/s2-clippy-engine-hosted.stderr.log",
+    "flags-sb120-s3-clippy-engine-original.json": "runs/s3-clippy-engine-original.json",
+    "flags-sb120-s3-clippy-engine-original.stdout.log": "runs/s3-clippy-engine-original.stdout.log",
+    "flags-sb120-s3-clippy-engine-original.stderr.log": "runs/s3-clippy-engine-original.stderr.log",
+    "flags-sb120-s4-clippy-defaults.json": "runs/s4-clippy-defaults.json",
+    "flags-sb120-s4-clippy-defaults.stdout.log": "runs/s4-clippy-defaults.stdout.log",
+    "flags-sb120-s4-clippy-defaults.stderr.log": "runs/s4-clippy-defaults.stderr.log",
+    "flags-sb120-s5-supply-hosted.json": "runs/s5-supply-hosted.json",
+    "flags-sb120-s5-supply-hosted.stdout.log": "runs/s5-supply-hosted.stdout.log",
+    "flags-sb120-s5-supply-hosted.stderr.log": "runs/s5-supply-hosted.stderr.log",
+    "flags-sb120-s6-supply-original.json": "runs/s6-supply-original.json",
+    "flags-sb120-s6-supply-original.stdout.log": "runs/s6-supply-original.stdout.log",
+    "flags-sb120-s6-supply-original.stderr.log": "runs/s6-supply-original.stderr.log",
+    "flags-sb120-s7-flags-guard.json": "runs/s7-flags-guard.json",
+    "flags-sb120-s7-flags-guard.stdout.log": "runs/s7-flags-guard.stdout.log",
+    "flags-sb120-s7-flags-guard.stderr.log": "runs/s7-flags-guard.stderr.log",
+    "flags-sb120-s8-flags-controls-hosted.json": "runs/s8-flags-controls-hosted.json",
+    "flags-sb120-s8-flags-controls-hosted.stdout.log": "runs/s8-flags-controls-hosted.stdout.log",
+    "flags-sb120-s8-flags-controls-hosted.stderr.log": "runs/s8-flags-controls-hosted.stderr.log",
+    "flags-sb120-s9-flags-controls-original.json": "runs/s9-flags-controls-original.json",
+    "flags-sb120-s9-flags-controls-original.stdout.log": "runs/s9-flags-controls-original.stdout.log",
+    "flags-sb120-s9-flags-controls-original.stderr.log": "runs/s9-flags-controls-original.stderr.log",
+    "flags-sb120-s10-engine-default.json": "runs/s10-engine-default.json",
+    "flags-sb120-s10-engine-default.stdout.log": "runs/s10-engine-default.stdout.log",
+    "flags-sb120-s10-engine-default.stderr.log": "runs/s10-engine-default.stderr.log",
+    "flags-sb120-s11-build-dc.json": "runs/s11-build-dc.json",
+    "flags-sb120-s11-build-dc.stdout.log": "runs/s11-build-dc.stdout.log",
+    "flags-sb120-s11-build-dc.stderr.log": "runs/s11-build-dc.stderr.log",
+    "flags-sb120-d1-fmt-apply.json": "runs/d1-fmt-apply.json",
+    "flags-sb120-d1-fmt-apply.stdout.log": "runs/d1-fmt-apply.stdout.log",
+    "flags-sb120-d1-fmt-apply.stderr.log": "runs/d1-fmt-apply.stderr.log",
+    "flags-sb120-g1-green-supply-hosted.json": "runs/g1-green-supply-hosted.json",
+    "flags-sb120-g1-green-supply-hosted.stdout.log": "runs/g1-green-supply-hosted.stdout.log",
+    "flags-sb120-g1-green-supply-hosted.stderr.log": "runs/g1-green-supply-hosted.stderr.log",
+    "flags-sb120-g2-green-supply-original.json": "runs/g2-green-supply-original.json",
+    "flags-sb120-g2-green-supply-original.stdout.log": "runs/g2-green-supply-original.stdout.log",
+    "flags-sb120-g2-green-supply-original.stderr.log": "runs/g2-green-supply-original.stderr.log",
+    "flags-sb120-r1-red-supply-hosted.json": "runs/r1-red-supply-hosted.json",
+    "flags-sb120-r1-red-supply-hosted.stdout.log": "runs/r1-red-supply-hosted.stdout.log",
+    "flags-sb120-r1-red-supply-hosted.stderr.log": "runs/r1-red-supply-hosted.stderr.log",
+    "flags-sb120-r2-red-supply-original.json": "runs/r2-red-supply-original.json",
+    "flags-sb120-r2-red-supply-original.stdout.log": "runs/r2-red-supply-original.stdout.log",
+    "flags-sb120-r2-red-supply-original.stderr.log": "runs/r2-red-supply-original.stderr.log"
+  },
+  "inputmaps_compare": {
+    "pre_fingerprint": "d981379d4a2256f6f60f07a59110ac2d387c7b37a0e4241165562540fa9a5595",
+    "post_fingerprint": "d981379d4a2256f6f60f07a59110ac2d387c7b37a0e4241165562540fa9a5595",
+    "file_count_pre": 3995,
+    "file_count_post": 3995,
+    "rows_only_in_pre": [],
+    "rows_only_in_post": [],
+    "rows_that_differ": [],
+    "all_rows_equal": true,
+    "head_sha": "120581ac4f14fe98be8b7bb8a524b682554234c2",
+    "changed_from_head_count": [
+      6,
+      6
+    ],
+    "deleted_from_head": [
+      [],
+      []
+    ],
+    "raw_vs_git_filtered_disagreements": {
+      "pre": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ],
+      "post": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ]
+    },
+    "extra_identity_equal": true,
+    "extra_identity_aggregate": [
+      "e241270592901aca4e9b2e6b1b10b32e876717a09461552aebc5fbed2d1b47d0",
+      "e241270592901aca4e9b2e6b1b10b32e876717a09461552aebc5fbed2d1b47d0"
+    ]
+  },
+  "feedback_files_present_at_freeze": [
+    "Root-physical-flags-supply-consumer-feedback-20261107-2148.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2150.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2154.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2201.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2205.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2215.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2222.json",
+    "Root-physical-flags-witness-feedback-20261107-2012.json",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json",
+    "Root-supply-boolean-fix-feedback-20261107-2242.json",
+    "Root-supply-boolean-fix-feedback-20261107-2243.json"
+  ],
+  "readers_PRE_identity_equal": true,
+  "hygiene_problems_at_freeze": [],
+  "not_run": [
+    "any native, Windows, i686 or O2 run",
+    "any replay of the accepted default or the finite witness family",
+    "the helicopter and the other consumers of the flag store",
+    "the shipped Engine::boot bridge",
+    "any Root-owned gate"
+  ]
+}
