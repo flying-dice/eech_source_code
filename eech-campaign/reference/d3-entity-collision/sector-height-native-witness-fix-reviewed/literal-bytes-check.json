@@ -1,0 +1,16 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the external sealed files",
+  "files": {
+    "independent-sector-height-native-witness-fix-e42bb-source-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 13129,
+      "sha256": "507f49b7aff355115713c7ec325b6fe250601991be7866c8ca6eaadad53dbf99"
+    },
+    "height-witness-fix-Root-binding-17f-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 3382,
+      "sha256": "f2ad25d984e1ed419f8c92a151e49445020c4ca6c030d05269da572de3096a21"
+    }
+  },
+  "problems": []
+}
