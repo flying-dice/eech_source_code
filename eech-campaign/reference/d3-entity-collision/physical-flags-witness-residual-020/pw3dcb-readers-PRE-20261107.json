@@ -1,0 +1,12 @@
+{
+  "run-physical-flags-pw3dcb-direct-20261107.py": "b3a9a12ff1bc9cba6708a2c1f3462430367ac6e9c243d4deaa4bcfde56e863fe",
+  "check-physical-flags-pw3dcb-linux-20261107.sh": "17275cae011d20041d9c45249453d0947a53801405d234d4e67900a3294500d7",
+  "run-pw3dcb-final-set-20261107.sh": "7d5cec02cc1bc45968805bb96e82dea153314d8198dd05fa4257f524d51a1579",
+  "pw3dcb-extra-identity-20261107.py": "a3897e0b5191d025b27e6fc109cb5e6bffcf842e73754b3e9f8ee6ac9e7821ae",
+  "freeze-pw3dcb-20261107.py": "bc42926bb741f70e3c1a45fd9b923d8a9e1c16168969d05799826889d845aa45",
+  "publish-pw3dcb-20261107.py": "363a0d5f5d6afbb27f52122393529ab42b31db4813ec466433381ca0b7ecfed8",
+  "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+  "sho-compare-maps-20261107.py": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+  "preflight-receipts-20261107.py": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf",
+  "pw3dcb-name-check-20261107.py": "508c392bb2f2fc18d460e364f164ea84f6daf3bfc8cab5e53e546a3c6a2aedae"
+}

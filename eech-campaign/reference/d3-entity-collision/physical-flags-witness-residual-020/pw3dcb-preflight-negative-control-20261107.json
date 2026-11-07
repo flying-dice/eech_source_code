@@ -1,0 +1,10 @@
+{
+  "prefix": "flags-pw3dbc-",
+  "label_regex": "^d\\d+-",
+  "declared_helper": "check-physical-flags-pw3dcb-linux-20261107.sh",
+  "records": 0,
+  "rows": [],
+  "problems": [
+    "no run record matches flags-pw3dbc-^d\\d+-"
+  ]
+}

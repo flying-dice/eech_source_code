@@ -29,6 +29,17 @@ local PHASE = { group = "0x41980000", set = "0x41a00000", read = "0x41a80000", r
 local RESULT = { group = "flag_group", set = "flag_set", read = "flag_read", reset = "flag_reset" }
 local ZERO, ONE, TWO = "0x00000000", "0x3f800000", "0x40000000"
 local function note (what) LOG [#LOG + 1] = what end
+-- the ACTUAL callables host.terrain_provider () and host.env_provider () return: each records the arguments it was called with (their count and every value, a nil included), returns three values with a nil between, and fails when asked for `boom`
+TERRAIN_LOG, ENV_LOG = {}, {}
+local function probe_callable (log, tag)
+	return function (...)
+		log [#log + 1] = select ("#", ...)
+		for i = 1, select ("#", ...) do log [#log + 1] = tostring ((select (i, ...))) end
+		if (...) == "boom" then error (tag .. " boom", 0) end
+		return tag, nil, 3
+	end
+end
+RAW_TERRAIN, RAW_ENV = probe_callable (TERRAIN_LOG, "terrain"), probe_callable (ENV_LOG, "environment")
 local function fatal (marker, text) error ("host model: [model-provider:" .. marker .. "] " .. text, 0) end
 local function split (text)
 	local t = {}
@@ -112,6 +123,12 @@ local function ask (config, event, array, lane, key, eligible, group)
 	if ignore == "continue" then
 		config.bind_mobile ({})
 		error (result, 0)
+	elseif ignore == "terrain" then
+		config.terrain ("ignored-fault", 7)
+		error (result, 0)
+	elseif ignore == "environment" then
+		config.environment ("ignored-fault", 7)
+		error (result, 0)
 	elseif ignore == "return" then
 		error (RETURN)
 	end
@@ -158,6 +175,13 @@ local function act (config, action)
 	elseif action [1] == "cand" then candidate (config, P.entities [action [2]])
 	elseif action [1] == "read" then read_lane (config, ENTITY [action [2]])
 	elseif action [1] == "fatal" then fatal (action [2], "the scripted campaign stops here")
+	elseif action [1] == "probe" then
+		-- the engine calling its two provider callables: every argument forwarded and every result returned exactly once, an error unchanged
+		local n1, a1, b1, c1 = select ("#", config.terrain ("a", nil, 3)), config.terrain ("a", nil, 3)
+		local ok1, e1 = pcall (config.terrain, "boom")
+		local n2, a2, b2, c2 = select ("#", config.environment ("a", nil, 3)), config.environment ("a", nil, 3)
+		local ok2, e2 = pcall (config.environment, "boom")
+		PROBE = string.format ("terrain n=%s r=%s,%s,%s err=%s ok=%s log=%s | environment n=%s r=%s,%s,%s err=%s ok=%s log=%s", n1, tostring (a1), tostring (b1), tostring (c1), tostring (e1), tostring (ok1), table.concat (TERRAIN_LOG, ","), n2, tostring (a2), tostring (b2), tostring (c2), tostring (e2), tostring (ok2), table.concat (ENV_LOG, ","))
 	end
 end
 
@@ -167,6 +191,18 @@ package.preload ["eech_dc"] = function ()
 		boot = function (config)
 			note ("boot " .. tostring (config.campaign))
 			CONFIG = config
+			-- the census of the function slots of this boot and which of them are still the host's RAW function
+			local keys, raw_same = {}, {}
+			for key, value in pairs (config) do
+				if type (value) == "function" then
+					keys [#keys + 1] = key
+					local raw = ({ terrain = RAW_TERRAIN, environment = RAW_ENV }) [key] or host [key]
+					if value == raw then raw_same [#raw_same + 1] = key end
+				end
+			end
+			table.sort (keys)
+			table.sort (raw_same)
+			CENSUS = table.concat (keys, ",") .. "|" .. table.concat (raw_same, ",")
 			-- P.boot_actions: flag traffic of the engine's own boot (an update iteration while the campaign is created)
 			local function run_actions (actions)
 				for _, action in ipairs (actions or {}) do
@@ -193,6 +229,8 @@ struct Outcome {
     report: Option<String>,
     asked: i64,
     provider_flag_calls: i64,
+    census: String,
+    probe: String,
 }
 
 static SERIAL: AtomicUsize = AtomicUsize::new(0);
@@ -236,8 +274,8 @@ fn run_to(args: &str, p: &str, out: &std::path::Path) -> Outcome {
         host = {
             args = HOST_ARGS,
             log = function () end,
-            terrain_provider = function () return function () end end,
-            env_provider = function () return function () end end,
+            terrain_provider = function () return RAW_TERRAIN end,
+            env_provider = function () return RAW_ENV end,
             bind_mobile = function () end, move_vehicle = function () end, observe_loss = function () end,
             supply_reached = function () end, line_of_sight = function () end, sense = function () end, aim = function () end,
         }
@@ -300,11 +338,15 @@ fn run_to(args: &str, p: &str, out: &std::path::Path) -> Outcome {
     let asked: f64 = lua.globals().get("ASKED").unwrap();
     let provider_flag_calls: f64 = lua.globals().get("PROVIDER_FLAG_CALLS").unwrap();
     let report = std::fs::read_to_string(out).ok();
+    let census: Option<String> = lua.globals().get("CENSUS").unwrap();
+    let probe: Option<String> = lua.globals().get("PROBE").unwrap();
     Outcome {
         result,
         report,
         asked: asked as i64,
         provider_flag_calls: provider_flag_calls as i64,
+        census: census.unwrap_or_default(),
+        probe: probe.unwrap_or_default(),
     }
 }
 
@@ -1210,9 +1252,11 @@ fn verdict_text(text: &str) -> String {
     text.lines().find(|l| l.starts_with("pf-witness-verdict")).unwrap_or("").to_string()
 }
 
-/// the three ways an engine can IGNORE an injected fault: (a) another host callback and then the very same marker, (b) a normal return from the entry, (c) a different marker later
-const IGNORES: [(&str, &str); 3] = [
+/// the ways an engine can IGNORE an injected fault: (a) another host callback (a named one, or the terrain or the environment callable of the boot) and then the very same marker, (b) a normal return from the entry, (c) a different marker later
+const IGNORES: [(&str, &str); 5] = [
     ("continue", "followed the altered answer"),
+    ("terrain", "followed the altered answer"),
+    ("environment", "followed the altered answer"),
     ("return", "accepted the single fault"),
     ("other", "stopped at entity_scan.cursor"),
 ];
@@ -1295,4 +1339,156 @@ fn a_fatal_in_another_entry_than_the_one_that_made_the_altered_answer_is_not_cre
     let pair = paired(BOOT_P);
     let o = pair.mode_with("set_withheld", "ignore_fault = 'return', frames = { { { 'fatal', 'entity_scan.callback' } } }");
     assert_failed(&o, "FAILURE", "accepted the single fault");
+}
+
+// ---------------------------------------------------------------------------------------------------------------- residuals of the 3dcb report
+
+/// the tuple of the first-event row `source` (ordinal, frame and the four before_ counts) copied onto the row `target`: one question made to look like two base events
+fn copy_tuple(text: &str, target: &str, source: &str) -> String {
+    let source_row = text
+        .lines()
+        .find(|l| l.starts_with(source))
+        .unwrap_or_else(|| panic!("no row {source}"))
+        .to_string();
+    let mut out = text.to_string();
+    for key in ["ordinal", "frame", "before_group", "before_set", "before_read", "before_reset"] {
+        out = set_token(&out, target, key, &field(&source_row, key));
+    }
+    out
+}
+
+#[test]
+fn distinct_base_events_cannot_share_one_transaction_ordinal_and_only_the_first_read_and_its_consumable_tag_may() {
+    let pair = paired("");
+    let control = std::fs::read_to_string(&pair.control).unwrap();
+    // positive first: the genuine control carries the first READ and its read_consumable tag at ONE ordinal (the same question), and unlocks the modes below
+    let read = token_of(&control, "pf-witness-first event=read ", "ordinal");
+    assert_eq!(read, token_of(&control, "pf-witness-first event=read_consumable ", "ordinal"), "{control}");
+    for mode in ["set_withheld", "group_duplicate_key", "read_changed"] {
+        passed(&pair.mode(mode));
+    }
+    let group = "pf-witness-first event=group ";
+    let reviewer = set_token(&set_token(&control, group, "ordinal", "1"), group, "before_reset", "0");
+    let swapped = {
+        let read_row = control.lines().find(|l| l.starts_with("pf-witness-first event=read ")).unwrap().to_string();
+        let tag_row = control
+            .lines()
+            .find(|l| l.starts_with("pf-witness-first event=read_consumable "))
+            .unwrap()
+            .to_string();
+        control.replace(&format!("{read_row}\n{tag_row}\n"), &format!("{tag_row}\n{read_row}\n"))
+    };
+    let cases: Vec<(&str, &str, String)> = vec![
+        (
+            "the reviewer's counterexample: the first GROUP edited to the first RESET's ordinal 1 and prefix",
+            "set_withheld",
+            reviewer,
+        ),
+        (
+            "the first SET and the second GROUP sharing one tuple",
+            "group_duplicate_key",
+            copy_tuple(&control, "pf-witness-first event=group_second ", "pf-witness-first event=set "),
+        ),
+        ("the read_consumable tag BEFORE its read at the shared ordinal", "read_changed", swapped),
+    ];
+    let mut wrong = Vec::new();
+    for (what, mode, damaged) in &cases {
+        if damaged == &control {
+            wrong.push(format!("{what}: the damage changed nothing"));
+            continue;
+        }
+        let outcome = run_with_control(&pair.p, mode, damaged);
+        if !refused_before_any_effect_for(&outcome, "ordinal") {
+            wrong.push(format!(
+                "{what} ({mode}): expected a refusal naming the ordinal relationship before any effect, got {}",
+                describe(&outcome)
+            ));
+        }
+    }
+    assert!(wrong.is_empty(), "{} equal-ordinal references were not refused:\n{wrong:#?}", wrong.len());
+}
+
+#[test]
+fn a_consumable_read_after_an_earlier_plain_read_keeps_two_valid_first_event_rows() {
+    // a consumable read AFTER an earlier plain read: the read and read_consumable rows have different ordinals and both are valid
+    let pair = paired("frames = { { 'iter', { 'read', 33 } }, { 'iter', { 'cand', 1 } } }");
+    let control = std::fs::read_to_string(&pair.control).unwrap();
+    assert_ne!(
+        token_of(&control, "pf-witness-first event=read ", "ordinal"),
+        token_of(&control, "pf-witness-first event=read_consumable ", "ordinal"),
+        "{control}"
+    );
+    for mode in ["set_withheld", "read_changed", "read_withheld"] {
+        passed(&pair.mode(mode));
+    }
+}
+
+#[test]
+fn the_engine_is_given_wrapped_terrain_and_environment_callables_and_every_function_slot_is_the_known_finite_set() {
+    // the actual boot census: ten function slots, none of them still the host's RAW function (the old unwrapped terrain and environment callables were)
+    let o = run(&format!("{ARGS}, mode = 'flags_control'"), &case("candidate_skip = true"));
+    passed(&o);
+    assert_eq!(
+        o.census, "aim,bind_mobile,environment,line_of_sight,model,move_vehicle,observe_loss,sense,supply_reached,terrain|",
+        "the engine's function slots, then the ones that are still the host's raw function"
+    );
+}
+
+/// the callable slots the module reads from the boot config, from its actual source: the ten required functions and the two sample providers that default to the environment function
+#[test]
+fn the_module_reads_exactly_the_ten_function_slots_plus_two_that_default_to_the_environment_function() {
+    let source = String::from_utf8_lossy(&std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../eech-dc/src/module.rs")).unwrap()).to_string();
+    let start = source.find("fn boot(lua: &Lua, config: LuaTable)").expect("the boot function");
+    let tail = source.get(start..).unwrap();
+    let end = tail.find("\n}\n").expect("the end of boot");
+    let body = tail.get(..end).unwrap();
+    let marker = "config.get::<LuaValue>(\"";
+    let mut slots: Vec<String> = body
+        .match_indices(marker)
+        .map(|(at, _)| body.get(at + marker.len()..).unwrap().split('"').next().unwrap().to_string())
+        .collect();
+    slots.sort();
+    assert_eq!(
+        slots,
+        [
+            "aim",
+            "bind_mobile",
+            "environment",
+            "line_of_sight",
+            "model",
+            "move_vehicle",
+            "observe_loss",
+            "sense",
+            "supply_reached",
+            "terrain"
+        ],
+        "the function slots boot reads; a new one must join the continuation latch"
+    );
+    // the two sample providers are read from their own functions and default to the environment function this witness wraps
+    for (name, key) in [("fn sound_data_function", "sound_data"), ("fn sound_backend_function", "sound_backend")] {
+        let at = source.find(name).unwrap_or_else(|| panic!("{name}"));
+        let body = source.get(at..).unwrap();
+        let body = body.get(..body.find("\n}\n").unwrap()).unwrap();
+        assert!(
+            body.contains(&format!("config.get::<LuaValue>(\"{key}\")")) && body.contains("LuaValue::Nil => Ok(environment.clone())"),
+            "{name} no longer defaults to the environment function"
+        );
+    }
+    assert!(
+        !DRIVER.contains("sound_data =") && !DRIVER.contains("sound_backend ="),
+        "the witness must leave both sample providers to default to its wrapped environment callable"
+    );
+}
+
+#[test]
+fn the_wrapped_provider_callables_forward_every_argument_and_every_result_exactly_once_and_leave_errors_unchanged() {
+    let o = run(
+        &format!("{ARGS}, mode = 'flags_control'"),
+        &case("candidate_skip = true, frames = { { 'iter', { 'probe' } } }"),
+    );
+    passed(&o);
+    assert_eq!(
+        o.probe,
+        "terrain n=3 r=terrain,nil,3 err=terrain boom ok=false log=3,a,nil,3,3,a,nil,3,1,boom | environment n=3 r=environment,nil,3 err=environment boom ok=false log=3,a,nil,3,3,a,nil,3,1,boom"
+    );
 }

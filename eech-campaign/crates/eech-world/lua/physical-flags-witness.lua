@@ -318,8 +318,14 @@ local function validate_positive (rec, role)
 			if f.ordinal < previous.ordinal or f.frame < previous.frame or f.before_group < previous.before_group or f.before_set < previous.before_set or f.before_read < previous.before_read or f.before_reset < previous.before_reset then
 				refuse ("the " .. role .. " report's first-event rows are out of order at " .. row.event .. ": they must follow the order the events happened in")
 			end
-			if f.ordinal == previous.ordinal and (f.frame ~= previous.frame or f.before_group ~= previous.before_group or f.before_set ~= previous.before_set or f.before_read ~= previous.before_read or f.before_reset ~= previous.before_reset) then
-				refuse ("the " .. role .. " report's first-event rows " .. previous.event .. " and " .. row.event .. " share an ordinal but not their prefix")
+			if f.ordinal == previous.ordinal then
+				-- ONE question is ONE event: distinct base events need strictly increasing ordinals; the only equal ordinal is the ordered first READ followed by the read_consumable tag of that same read, with the identical frame and complete prefix
+				if not (previous.event == "read" and row.event == "read_consumable") then
+					refuse ("the " .. role .. " report's first-event rows " .. previous.event .. " and " .. row.event .. " share the ordinal " .. f.ordinal .. ": distinct base events need strictly increasing ordinals (only the first read and its read_consumable tag may share one)")
+				end
+				if f.frame ~= previous.frame or f.before_group ~= previous.before_group or f.before_set ~= previous.before_set or f.before_read ~= previous.before_read or f.before_reset ~= previous.before_reset then
+					refuse ("the " .. role .. " report's first-event rows " .. previous.event .. " and " .. row.event .. " share the ordinal " .. f.ordinal .. " but not their frame and complete prefix")
+				end
 			end
 		end
 		f.event = row.event
@@ -668,6 +674,18 @@ local function settling (name)
 	end
 end
 
+-- the ACTUAL callables host.terrain_provider () and host.env_provider () return are genuine host callback surfaces the engine calls (the environment function is also the default sample metadata and sound backend provider): they join the same continuation tracking as every other
+-- callback. The wrapper forwards every argument and every result exactly once (a tail call: no extra query, nothing held, no changed error, state or order); a value that is not a function is passed through untouched so the module's own refusal stands
+local function continuing (name, callable)
+	if type (callable) ~= "function" then return callable end
+	return function (...)
+		note_callback (name)
+		settle ()
+		state.need_updated, state.pending_consume = nil, nil
+		return callable (...)
+	end
+end
+
 local function engine_marker (err)
 	return string.match (tostring (err), "%[model%-provider:([%w_%.]+)%]")
 end
@@ -686,7 +704,7 @@ local function boot_config ()
 	return {
 		install_root = root,
 		map = effective_map,
-		terrain = host.terrain_provider (root, effective_map), environment = host.env_provider (),
+		terrain = continuing ("terrain", host.terrain_provider (root, effective_map)), environment = continuing ("environment", host.env_provider ()),
 		campaign_directory = "camp01",
 		campaign = effective_campaign,
 		gunship = "apache",

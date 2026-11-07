@@ -1,0 +1,22 @@
+{
+  "d1-red-parent-3dcb-new-tests": {
+    "actual_exit": 101,
+    "why": "GENUINE RED against the unchanged 3dcb09480 driver: 4 of 30 tests failed (the first GROUP edited to the first RESET's ordinal and prefix, and the tag before its read, were accepted as references; the engine's terrain and environment function slots were still the host's RAW functions; every ignored fault that continued through the terrain or the environment callable and raised the same marker was credited PASS); the exact-forwarding, module-census and later-consumable-read tests passed before and after"
+  },
+  "d2-green-attempt1": {
+    "actual_exit": 0,
+    "why": "GREEN: the 30 driver tests pass with the strictly increasing ordinals and the wrapped terrain and environment callables"
+  },
+  "d3-fmt-apply-world": {
+    "actual_exit": 0,
+    "why": "cargo fmt -p eech-world applied to the test file (git status showed no other file changed)"
+  },
+  "d4-clippy-world-engine-dc": {
+    "actual_exit": 0,
+    "why": "clippy -D warnings over eech-world, eech-engine and eech-dc all targets"
+  },
+  "d5-world-all": {
+    "actual_exit": 0,
+    "why": "the whole eech-world suite passes"
+  }
+}
