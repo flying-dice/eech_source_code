@@ -1,0 +1,50 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "independent-physical-flags-public-witness-f4d-source-20261107-v2.json",
+      "bytes": 21571,
+      "sha256": "9b0ee1e27ecfb5d8395d21c985fa6c7978b661716aa9a1f6b9e16d3851e5e19e"
+    },
+    {
+      "path": "independent-physical-flags-public-witness-f4d-source-20261107.json",
+      "bytes": 21125,
+      "sha256": "9589291555db6d7c8d303b5ad1d1c921854e77657d894e6e767b1f102a820106"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "bytes": 2421,
+      "sha256": "dbdf92b11ffb911abf8b38ee75f561b044debf04dc334ced5029b0424885dc9e"
+    },
+    {
+      "path": "physical-flags-020-closed-Windows-cache-cleanup-20261107.json",
+      "bytes": 1005,
+      "sha256": "82d71702b10cb5188f5c2ef7f8d7fa09df0215a28024f8a4bceadb5b80339066"
+    },
+    {
+      "path": "physical-flags-default-020-Root-binding-20261107.json",
+      "bytes": 6815,
+      "sha256": "40e8813378c1b9c4db88cd461f5d28d94145b8cf5512ca04d86174067edf0b4c"
+    },
+    {
+      "path": "physical-flags-witness-c5fe-publication-Root-20261107.json",
+      "bytes": 4698,
+      "sha256": "568441a06a7a487ca5677df63599ab096189a6d7bc45c321b490f475a847f42b"
+    },
+    {
+      "path": "physical-flags-witness-f4d-Root-binding-20261107.json",
+      "bytes": 15371,
+      "sha256": "318384e3457a9bef15417ad313801f7e1424f9a9c1a40c0f30aa6f1af9437b14"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3089,
+      "sha256": "cfda8989344506a679a0ee399659e300dc3a5b95cbd1d7f8baa7a0d4c6cd3152"
+    }
+  ],
+  "scope": "Literal review and Root records of the public witness candidate f4d62c9b4 only; not an approval, native clearance or acceptance."
+}

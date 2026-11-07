@@ -1,0 +1,16 @@
+{
+  "kind": "Root removed ONLY two closed020 Windows build caches after authorterminal/cachehandoff and retained-evidence audit",
+  "utc": "2026-11-07T20:33:15.916985+00:00",
+  "actual_exit": 0,
+  "author_completion_sha256": "f43cb689743cdb5df91c2d42ecc1d88be1809211ebfa692a654eec45805d4078",
+  "retained_COFF_rehashed": 30,
+  "retained_staged_sources_rehashed": 26,
+  "retained_payloads_rehashed": 180,
+  "retained_raw_audits_rehashed": 54,
+  "removed_volumes": [
+    "eech-win-physical-flags-020-ordinary-20261107",
+    "eech-win-physical-flags-020-original-20261107"
+  ],
+  "actual_removed_output": "eech-win-physical-flags-020-ordinary-20261107\neech-win-physical-flags-020-original-20261107\n",
+  "scope": "Source snapshot/testedbins/allretailroots/defaultnativeoutputs/rawproofs/images/Originalreader tag/Linuxwarmcache/drive mappings and original764 jobs preserved. No nativeauthority/wholeD3 acceptance. Ordinaryproducer-missing qualification remains unchanged; no reconstruction or new build."
+}

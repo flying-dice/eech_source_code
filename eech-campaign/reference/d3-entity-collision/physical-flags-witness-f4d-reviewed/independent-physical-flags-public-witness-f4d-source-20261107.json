@@ -1,0 +1,297 @@
+{
+  "schema": 1,
+  "kind": "Independent combined NEW public physical-flag witness source/check/plan and completed default actual review",
+  "created_utc": "2026-11-07T20:37:45.148760+00:00",
+  "source": {
+    "before": "1e31da64370fb869be26747e1a754fe0d3aff0dc",
+    "commit": "f4d62c9b4e7573a149973d5eb9357c77f08c609f",
+    "metadata_commit": "c5fe7797713836588033bb4ebe5b6563304ea4c3",
+    "compiled_runtime_commit": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "observed_HEAD_exact_and_full_clean": true,
+    "changed_executable_scope": "Lua diagnostic helpers and new standalone witness only; Rust test harness/census and documentation/evidence changes. No product C/Rust/build/Cargo change; compiled binaries remain true020.",
+    "reviewed_inputs": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+        "bytes": 43610,
+        "sha256": "2cd536d77470049f4912dd9098132adbe56a0bbff37e1fa9f2fd7de1953902ab",
+        "git_blob": "146de178b6949177bff1103d7e96ace59a341c39"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 279647,
+        "sha256": "bb55acdcce5f25662f314c3cb91ad1c0be08d4fd762dd1b9f69d68eab0fc77c6",
+        "git_blob": "f2a4ecf399027b7988d877325d601722e3c4f652"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs",
+        "bytes": 38370,
+        "sha256": "5d1d485cae1d8bf9c1cf22323d7a71299b400300c757abf2e078beafb693badf",
+        "git_blob": "36f384bd9b41ed834ebdc12399bbad92a4ef4f7c"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+        "bytes": 359371,
+        "sha256": "ba2970a42b9ce13f2d58b2fdbe839adbd62b29a5b54881462639a43c99472450",
+        "git_blob": "4e3d4a3396b8dc61d05cb78ecd0ab3f44dd920c0"
+      },
+      {
+        "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+        "bytes": 42877,
+        "sha256": "1420d7c8d7d80eda48819dd1f904018ae4a1480dc71591ec9fda5d078bbb83df",
+        "git_blob": "d062253d56aa80af0ace1fa9e216a1ad8c3e038d"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/physical-flags-public-witness-020/physical-flags-public-witness-plan.json",
+        "bytes": 16852,
+        "sha256": "67b7faac8dfc93592f60513de2f8136dd6bf1e6533f751885068fe5956870633",
+        "git_blob": "826fd9db823d70fd89506ade5c17b1cf29ad9ff4"
+      }
+    ]
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED_FOR_WITNESS; FINITE_DEFAULT_ACTUALS_PASS",
+    "native_launch_clearance": false,
+    "witness_native_launch_clearance": false,
+    "default_finite_actuals_accepted": true,
+    "physical_flag_authority_accepted": false,
+    "whole_height_accepted": false,
+    "current_fullshipping_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false,
+    "reason": "Two bounded P2 witness-verdict/precondition gaps must be corrected before the23-step authority plan can run. Independently completed unchanged-default comparisons pass at their declared35-frame scope. No source regression in the prior key fixes is inferred."
+  },
+  "findings": [
+    {
+      "id": "ENV-PHYSICAL-FLAGS-WITNESS-REFERENCE-COMPLETE-1",
+      "severity": "P2",
+      "status": "OPEN",
+      "title": "Incomplete or contradictory positive references can unlock boot and interventions",
+      "evidence": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+          "lines": "158-220,223-257",
+          "facts": "read_reference requires identity/counts/verdict but does not require the emitted pf-witness-oracle record, validate the complete schema fields or their cross-record relationships. Original pairing checks attempts only (plus altered and frames); intervention pairing checks selected accepted counts, altered/oracle_mismatches and one selected first row. The consume check accepts any single pattern where fact==expected, without validating host/raw-word/change consistency."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs",
+          "lines": "519-595",
+          "facts": "Current positive-first damaged-reference controls exercise mode/setup/pairing/some counts/fault rows, but not missing oracle, contradictory attempt/answered/accepted/oracle counts or incoherent consumption tuples."
+        }
+      ],
+      "concrete_failure": "Starting from a valid Original report, remove its oracle row or change answered_set/accepted_set to a nonzero whole count while attempts_set stays0 and the PASS verdict stays unchanged: flags_control still accepts it before boot. Starting from a valid paired control, remove the oracle row or contradict answered/attempt counts while retaining accepted_group/set/reset>0, the selected first row and PASS: a refusal mode still proceeds. For read_changed, an edited consume tuple fact=expected=0x00000000 passes the precondition although UPDATED must be1.0 or2.0, and its other tuple fields are not required. These are source-derived counterexamples, not executed probes.",
+      "impact": "The claimed whole successful same-setup positive is not actually established before effects. A damaged positive packet can authorize a native intervention and its refusal credit.",
+      "minimum_correction": [
+        "Validate the complete schema1 reference records required by each role, their multiplicities/order and canonical field domains before output creation/preparation/boot. A healthy reference requires no fatal/request/reply fault, no intervention, no backing mismatch and coherent attempt/answered/accepted/key/oracle relationships; Original must have zero flag traffic throughout, not just zero attempts.",
+        "Join oracle record values to counts, first-event records to count/frame/ordinal bounds and the event actually eligible, and any consume tuple to complete legal UPDATED1.0/2.0/raw-word/change relationships. Preserve the legitimate group/set/reset-only control with no consumable read: it may support only cases its actual positive reached.",
+        "Use a real generated successful Original and paired control first; damage one field/required row at a time (including missing oracle, accepted>attempted, inconsistent oracle, impossible first prefix and incoherent/missing consumption fields). Each must reject for that field before report creation, boot, provider calls or alteration; retain genuine parent RED and corrected GREEN. No native damaged-reference run or new production API is needed."
+      ]
+    },
+    {
+      "id": "ENV-PHYSICAL-FLAGS-WITNESS-REFUSAL-CAUSAL-1",
+      "severity": "P2",
+      "status": "OPEN",
+      "title": "A delayed unrelated fatal at the same marker can receive refusal credit",
+      "evidence": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+          "lines": "280-285,472-477,512-523,533-537,598-629",
+          "facts": "An injected refusal sets intervened1, but creates no pending immediate-refusal latch. Subsequent callbacks run normally. decide credits intervened1 plus a later fatal whose marker matches, without checking continuation after the bad answer."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs",
+          "lines": "623-647,661-688",
+          "facts": "Current tests prove direct refusal and fatal-before-intervention rejection, but do not cover an engine ignoring the injected fault, continuing through another callback, then raising the same marker."
+        }
+      ],
+      "concrete_failure": "A scripted campaign can receive/ignore the injected malformed or wrong reply, call another host callback, and then raise the configured marker later in that frame. No request/reply fault need be recorded by the witness, altered remains1 and decide reaches PASS at629. The fatal did not demonstrate immediate rejection of the altered answer. This is a source-derived counterexample; no experiment was replayed.",
+      "impact": "The single-fault causal boundary proof can falsely pass an accepted bad reply followed by an unrelated failure.",
+      "minimum_correction": [
+        "Latch the refusal transaction when the eligible fault is injected. Any subsequent host callback or normal return from that engine entry before its fatal must invalidate refusal credit, even if a later fatal has the same marker. Keep real malformed positive/reply/oracle faults and unrelated fatal failures ahead of UNREACHED.",
+        "Bind expected fatal capture to the actual engine entry/phase. frame calls are guarded today; boot is only inside the outer xpcall and does not populate fatal. Where the declared first eligible event can occur during boot, capture that actual entry consistently without any getter/counter/close through a poisoned engine; do not manufacture a fatal or silently credit another phase.",
+        "Retain a successful paired positive, direct genuine refusal per mode, and clean UNREACHED. Add positive-first controls that ignore the fault then (a) continue a callback and raise the same marker, (b) return normally, or (c) raise a different marker; all must fail. Preserve fatal-before-intervention failures and the valid changed-answer path; no C/Rust product change or native bad-input run is required."
+      ]
+    }
+  ],
+  "prior_dispositions": [
+    {
+      "id": "ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1",
+      "status": "CLOSED_SOURCE_RETAINED",
+      "proof": "independent-physical-flags-keyfix-020-source-20261107.json SHA3e74ae30c3403cd3ae67dc0c84da213cd8123841f54149a364113830644a0c91"
+    },
+    {
+      "id": "ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1",
+      "status": "CLOSED_SOURCE_RETAINED",
+      "proof": "same immutable3e74; no re-review of unchanged implementation"
+    }
+  ],
+  "evidence": {
+    "freeze": {
+      "path": "R:\\d3-evidence\\D3-PHYSICAL-FLAGS-PUBLIC-WITNESS-CODE-FROZEN-20261107.json",
+      "bytes": 20381,
+      "sha256": "98f00c126b5384981df1aa0f7f65e2d85a48540d268a90194cab32bc4b8f69d5"
+    },
+    "Root_source_binding": {
+      "path": "R:\\d3-evidence\\physical-flags-witness-f4d-Root-binding-20261107.json",
+      "bytes": 15371,
+      "sha256": "318384e3457a9bef15417ad313801f7e1424f9a9c1a40c0f30aa6f1af9437b14"
+    },
+    "Root_publication": {
+      "path": "R:\\d3-evidence\\physical-flags-witness-c5fe-publication-Root-20261107.json",
+      "bytes": 4698,
+      "sha256": "568441a06a7a487ca5677df63599ab096189a6d7bc45c321b490f475a847f42b"
+    },
+    "producer": {
+      "path": "R:\\d3-evidence\\claude-d3-physical-flags-native-witness-20261107-completion.json",
+      "bytes": 1647,
+      "sha256": "f43cb689743cdb5df91c2d42ecc1d88be1809211ebfa692a654eec45805d4078"
+    },
+    "default_plan_review": {
+      "path": "R:\\d3-evidence\\independent-physical-flags-020-default-plan-20261107.json",
+      "bytes": 9539,
+      "sha256": "3868cd06bea7541d2b8326a1b1d838237140ca8e2eb19fe057d7542a7e9c3310"
+    },
+    "default_actual_binding": {
+      "path": "R:\\d3-evidence\\physical-flags-default-020-Root-binding-20261107.json",
+      "bytes": 6815,
+      "sha256": "40e8813378c1b9c4db88cd461f5d28d94145b8cf5512ca04d86174067edf0b4c"
+    },
+    "ordinary_default": {
+      "path": "R:\\d3-evidence\\physical-flags-default-020-ordinary_short-20261107-completion.json",
+      "bytes": 5394,
+      "sha256": "11b4706f693c97ce496873c72ac4f434453fde476cd32298759778da2433af4c"
+    },
+    "original_default": {
+      "path": "R:\\d3-evidence\\physical-flags-default-020-original_short-20261107-completion.json",
+      "bytes": 5397,
+      "sha256": "c8d2558036480fd6be11b17db455eb0dacc1098dbc84636355315149dcbf36cd"
+    },
+    "build": {
+      "path": "R:\\d3-evidence\\physical-flags-native-windows-020-20261107-completion.json",
+      "bytes": 36703,
+      "sha256": "8def045f2f4380e62de3429cac50e6831b78d7b1cd960eb4243bdc9e6ecbb186"
+    },
+    "profile": {
+      "path": "R:\\d3-evidence\\physical-flags-native-020-profile-20261107-completion.json",
+      "bytes": 4335,
+      "sha256": "5a1ff2a2c4cff94934b1c273ec7b57f106c7fc051518f67398817efb4bd792b9"
+    },
+    "release": {
+      "path": "R:\\d3-evidence\\physical-flags-020-WINDOWS-CACHE-RELEASE-20261107.json",
+      "bytes": 2201,
+      "sha256": "2272fd770222e481df6047b036c0879afa80123b25db1d8aba5c44c441574b91"
+    }
+  },
+  "source_and_check_binding": {
+    "author_actual_exit": 0,
+    "result_is_error": false,
+    "actual_model": "claude-sonnet-5-5",
+    "completed_utc": "2026-11-07T20:29:11.607686+00:00",
+    "PRE_utc": "2026-11-07T20:26:29Z",
+    "POST_utc": "2026-11-07T20:28:09Z",
+    "whole_map_rows": 3993,
+    "PRE_POST_current_raw_equal": true,
+    "actual_Git_join": "All current/committed inputs joined by Root; exactly3 inherited uncompiled tree-geometry test Lua rawCRLF/GitLF exceptions retained. No normalization or filtered-identity substitution. Frozen changed-file head_blob fields describe the prior HEAD at capture; Root joins actual f4d Git bytes.",
+    "extras": 33,
+    "extras_PRE_POST_current_equal": true,
+    "PRE_readers_current": 9,
+    "postPOST_publisher_repair": false,
+    "compiled_product_rows_unchanged_from020": 3805,
+    "final_direct_actual_exits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "test_result_instances": 1346,
+    "components": {
+      "driver_scripted_engine_real_provider": 19,
+      "whole_World_including_same_driver_tests": 1301,
+      "Sys_source_guards": 26
+    },
+    "count_limit": "1346 result instances include the19 driver tests again in wholeWorld; not1346 distinct tests or native observations.",
+    "publication": {
+      "manifest_entries_actualGit_current_literal": 85,
+      "external_copies_literal": 70,
+      "metadata_delta": "STATUS/card only",
+      "clean_pushed_exact": "c5fe7797713836588033bb4ebe5b6563304ea4c3"
+    },
+    "retained_failures": "Initial mask helper diagnostics/controlled old-helper REDs, formatting failure and script-census-only World failure remain literal. They are neither product-kernel REDs nor native authority."
+  },
+  "default_finite_actuals": {
+    "status": "PASS_AT_DECLARED_SCOPE",
+    "runtime_commit": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "driver": "shipped campaign.lua; no external witness",
+    "setup": "lebanon_retail/hours0.001/frame_ms100/seed1/record1/record_every10/observe_every1/observe_supply1;35frames/3.5simulationseconds",
+    "cases": [
+      {
+        "case": "ordinary_short",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_input_exits": [
+          0,
+          0
+        ],
+        "sealed_payloads": 90
+      },
+      {
+        "case": "original_short",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_input_exits": [
+          0,
+          0
+        ],
+        "sealed_payloads": 90
+      }
+    ],
+    "complete_literal_files_each": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+      }
+    ],
+    "all_four_full1179_input_manifest_bytes_equal_reference": true,
+    "reviewer_retained_readonly_join": "Joined both actual receipts to Root40e, real native/pre/post/controller0, all four complete input manifest bytes to reference and all six complete output bytes to accepted80fd; no checker/campaign replay.",
+    "payload_and_snapshot": "Root40e confirms180 payloads unchanged and frozen020 clean. Existing build8def/profile5a1f/release2272 remain true identities; absent ordinary6591 producer versus resident Originalde45 read-only reader qualification retained.",
+    "limits": "Finite unchanged compatibility only. Wall durations are not benchmarks. No authority/intervention/allconsumer/lifetime/FPU/fullpack acceptance."
+  },
+  "source_supported_positive_facts": [
+    "New standalone driver uses public require(eech_dc), dc.prepare_installation, dc.boot and engine:frame, with existing native MODEL_BRIDGE/call_model adapters. main host supplies the real single persistent Roster/FlagStore via host.model. It imports no entity-authority.lua helper or new product API, so the sealed020 payload entity-authority old literal is not silently replaced or executed as the new helper.",
+    "The reviewed020 public converter already supports flag_group/set/read/reset as three raw words and group-only names; engine adapter forwards them to the unchanged C checks. The new witness makes no extra provider query: real answers are delegated once unchanged, or one declared answer is altered. Its observation-only oracle cannot be queried by the campaign as another backing store.",
+    "The mask helper uses exact repeated doubling/textual hex-bit placement instead of pow. Both diagnostic Lua copies now share the same block; retained controlled RED48 wrong helper values and corrected19-driver GREEN bind this finite helper fix under the real SSE reference profile. It changes no production solver, baseline or boolean semantics; whole-FPU/i686/O2 behavior is not established.",
+    "The changed-read relation has a source-supported real consumer: mb_hostoffer.h193-199 asks the destructive UPDATED getter and places its truth in candidate fact21; the witness seeks need_updated, the following flag read and the same candidate/scene with all44 other facts unchanged. It claims the carried next-question fact, not changed geometry, a hit or a physical trajectory. Actual natural reach in35frames is unproved and may remain UNREACHED.",
+    "Existing tests honestly substitute a scripted campaign/boot/frame/candidate collaborator over the real provider and exclusive-output/reference-profile functions. They do not run the native C campaign or shipped Engine::boot; their current positives do not waive the two missing negative controls above.",
+    "Output is created exclusively after current reference checks; real frame fatal stops the loop, and reporting reads only Lua-owned telemetry, not poisoned engine counters/physical getters/metrics/close. Proper capture/causal classification at the actual boot/frame boundary remains part of correction2."
+  ],
+  "native_plan_disposition": {
+    "plan_Git_SHA256": "67b7faac8dfc93592f60513de2f8136dd6bf1e6533f751885068fe5956870633",
+    "steps": 23,
+    "current_clearance": false,
+    "bounded_structure": "Original first, paired hosted control, one valid changed-read case, then20 single-fault cases on fresh verified roots at the same predeclared0.001h/100ms/seed1 setup. This structure is appropriate; verdict/reference guards require correction. No larger window/actor/geometry hunt is authorized by this report.",
+    "after_correction_gates": [
+      "Bind newly reviewed immutable Lua Git blob/SHA and unchanged helper dependencies externally to the true020 ordinary/Original bins; retain all90 original payload files per profile, actual profile receipts and exact source/runtime distinction. No new Windows build or replay of the two completed defaults is required for a Lua/test/docs-only correction with exact compiled-input equivalence.",
+      "Root must bind the final run controller, plan, fresh input roots/reference tool/hash and sealed payload manifests before executing; exclusive reports and all real controller/native/input statuses must be retained. No in-place bundled Lua overwrite or old-binary relabel.",
+      "Run Original and healthy hosted positives first. A refusal/changed mode needs a whole valid current positive that reached its event, exact same setup and matched actual event trajectory. Absent consumable read/event remains UNREACHED/precondition refusal, not PASS; no tuning.",
+      "Default group/set/reset/read counters are phase aggregates; they do not by themselves identify native coverage of every UPDATED/MOVED/ROTATED array or every consumer. Publish only observed coverage and retain unsupported/unreached array/consumer scope open.",
+      "Actual native review is still required. Prior3e74 build/source clearance and new default PASS do not accept Host-store authority or this unrun23-step family."
+    ]
+  },
+  "remaining_limits": [
+    "All ten D3 requirements, other physical flag consumers, process/session/replacement lifetimes, raw supply mask candidate, DCS mapping, wholeheight/current final40/all8/fourinputs/currentCI/finalcensus/review/normalmerge/Task49/D3/delivery remain required at actual scopes.",
+    "Existing immutable764 original fullshipping jobs and their original identities/source/bin/roots/raw are untouched; partial equal prefixes are not acceptance of764 or020.",
+    "Reviewer performed no tests/build/cache/native/war/checker replay, tracked source changes or nested agents. Only this new external LF report is written. Root alone owns publication and canonical finding/task disposition."
+  ]
+}
