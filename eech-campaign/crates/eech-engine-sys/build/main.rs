@@ -379,6 +379,9 @@ fn main() {
         // EEDCS-49 (D3): the observer hooks the staged files call are declared by csrc/eech_sho_hooks.h, force-included only in this feature's build
         build.flag("-include").flag(manifest.join("csrc/eech_sho_hooks.h").to_str().unwrap());
     }
+    if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_WITNESS").is_some() {
+        build.define("EECH_SECTOR_HEIGHT_WITNESS", None);
+    }
     if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
         build.define("EECH_TARGET_POINT_FIXTURE", None);
         // EEDCS-52: every rand () of this build is counted (csrc/eech_tp_rand.h renames it; the real call happens once, in place); no other build includes the header

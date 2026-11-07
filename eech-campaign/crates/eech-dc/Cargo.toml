@@ -54,6 +54,8 @@ ground-fixture = ["eech-engine/ground-fixture"]
 route-fixture = ["eech-engine/route-fixture"]
 # TEST-ONLY (EEDCS-49, D3): the read-only observer of the sector tallest-structure word (sector_height_summary, _event, _clearance, _scan). Never enabled in the shipping build.
 sector-height-observer = ["eech-engine/sector-height-observer"]
+# TEST-ONLY (EEDCS-49, D3): the fixture method of the native server-session witness (session:sector_height_witness_save). Never enabled in the shipping build.
+sector-height-witness = ["eech-engine/sector-height-witness"]
 # TEST-ONLY (EEDCS-50, D3): keep the original airfield route parser (the original route characterisation). Never enabled in the shipping build.
 route-original = ["eech-engine/route-original"]
 # TEST-ONLY (EEDCS-52, D3): the observer of the original target-point query and offset census (target_point_summary, target_point_offsets, target_point_event). Never enabled in the shipping build.

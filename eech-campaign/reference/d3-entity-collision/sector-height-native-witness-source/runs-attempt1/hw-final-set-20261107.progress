@@ -1,0 +1,11 @@
+v1-fmt-check exit=0
+v2-clippy-workspace exit=0
+v3-clippy-witness-features exit=0
+v4-world-driver-tests exit=101
+v5-engine-sys-default exit=0
+v6-control-hosted exit=0
+v7-control-original-solver exit=0
+v8-witness-c-refusals-and-guard exit=0
+v9-engine-dc-default exit=0
+v10-engine-dc-witness exit=0
+DONE

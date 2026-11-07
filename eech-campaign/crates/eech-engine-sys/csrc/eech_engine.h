@@ -580,6 +580,16 @@ int eech_engine_sho_clearance (int index, char *text, int capacity);
 int eech_engine_sho_scan (int index, char *text, int capacity);
 #endif
 
+#ifdef EECH_SECTOR_HEIGHT_WITNESS
+/*
+ * TEST-ONLY (feature sector-height-witness, EEDCS-49 D3): see eech_hw_witness.c. Not part of the shipping module.
+ * The campaign's own server-session save of the live session, by the original store_session (the saved script and the saved data), under a name of 1 to 24 of A-Z a-z 0-9 _ -. The report is one `key=value` line
+ * (`sh-witness-save name= bytes= version=`). A name that exists as a saved file, a session that is not the booted campaign's server session and a bad name are bad arguments whose reason is in the report; nothing is
+ * overwritten, rotated or deleted. The matching load is the campaign's own: a later boot of the saved script.
+ */
+int eech_engine_sh_witness_save (const char *name, char *text, int capacity);
+#endif
+
 #ifdef EECH_ROUTE_FIXTURE
 /*
  * TEST-ONLY (feature route-fixture, EEDCS-50 D3): see eech_route_fixture.c. Not part of the shipping module.

@@ -44,6 +44,8 @@ route-fixture = ["eech-engine-sys/route-fixture"]
 sector-height-observer = ["eech-engine-sys/sector-height-observer"]
 # TEST-ONLY (EEDCS-49, D3): see eech-engine-sys.
 sector-height-funnel-check = ["sector-height-observer", "eech-engine-sys/sector-height-funnel-check"]
+# TEST-ONLY (EEDCS-49, D3): see eech-engine-sys.
+sector-height-witness = ["eech-engine-sys/sector-height-witness"]
 # TEST-ONLY (EEDCS-50, D3): see eech-engine-sys.
 route-original = ["eech-engine-sys/route-original"]
 # TEST-ONLY (EEDCS-52, D3): see eech-engine-sys.

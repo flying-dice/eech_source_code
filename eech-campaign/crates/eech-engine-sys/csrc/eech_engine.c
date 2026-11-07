@@ -2251,6 +2251,30 @@ int eech_engine_sho_scan (int index, char *text, int capacity)
 }
 #endif
 
+#ifdef EECH_SECTOR_HEIGHT_WITNESS
+
+/*
+ * TEST-ONLY (EEDCS-49 D3; feature sector-height-witness): the campaign's own server-session save of the live session (eech_hw_witness.c). The model provider installed at boot answers the sector height reads
+ * the pack makes (phase 17), so no entry host is needed, as for the controlled moving query. Refused arguments and preconditions are bad arguments whose reason is in the report; a campaign fatal inside
+ * the save stops the engine through the entry's own fatal path.
+ */
+extern int eech_hw_session_save_run (const char *name, char *text, int capacity);
+
+int eech_engine_sh_witness_save (const char *name, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!name || !text || (capacity <= 0) || (eech_hw_session_save_run (name, text, capacity) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+#endif
+
 #ifdef EECH_ROUTE_FIXTURE
 
 /*

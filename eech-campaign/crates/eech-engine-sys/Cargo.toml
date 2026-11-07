@@ -66,6 +66,10 @@ sector-height-observer = []
 # (csrc/eech_sho_funnel_check.c). It compiles that file and gates the entity-reading hooks of eech_sho.c out in favour of the scripted ones. Never enabled in the shipping build.
 sector-height-funnel-check = ["sector-height-observer"]
 
+# TEST-ONLY (EEDCS-49, D3): the fixture METHOD of the native server-session witness (csrc/eech_hw_witness.c, eech_engine_sh_witness_save): the campaign's own store_session on the live session. No staged patch, no hook
+# and no other definition; never enabled in the shipping build; with it off the file defines nothing and no entry exists.
+sector-height-witness = []
+
 # TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
 [[test]]
 name = "model_walk"
@@ -96,6 +100,11 @@ required-features = ["sector-height-check", "sector-height-observer"]
 name = "sector_height_hosted_clearance"
 path = "tests/sector_height_hosted_clearance.rs"
 required-features = ["sector-height-check", "sector-height-observer"]
+
+[[test]]
+name = "sector_height_witness"
+path = "tests/sector_height_witness.rs"
+required-features = ["sector-height-witness"]
 
 [[test]]
 name = "tree_dialogue"

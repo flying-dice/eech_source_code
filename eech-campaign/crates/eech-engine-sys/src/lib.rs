@@ -1981,6 +1981,11 @@ extern "C" {
     pub fn eech_engine_sho_scan(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
+#[cfg(feature = "sector-height-witness")]
+extern "C" {
+    pub fn eech_engine_sh_witness_save(name: *const c_char, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 #[cfg(feature = "route-fixture")]
 extern "C" {
     pub fn eech_engine_route_summary(text: *mut c_char, capacity: c_int) -> c_int;

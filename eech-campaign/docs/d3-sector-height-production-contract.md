@@ -82,11 +82,12 @@ and 18 themselves and are not native campaign authority. The ordinary short, a `
 
 ## 8. Disposition of what is not natively reached (M5, M6)
 
-M5 (guarded clearance) and M6 (save/restore) were UNREACHED in the accepted baseline and stay so. **No control reaches the guarded fixed-wing execution**: `fixed_wing_movement_waypoint` is a static function of `fw_move.c`; its
-statement text and hand-off are pinned by a source guard and its read is the Host's word through the getter, and nothing more is claimed. The real-engine control exercises the real getter and the real pack and unpack over a
-SCRIPTED provider (hosted and original-solver profiles, x86-64 and i686): that is not a native Core server save/load, and a Host-only raw restore (phase 18 asked by a test or a driver) is not a Core save/load either.
-`ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1` and `ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1` stay required OPEN inside the height extraction until actual proof; the missing prerequisite of each is a named fixture entry
-(a task-leader fixed wing whose guide follows terrain; a real server-session save and load), which does not exist in the public bridge and is not invented here.
+M5 (guarded clearance) and M6 (save/restore) were UNREACHED in the accepted baseline and in the finite native gates of `1b89` (which did not claim them). **Neither is closed by source, a scripted test or a census guard.** The real-engine
+control exercises the real getter and the real pack and unpack over a SCRIPTED provider (hosted and original-solver profiles, x86-64 and i686): that is not a native Core server save/load, and a Host-only raw restore (phase 18 asked by a
+test or a driver) is not a Core save/load either; `fixed_wing_movement_waypoint` is a static function of `fw_move.c` and its text and hand-off are pinned by a source guard, which is not the branch running.
+`ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1` and `ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1` stay required OPEN inside the height extraction until actual native proof. **Section 12 is their executable witness**: a host-owned driver
+(`lua/sector-height-witness.lua`) and, for the save, one feature-gated fixture METHOD (`session:sector_height_witness_save`, `eech-dc/sector-height-witness`) that makes the campaign's OWN `store_session` run; the facts that fixed those
+designs (and why a created leader or a hand-made world was not built) are recorded there, and the native runs are Root's, after the SAME source review.
 
 ## 9. Native plan (Root-owned, not run here)
 
@@ -108,9 +109,9 @@ See section 11: the executable plan (commands, features, modes, row schema, elig
   in a hosted build. Its clearance helper no longer reads the retired member in a hosted build: the record says `tallest=uncaptured` and the consumed word is never re-queried.
 - **Limits stated, not hidden.** The host does not know the world map, so a sector it never saw answers the zero word (the campaign only asks for sectors it holds); the word is never validated; signalling-NaN payloads and engine `-O2`
   are unmeasured; the host's raise expression is the original's text compiled at the engine's default level and compared with the original response on x86-64 and i686 over the 21 domain cases under both rounding modes.
-- **Named blockers, OPEN and required** (not closed by this source): `ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1` (the guarded fixed-wing expression lives in a static function of `fw_move.c` whose guards no control reaches: its text and its
-  hand-off are pinned and its read is the host's through the getter, but no real-C or native run reaches the guards; a controlled public witness, a task-leader fixed wing whose guide follows terrain, is Root's to take and is never natural reach)
-  and `ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1` (the real pack and unpack run in the real-C control over a scripted provider in both profiles, x86-64 and i686; a native server-session save and restore through the campaign is not reached).
+- **Named blockers, OPEN and required** (not closed by this source): `ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1` (the guarded fixed-wing expression lives in a static function of `fw_move.c`: its text and its hand-off are pinned and its read
+  is the host's through the getter; no native run has reached the guards; the witness driver of section 12 observes it at the host's own boundary at a declared window) and `ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1` (the real pack
+  and unpack run in the real-C control over a scripted provider in both profiles, x86-64 and i686; a native server-session save and restore through the campaign is not reached; section 12 makes the campaign's own save run and observes its own load).
 
 ## 11. The executable public proof plan (Root runs it; native execution is not done here)
 
@@ -154,5 +155,72 @@ Row schema (the `authority` row): `height_reads`, `height_scan_joined`, `height_
 (phase 18):** a real Core save/load is not reachable in this window, a Host-only raw restore is not one, and `sector_restore_total` is only reported.
 
 **C. Still required OPEN (named, inside the height extraction, not deferred away).** `ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1`: the hosted-scan report counts the guards (`sho-clearance leader_reached`, `follow_reached`) and shows the
-min_height after the original statement when they are reached, never the consumed word; a controlled witness that REACHES them needs a named fixture entry that does not exist yet. `ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1`:
-needs a real Core server-session save and load entry, also not present. Neither is closed by A or B.
+min_height after the original statement when they are reached, never the consumed word. `ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1`: no real Core server-session save and load has been made natively. Neither is closed by A or B; their
+executable witnesses are section 12 (source frozen for the SAME review, native UNRUN).
+
+## 12. The two required witnesses (M5 guarded clearance, M6 native save and load): what the source taught, the executable plan, the limits
+
+Source-bound and Root-run after the SAME source review; nothing here was run natively and none of it is claimed natively. **UNREACHED, FAILURE and PASS are distinct, UNREACHED is never a pass, and a witness is never tuned by what a run reached.**
+The driver is `lua/sector-height-witness.lua` (one bounded process per mode, a fresh verified root each, its report created exclusively and never overwritten); its scripted tests (`tests/sector_height_witness_driver.rs`) are boundary checks of
+the DRIVER only; the C refusals of the save method are run for real without a boot (`eech-engine-sys/tests/sector_height_witness.rs`) and the source guards (`sector_height_witness_guard.rs`) pin that the fixture exists only behind its feature.
+
+### 12.1 M5, the guarded clearance (`ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1`)
+
+**What the source taught.** The clearance is `fixed_wing_movement_waypoint` (static, `fw_move.c`), run for a TASK LEADER whose guide's `terrain_follow_mode` is not NONE. That mode is read from the static `guide_database[sub_type]` (`gd_int.c`, `gd_dbase.c`: NONE for the routed, altitude, landing and landed guides; CRUISE_ALTITUDE for the direct and virtual navigation guides and some attack-move guides; ATTACK_ALTITUDE for others) and has no setter; the leader is the guide's own task-leader pointer; the host step needs the member's host identity, which the roster holds
+only for members the campaign inserted into a real group. The static function is reached through `basic_fixed_wing_movement` (and its absolute variant) and, with no terrain out-parameter, through the public wrapper
+`fixed_wing_movement_get_waypoint_position`. In a hosted build each task leader's step therefore reads the sector word TWICE with no other host callback between (the wrapper, whose answer is discarded, then the navigation, which
+hands `min_height` to the host), asks `fixed_wing_lookahead`, and sends `fixed_wing_move` carrying `fixed_wing_terrain` (`min_height`, the guide position, the sample point, the terrain elevation answered there). **No test entry was built that creates a
+leader**: the campaign has no creation path for an airborne task leader with a guide except its own task and guide machinery, so building one by hand would be an override of campaign decisions disguised as natural behaviour, a hand-made
+world cannot reach the host hand-off (the look-ahead needs the roster's host identity), and re-implementing the guide's position to hand-make one would copy the campaign into the test. The branch is therefore observed at the HOST'S OWN boundary on a
+DECLARED window: the accepted regression-pack identity (`lebanon_retail`, 3 simulated hours, 100 ms frames, seed 1, the pack's scenario), named here before any launch and never chosen by what a run reached. A leader that never meets the branch in that window
+is UNREACHED.
+
+**Eligibility, derived from the campaign's own call structure and pinned by the census guard of `tests/sector_height_guard.rs`** (the readers of the word are the scan, this clearance and the pack): a phase 17 question that arrives while no scan enumeration
+is open (a scan opens at phase 0 and closes at its `done_*` reply) and during no save is the guarded clearance asking. A WINDOW is a maximal run of such questions with no other host callback between; the HAND-OFF is the next `fixed_wing_move` carrying
+`fixed_wing_terrain` after a `fixed_wing_lookahead`. No C hook is added: the consumed word is the host's own answer, the hand-off is the step the host receives, and its physical result is the reference host's answer.
+
+| mode | what it does | credited |
+|---|---|---|
+| `clearance_original` | the same window in the ORIGINAL-solver profile (`tools/build-windows-collision-fixture.sh`): the campaign consumes its legacy word and the host is never asked | the first hand-off reported; FAILURE if the host WAS asked (not that profile) |
+| `clearance_control` | hosted, nothing altered, stops at the first window followed by a hand-off; `original=<report>` compares its first hand-off with the original profile's, field for field | one such window; `min_height >= max(elevation, word - elevation)` in single precision; equal to the original's row when given |
+| `clearance_changed_word` | `window=<N>` from the control: every word read in window N is answered 100000.0 (0x47c35000) | the hand-off equals the single precision value of 100000.0 - elevation exactly; with `control_min`/`control_answer_y` the hand-off and the host's answered height are compared (`physical=changed\|unchanged`, stated either way) |
+| `clearance_withheld` / `_malformed` / `_wrong_state` / `_wrong_sector` | `window=<N>`: ONE fault at the first read of window N | the engine stops at `entity_scan.callback` / `.answer` / `.state` / `.sector_height`, and only after that intervention; a fatal before it, no fatal, or another marker is FAILURE; window N never reached is UNREACHED |
+
+Commands (each a fresh root; the ordinary hosted DLL for every row but the first):
+`eech-world.exe lua/sector-height-witness.lua root=<fresh root> out=<new report> mode=<mode> hours=3 [window=N] [original=<clearance_original report>] [control_min=0x.. control_answer_y=0x..]`
+Order: `clearance_original` (original-solver build), `clearance_control original=...`, `clearance_changed_word window=<the control's window>`, then the four refusals with the same window. The campaign is deterministic at a fixed seed, so window N of the control
+is the same step in every run; a run that reaches a different step shows it in its own counts. The word term can be absent from a hand-off (an altitude or terrain term may dominate): the changed word is chosen to dominate and a hand-off that does not follow it is reported UNREACHED,
+never credited.
+
+### 12.2 M6, the native server-session save and the campaign's own load (`ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1`)
+
+**The real lifecycle (traced from source before any code).** SAVE: `store_session` (`uisession.c`, the in-game save) writes the saved script `<data_path>\<campaign_directory>\<name>.S<ext>` (the extension's letters shifted as `store_session` does: `.Sch` for `.chc`; its
+`FILE_TAG_SAVED_CAMPAIGN` names the data) and the data `<name>.sav`: the session version int, then `pack_session(buffer, &size, PACK_MODE_SERVER_SESSION)` into a 1 MiB buffer which `store_session` itself doubles and re-packs while `pack_session` reports an overflow.
+`pack_session` packs the sectors FIRST (`pack_local_sector_data`: each sector's record ends with the 32 raw bits of the word the sector getter returns, i.e. the host's phase 17 answer), then the pylons, segments, bridges, the session, the forces, every
+entity, the keysites, regen, city buildings, scenics, sites, groups and the databases. A rotation of `_bakN` backups happens only when BOTH files exist (it renames and deletes). LOAD: the engine's boot (`eech_engine_boot`) resets the host's roster
+(`campaign_place_reset`, `campaign_roster_reset`: a RESET clears the host's words) BEFORE `create_campaign` parses the script; reaching `FILE_TAG_SAVED_CAMPAIGN` in `parse_campaign_script` (`parsgen.c`) reads `<script name>.sav`, checks the version int and calls
+`unpack_session(buffer, size, PACK_MODE_SERVER_SESSION)`, which unpacks the sectors first: each sector states its saved word RAW to the host (phase 18, `campaign_model_sector_height_restore`: the word in fact 0, the host holding exactly those bits and
+acknowledging them), then creates the entities, whose sector-list insertions raise the host's word by the strict-greater rule. **An unpack onto live entities is not a load and is never attempted**: the load is a fresh boot of the saved script in its own process.
+
+**The fixture method** (feature `eech-dc/sector-height-witness`; with it off no definition, entry or export exists): `session:sector_height_witness_save(name)` calls the original `store_session` once and nothing else (`csrc/eech_hw_witness.c`). It refuses a name outside 1 to
+24 of `A-Z a-z 0-9 _ -`, a session that is not the booted campaign's server session of the campaign game type, and any name whose saved script OR saved data exists (it never overwrites, rotates or deletes: `store_session` would); afterwards the data file must exist and begin with the
+session version. A fatal inside `store_session` or the pack stops the engine through the entry's own fatal path, as any campaign fatal does. It reads and writes no sector word itself.
+
+**Seeds** are the host's explicit raw HISTORIES, an INPUT: before the save the driver states them to its OWN provider as a restore (a host whose world holds a history), and the pack's phase 17 reads then carry them. Negative, infinite and quiet-NaN words are valid history and are
+preserved bit for bit (no finite classifier, no canonicalisation); a SIGNALLING NaN is refused (unmeasured), as is engine `-O2`.
+
+| mode | what it does | credited |
+|---|---|---|
+| `save` | `name=` `seeds=sx:sz:0xWORD,...` (`frames=` default 0): boot, seed the provider, the campaign saves; every word the pack asked for is recorded (`sh-save-word`) | the save line (`sh-witness-save name= bytes= version=`), at least one sector, every seeded sector packed with its seed's bits (a seed outside the map is FAILURE) |
+| `save_withheld` | the host raises at the FIRST pack read | the engine stops at `entity_scan.callback` after it; a fatal before it is FAILURE |
+| `load` | `campaign=<saved script>` `expect=<the save report>` `name=<a new name>`: the campaign boots the saved script, then saves again | every restore states exactly the word the save packed for that sector (none extra, none missing, none twice), acknowledged bit for bit, every restore BEFORE the first entity insertion (restore-before-insert) and at least one insertion after (else UNREACHED), and no sector's word read back by the second pack is LOWER than its restored word (a NaN unchanged; a history raised only upward by a greater arrival): `relation=held\|raised` per sector |
+| `load_withheld` / `load_wrong_sector` / `load_wrong_state` / `load_stale_word` | ONE fault at the FIRST restore of the campaign's own boot | stops at `entity_scan.callback` / `.sector_height` (another sector) / `.state` / `.sector_height` (the host stored a word that is not the one stated), after that intervention only |
+
+Order: `save` (seeds on sectors inside the map: a negative word, minus infinity, a quiet NaN, plus the zero history that needs no seed) on the witness build (`tools/build-windows-sector-height-witness.sh`), then each `load*` mode on the same build and a COPY of the root that holds the saved files
+(a boot of the saved script reads them). A load that fails the first fault is FAILURE; absent insertions after the restores are UNREACHED.
+
+### 12.3 What this does NOT establish
+
+Nothing in section 12 has been run natively. The scripted tests prove the driver credits only what it intervened on and refuses every single-fault variant of its controls; they never reach `fw_move.c`, `store_session`, `pack_session` or `unpack_session`. The C refusals test proves the method's
+refusals and that a refused call touches no file, not that a save works. A passing native `clearance_*` run would show the branch asked the host and used its word at ONE declared window for the first eligible leader, not every leader or every window; a passing `save`/`load` pair shows the
+campaign's own save and load of the words the driver seeded and the campaign's arrivals produced on one map, not natural save histories, a signalling NaN, engine `-O2` or a server session of another game type. Neither witness is an acceptance of the height extraction, Task49, D3 or delivery.

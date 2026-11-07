@@ -63,7 +63,8 @@ fn check(code: c_int) -> Result<(), EngineError> {
     feature = "env-fixture",
     feature = "ground-fixture",
     feature = "target-point-fixture",
-    feature = "collision-fixture"
+    feature = "collision-fixture",
+    feature = "sector-height-witness"
 ))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // a fatal error, a poisoned engine or a state error never has its output buffer inspected: the engine stopped or refused before it wrote one, and nothing it may hold is a result
@@ -84,7 +85,8 @@ fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_cha
     feature = "env-fixture",
     feature = "ground-fixture",
     feature = "target-point-fixture",
-    feature = "collision-fixture"
+    feature = "collision-fixture",
+    feature = "sector-height-witness"
 ))]
 fn case_report(text: &[std::os::raw::c_char]) -> String {
     #[cfg(test)]
@@ -101,7 +103,8 @@ fn case_report(text: &[std::os::raw::c_char]) -> String {
         feature = "env-fixture",
         feature = "ground-fixture",
         feature = "target-point-fixture",
-        feature = "collision-fixture"
+        feature = "collision-fixture",
+        feature = "sector-height-witness"
     )
 ))]
 thread_local! {
@@ -1083,6 +1086,26 @@ pub fn sector_height_row_text(
     check(unsafe { entry(index, text.as_mut_ptr(), text.len() as i32) })?;
     // SAFETY: the entry wrote a NUL-terminated string within the buffer.
     Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+}
+
+/// TEST-ONLY (feature `sector-height-witness`, EEDCS-49 D3): room for the one report line of the session save; a report that does not fit is refused, never cut short.
+#[cfg(feature = "sector-height-witness")]
+const SH_WITNESS_REPORT_CAPACITY: usize = 1024;
+
+/// TEST-ONLY (feature `sector-height-witness`): the longest saved-file name (the same bound as `csrc/eech_hw_witness.c` HW_NAME_MAX).
+#[cfg(feature = "sector-height-witness")]
+pub const SH_WITNESS_NAME_MAX: usize = 24;
+
+/// TEST-ONLY (feature `sector-height-witness`): the name of a saved session is 1 to 24 of `A-Z a-z 0-9 _ -`; nothing else reaches a path. Refused here, before the engine is entered.
+#[cfg(feature = "sector-height-witness")]
+pub fn sector_height_witness_name(name: &str) -> Result<(), EngineError> {
+    if name.is_empty() || name.len() > SH_WITNESS_NAME_MAX || !name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-') {
+        return Err(EngineError::BadArgument(format!(
+            "sector_height_witness_save: the name must be 1 to {SH_WITNESS_NAME_MAX} characters of A-Z a-z 0-9 _ -, got {} bytes",
+            name.len()
+        )));
+    }
+    Ok(())
 }
 
 /// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): room for one route report (the summary, or one recorded parser call); a report that does not fit is refused, never cut short.
@@ -6686,6 +6709,20 @@ impl Engine {
     #[cfg(feature = "sector-height-observer")]
     pub fn sector_height_scan(&self, index: i32) -> Result<String, EngineError> {
         self.sector_height_row("sector_height_scan", index, SHO_SCAN_MAX, sys::eech_engine_sho_scan)
+    }
+
+    /// TEST-ONLY (feature `sector-height-witness`, EEDCS-49 D3, ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1): the campaign's own server-session save of the live session, by the original
+    /// `store_session` (the saved script and the saved data, `csrc/eech_hw_witness.c`), under a name of 1 to 24 of `A-Z a-z 0-9 _ -`. The name is checked here before the engine is entered and again
+    /// by the engine, which also refuses a name whose saved files exist (nothing is overwritten, rotated or deleted). Returns the one report line (`sh-witness-save name= bytes= version=`); a refusal keeps the
+    /// engine's reason. The matching load is the campaign's own: a later boot of the saved script, which unpacks it.
+    #[cfg(feature = "sector-height-witness")]
+    pub fn sector_height_witness_save(&self, name: &str) -> Result<String, EngineError> {
+        sector_height_witness_name(name)?;
+        let name = std::ffi::CString::new(name).map_err(|_| EngineError::BadArgument("sector_height_witness_save: the name contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; SH_WITNESS_REPORT_CAPACITY];
+        // SAFETY: the name and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates anything it writes.
+        let status = check(unsafe { sys::eech_engine_sh_witness_save(name.as_ptr(), text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
     }
 
     #[cfg(feature = "sector-height-observer")]
@@ -14381,6 +14418,18 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[cfg(feature = "sector-height-witness")]
+    #[test]
+    fn a_saved_session_name_is_one_to_twenty_four_safe_characters_so_no_path_or_control_byte_reaches_the_engine() {
+        for good in ["a", "alpha", "Alpha_1-b", "aaaaaaaaaaaaaaaaaaaaaaaa"] {
+            accepted(sector_height_witness_name(good));
+        }
+        for bad in ["", "aaaaaaaaaaaaaaaaaaaaaaaaa", "../x", "a b", "a\\b", "a/b", "a.b", "\u{e9}", "a\0b", "a\n"] {
+            assert!(matches!(refusal(sector_height_witness_name(bad)), EngineError::BadArgument(_)), "{bad:?}");
+        }
+        assert_eq!(SH_WITNESS_NAME_MAX, 24, "the same bound as csrc/eech_hw_witness.c HW_NAME_MAX");
     }
 }
 

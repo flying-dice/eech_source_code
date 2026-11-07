@@ -3637,6 +3637,12 @@ impl LuaUserData for LuaEngine {
         methods.add_method("sector_height_scan", |_, this, index: i32| {
             this.engine.sector_height_scan(index).map_err(lua_error)
         });
+        // TEST-ONLY (feature `sector-height-witness`, EEDCS-49 D3, ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1): the campaign's own server-session save of the live session (the original store_session); the name is checked
+        // before the engine is entered, and nothing is overwritten, rotated or deleted. Not part of the shipping module.
+        #[cfg(feature = "sector-height-witness")]
+        methods.add_method("sector_height_witness_save", |_, this, name: String| {
+            this.engine.sector_height_witness_save(&name).map_err(lua_error)
+        });
         // TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): what the ORIGINAL airfield route parser read and produced during the campaign load; not part of the shipping module.
         #[cfg(feature = "route-fixture")]
         methods.add_method("route_summary", |_, this, ()| this.engine.route_summary().map_err(lua_error));

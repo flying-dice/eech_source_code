@@ -1,0 +1,9 @@
+   Compiling cc v1.4.7
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling mlua v0.10.5
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.31s
+     Running tests/sector_height_witness_driver.rs (/target/t/debug/deps/sector_height_witness_driver-0d83e91d9418adf2)
+error: test failed, to rerun pass `-p eech-world --test sector_height_witness_driver`
+error: 1 target failed:
+    `-p eech-world --test sector_height_witness_driver`

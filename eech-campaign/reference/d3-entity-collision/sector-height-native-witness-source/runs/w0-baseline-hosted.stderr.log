@@ -1,0 +1,2 @@
+error: target `sector_height` in package `eech-engine-sys` requires the features: `sector-height-check`
+Consider enabling them by passing, e.g., `--features="sector-height-check"`

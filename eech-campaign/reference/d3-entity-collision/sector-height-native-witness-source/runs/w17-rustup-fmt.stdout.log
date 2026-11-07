@@ -1,0 +1,570 @@
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness.rs:19:
+ }
+ 
+ fn listing() -> Vec<String> {
+-    let mut names: Vec<String> = std::fs::read_dir(".").unwrap().map(|e| e.unwrap().file_name().to_string_lossy().to_string()).collect();
++    let mut names: Vec<String> = std::fs::read_dir(".")
++        .unwrap()
++        .map(|e| e.unwrap().file_name().to_string_lossy().to_string())
++        .collect();
+     names.sort();
+     names
+ }
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness.rs:30:
+     for bad in ["", "aaaaaaaaaaaaaaaaaaaaaaaaa", "../x", "a b", "a\\b", "a/b", "a.b", "a\u{e9}"] {
+         let (code, line) = save(bad);
+         assert_ne!(code, 0, "{bad:?} must be refused");
+-        assert_eq!(line, "sh-witness-refused reason=the name must be 1 to 24 characters of A-Z a-z 0-9 _ -\n", "{bad:?}");
++        assert_eq!(
++            line, "sh-witness-refused reason=the name must be 1 to 24 characters of A-Z a-z 0-9 _ -\n",
++            "{bad:?}"
++        );
+     }
+     // a good name reaches the session check: nothing is booted, so there is no current game session, and the call stops there
+     for good in ["a", "alpha", "Alpha_1-b", "aaaaaaaaaaaaaaaaaaaaaaaa"] {
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs:29:
+ }
+ 
+ fn directives(text: &str) -> Vec<String> {
+-    strip_comments(text).lines().map(str::trim).filter(|l| l.starts_with('#')).map(str::to_string).collect()
++    strip_comments(text)
++        .lines()
++        .map(str::trim)
++        .filter(|l| l.starts_with('#'))
++        .map(str::to_string)
++        .collect()
+ }
+ 
+ /// the text between `#ifdef MACRO` and its matching `#endif` (nesting counted), the first block of that macro
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs:66:
+     assert_eq!(outer.iter().filter(|d| d.starts_with("#endif")).count(), 1, "{outer:?}");
+     // the campaign's own save, once; nothing packs, unpacks, restores or asks the host by hand
+     assert_eq!(code.matches("store_session (").count(), 1, "{code}");
+-    for forbidden in ["pack_session", "unpack_session", "campaign_model_sector_height", "restore", "unlink", "remove (", "rename (", "fwrite", "\"wb\"", "\"w\"", "\"a\""] {
++    for forbidden in [
++        "pack_session",
++        "unpack_session",
++        "campaign_model_sector_height",
++        "restore",
++        "unlink",
++        "remove (",
++        "rename (",
++        "fwrite",
++        "\"wb\"",
++        "\"w\"",
++        "\"a\"",
++    ] {
+         assert!(!code.contains(forbidden), "the fixture must not contain {forbidden}");
+     }
+     // never an overwrite, a rotation or a deletion: both files are refused if they exist BEFORE the save, and a reader (fopen "rb") is the only file access
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs:73:
+-    let refusal = code.find("file_exists (data_path) || file_exists (script_path)").expect("the existing-file refusal");
++    let refusal = code
++        .find("file_exists (data_path) || file_exists (script_path)")
++        .expect("the existing-file refusal");
+     let save = code.find("store_session (session").expect("the save call");
+     assert!(refusal < save, "the existing files are refused before store_session");
+     assert_eq!(code.matches("fopen (").count(), 2, "{code}");
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs:77:
+     assert_eq!(code.matches(", \"rb\")").count(), 2, "every file access is a read: {code}");
+     // the name is a bounded safe charset (it builds paths) and is the only caller input
+-    assert!(code.contains("#define HW_NAME_MAX 24") && code.contains("c == '_'") && code.contains("c == '-'"), "{code}");
++    assert!(
++        code.contains("#define HW_NAME_MAX 24") && code.contains("c == '_'") && code.contains("c == '-'"),
++        "{code}"
++    );
+ }
+ 
+ #[test]
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs:85:
+     let header = read("csrc/eech_engine.h");
+     for (name, text) in [("eech_engine.c", &engine), ("eech_engine.h", &header)] {
+         let block = gated_block(text, "EECH_SECTOR_HEIGHT_WITNESS");
+-        assert_eq!(text.matches("eech_engine_sh_witness_save").count(), block.matches("eech_engine_sh_witness_save").count(), "{name}: the entry appears outside its block");
++        assert_eq!(
++            text.matches("eech_engine_sh_witness_save").count(),
++            block.matches("eech_engine_sh_witness_save").count(),
++            "{name}: the entry appears outside its block"
++        );
+         assert!(block.matches("eech_engine_sh_witness_save").count() >= 1, "{name}");
+     }
+     let block = gated_block(&engine, "EECH_SECTOR_HEIGHT_WITNESS");
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs:92:
+-    assert_eq!(engine.matches("eech_hw_session_save_run").count(), block.matches("eech_hw_session_save_run").count(), "the C fixture is referenced only inside the block");
++    assert_eq!(
++        engine.matches("eech_hw_session_save_run").count(),
++        block.matches("eech_hw_session_save_run").count(),
++        "the C fixture is referenced only inside the block"
++    );
+     // it passes no host (the model provider installed at boot answers the pack's reads) and is an OBSERVE operation that needs a running engine
+-    assert!(block.contains("ENTER (OPERATION_OBSERVE, NULL);") && block.contains("if (state != ENGINE_RUNNING)"), "{block}");
++    assert!(
++        block.contains("ENTER (OPERATION_OBSERVE, NULL);") && block.contains("if (state != ENGINE_RUNNING)"),
++        "{block}"
++    );
+     // no other csrc file mentions the fixture
+     let mut mentions = Vec::new();
+     for entry in std::fs::read_dir(crate_dir().join("csrc")).unwrap() {
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs:111:
+ #[test]
+ fn the_feature_is_defined_empty_never_default_and_its_macro_is_set_only_for_it() {
+     let manifest = read("Cargo.toml");
+-    assert_eq!(manifest.lines().filter(|l| l.starts_with("sector-height-witness")).collect::<Vec<_>>(), ["sector-height-witness = []"], "{manifest}");
+-    assert!(!manifest.contains("default ="), "no default feature list exists, so no test-only feature can ride on it");
++    assert_eq!(
++        manifest.lines().filter(|l| l.starts_with("sector-height-witness")).collect::<Vec<_>>(),
++        ["sector-height-witness = []"],
++        "{manifest}"
++    );
++    assert!(
++        !manifest.contains("default ="),
++        "no default feature list exists, so no test-only feature can ride on it"
++    );
+     let build = read("build/main.rs");
+     let at = build.find("EECH_SECTOR_HEIGHT_WITNESS").expect("the define");
+     assert_eq!(build.matches("EECH_SECTOR_HEIGHT_WITNESS").count(), 1, "one define");
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs:119:
+-    assert!(build[at.saturating_sub(120)..at].contains("CARGO_FEATURE_SECTOR_HEIGHT_WITNESS"), "the define sits directly under its feature test");
++    assert!(
++        build[at.saturating_sub(120)..at].contains("CARGO_FEATURE_SECTOR_HEIGHT_WITNESS"),
++        "the define sits directly under its feature test"
++    );
+     let lib = read("src/lib.rs");
+     let extern_at = lib.find("pub fn eech_engine_sh_witness_save").expect("the extern declaration");
+-    assert!(lib[..extern_at].rfind("#[cfg(feature = \"sector-height-witness\")]").is_some_and(|c| extern_at - c < 80), "the extern block is feature gated");
++    assert!(
++        lib[..extern_at]
++            .rfind("#[cfg(feature = \"sector-height-witness\")]")
++            .is_some_and(|c| extern_at - c < 80),
++        "the extern block is feature gated"
++    );
+     assert_eq!(lib.matches("eech_engine_sh_witness_save").count(), 1);
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs:134:
+     assert_eq!(dc.matches("sector_height_witness_save").count(), 2);
+     let attribute = "#[cfg(feature = \"sector-height-witness\")]";
+     let gate = dc[..at].rfind(attribute).expect("the gate");
+-    assert!(dc[gate + attribute.len()..at].trim().is_empty(), "the attribute sits directly on the method: {}", &dc[gate..at]);
+-    let engine: String = std::fs::read(crate_dir().join("../eech-engine/src/lib.rs")).unwrap().iter().map(|&b| b as char).collect();
++    assert!(
++        dc[gate + attribute.len()..at].trim().is_empty(),
++        "the attribute sits directly on the method: {}",
++        &dc[gate..at]
++    );
++    let engine: String = std::fs::read(crate_dir().join("../eech-engine/src/lib.rs"))
++        .unwrap()
++        .iter()
++        .map(|&b| b as char)
++        .collect();
+     let method = engine.find("pub fn sector_height_witness_save").expect("the wrapper");
+     let gate = engine[..method].rfind(attribute).expect("the wrapper gate");
+-    assert!(engine[gate + attribute.len()..method].trim().is_empty(), "the wrapper is directly feature gated: {}", &engine[gate..method]);
++    assert!(
++        engine[gate + attribute.len()..method].trim().is_empty(),
++        "the wrapper is directly feature gated: {}",
++        &engine[gate..method]
++    );
+     let eech_dc_manifest = read("../eech-dc/Cargo.toml");
+     let eech_engine_manifest = read("../eech-engine/Cargo.toml");
+     assert!(eech_dc_manifest.contains("sector-height-witness = [\"eech-engine/sector-height-witness\"]"));
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:198:
+ static SERIAL: AtomicUsize = AtomicUsize::new(0);
+ 
+ fn temp_path(stem: &str) -> std::path::PathBuf {
+-    std::env::temp_dir().join(format!("sector-height-witness-{stem}-{}-{}.txt", std::process::id(), SERIAL.fetch_add(1, Ordering::Relaxed)))
++    std::env::temp_dir().join(format!(
++        "sector-height-witness-{stem}-{}-{}.txt",
++        std::process::id(),
++        SERIAL.fetch_add(1, Ordering::Relaxed)
++    ))
+ }
+ 
+ /// run the real driver with the host args `args` (a Lua table body; `@OUT@` is the report path) and the case table `p` (a Lua table body)
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:287:
+ }
+ 
+ fn line_of<'a>(report: &'a str, prefix: &str) -> &'a str {
+-    report.lines().find(|l| l.starts_with(prefix)).unwrap_or_else(|| panic!("no {prefix} line in:\n{report}"))
++    report
++        .lines()
++        .find(|l| l.starts_with(prefix))
++        .unwrap_or_else(|| panic!("no {prefix} line in:\n{report}"))
+ }
+ 
+ fn assert_failed(outcome: &Outcome, status: &str, needle: &str) {
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:306:
+         let end = text.find("-- END words").expect("the words end marker");
+         text[begin..end].lines().map(|l| l.trim_end().to_string()).collect()
+     };
+-    assert_eq!(block(DRIVER), block(ENTITY_AUTHORITY), "the helper block of the witness driver must be the entity-authority one, byte for byte");
++    assert_eq!(
++        block(DRIVER),
++        block(ENTITY_AUTHORITY),
++        "the helper block of the witness driver must be the entity-authority one, byte for byte"
++    );
+     // nothing divides by a value that can be zero: the only `/` of the code is the frame count over the positive frame_ms
+     let divisions: Vec<&str> = DRIVER
+         .lines()
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:337:
+         assert!(!code_text.contains(forbidden), "the driver must not call or name {forbidden} in code");
+     }
+     // the one place a restore question (phase 18) is BUILT is the seeding of the host's own provider, and it is skipped when there are no seeds; the restores the campaign makes are only observed
+-    assert_eq!(code_text.matches("\"0x41900000\"").count(), 2, "the PHASE_OF entry and the seeding restore only");
+-    let seeding = code.iter().position(|l| l.contains("local function seed_provider")).expect("the seeding function");
++    assert_eq!(
++        code_text.matches("\"0x41900000\"").count(),
++        2,
++        "the PHASE_OF entry and the seeding restore only"
++    );
++    let seeding = code
++        .iter()
++        .position(|l| l.contains("local function seed_provider"))
++        .expect("the seeding function");
+     let restore_build = code.iter().position(|l| l.contains("facts_text (\"0x41900000\"")).expect("the seeding restore");
+-    assert!(restore_build > seeding && restore_build < seeding + 6, "the restore question is built only inside seed_provider");
++    assert!(
++        restore_build > seeding && restore_build < seeding + 6,
++        "the restore question is built only inside seed_provider"
++    );
+     // the only call into the engine's fixture is the save method
+     assert_eq!(code_text.matches("engine:sector_height_witness_save (").count(), 1);
+     // the host's own provider is delegated to, never replaced: the driver assigns nothing to host.model
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:355:
+     o.result.as_ref().expect("the control with an eligible window and a hand-off passes");
+     let r = report(&o);
+     // frame 1 is a scan whose FIRST read is not a window; frame 2 is a wrapper-only call (a window with no hand-off); frame 3 hands over
+-    assert!(line_of(&r, "sh-witness-counts").contains("windows=2 windows_without_handoff=1 scan_reads=1 "), "{r}");
++    assert!(
++        line_of(&r, "sh-witness-counts").contains("windows=2 windows_without_handoff=1 scan_reads=1 "),
++        "{r}"
++    );
+     let handoff = line_of(&r, "sh-witness-handoff");
+-    assert!(handoff.contains("window=2 reads=2 sector=7,9 real_word=0x00000000 answered_word=0x00000000 "), "{handoff}");
+-    assert!(handoff.contains(&format!("elevation={} min_height={} ", bits(1500.5), bits(1500.5))), "{handoff}");
++    assert!(
++        handoff.contains("window=2 reads=2 sector=7,9 real_word=0x00000000 answered_word=0x00000000 "),
++        "{handoff}"
++    );
++    assert!(
++        handoff.contains(&format!("elevation={} min_height={} ", bits(1500.5), bits(1500.5))),
++        "{handoff}"
++    );
+     assert!(handoff.contains(&format!("answered_y={}", bits(750.25))), "{handoff}");
+     assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{r}");
+     // the control stops at the first hand-off: the fourth frame is never run
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:370:
+     // windows with no hand-off only
+     let o = clearance("mode = 'clearance_control'", "frames = { 'scan', 'step', 'step' }");
+     assert_failed(&o, "UNREACHED", "no hand-off");
+-    assert!(line_of(&report(&o), "sh-witness-counts").contains("windows=2 windows_without_handoff=2 scan_reads=1"), "{}", report(&o));
++    assert!(
++        line_of(&report(&o), "sh-witness-counts").contains("windows=2 windows_without_handoff=2 scan_reads=1"),
++        "{}",
++        report(&o)
++    );
+     // only the scan's own FIRST read: it is a scan read, not the clearance asking
+     let o = clearance("mode = 'clearance_control'", "frames = { 'scan', 'scan' }");
+     assert_failed(&o, "UNREACHED", "no hand-off");
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:377:
+-    assert!(line_of(&report(&o), "sh-witness-counts").contains("windows=0 windows_without_handoff=0 scan_reads=2"), "{}", report(&o));
++    assert!(
++        line_of(&report(&o), "sh-witness-counts").contains("windows=0 windows_without_handoff=0 scan_reads=2"),
++        "{}",
++        report(&o)
++    );
+ }
+ 
+ #[test]
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:382:
+     // the characterisation FIRST: in the original-solver profile the host is never asked and the first hand-off is reported
+     let original_out = temp_path("original");
+     let _ = std::fs::remove_file(&original_out);
+-    let o = run_to(&format!("{CLEARANCE_ARGS}, mode = 'clearance_original'"), &format!("{CLEARANCE_P}, original = true, frames = {{ 'step', 'handoff' }}"), &original_out);
++    let o = run_to(
++        &format!("{CLEARANCE_ARGS}, mode = 'clearance_original'"),
++        &format!("{CLEARANCE_P}, original = true, frames = {{ 'step', 'handoff' }}"),
++        &original_out,
++    );
+     o.result.as_ref().expect("the original profile run passes");
+     let r = report(&o);
+-    assert!(line_of(&r, "sh-witness-counts").contains("windows=0 windows_without_handoff=0 scan_reads=0 height_reads=0 altered_windows=0 altered_reads=0 handoffs=1"), "{r}");
++    assert!(
++        line_of(&r, "sh-witness-counts")
++            .contains("windows=0 windows_without_handoff=0 scan_reads=0 height_reads=0 altered_windows=0 altered_reads=0 handoffs=1"),
++        "{r}"
++    );
+     let handoff = line_of(&r, "sh-witness-handoff");
+     assert!(handoff.starts_with("sh-witness-handoff ordinal=1 window=0 reads=0 sector=none"), "{handoff}");
+-    assert!(handoff.contains(&format!("host_id=ac1 elevation={} min_height={} ", bits(1500.5), bits(1500.5))), "{handoff}");
++    assert!(
++        handoff.contains(&format!("host_id=ac1 elevation={} min_height={} ", bits(1500.5), bits(1500.5))),
++        "{handoff}"
++    );
+     assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{r}");
+     // the same setup hosted: the first hand-off equals the original profile's, field for field
+-    let o = clearance(&format!("mode = 'clearance_control', original = '{}'", original_out.to_string_lossy().replace('\\', "/")), "");
++    let o = clearance(
++        &format!("mode = 'clearance_control', original = '{}'", original_out.to_string_lossy().replace('\\', "/")),
++        "",
++    );
+     o.result.as_ref().expect("the hosted control equals the original profile's first hand-off");
+     assert!(line_of(&report(&o), "sh-witness-original").contains("equal=1"), "{}", report(&o));
+     // a hosted first hand-off that differs (another terrain elevation) is a failure naming the field
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:398:
+-    let o = clearance(&format!("mode = 'clearance_control', original = '{}'", original_out.to_string_lossy().replace('\\', "/")), "elevation = 1600.5");
++    let o = clearance(
++        &format!("mode = 'clearance_control', original = '{}'", original_out.to_string_lossy().replace('\\', "/")),
++        "elevation = 1600.5",
++    );
+     assert_failed(&o, "FAILURE", "differs from the original profile's: elevation");
+     assert!(!report(&o).contains("sh-witness-original"), "{}", report(&o));
+     // a run in which the host WAS asked is not the original-solver profile; one with no hand-off is UNREACHED
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:404:
+     let o = clearance("mode = 'clearance_original'", "original = true, frames = { 'step', 'step' }");
+     assert_failed(&o, "UNREACHED", "no hand-off");
+     // the argument belongs to the hosted control only
+-    let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, original = '{}'", original_out.to_string_lossy().replace('\\', "/")), "");
+-    assert!(o.result.as_ref().expect_err("original= for another mode").contains("original=<report> is only for clearance_control"));
++    let o = clearance(
++        &format!(
++            "mode = 'clearance_changed_word', window = 2, original = '{}'",
++            original_out.to_string_lossy().replace('\\', "/")
++        ),
++        "",
++    );
++    assert!(o
++        .result
++        .as_ref()
++        .expect_err("original= for another mode")
++        .contains("original=<report> is only for clearance_control"));
+     assert!(o.report.is_none() && o.log.is_empty(), "{:?}", o.log);
+     let _ = std::fs::remove_file(original_out);
+ }
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:415:
+     let o = clearance("mode = 'clearance_control'", "frames = { 'split', 'handoff' }, window_of = { [2] = 3 }");
+     o.result.as_ref().expect("the second frame hands over");
+     // the split frame is two windows of one read each, the hand-off frame a third
+-    assert!(line_of(&report(&o), "sh-witness-counts").contains("windows=3 windows_without_handoff=2"), "{}", report(&o));
++    assert!(
++        line_of(&report(&o), "sh-witness-counts").contains("windows=3 windows_without_handoff=2"),
++        "{}",
++        report(&o)
++    );
+     assert!(line_of(&report(&o), "sh-witness-handoff").contains("window=3 reads=2"), "{}", report(&o));
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:424:
+     let control = clearance("mode = 'clearance_control'", "");
+     control.result.as_ref().expect("the control passes");
+     let (min, y) = (bits(1500.5), bits(750.25));
+-    let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, control_min = '{min}', control_answer_y = '{y}'"), "");
++    let o = clearance(
++        &format!("mode = 'clearance_changed_word', window = 2, control_min = '{min}', control_answer_y = '{y}'"),
++        "",
++    );
+     o.result.as_ref().expect("the changed word reaches the hand-off");
+     let r = report(&o);
+     let handoff = line_of(&r, "sh-witness-handoff");
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:431:
+     // 100000.0 - 1500.5 = 98499.5 exactly in single precision; the host's answered height is half of it
+-    assert!(handoff.contains(&format!("answered_word=0x47c35000 host_id=ac1 elevation={} min_height={} ", bits(1500.5), bits(98499.5))), "{handoff}");
++    assert!(
++        handoff.contains(&format!(
++            "answered_word=0x47c35000 host_id=ac1 elevation={} min_height={} ",
++            bits(1500.5),
++            bits(98499.5)
++        )),
++        "{handoff}"
++    );
+     assert!(handoff.contains(&format!("answered_y={}", bits(49249.75))), "{handoff}");
+     assert!(line_of(&r, "sh-witness-effect").contains("handoff=changed physical=changed"), "{r}");
+     assert!(line_of(&r, "sh-witness-counts").contains("altered_windows=1 altered_reads=2"), "{r}");
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:460:
+         assert!(line_of(&r, "sh-witness-fatal").contains(&format!("marker={marker}")), "{mode}: {r}");
+         assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{mode}: {r}");
+         // a fatal BEFORE the eligible read, even at the same marker, is a failure
+-        let o = clearance(&format!("mode = '{mode}', window = 2"), &format!("break_at_window = 1, break_marker = '{marker}'"));
++        let o = clearance(
++            &format!("mode = '{mode}', window = 2"),
++            &format!("break_at_window = 1, break_marker = '{marker}'"),
++        );
+         assert_failed(&o, "FAILURE", "before the eligible read of window 2");
+         // a campaign that accepts the faulty answer and goes on is a failure (a withheld answer is a host that raised: nothing can accept it)
+         if mode != "clearance_withheld" {
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:484:
+     let o = clearance("mode = 'clearance_nowhere'", "");
+     assert!(o.result.as_ref().expect_err("an unknown mode").contains("is not a mode of this witness"));
+     let o = clearance("mode = 'clearance_control', window = 2", "");
+-    assert!(o.result.as_ref().expect_err("a window for the control").contains("window= is only for a clearance mode that intervenes"));
++    assert!(o
++        .result
++        .as_ref()
++        .expect_err("a window for the control")
++        .contains("window= is only for a clearance mode that intervenes"));
+     let o = clearance("mode = 'clearance_control', seeds = '1:1:0x3f800000'", "");
+-    assert!(o.result.as_ref().expect_err("seeds for a clearance mode").contains("seeds= is only for a session mode"));
++    assert!(o
++        .result
++        .as_ref()
++        .expect_err("seeds for a clearance mode")
++        .contains("seeds= is only for a session mode"));
+     let o = clearance("mode = 'clearance_control', scenario = 'nowhere'", "");
+     assert!(o.result.as_ref().expect_err("an unknown scenario").contains("scenario="));
+     assert!(o.report.is_none() && o.log.is_empty(), "{:?}", o.log);
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:506:
+ const SEEDS: &str = "1:1:0xc0a00000,2:1:0x7fc00000,3:2:0xff800000";
+ 
+ fn save_run(extra_args: &str, extra_p: &str, family: &str) -> Outcome {
+-    run(&format!("root = 'x', out = '@OUT@', {extra_args}"), &format!("family = '{family}', {SESSION_P}, {extra_p}"))
++    run(
++        &format!("root = 'x', out = '@OUT@', {extra_args}"),
++        &format!("family = '{family}', {SESSION_P}, {extra_p}"),
++    )
+ }
+ 
+ /// a save run that passes, its report kept for the load that follows
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:536:
+ #[test]
+ fn the_native_save_records_every_packed_word_and_every_seeded_sector_with_its_seeds_exact_bits() {
+     let (path, r) = healthy_save();
+-    assert!(line_of(&r, "sh-witness-counts").contains("pack_reads=12 pack_other_questions=0 restores=0 "), "{r}");
++    assert!(
++        line_of(&r, "sh-witness-counts").contains("pack_reads=12 pack_other_questions=0 restores=0 "),
++        "{r}"
++    );
+     assert!(line_of(&r, "sh-witness-counts").contains("seeds_checked=3"), "{r}");
+     assert_eq!(r.lines().filter(|l| l.starts_with("sh-save-word ")).count(), 12);
+-    assert!(r.contains("sh-save-word i=5 x=1 z=2 word=0x00000000") || r.contains("sh-save-word i=4 x=1 z=1 word=0xc0a00000"), "{r}");
+-    assert!(r.contains("x=1 z=1 word=0xc0a00000") && r.contains("x=2 z=1 word=0x7fc00000") && r.contains("x=3 z=2 word=0xff800000"), "{r}");
++    assert!(
++        r.contains("sh-save-word i=5 x=1 z=2 word=0x00000000") || r.contains("sh-save-word i=4 x=1 z=1 word=0xc0a00000"),
++        "{r}"
++    );
++    assert!(
++        r.contains("x=1 z=1 word=0xc0a00000") && r.contains("x=2 z=1 word=0x7fc00000") && r.contains("x=3 z=2 word=0xff800000"),
++        "{r}"
++    );
+     assert!(r.contains("sh-save-seed sx=1 sz=1 word=0xc0a00000"), "{r}");
+-    assert!(line_of(&r, "sh-witness-save name=alpha bytes=4096 version=7").starts_with("sh-witness-save"), "{r}");
++    assert!(
++        line_of(&r, "sh-witness-save name=alpha bytes=4096 version=7").starts_with("sh-witness-save"),
++        "{r}"
++    );
+     assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{r}");
+     let _ = std::fs::remove_file(path);
+ }
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:557:
+     let o = save_run(&format!("{base}, seeds = '{SEEDS}'"), "pack_twice = true", "save");
+     assert_failed(&o, "FAILURE", "read a sector twice");
+     // a save report that is not whole
+-    let o = save_run(&format!("{base}, seeds = '{SEEDS}'"), "save_line = 'sh-witness-save name=%s bytes=2 version=7\\n'", "save");
++    let o = save_run(
++        &format!("{base}, seeds = '{SEEDS}'"),
++        "save_line = 'sh-witness-save name=%s bytes=2 version=7\\n'",
++        "save",
++    );
+     assert_failed(&o, "FAILURE", "not whole");
+     // the module has no witness method (built without the feature)
+     let o = save_run(&format!("{base}, seeds = '{SEEDS}'"), "no_save_method = true", "save");
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:566:
+     let o = save_run(&format!("{base}, seeds = '{SEEDS}'"), "save_refused = true", "save");
+     assert_failed(&o, "FAILURE", "a saved file of that name exists");
+     // a host answer that breaks the contract is a failure of the host's own provider
+-    let o = save_run(&format!("{base}, seeds = '{SEEDS}'"), "lenient = true, stored_wrong = BITS (1) .. ',' .. BITS (1)", "save");
++    let o = save_run(
++        &format!("{base}, seeds = '{SEEDS}'"),
++        "lenient = true, stored_wrong = BITS (1) .. ',' .. BITS (1)",
++        "save",
++    );
+     assert_failed(&o, "FAILURE", "the host's provider did not hold the seed");
+     // refused before any side effect: a signalling NaN is unmeasured, a duplicate or malformed seed, a bad name
+     for (args, needle) in [
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:579:
+     ] {
+         let o = save_run(&args, "", "save");
+         assert!(o.result.as_ref().expect_err(&args).contains(needle), "{args}: {:?}", o.result);
+-        assert!(o.report.is_none() && o.log.is_empty(), "{args}: no side effect before the arguments are accepted: {:?}", o.log);
++        assert!(
++            o.report.is_none() && o.log.is_empty(),
++            "{args}: no side effect before the arguments are accepted: {:?}",
++            o.log
++        );
+     }
+     // a quiet NaN, an infinity and a negative word are valid raw history
+     let o = save_run(&format!("{base}, seeds = '1:1:0x7fc00001,2:1:0x7f800000,3:2:0x80000000'"), "", "save");
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:605:
+ 
+ fn load_run(save_report_path: &std::path::Path, report_text: &str, mode_args: &str, extra_p: &str) -> Outcome {
+     run(
+-        &format!("root = 'x', out = '@OUT@', {mode_args}, campaign = 'alpha.Sch', expect = '{}'", save_report_path.to_string_lossy().replace('\\', "/")),
++        &format!(
++            "root = 'x', out = '@OUT@', {mode_args}, campaign = 'alpha.Sch', expect = '{}'",
++            save_report_path.to_string_lossy().replace('\\', "/")
++        ),
+         &format!("family = 'load', {SESSION_P}, {}", load_p(&saved_words_table(report_text), extra_p)),
+     )
+ }
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:616:
+     let o = load_run(&path, &saved, "mode = 'load', name = 'beta'", "");
+     o.result.as_ref().expect("the healthy load passes");
+     let r = report(&o);
+-    assert!(line_of(&r, "sh-witness-counts").contains("restores=12 restore_duplicates=0 inserts=4 inserts_before_first_restore=0 inserts_between_restores=0 inserts_after_last_restore=4"), "{r}");
++    assert!(
++        line_of(&r, "sh-witness-counts")
++            .contains("restores=12 restore_duplicates=0 inserts=4 inserts_before_first_restore=0 inserts_between_restores=0 inserts_after_last_restore=4"),
++        "{r}"
++    );
+     // the three raw histories came back bit for bit and were then raised only where the arrival is greater: a negative and minus infinity raised, a quiet NaN held
+-    assert!(r.contains("x=1 z=1 stated=0xc0a00000 stored=0xc0a00000 final=0x40a00000 relation=raised"), "{r}");
++    assert!(
++        r.contains("x=1 z=1 stated=0xc0a00000 stored=0xc0a00000 final=0x40a00000 relation=raised"),
++        "{r}"
++    );
+     assert!(r.contains("x=2 z=1 stated=0x7fc00000 stored=0x7fc00000 final=0x7fc00000 relation=held"), "{r}");
+-    assert!(r.contains("x=3 z=2 stated=0xff800000 stored=0xff800000 final=0x40a00000 relation=raised"), "{r}");
+-    assert!(r.contains("x=0 z=0 stated=0x00000000 stored=0x00000000 final=0x40400000 relation=raised"), "{r}");
++    assert!(
++        r.contains("x=3 z=2 stated=0xff800000 stored=0xff800000 final=0x40a00000 relation=raised"),
++        "{r}"
++    );
++    assert!(
++        r.contains("x=0 z=0 stated=0x00000000 stored=0x00000000 final=0x40400000 relation=raised"),
++        "{r}"
++    );
+     assert!(r.contains("x=3 z=0 stated=0x00000000 stored=0x00000000 final=0x00000000 relation=held"), "{r}");
+     assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{r}");
+-    assert!(o.log.iter().any(|l| l == "boot alpha.Sch") && o.log.iter().any(|l| l == "save beta"), "{:?}", o.log);
++    assert!(
++        o.log.iter().any(|l| l == "boot alpha.Sch") && o.log.iter().any(|l| l == "save beta"),
++        "{:?}",
++        o.log
++    );
+     let _ = std::fs::remove_file(path);
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:655:
+     // the host stores bits other than the ones stated: the host's own answer is the failure, whether the campaign's own check also stops the boot (a fatal is recorded) or a lenient campaign goes on
+     let o = load_run(&path, &saved, base, &format!("stored_wrong = {key_11}"));
+     assert_failed(&o, "FAILURE", "the host's own answer broke the contract");
+-    assert!(report(&o).contains("sh-witness-fatal where=boot marker=entity_scan.sector_height"), "{}", report(&o));
++    assert!(
++        report(&o).contains("sh-witness-fatal where=boot marker=entity_scan.sector_height"),
++        "{}",
++        report(&o)
++    );
+     let o = load_run(&path, &saved, base, &format!("stored_wrong = {key_11}, lenient = true"));
+     assert_failed(&o, "FAILURE", "the host's own answer broke the contract");
+     assert!(!report(&o).contains("sh-witness-fatal"), "{}", report(&o));
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs:671:
+     );
+     assert!(o.result.as_ref().expect_err("no expect").contains("needs expect="));
+     assert!(o.report.is_none() && o.log.is_empty(), "{:?}", o.log);
+-    let o = run("root = 'x', out = '@OUT@', mode = 'load', name = 'beta'", &format!("family = 'load', {SESSION_P}"));
++    let o = run(
++        "root = 'x', out = '@OUT@', mode = 'load', name = 'beta'",
++        &format!("family = 'load', {SESSION_P}"),
++    );
+     assert!(o.result.as_ref().expect_err("no campaign").contains("saved script's file name"));
+     let _ = std::fs::remove_file(path);
+ }
