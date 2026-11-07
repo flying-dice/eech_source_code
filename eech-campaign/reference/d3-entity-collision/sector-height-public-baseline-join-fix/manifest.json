@@ -1,0 +1,320 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-sector-height-public-baseline-JOIN-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 24132,
+      "sha256": "d0b2182d9acd34a7fff4436bba29d07fa7fa47365449bdc0c750d9f36194a237"
+    },
+    {
+      "path": "independent-sector-height-public-baseline-correction-d74-20261107.json",
+      "bytes": 10072,
+      "sha256": "636e0d384622242f4fc151b5712ad316dfd18c06f53586423ee93d707cec734b"
+    },
+    {
+      "path": "inputmaps-compare.json",
+      "bytes": 1739,
+      "sha256": "b346deec3200c5d14b21895d05fc3c659c4f2d5121438b9f799903a7c4cdf606"
+    },
+    {
+      "path": "inputmaps-vs-d74-compare.json",
+      "bytes": 1683,
+      "sha256": "838a8ff1f14f0d78dab5cb1c2ca8f7872e9ff21e9c21ac49c376118d5490071d"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9926,
+      "sha256": "e2a20a950d5f5ae1ae1beb0ca15bc72146ec15c8d2c310cfd88304c7b9a93e19"
+    },
+    {
+      "path": "Root-sector-height-public-baseline-join-fix-feedback-20261107.json",
+      "bytes": 1010,
+      "sha256": "826057c870ce0143f3685133796d925e77ed113918d0b2ff449156d4a46fe829"
+    },
+    {
+      "path": "runs/m1-funnel-dev.json",
+      "bytes": 1004,
+      "sha256": "fb8a13f8a70f7daaa8cc824d9ab9ce5136f351693483f7f3aed6efafd583d1ec"
+    },
+    {
+      "path": "runs/m1-funnel-dev.stderr.log",
+      "bytes": 406,
+      "sha256": "5e9ffcf06f25893825c7fb5fcff728559d11a18a39eb372dd55a25308ce28fcc"
+    },
+    {
+      "path": "runs/m1-funnel-dev.stdout.log",
+      "bytes": 226,
+      "sha256": "f1b431e58e9f5514018d50e6d3b1c295c11e1b75de3c3087884c6300a8ce846d"
+    },
+    {
+      "path": "runs/m2-red-sh1-after-call.json",
+      "bytes": 976,
+      "sha256": "88b9e5db388e3b369dc4ab66c7bdfc62746f5cddfe78fcd5d92b8a4ccb4b1802"
+    },
+    {
+      "path": "runs/m2-red-sh1-after-call.stderr.log",
+      "bytes": 485,
+      "sha256": "330a6e108935df989ddf2834b0de087f4950d11e97bf37c6ccce4ee8993bddda"
+    },
+    {
+      "path": "runs/m2-red-sh1-after-call.stdout.log",
+      "bytes": 2235,
+      "sha256": "f285c042af031f15e3e24525d416124b5f093faf21db67994b283e503c793a5f"
+    },
+    {
+      "path": "runs/m3-red-building-family-only.json",
+      "bytes": 975,
+      "sha256": "c3704870b0b78dc8d02629a3d4e0836877a532d32a556ffa0ae547b982a1f20b"
+    },
+    {
+      "path": "runs/m3-red-building-family-only.stderr.log",
+      "bytes": 485,
+      "sha256": "1a8a58930040142f8c25d2ae59b8934305fd7ddd68698e1b1bd5f3c2c2d02d4d"
+    },
+    {
+      "path": "runs/m3-red-building-family-only.stdout.log",
+      "bytes": 1064,
+      "sha256": "2d7f99812707e2686a7539dde57f6b110a1201dddd1dd56578079323d8296104"
+    },
+    {
+      "path": "runs/m4-chain-stale-fixture.json",
+      "bytes": 1013,
+      "sha256": "f0b07d2670b5196671ca5efbca66d616b1ac700171a0439369c9f2acbe810c2a"
+    },
+    {
+      "path": "runs/m4-chain-stale-fixture.stderr.log",
+      "bytes": 68581,
+      "sha256": "86a4ec9dc53799d5ee0d24001e038131b7f260cbd6993fc0c01a74dd753fe5f0"
+    },
+    {
+      "path": "runs/m4-chain-stale-fixture.stdout.log",
+      "bytes": 34017,
+      "sha256": "a3dcdd7c4d7ba942a97bc1abee8e7140c24b19a521e0e1c23bcd72cd75413d92"
+    },
+    {
+      "path": "runs/n1-fmt-check.json",
+      "bytes": 932,
+      "sha256": "6df095fb1cbec599e56a26a4022951f5cbcffc0e25298d8476bae4845d997151"
+    },
+    {
+      "path": "runs/n1-fmt-check.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/n1-fmt-check.stdout.log",
+      "bytes": 8856,
+      "sha256": "9ece5d38ff798aa1944c4c8e48d59fc4d4a2cedaa2868cfb57b8720644c4fccc"
+    },
+    {
+      "path": "runs/n2-fmt-apply.json",
+      "bytes": 910,
+      "sha256": "1cf547d25ef7fe4c8cdc76481847a5e7ba638b54ae550459b66ec1a62b86d7ac"
+    },
+    {
+      "path": "runs/n2-fmt-apply.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/n2-fmt-apply.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/n3-clippy-engine-funnel.json",
+      "bytes": 980,
+      "sha256": "6e39e8e735eaf5706c569d4a144fc5fc436f7c4b1556a585d735bb39cdf51421"
+    },
+    {
+      "path": "runs/n3-clippy-engine-funnel.stderr.log",
+      "bytes": 303,
+      "sha256": "b16cc4de885062f82ec4ac07749249396e7864b84173b9530ddfe603e64f3a77"
+    },
+    {
+      "path": "runs/n3-clippy-engine-funnel.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/n4-clippy-sys-funnel.json",
+      "bytes": 987,
+      "sha256": "a1b1f3f416e79dc59c564e2c24a30f1128fbd6f801beb42f02925ddf565e2b93"
+    },
+    {
+      "path": "runs/n4-clippy-sys-funnel.stderr.log",
+      "bytes": 230,
+      "sha256": "4454d7f9a4111f899b95b802792c00e7b8e01223006181bd4377726152154d18"
+    },
+    {
+      "path": "runs/n4-clippy-sys-funnel.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/p1-fmt-check.json",
+      "bytes": 932,
+      "sha256": "842a8d7f0968dd6e418e72c97e7e4381cb5600b2af082bbe4d9f52a573530b99"
+    },
+    {
+      "path": "runs/p1-fmt-check.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/p1-fmt-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/p2-clippy-default.json",
+      "bytes": 991,
+      "sha256": "926d23b45e3116b1956bf5418ef290bb608772fe6a708b902380aff2e1dd54fb"
+    },
+    {
+      "path": "runs/p2-clippy-default.stderr.log",
+      "bytes": 437,
+      "sha256": "5adac4883814b4acb374a79a773d2caf5bac3d51fbe0e5d598fba6f5d1ef0fb4"
+    },
+    {
+      "path": "runs/p2-clippy-default.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/p3-clippy-sys-funnel.json",
+      "bytes": 988,
+      "sha256": "77c8c9409fc4bd854bf88dcfde452c2d440ccf82a8330ae159a92c8863e58020"
+    },
+    {
+      "path": "runs/p3-clippy-sys-funnel.stderr.log",
+      "bytes": 150,
+      "sha256": "963066f03b76e43e70916ef4bab5e6f6e5e39cc56ff9024d0bf0ccd691bbe1f4"
+    },
+    {
+      "path": "runs/p3-clippy-sys-funnel.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/p4-clippy-engine-funnel.json",
+      "bytes": 978,
+      "sha256": "165cad087b84dacbdebb6962e5be1020d012216a4ec7dd5dd1a61b466f380a06"
+    },
+    {
+      "path": "runs/p4-clippy-engine-funnel.stderr.log",
+      "bytes": 150,
+      "sha256": "fdf3fb0eda6be54623a5124204645d566af9c5014d72533363290c7111c65fe5"
+    },
+    {
+      "path": "runs/p4-clippy-engine-funnel.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/p5-clippy-dc-observer.json",
+      "bytes": 964,
+      "sha256": "ed2eecda251084037f4741384adc43b509983062bb0a305dd4cd6ae5c36b65dc"
+    },
+    {
+      "path": "runs/p5-clippy-dc-observer.stderr.log",
+      "bytes": 367,
+      "sha256": "ca8c2fcd6fd10a27bba98524e38808f5bdf07ca88dd1594f87727350b3dbb8e2"
+    },
+    {
+      "path": "runs/p5-clippy-dc-observer.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/p6-funnel-control.json",
+      "bytes": 973,
+      "sha256": "4d3bf449a9be6821d117ef359ba53fb1ba3931f40c2200db62b2fc224cd1c9b5"
+    },
+    {
+      "path": "runs/p6-funnel-control.stderr.log",
+      "bytes": 406,
+      "sha256": "35765948b39bfe0f7ece801215a635545d00143f25d2ffefc67b3e2eca7eaada"
+    },
+    {
+      "path": "runs/p6-funnel-control.stdout.log",
+      "bytes": 226,
+      "sha256": "f1b431e58e9f5514018d50e6d3b1c295c11e1b75de3c3087884c6300a8ce846d"
+    },
+    {
+      "path": "runs/p7-chain-cap.json",
+      "bytes": 1050,
+      "sha256": "8cff18c5d7590d9bba9a98114ce3d6bf68369b2c1a17d2840d04bbf120f89253"
+    },
+    {
+      "path": "runs/p7-chain-cap.stderr.log",
+      "bytes": 536,
+      "sha256": "f1cca565dea8dc5b38b22e3a80666ef7fb2302f29027b553bb3c48f47f78274a"
+    },
+    {
+      "path": "runs/p7-chain-cap.stdout.log",
+      "bytes": 394,
+      "sha256": "9d85979c66d31904e584ac75f56aa9116105d62cba925f6706bdb87662c00c46"
+    },
+    {
+      "path": "runs/p8-sys-control.json",
+      "bytes": 1047,
+      "sha256": "f57a5dc91a543f62f69cdc213c7c8f96844e25e1744eec41225d00e70b1ffea5"
+    },
+    {
+      "path": "runs/p8-sys-control.stderr.log",
+      "bytes": 338,
+      "sha256": "436908d841e9a6cc5d1775ed04ca48b1ab047dc0500de0e211ec09d62b6cf312"
+    },
+    {
+      "path": "runs/p8-sys-control.stdout.log",
+      "bytes": 329,
+      "sha256": "2b7d780e38cc8f7b7035c5c16a11fa6134775b93f8938505392778b88db81377"
+    },
+    {
+      "path": "runs/p9-driver-guards.json",
+      "bytes": 914,
+      "sha256": "b66cd22c5d073440f1cf9a7b210d4a8300758efa143939810c403aefbd3fd9e8"
+    },
+    {
+      "path": "runs/p9-driver-guards.stderr.log",
+      "bytes": 341,
+      "sha256": "1c0979313756a84ca4848bd78a2e710adeefb02f2984ccc9c76b1c12ebb17414"
+    },
+    {
+      "path": "runs/p9-driver-guards.stdout.log",
+      "bytes": 674,
+      "sha256": "1c9fafd6b18b79bb60ca7530d6541b3f10015f6ddc923c831783fe98f8dd473d"
+    },
+    {
+      "path": "scripts/run-sector-height-baseline-direct-20261107.py",
+      "bytes": 1975,
+      "sha256": "00222f9cdbd463f59c3af79d5162bd2412fdb2be15f4bc61228cc068f42e972c"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "path": "scripts/sho-compare-prev-20261107.py",
+      "bytes": 1633,
+      "sha256": "c156340f117be61e58d893dccfc63588778342e4cb490f89c655d521c5b65fd3"
+    },
+    {
+      "path": "scripts/sho-extra-identity-20261107.py",
+      "bytes": 1826,
+      "sha256": "5c6f50e8ba69203b502600f6429eef85207a3ebe57e2018066187b3d6e278890"
+    },
+    {
+      "path": "scripts/sho-extract-fixture.py",
+      "bytes": 270,
+      "sha256": "e0ccda76892e4f97db8e3b1f1894689b29db15e4b29eaef059dd021b0e55d985"
+    }
+  ],
+  "scope": "Source and Linux-check packet of the residual JOIN correction only; not a native result, review, approval or production move."
+}

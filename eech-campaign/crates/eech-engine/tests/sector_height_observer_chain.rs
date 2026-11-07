@@ -69,14 +69,14 @@ fn event(i: i32) -> String {
     row("event", i, SHO_EVENTS_MAX, c::eech_sho_event_run)
 }
 
-fn statement(ent: i32, etype: i32, family: i32, key: &str, base: u32) {
+fn statement(ent: i32, etype: i32, family: i32, sector_placed: i32, key: &str, base: u32) {
     let key = match CString::new(key) {
         Ok(k) => k,
         Err(_) => panic!("key"),
     };
     let words = [base, base + 1, base + 2, base + 3, base + 4, base + 5];
     // SAFETY: the key is NUL-terminated and the words slice holds the count passed.
-    unsafe { c::eech_sho_core_statement(ent, etype, family, key.as_ptr(), words.as_ptr(), 6) }
+    unsafe { c::eech_sho_core_statement(ent, etype, family, sector_placed, key.as_ptr(), words.as_ptr(), 6) }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -114,8 +114,8 @@ fn the_recorder_joins_one_placement_and_reports_what_it_cannot_join() {
     link(100, OBJECT, FIXED, VALID, 12, 0, word(100.0), 3, 4);
     link(101, OBJECT, FIXED, VALID, 13, word(100.0), word(128.0), 3, 4);
     // the host's statements arrive in the OPPOSITE order of the inserts
-    statement(101, OBJECT, FIXED, "2002", 0x4000_0000);
-    statement(100, OBJECT, FIXED, "2001", 0x4100_0000);
+    statement(101, OBJECT, FIXED, 1, "2002", 0x4000_0000);
+    statement(100, OBJECT, FIXED, 1, "2001", 0x4100_0000);
     // SAFETY: plain integers.
     unsafe {
         c::eech_sho_core_insert(200, CITY, CITY_FAMILY, 3, 4);
@@ -124,8 +124,9 @@ fn the_recorder_joins_one_placement_and_reports_what_it_cannot_join() {
         c::eech_sho_core_link_end(200, CITY, CITY_FAMILY, 1, UNOBSERVED, 0, std::ptr::null(), 0, word(128.0), 3, 4);
     }
     link(201, CITY, CITY_FAMILY, INVALID, 0, 0, 0, 7, 8);
-    // a city building is placed in its city's list: its statement has no sector record and is counted apart
-    statement(300, 6, BUILDING_FAMILY, "3003", 0x4200_0000);
+    // a city building's FIRST statement is made under its city-list key (its sector placement does not exist yet): no sector record is expected for it and it is counted apart.
+    // (This control drives the recorder core in a preferred sequence; the real nested callback order and the building's two stages are the funnel control's, sector_height_funnel.rs.)
+    statement(300, 6, BUILDING_FAMILY, 0, "3003", 0x4200_0000);
     // SAFETY: plain integers.
     unsafe {
         // FIRST reads and fact 12: two sectors with distinct nonzero words; one offer carries another word than its sector's FIRST
@@ -250,7 +251,7 @@ fn the_recorder_joins_one_placement_and_reports_what_it_cannot_join() {
     // SAFETY: plain integers.
     unsafe { c::eech_sho_core_remove(100, OBJECT, FIXED, 1) };
     assert!(summary().contains("sho-complete value=1"), "a removal alone keeps the report whole");
-    statement(100, OBJECT, FIXED, "2001", 0x4300_0000);
+    statement(100, OBJECT, FIXED, 1, "2001", 0x4300_0000);
     let after = summary();
     assert!(
         after.contains("sho-complete value=0") && number(line_of(&after, "sho-join"), "stmt_unjoined") == 1,
@@ -271,4 +272,9 @@ fn the_recorder_joins_one_placement_and_reports_what_it_cannot_join() {
         1,
         "the first insert of 101 was never removed; the release then lets the reused index join a new record: {join}"
     );
+
+    // a statement under a city-list key from a family that has no such stage (not a city building) is outside the placement map's domain and is a failure of its own
+    statement(101, OBJECT, FIXED, 0, "2002", 0x4400_0000);
+    let last = summary();
+    assert_eq!(number(line_of(&last, "sho-join"), "stmt_child_unexpected"), 1, "{last}");
 }

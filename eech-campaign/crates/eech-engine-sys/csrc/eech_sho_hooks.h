@@ -11,7 +11,8 @@
 #ifndef EECH_SHO_HOOKS_H
 #define EECH_SHO_HOOKS_H
 
-/* en_list.c: an entity has just been written into a SECTOR list and the roster has been told (campaign_place_insert), before LINK_CHILD; and the removal, reported while it is still listed */
+/* en_list.c: an entity is being written into a SECTOR list. The observer's record is opened BEFORE campaign_place_insert, because that call nests the host's roster INSERT and the first fixed or city
+   state statement (mb_hostplacemap.h place_insert -> place_fixed_state) and returns only after them; LINK_CHILD follows. The removal is reported while the entity is still listed. */
 extern void eech_sho_sector_insert (const void *en, const void *sector);
 extern void eech_sho_sector_remove (const void *en);
 
@@ -22,9 +23,10 @@ extern void eech_sho_entity_release (const void *en);
 extern void eech_sho_link_begin (const void *sector, const void *sender, const float *word);
 extern void eech_sho_link_end (const void *sector, const void *sender, const float *word);
 
-/* mb_hostplacemap.h place_fixed_state: the statement the host is about to receive (a fixed family's six words, a city's ten) under the host's key */
-extern void eech_sho_statement_fixed (const void *en, int type, const char *key, const float *state);
-extern void eech_sho_statement_city (const void *en, const char *key, const float *city);
+/* mb_hostplacemap.h place_fixed_state: the statement the host is about to receive (a fixed family's six words, a city's ten) under the host's key. `sector_placed` is whether that key is the entity's SECTOR
+   placement's (the map prefers it as soon as it exists) or a city-list key (a city building's first stage): the same relationship the map itself uses to choose the key. */
+extern void eech_sho_statement_fixed (const void *en, int type, int sector_placed, const char *key, const float *state);
+extern void eech_sho_statement_city (const void *en, int sector_placed, const char *key, const float *city);
 
 /* mb_hostscan.h: the FIRST read of the sector the host named, and mb_hostoffer.h: fact 12 of one candidate question (the word the question carries, related to the last FIRST) */
 extern void eech_sho_scan_first (int x_sector, int z_sector, const float *word);

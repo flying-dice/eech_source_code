@@ -1951,7 +1951,7 @@ pub mod sho_support {
             sx: c_int,
             sz: c_int,
         );
-        pub fn eech_sho_core_statement(ent: c_int, etype: c_int, family: c_int, key: *const c_char, words: *const u32, count: c_int);
+        pub fn eech_sho_core_statement(ent: c_int, etype: c_int, family: c_int, sector_placed: c_int, key: *const c_char, words: *const u32, count: c_int);
         pub fn eech_sho_core_scan_first(x_sector: c_int, z_sector: c_int, word: u32);
         pub fn eech_sho_core_candidate_fact(word: u32);
         pub fn eech_sho_core_clearance_leader();
@@ -1963,6 +1963,10 @@ pub mod sho_support {
         pub fn eech_sho_event_run(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
         pub fn eech_sho_clearance_run(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
         pub fn eech_sho_scan_run(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+        #[cfg(feature = "sector-height-funnel-check")]
+        pub fn eech_sho_funnel_run(scenario: c_int, hook_first: c_int) -> c_int;
+        #[cfg(feature = "sector-height-funnel-check")]
+        pub fn eech_sho_funnel_text(text: *mut c_char, capacity: c_int) -> c_int;
     }
 }
 

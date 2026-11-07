@@ -1,0 +1,31 @@
+
+running 1 test
+test the_real_placement_map_in_the_staged_order_joins_every_placement_and_still_refuses_what_has_no_record ... FAILED
+
+failures:
+
+---- the_real_placement_map_in_the_staged_order_joins_every_placement_and_still_refuses_what_has_no_record stdout ----
+
+thread 'the_real_placement_map_in_the_staged_order_joins_every_placement_and_still_refuses_what_has_no_record' (4156) panicked at crates/eech-engine/tests/sector_height_funnel.rs:116:5:
+assertion `left == right` failed: the first state statement of a placement met no observer record (the insert hook stands after the nested call): sho-join records=6 link_total=6 link_fixed=5 link_city=1 link_mobile=0 links_joined=6 links_unjoined=0 stmt_joined=3 stmt_unjoined=6 stmt_type_mismatch=0 stmt_child=1 stmt_child_unexpected=0 double_insert=0 remove_unjoined=0 index_out_of_range=0
+sho-summary schema=2 note=read-only-observer-one-boot-per-process
+sho-counts seq=24 inserts_total=6 inserts_fixed=5 inserts_city=1 inserts_mobile=0 removes_total=1 removes_recorded=1 removes_mobile=0 released_open=1
+sho-join records=6 link_total=6 link_fixed=5 link_city=1 link_mobile=0 links_joined=6 links_unjoined=0 stmt_joined=3 stmt_unjoined=6 stmt_type_mismatch=0 stmt_child=1 stmt_child_unexpected=0 double_insert=0 remove_unjoined=0 index_out_of_range=0
+sho-shape fixed_valid=5 fixed_invalid=0 fixed_unobserved=0 city_valid=1 city_invalid=0 city_unobserved=0 raised=4
+sho-statements fixed=9 city=1
+sho-scan reads=0 firsts=0 sectors=0 fact_offers=0 fact_nonzero=0 fact_equal_first=0 fact_differ_first=0 fact_without_first=0
+sho-clearance leader_reached=0 follow_reached=0 reads=0 stored=0
+sho-session pack_total=0 pack_stored=0 pack_omitted=0 unpack_total=0 unpack_stored=0 unpack_omitted=0
+sho-tables events_used=24 events_capacity=262144 events_overflow=0 clearance_capacity=4096 clearance_overflow=0 scan_out_of_range=0 mismatches=6 pending=0
+sho-complete value=0
+
+  left: 6
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_real_placement_map_in_the_staged_order_joins_every_placement_and_still_refuses_what_has_no_record
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

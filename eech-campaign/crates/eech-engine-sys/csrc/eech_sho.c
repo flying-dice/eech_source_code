@@ -12,7 +12,11 @@
  * JOINING. INSERT, LINK_CHILD, the host statement and the removal of one placement are joined by the observer's own record identity: an INSERT opens a record under the entity's heap
  * index (a private bookkeeping number; no production semantic identifier is allocated or changed), every later event of that entity finds the open record, and the removal closes it.
  * A LINK or a sector-placed statement with no open record, a second INSERT of an open record, a statement of another type and a removal with no open record are COUNTED as join failures
- * and make the report incomplete: nothing is guessed from a family or a sector. A statement of a city building (its place is a city's list, never a sector's) is counted apart.
+ * and make the report incomplete: nothing is guessed from a family or a sector.
+ * WHERE THE RECORD OPENS. The roster's `campaign_place_insert` nests the host's INSERT and the entity's first state statement before it returns, so the record is opened BEFORE that call (the
+ * staged en_list.c, SH1); LINK_CHILD follows. WHICH STAGE A STATEMENT IS. The placement map prefers the entity's SECTOR key as soon as it exists, and a city building is placed twice (its city's list,
+ * then its sector): a statement under the sector key (`sector_placed`) must join the sector record; a statement under a city-list key is the building's first stage, counted apart, and any other
+ * family stating under a child key is a failure. The relationship comes from the key the placement map itself chose, not from the family.
  *
  * SHAPE. The shape is read only where the original block reads it (a fixed-flagged sender). Where that gate is false the shape is UNOBSERVED, never invalid.
  *
@@ -108,7 +112,7 @@ static uint64_t inserts_total, inserts_fixed, inserts_city, inserts_mobile, doub
 static uint64_t removes_total, removes_recorded, removes_mobile, remove_unjoined, released_open;
 static uint64_t link_total, link_fixed, link_city, link_mobile, links_joined, links_unjoined, raised;
 static uint64_t shape_count [2][3];
-static uint64_t statements_fixed, statements_city, stmt_joined, stmt_unjoined, stmt_type_mismatch, stmt_child;
+static uint64_t statements_fixed, statements_city, stmt_joined, stmt_unjoined, stmt_type_mismatch, stmt_child, stmt_child_unexpected;
 static uint64_t pack_total, pack_stored, unpack_total, unpack_stored;
 static uint64_t scan_reads, scan_firsts, fact_offers, fact_nonzero, fact_equal, fact_differ, fact_without_first;
 static uint64_t leader_reached, follow_reached, clearance_total;
@@ -421,7 +425,7 @@ void eech_sho_core_link_end (int ent, int etype, int family, int fixed_or_city, 
 	}
 }
 
-void eech_sho_core_statement (int ent, int etype, int family, const char *key, const uint32_t *words, int count)
+void eech_sho_core_statement (int ent, int etype, int family, int sector_placed, const char *key, const uint32_t *words, int count)
 {
 	struct sho_event *ev;
 	uint32_t rec = 0;
@@ -436,13 +440,24 @@ void eech_sho_core_statement (int ent, int etype, int family, const char *key, c
 		statements_fixed++;
 	}
 
-	if (family == SHO_FAMILY_CITY_BUILDING)
+	if (!sector_placed)
 	{
-		/* a building is placed in its city's list: no sector record exists or is expected */
-		stmt_child++;
+		/* the statement was made under a city-list key, the sector placement not existing yet (the placement map prefers the sector key as soon as there is one): only a city building has such a
+		   stage, and no sector record is expected for it. Any other family stating under a child key is outside the domain the placement map has, and is counted as a failure. */
+		if (family == SHO_FAMILY_CITY_BUILDING)
+		{
+			stmt_child++;
+		}
+		else
+		{
+			stmt_child_unexpected++;
+
+			mismatches++;
+		}
 	}
 	else
 	{
+		/* a statement under the SECTOR placement's key joins the record that placement opened (a city building too, once its sector insertion exists); a missing record is a real join failure */
 		rec = open_record (ent);
 
 		if (rec == 0)
@@ -715,6 +730,9 @@ static uint32_t bits (const float *word)
 	return value;
 }
 
+#ifndef EECH_SHO_FUNNEL_CHECK
+/* the entity-reading hooks: the funnel control (feature sector-height-funnel-check) compiles its own scripted equivalents over scripted entity structs instead */
+
 static void sector_coordinates (const void *sector_entity, int *x, int *z)
 {
 	sector *raw = (sector *) get_local_entity_data ((entity *) sector_entity);
@@ -802,7 +820,7 @@ void eech_sho_link_end (const void *sector_entity, const void *sender, const flo
 		have_pos ? pos : NULL, ymax, bits (word), sx, sz);
 }
 
-void eech_sho_statement_fixed (const void *en, int type, const char *key, const float *state)
+void eech_sho_statement_fixed (const void *en, int type, int sector_placed, const char *key, const float *state)
 {
 	uint32_t words [CAMPAIGN_FIXED_STATE_WORDS];
 	int i;
@@ -812,10 +830,10 @@ void eech_sho_statement_fixed (const void *en, int type, const char *key, const 
 		words [i] = bits (&state [i]);
 	}
 
-	eech_sho_core_statement ((int) get_local_entity_index ((entity *) en), type, family_of ((entity *) en), key, words, CAMPAIGN_FIXED_STATE_WORDS);
+	eech_sho_core_statement ((int) get_local_entity_index ((entity *) en), type, family_of ((entity *) en), sector_placed, key, words, CAMPAIGN_FIXED_STATE_WORDS);
 }
 
-void eech_sho_statement_city (const void *en, const char *key, const float *city)
+void eech_sho_statement_city (const void *en, int sector_placed, const char *key, const float *city)
 {
 	uint32_t words [CAMPAIGN_CITY_STATE_WORDS];
 	int i;
@@ -825,8 +843,10 @@ void eech_sho_statement_city (const void *en, const char *key, const float *city
 		words [i] = bits (&city [i]);
 	}
 
-	eech_sho_core_statement ((int) get_local_entity_index ((entity *) en), (int) ENTITY_TYPE_CITY, SHO_FAMILY_CITY, key, words, CAMPAIGN_CITY_STATE_WORDS);
+	eech_sho_core_statement ((int) get_local_entity_index ((entity *) en), (int) ENTITY_TYPE_CITY, SHO_FAMILY_CITY, sector_placed, key, words, CAMPAIGN_CITY_STATE_WORDS);
 }
+
+#endif
 
 void eech_sho_scan_first (int x_sector, int z_sector, const float *word)
 {
@@ -973,9 +993,9 @@ int eech_sho_summary_run (char *text, int capacity)
 	put (&o, "sho-summary schema=2 note=read-only-observer-one-boot-per-process\n");
 	put (&o, "sho-counts seq=%llu inserts_total=%llu inserts_fixed=%llu inserts_city=%llu inserts_mobile=%llu removes_total=%llu removes_recorded=%llu removes_mobile=%llu released_open=%llu\n",
 		U (seq), U (inserts_total), U (inserts_fixed), U (inserts_city), U (inserts_mobile), U (removes_total), U (removes_recorded), U (removes_mobile), U (released_open));
-	put (&o, "sho-join records=%u link_total=%llu link_fixed=%llu link_city=%llu link_mobile=%llu links_joined=%llu links_unjoined=%llu stmt_joined=%llu stmt_unjoined=%llu stmt_type_mismatch=%llu stmt_child=%llu double_insert=%llu remove_unjoined=%llu index_out_of_range=%llu\n",
+	put (&o, "sho-join records=%u link_total=%llu link_fixed=%llu link_city=%llu link_mobile=%llu links_joined=%llu links_unjoined=%llu stmt_joined=%llu stmt_unjoined=%llu stmt_type_mismatch=%llu stmt_child=%llu stmt_child_unexpected=%llu double_insert=%llu remove_unjoined=%llu index_out_of_range=%llu\n",
 		(unsigned) record_count, U (link_total), U (link_fixed), U (link_city), U (link_mobile), U (links_joined), U (links_unjoined), U (stmt_joined), U (stmt_unjoined), U (stmt_type_mismatch),
-		U (stmt_child), U (double_insert), U (remove_unjoined), U (index_out_of_range));
+		U (stmt_child), U (stmt_child_unexpected), U (double_insert), U (remove_unjoined), U (index_out_of_range));
 	put (&o, "sho-shape fixed_valid=%llu fixed_invalid=%llu fixed_unobserved=%llu city_valid=%llu city_invalid=%llu city_unobserved=%llu raised=%llu\n",
 		U (shape_count [0][SHO_SHAPE_VALID]), U (shape_count [0][SHO_SHAPE_INVALID]), U (shape_count [0][SHO_SHAPE_UNOBSERVED]),
 		U (shape_count [1][SHO_SHAPE_VALID]), U (shape_count [1][SHO_SHAPE_INVALID]), U (shape_count [1][SHO_SHAPE_UNOBSERVED]), U (raised));

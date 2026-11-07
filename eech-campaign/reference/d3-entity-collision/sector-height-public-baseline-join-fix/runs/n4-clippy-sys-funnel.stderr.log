@@ -1,0 +1,3 @@
+wsl: Failed to translate 'R:\d3-evidence\collision-characterization-20261029'
+    Checking eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.57s

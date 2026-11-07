@@ -2554,7 +2554,7 @@ pub const SECTOR_HEIGHT_OBSERVER_PATCHES: &[Patch] = &[
         id: "SH1-sector-insert",
         why: "records the insertion into a sector list after the roster was told and before LINK_CHILD",
         original: "\t\tcampaign_place_insert (en);\n\t}\n\telse if (type == LIST_TYPE_CITY_BUILDING)\n",
-        replacement: "\t\tcampaign_place_insert (en);\n\t\teech_sho_sector_insert (en, parent); /* EECH sector-height observer (SH1) */\n\t}\n\telse if (type == LIST_TYPE_CITY_BUILDING)\n",
+        replacement: "\t\teech_sho_sector_insert (en, parent); /* EECH sector-height observer (SH1): BEFORE the call, which nests the roster INSERT and the first state statement */\n\t\tcampaign_place_insert (en);\n\t}\n\telse if (type == LIST_TYPE_CITY_BUILDING)\n",
         count: 1,
     },
     Patch {
@@ -2633,7 +2633,7 @@ pub const SECTOR_HEIGHT_OBSERVER_PATCHES: &[Patch] = &[
         id: "SH8-statement-city",
         why: "records the city statement the host is about to receive",
         original: "\t\tcampaign_model_entity_city_state (key, city);\n",
-        replacement: "\t\teech_sho_statement_city (en, key, city); /* EECH sector-height observer (SH8) */\n\t\tcampaign_model_entity_city_state (key, city);\n",
+        replacement: "\t\teech_sho_statement_city (en, place_key_of_slot [slot][0] != 0, key, city); /* EECH sector-height observer (SH8) */\n\t\tcampaign_model_entity_city_state (key, city);\n",
         count: 1,
     },
     Patch {
@@ -2641,7 +2641,7 @@ pub const SECTOR_HEIGHT_OBSERVER_PATCHES: &[Patch] = &[
         id: "SH9-statement-fixed",
         why: "records the fixed-family statement the host is about to receive",
         original: "\tcampaign_model_entity_fixed (CAMPAIGN_PLACE_TYPE (en), key, state);\n",
-        replacement: "\teech_sho_statement_fixed (en, CAMPAIGN_PLACE_TYPE (en), key, state); /* EECH sector-height observer (SH9) */\n\tcampaign_model_entity_fixed (CAMPAIGN_PLACE_TYPE (en), key, state);\n",
+        replacement: "\teech_sho_statement_fixed (en, CAMPAIGN_PLACE_TYPE (en), place_key_of_slot [slot][0] != 0, key, state); /* EECH sector-height observer (SH9) */\n\tcampaign_model_entity_fixed (CAMPAIGN_PLACE_TYPE (en), key, state);\n",
         count: 1,
     },
     Patch {

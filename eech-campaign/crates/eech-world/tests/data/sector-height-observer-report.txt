@@ -1,6 +1,6 @@
 sho-summary schema=2 note=read-only-observer-one-boot-per-process
 sho-counts seq=160 inserts_total=5 inserts_fixed=2 inserts_city=2 inserts_mobile=1 removes_total=0 removes_recorded=0 removes_mobile=0 released_open=0
-sho-join records=4 link_total=4 link_fixed=2 link_city=2 link_mobile=0 links_joined=4 links_unjoined=0 stmt_joined=2 stmt_unjoined=0 stmt_type_mismatch=0 stmt_child=1 double_insert=0 remove_unjoined=0 index_out_of_range=0
+sho-join records=4 link_total=4 link_fixed=2 link_city=2 link_mobile=0 links_joined=4 links_unjoined=0 stmt_joined=2 stmt_unjoined=0 stmt_type_mismatch=0 stmt_child=1 stmt_child_unexpected=0 double_insert=0 remove_unjoined=0 index_out_of_range=0
 sho-shape fixed_valid=2 fixed_invalid=0 fixed_unobserved=0 city_valid=0 city_invalid=1 city_unobserved=1 raised=2
 sho-statements fixed=3 city=0
 sho-scan reads=2 firsts=2 sectors=2 fact_offers=4 fact_nonzero=4 fact_equal_first=3 fact_differ_first=1 fact_without_first=0

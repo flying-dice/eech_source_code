@@ -42,6 +42,8 @@ ground-fixture = ["eech-engine-sys/ground-fixture"]
 route-fixture = ["eech-engine-sys/route-fixture"]
 # TEST-ONLY (EEDCS-49, D3): see eech-engine-sys.
 sector-height-observer = ["eech-engine-sys/sector-height-observer"]
+# TEST-ONLY (EEDCS-49, D3): see eech-engine-sys.
+sector-height-funnel-check = ["sector-height-observer", "eech-engine-sys/sector-height-funnel-check"]
 # TEST-ONLY (EEDCS-50, D3): see eech-engine-sys.
 route-original = ["eech-engine-sys/route-original"]
 # TEST-ONLY (EEDCS-52, D3): see eech-engine-sys.
@@ -63,3 +65,8 @@ required-features = ["sector-height-observer"]
 name = "sector_height_observer_cap"
 path = "tests/sector_height_observer_cap.rs"
 required-features = ["sector-height-observer"]
+
+[[test]]
+name = "sector_height_funnel"
+path = "tests/sector_height_funnel.rs"
+required-features = ["sector-height-funnel-check"]

@@ -62,6 +62,10 @@ sector-height-check = []
 # read-only report entries. Never enabled in the shipping build; with it off no hook, patch or definition exists.
 sector-height-observer = []
 
+# TEST-ONLY (EEDCS-49, D3): the control of the observer's JOIN against the REAL staged placement map (mb_hostplacemap.h, with its staged hooks) bound to scripted entities and a scripted host
+# (csrc/eech_sho_funnel_check.c). It compiles that file and gates the entity-reading hooks of eech_sho.c out in favour of the scripted ones. Never enabled in the shipping build.
+sector-height-funnel-check = ["sector-height-observer"]
+
 # TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
 [[test]]
 name = "model_walk"

@@ -371,6 +371,9 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_OBSERVER").is_some() {
         build.define("EECH_SECTOR_HEIGHT_OBSERVER", None);
+        if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_FUNNEL_CHECK").is_some() {
+            build.define("EECH_SHO_FUNNEL_CHECK", None);
+        }
         // EEDCS-49 (D3): the observer hooks the staged files call are declared by csrc/eech_sho_hooks.h, force-included only in this feature's build
         build.flag("-include").flag(manifest.join("csrc/eech_sho_hooks.h").to_str().unwrap());
     }
