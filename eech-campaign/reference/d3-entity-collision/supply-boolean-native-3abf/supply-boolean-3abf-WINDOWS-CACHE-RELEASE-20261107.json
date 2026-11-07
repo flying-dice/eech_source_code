@@ -1,0 +1,34 @@
+{
+  "kind": "Root completed fresh3abf build/profile gates, all retained immutable evidence rehashed; no active cache job",
+  "utc": "2026-11-07T23:11:14.837768+00:00",
+  "source": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+  "immutable_snapshot": "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source",
+  "actual_build_exit": 0,
+  "build_receipt": "supply-boolean-native-windows-3abf-20261107-completion.json",
+  "build_receipt_sha256": "dc632ab7b5f80f8a1f412aff7019b9b4e84fe3154cb6daf832f167baeecf0358",
+  "actual_profile_audit_exit": 0,
+  "audit_receipt": "supply-boolean-native-3abf-profile-20261107-completion.json",
+  "audit_receipt_sha256": "67664feea24162bbd1d24c40f913a9219f551e341e14a6c9ab30df825b7a1aed",
+  "retained_and_rehashed_COFF": 32,
+  "retained_staged_sources": 28,
+  "retained_rehashed_payloads": 182,
+  "actual_payloads_per_profile": 91,
+  "raw_audit_files_rehashed": 60,
+  "images": {
+    "ordinary": {
+      "actual_producer": "sha256:09b73ef12aa5202b2cf2869880d8ca4e17cf2783d637bc69a7ac5f32fd33f5e7",
+      "retained_tag": "eech-supply-boolean-3abf-ordinary-20261107",
+      "producer_image_resident": true,
+      "used_as_own_readonly_profile_reader": true
+    },
+    "original": {
+      "actual_producer": "sha256:e3e7dffe71f5aad9486931420355e2fb4790fc70db67b103aa7863cddc2c8a93",
+      "retained_tag": "eech-supply-boolean-3abf-original-20261107",
+      "producer_image_resident": true,
+      "used_as_own_readonly_profile_reader": true
+    }
+  },
+  "Docker_actual_empty": true,
+  "next_cache_owner": "No activejob. NextsoleSonnet maytake namedLinuxlease only on its nextrecordedlaunch; Root native orchestration doesnot mutatebuildcache/source.",
+  "scope": "Compile/profile/payload only. No native/default/campaign/authority/full40all8 acceptance. No cache removed; original764jobs/source/bin/roots/raw untouched. All10/Task49/D3OPEN."
+}

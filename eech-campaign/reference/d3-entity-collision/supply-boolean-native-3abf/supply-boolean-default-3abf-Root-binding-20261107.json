@@ -1,0 +1,128 @@
+{
+  "kind": "Root READ_ONLY fresh3abf native default actual binding after explicit descriptor-only correction, not publicauthority/fullpack acceptance",
+  "utc": "2026-11-07T23:14:16.675106+00:00",
+  "plan_sha256": "47ef82ec5f1194ec536702a9e402e3a54a738965283e4174567fa850c20cb9a0",
+  "plan_review_sha256": "86d8936ebd620537f252e90fd5f2f7a0072e933ba8ce0e4cef13349a55bac01f",
+  "cases": [
+    {
+      "case": "ordinary_short",
+      "source": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+      "profile": "ordinary",
+      "receipt": "supply-boolean-default-3abf-ordinary_short-20261107-completion.json",
+      "receipt_sha256": "9b9411061544927ad75b414ca4db44a19b06e230e2611832cb73dd9be80da05f",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_checker_exits": [
+        0,
+        0
+      ],
+      "pre_input_report_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "post_input_report_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "verified_unchanged_payloads": 91,
+      "complete_files": [
+        {
+          "file": "recording.acmi",
+          "bytes": 230871,
+          "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "observations.jsonl",
+          "bytes": 1553674,
+          "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "metrics.json",
+          "bytes": 7477,
+          "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "complete_literal_equal": true
+        }
+      ],
+      "native_PID": 22228,
+      "native_birth_utc": "2026-11-07T23:13:17.972834+00:00",
+      "native_argv": [
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\target\\windows-supply-boolean-3abf-ordinary\\eech-world.exe",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\target\\windows-supply-boolean-3abf-ordinary\\lua\\campaign.lua",
+        "root=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-roots-20261107/ordinary_short",
+        "scenario=lebanon_retail",
+        "out=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-runs-20261107/ordinary_short/model.jsonl",
+        "metrics=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-runs-20261107/ordinary_short/metrics.json",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "record=1",
+        "record_every=10",
+        "observe_every=1",
+        "observe_supply=1",
+        "acmi=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-runs-20261107/ordinary_short/recording.acmi",
+        "observe=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-runs-20261107/ordinary_short/observations.jsonl"
+      ]
+    },
+    {
+      "case": "original_short",
+      "source": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+      "profile": "original",
+      "receipt": "supply-boolean-default-3abf-original_short-20261107-completion.json",
+      "receipt_sha256": "494bb41b3e3757bf4daf66bdd1be2e701b0562dfe5b089f7bffef3963d283f0e",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_checker_exits": [
+        0,
+        0
+      ],
+      "pre_input_report_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "post_input_report_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "verified_unchanged_payloads": 91,
+      "complete_files": [
+        {
+          "file": "recording.acmi",
+          "bytes": 230871,
+          "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "observations.jsonl",
+          "bytes": 1553674,
+          "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "metrics.json",
+          "bytes": 7477,
+          "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "complete_literal_equal": true
+        }
+      ],
+      "native_PID": 10444,
+      "native_birth_utc": "2026-11-07T23:13:17.972650+00:00",
+      "native_argv": [
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\target\\collision-fixture\\supply-boolean-3abf\\eech-world.exe",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\target\\collision-fixture\\supply-boolean-3abf\\lua\\campaign.lua",
+        "root=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-roots-20261107/original_short",
+        "scenario=lebanon_retail",
+        "out=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-runs-20261107/original_short/model.jsonl",
+        "metrics=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-runs-20261107/original_short/metrics.json",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "record=1",
+        "record_every=10",
+        "observe_every=1",
+        "observe_supply=1",
+        "acmi=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-runs-20261107/original_short/recording.acmi",
+        "observe=D:/EECH-Migration-Evidence/supply-boolean-default-3abf-runs-20261107/original_short/observations.jsonl"
+      ]
+    }
+  ],
+  "all_six_complete_files_literal_equal": true,
+  "snapshot_exact_clean": true,
+  "configuration": "Existing campaign.lua; lebanon_retail/hours0.001/frame_ms100/seed1/record1/record_every10/observe_every1/observe_supply1; established35frames/3.5s; complete3files literal80fd. Fresh pristine retail copy+pre/postmanifest each case. No changed/withheld/malformed callbacks; no claim native retail naturally reaches a nonzero raw mask at the corrected consumer or generic authority/fullpack.",
+  "limits": "Established35frames/3.5s/hours0.001/100ms/seed1 only. No claim naturallyreachednonzero mask atcorrectedconsumer/publicflagREADchanged-withheldauthority/lifetime/FPU/O2/full40/all8/final4inputs/wholeheight/Task49/D3. Fourmanifestfiles areprepostTWOroots, NOTfullpackfourdistinctroots. PendingSAMEactualreview/defectdisposition. Existing764 fullpack untouched."
+}

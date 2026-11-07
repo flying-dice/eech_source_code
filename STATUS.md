@@ -1,4 +1,14 @@
-# CURRENT — D3 Task49: descriptor correction source reviewed; fresh Windows validation underway (7 November 2026)
+# CURRENT — D3 Task49: supply descriptor correction validated and closed at finite scope (7 November 2026)
+
+**Delivered proof:** code3abf descriptor-only boolean correction, SAME sourcebbfd and actuals `43feb909d9c81f99f36aba17f4db6ad0aa9e76afb6e8ba807c7057b33295c263` findings empty; named defect CLOSED. The raw getter/store/destructive effects/reset/order/campaign policy remain unchanged; oldae367 refusal evidence retained. [Literal native proof packet](eech-campaign/reference/d3-entity-collision/supply-boolean-native-3abf/README.md). Fresh ordinary/Original Windows builds+profile audits0,91payloads each,32COFF28staged retained, no supplytesthooks. Both native/controller0 on fresh35frame cases; all6COMPLETE Tacview/observation/metric files byte-identical80fd,182payloads unchanged,4pre/post1179-row manifests overTWOroots match. No baseline/tolerance changes or naturalnonzeromaskreachability claim. Exactsource-reviewmetadata b4fbe4 all9CI passed.
+
+**Cleanup:** only the two closed3abf WindowsBUILDvolumes removed after retainedrehash; source/bins/images/COFF/staged/raw/retailroots/recordings/Linuxwarmcache/original764jobs intact.
+
+**Next:** Root prepares the current3abf full40/all8 on separate immutable roots; existing764 fullpack continues untouched, prefix equality only. Solelane resolves the next Tacview consumer from CURRENT shipping active/needed evidence, then the actual realconsumer control ifneeded. No optional broadinventory or speculativelegacy implementation.
+
+**StillOPEN:** genericpublicflagREAD/changedanswer/otherconsumers/lifetimes/FPU/DCS, wholeheight/sharedterrain/RNG/hierarchy/services/naturalmoving/finalcensus, finalcurrent40/all8/fourinputroots/currentCI/formalreview/normalmerge, all10/Task49/D3. NoD4/D5/TypeScript; prep2retained. D3-CURRENT.json holdsactualjobs.
+
+# HISTORICAL (finite runtime closure superseded this summary) — D3 Task49: descriptor correction source reviewed; fresh Windows validation underway (7 November 2026)
 
 **Corrected and reviewed:** source3abf03e51, SAMEbbfdb6b0 findings empty. Exactly one UPDATED getter evaluation is projected to the existing boolean contract ONLY in the supply descriptor. Intentional defect correction; raw getter/store/destructive neighbors/reset extent/order/campaign policy unchanged. Genuine oldproducerRED bothprofiles, thenGREEN14descriptors each and unchanged hostedtraffic. [Literal source review and Root bindings](eech-campaign/reference/d3-entity-collision/supply-boolean-source-reviewed/README.md):3995source rows/34extras/11final0/138instances/85packetentries82externals. Oldae367 refusal evidence retained.
 

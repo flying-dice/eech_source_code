@@ -1,0 +1,349 @@
+{
+  "profile": "ordinary",
+  "features": [],
+  "supply_test_hooks_absent": true,
+  "corrected_supply_producer_staged_and_COFF_retained": true,
+  "physical_flags_actual_array_and_operation_isolation_verified": true,
+  "physical_flags_test_hooks_absent": true,
+  "parsgen_binary_IO_symbol_references_verified": true,
+  "parsgen_scope": "Actual stagedsource+COFFsymbolreferences only, not runtimebranch/transactionalcorruptfilecoverage",
+  "toolchain_scope": "Reader tools measured in each retained actual producer image; BUILD-INFO compiler identities retained. No compiler/binary equivalence or historical reconstruction claim.",
+  "host_kernel_archive_sha256": "36b6eba7a6acca3ca2cdf8cbfbd0d87029ef377a89670c62fbce134f76274695",
+  "Core_read_restore_relocations_verified": true,
+  "Core_read_restore_expected_hosted": true,
+  "save_fixture_symbols_defined": false,
+  "toolchain": {
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "mingw": "x86_64-w64-mingw32-gcc (GCC) 12-posix"
+  },
+  "fingerprint_path": "/target/x86_64-pc-windows-gnu/release/.fingerprint/eech-engine-sys-3ee86ff288c8e5b9/lib-eech_engine_sys.json",
+  "fingerprint_sha256": "4990568103ae3f0679b2393fc9d8842978347a3773cdc8f16b8d2d4879cde538",
+  "archive": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/libeech_engine.a",
+  "archive_sha256": "9dd51a5e80de26a102a0ad7dc75cf380ea4f7a333cd8fba018810edee08f4a1e",
+  "observer_symbols_defined": false,
+  "no_funnel_check_feature": true,
+  "no_private_observer_DLL_exports": true,
+  "staged": [
+    {
+      "path": "aphavoc/source/entity/system/en_funcs/en_list.c",
+      "source_sha256": "982cd33f274ff2720b58051dfbd92378e62998ff5b5414ca541282c5e4f61cb2",
+      "staged_sha256": "982cd33f274ff2720b58051dfbd92378e62998ff5b5414ca541282c5e4f61cb2",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/special/sector/sc_msgs.c",
+      "source_sha256": "0c03e2b3d1f0f529549acb72a1296d5d2a2f195abf9a48e2e4c95b3974af22c4",
+      "staged_sha256": "0c03e2b3d1f0f529549acb72a1296d5d2a2f195abf9a48e2e4c95b3974af22c4",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/special/sector/sc_pack.c",
+      "source_sha256": "08d7c614d5bee85ad6da65b396bb0bb098a66e71a3310f18273cb09a55887deb",
+      "staged_sha256": "08d7c614d5bee85ad6da65b396bb0bb098a66e71a3310f18273cb09a55887deb",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c",
+      "source_sha256": "019bd8c3fdf75464a271e51e652342a3b0b7ad8962bb980292eb41fa5371a158",
+      "staged_sha256": "019bd8c3fdf75464a271e51e652342a3b0b7ad8962bb980292eb41fa5371a158",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+      "source_sha256": "ea42a3c6212b8ec30d4f0b26a2ac8611c057fbfb3b5972ed10d6ba7f3dbcaf23",
+      "staged_sha256": "ea42a3c6212b8ec30d4f0b26a2ac8611c057fbfb3b5972ed10d6ba7f3dbcaf23",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostscan.h",
+      "source_sha256": "f71155f117001c4a4989bdc9212a9a3d63ff6f980f1ef780e3fd1ce015b0bf10",
+      "staged_sha256": "f71155f117001c4a4989bdc9212a9a3d63ff6f980f1ef780e3fd1ce015b0bf10",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "source_sha256": "96bad27212f2c30690812ba33e0860867721d6def844415d66fa0ebaa1d3291f",
+      "staged_sha256": "96bad27212f2c30690812ba33e0860867721d6def844415d66fa0ebaa1d3291f",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_main/en_heap.c",
+      "source_sha256": "328b94b5d494bb9b8200b583924f4cfb8f92c44160b5976410b9107dfe4d67d4",
+      "staged_sha256": "328b94b5d494bb9b8200b583924f4cfb8f92c44160b5976410b9107dfe4d67d4",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/ai/parser/parsgen.c",
+      "source_sha256": "ce460deeecfe9466589a47667f5f26ffada252a0dbaaeef4b989e1334a8022c9",
+      "staged_sha256": "ce460deeecfe9466589a47667f5f26ffada252a0dbaaeef4b989e1334a8022c9",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_int.c",
+      "source_sha256": "c1891de38ba5b109ba70849ad00aa0ce43d82d92763354e4cf0e3cffb6a6feb4",
+      "staged_sha256": "c1891de38ba5b109ba70849ad00aa0ce43d82d92763354e4cf0e3cffb6a6feb4",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/special/update/up_update.c",
+      "source_sha256": "206ea4350725135ef0c0ae8f26fd1f6836557bb35470f0fea13866ea60ebba85",
+      "staged_sha256": "206ea4350725135ef0c0ae8f26fd1f6836557bb35470f0fea13866ea60ebba85",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "source_sha256": "a28ebb350493a763601e0cabd0fb42ae52d50bca4b127db0e7ff4741ceaa9a9a",
+      "staged_sha256": "a28ebb350493a763601e0cabd0fb42ae52d50bca4b127db0e7ff4741ceaa9a9a",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "source_sha256": "48354a1e2f58df6b91bb1a3b701b7b1fd8d8781a9e2046aaa13e744791c7216a",
+      "staged_sha256": "48354a1e2f58df6b91bb1a3b701b7b1fd8d8781a9e2046aaa13e744791c7216a",
+      "equals_source": true,
+      "hook_occurrences": 0
+    },
+    {
+      "path": "aphavoc/source/entity/special/guide/gd_supply_arrival.c",
+      "source_sha256": "c2ab9f1578f1934ee0f029175daabb724688f69a94727c0019d3102137df5f52",
+      "staged_sha256": "c2ab9f1578f1934ee0f029175daabb724688f69a94727c0019d3102137df5f52",
+      "equals_source": true,
+      "hook_occurrences": 0
+    }
+  ],
+  "objects": [
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/67fd5db87f5aeca0-eech_engine.o",
+      "sha256": "61968f9122d6b4bdb7addfb53f92865e83cd4cd8d079955d5284de87e2e90f62",
+      "bytes": 584448,
+      "retained": "/auditout/ordinary/objects/67fd5db87f5aeca0-eech_engine.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/67fd5db87f5aeca0-eech_sho.o",
+      "sha256": "b26e6ae352cf009a28d83967249b890f00b128a6fcd77e318e2ee4c504d342d2",
+      "bytes": 521,
+      "retained": "/auditout/ordinary/objects/67fd5db87f5aeca0-eech_sho.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/c0227ba9890dc6c0-en_list.o",
+      "sha256": "58899d6dedc02ca64114415cba8a93724545cf92bef41f171ead0a9134e5efea",
+      "bytes": 423020,
+      "retained": "/auditout/ordinary/objects/c0227ba9890dc6c0-en_list.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/ff8e796dae9f295a-sc_msgs.o",
+      "sha256": "97de78b46a667beb08436ed0dbae899cce66d28058c4e99026db63e462b8f5f3",
+      "bytes": 99144,
+      "retained": "/auditout/ordinary/objects/ff8e796dae9f295a-sc_msgs.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/ff8e796dae9f295a-sc_pack.o",
+      "sha256": "41931dff4747b45dbbc411619b3271ff9f0f87052de145112e51b1618fbc01b3",
+      "bytes": 107154,
+      "retained": "/auditout/ordinary/objects/ff8e796dae9f295a-sc_pack.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/22a18d88902741ee-fw_move.o",
+      "sha256": "f0ee60d6e3c469c44ca25992b076afda33738a9a1f9827676fa22537c9a71621",
+      "bytes": 467058,
+      "retained": "/auditout/ordinary/objects/22a18d88902741ee-fw_move.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/444f1686f87465b2-en_heap.o",
+      "sha256": "d9af09bb912ad0afb0747b40567a6227944ef3658c1f201102f28a234f09a77b",
+      "bytes": 382532,
+      "retained": "/auditout/ordinary/objects/444f1686f87465b2-en_heap.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/692d082d0afa959f-en_cllsn.o",
+      "sha256": "77dcbd6d0059a9ec139bd4bfce0d9775c56c6f05828637af20e19a27ab40df6f",
+      "bytes": 402592,
+      "retained": "/auditout/ordinary/objects/692d082d0afa959f-en_cllsn.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/ff8e796dae9f295a-sc_float.o",
+      "sha256": "dbd2e9629a2631b881d49fa8c309f084c81f670223de756a068be7fc00e02895",
+      "bytes": 86542,
+      "retained": "/auditout/ordinary/objects/ff8e796dae9f295a-sc_float.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_hostmodel.o",
+      "sha256": "d06c9513b45929840116bce753889974fc56dd6413add27e19ce6f062380badf",
+      "bytes": 1624672,
+      "retained": "/auditout/ordinary/objects/f6fc6cb7fd4fea60-mb_hostmodel.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/67fd5db87f5aeca0-eech_hw_witness.o",
+      "sha256": "dee014b849026e90e6f285c25c8d265c2df06c3535f95e1322eb55808e77ae3d",
+      "bytes": 521,
+      "retained": "/auditout/ordinary/objects/67fd5db87f5aeca0-eech_hw_witness.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/d89b77a3e8e1808d-parsgen.o",
+      "sha256": "daed44cf06f4e5f11ac2d69713b011338ae6c99f4e8efc3c394da79cbbe2ba3e",
+      "bytes": 538570,
+      "retained": "/auditout/ordinary/objects/d89b77a3e8e1808d-parsgen.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_int.o",
+      "sha256": "4b9a36680b8d43954a77af7d87ccf88a8dfe002d56dc89a293ec52401ade9903",
+      "bytes": 110164,
+      "retained": "/auditout/ordinary/objects/f6fc6cb7fd4fea60-mb_int.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/dbe5a7acd87dbba2-up_update.o",
+      "sha256": "f5bc9b95870f4d878756a412d02cbc5e542131ed5c2fc76f35a18ecfb6f93380",
+      "bytes": 369264,
+      "retained": "/auditout/ordinary/objects/dbe5a7acd87dbba2-up_update.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/090ef99aeae5c040-gd_supply_arrival.o",
+      "sha256": "009943f8898718686fde46c538eba7565adef3ecebd4009c58bc39ab0a7014db",
+      "bytes": 436286,
+      "retained": "/auditout/ordinary/objects/090ef99aeae5c040-gd_supply_arrival.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-world-aed98a75c8e38107/out/faea18488176a15d-model_step.o",
+      "sha256": "9f7aef5309e7d00c28c6b79c7f32ec07f8f48e19d37c15f0e31dac1a3853426f",
+      "bytes": 87896,
+      "retained": "/auditout/ordinary/objects/host-faea18488176a15d-model_step.o"
+    }
+  ],
+  "build_info_sha256": "1f208f4963b01135d1a9525f28f4bfd644931be996b2fbf6cc1351d21e94b4dc",
+  "raw_audit_files": [
+    {
+      "path": "090ef99aeae5c040-gd_supply_arrival.o.file.txt",
+      "sha256": "81bccca883f34ff75a3cbb0a7a67f1f141ef5e5687855f2432063c06ab8085ca"
+    },
+    {
+      "path": "22a18d88902741ee-fw_move.o.file.txt",
+      "sha256": "5d5105f6615bf0bbaf511a18ed8bb0d0703532b81fab0c6653a89b166663fde8"
+    },
+    {
+      "path": "444f1686f87465b2-en_heap.o.file.txt",
+      "sha256": "8f34cfebe003fb2e481ea712a4188b16dbdabf704d589cf33fe81509315bf2aa"
+    },
+    {
+      "path": "67fd5db87f5aeca0-eech_engine.o.file.txt",
+      "sha256": "6cf8e75101ae21bc71a41a1f09e4ae1495ff844d5fa923947c099c94c55160ed"
+    },
+    {
+      "path": "67fd5db87f5aeca0-eech_hw_witness.o.file.txt",
+      "sha256": "301029b754533678151379fbd0979cbf2922397ca1cfde7eca822ca749a0fc33"
+    },
+    {
+      "path": "67fd5db87f5aeca0-eech_sho.o.file.txt",
+      "sha256": "75971defaae6356fc9ff172c4242e4abc8638151d7762988abde940c76a9e411"
+    },
+    {
+      "path": "692d082d0afa959f-en_cllsn.o.file.txt",
+      "sha256": "be8cdffc4eeb7dea3daac8038387d8f45fd9904ddb77455cf486ed95d831089d"
+    },
+    {
+      "path": "c0227ba9890dc6c0-en_list.o.file.txt",
+      "sha256": "9699c65a2d15e42466d6a415b2f816076f83aa78d6c89062ff2e951c06b1ac83"
+    },
+    {
+      "path": "d89b77a3e8e1808d-parsgen.o.file.txt",
+      "sha256": "0a66d9ed3846d335a59b7db564fd4c013a364de3bb4dc46d2857d253e541e050"
+    },
+    {
+      "path": "dbe5a7acd87dbba2-up_update.o.file.txt",
+      "sha256": "7892c4314b758478bb0aa6626a19f6c1302762af7be636d43e230e35aaa18792"
+    },
+    {
+      "path": "eech_dc-objdump-p.txt",
+      "sha256": "0f316ab954cacc4606801487a4fdade929a4751ea3a2cfeb3bc9f22b273476a9"
+    },
+    {
+      "path": "engine-archive-defined-nm.txt",
+      "sha256": "8868047a3d716a2bbfc4194ee223debc26d88751b12f56633b92d20a1fc4e69b"
+    },
+    {
+      "path": "engine-archive-nm.txt",
+      "sha256": "b6016bf398c480b1adee6fdaf3f959c799735c3ba18579980d2aa8c70d590587"
+    },
+    {
+      "path": "f6fc6cb7fd4fea60-mb_hostmodel.o.file.txt",
+      "sha256": "ff2c245943bc1466fb4afc4a603e87fb955212808dd37bf41995edb7984e5c65"
+    },
+    {
+      "path": "f6fc6cb7fd4fea60-mb_int.o.file.txt",
+      "sha256": "e9c1f901cd3510bf424a6f00a695b78bb7d8072361a6d8aab7c031304330fea9"
+    },
+    {
+      "path": "ff8e796dae9f295a-sc_float.o.file.txt",
+      "sha256": "b8ce753a4a9606665ee2db477378044dd970dac47d7cba23f841c9801f9a9c83"
+    },
+    {
+      "path": "ff8e796dae9f295a-sc_msgs.o.file.txt",
+      "sha256": "99c47abfc190dcfe76fd35bfec0970ceb3dd17d670d31837548f3411e005966e"
+    },
+    {
+      "path": "ff8e796dae9f295a-sc_pack.o.file.txt",
+      "sha256": "3e061d777ae0197d3fa796cf906de37a7faaedb691f541996cdb0ddb3eb1d7f8"
+    },
+    {
+      "path": "gd_supply_arrival-disassembly.txt",
+      "sha256": "d79788936bdafeecb979f762b745a7e2226c77fd21a5777bc446f10aeebf7bf2"
+    },
+    {
+      "path": "gd_supply_arrival-relocations.txt",
+      "sha256": "2e4e90f1504cceb78d5024f9e7e1493784e2166766fef574ec1549e26800f5e7"
+    },
+    {
+      "path": "host-faea18488176a15d-model_step.o.file.txt",
+      "sha256": "7c8ff6a5aa82fc9533aadcc1ca325633f7f2a665810ba7bd5364d45cd2371cca"
+    },
+    {
+      "path": "mb_int-flag-relocations.txt",
+      "sha256": "789dc07dd7b43ff057776018519781beed3a8a657c7b1da4a1d6f93b022b000f"
+    },
+    {
+      "path": "parsgen-relocations.txt",
+      "sha256": "557a702b0eebd455b779a325570bedc29b395d96cc07190af1066b0643abb391"
+    },
+    {
+      "path": "sc_float-relocations.txt",
+      "sha256": "92194ba9d0809864a796e396eeea043ea5e373ad3967563ef62fcdde952b211a"
+    },
+    {
+      "path": "sc_pack-relocations.txt",
+      "sha256": "33c174edb745f1a9669f92d4d4f52d10db6717f9cd62a7d549e20cdf6e09c490"
+    },
+    {
+      "path": "toolchain-cargo.txt",
+      "sha256": "c35608815f43d0b8788a9b826fad2bb17384f49fb328dc4fe64da9db5f5ef4d6"
+    },
+    {
+      "path": "toolchain-mingw.txt",
+      "sha256": "0b09aacbe791f2a68003127ffc81fe75b40dfd2764511c6c423dc7fc811c1230"
+    },
+    {
+      "path": "toolchain-rustc.txt",
+      "sha256": "55cd0529c005d3f62869ea6e2271bfa9d5196f56dc65a8be00a371af114a4a98"
+    },
+    {
+      "path": "up_update-flag-relocations.txt",
+      "sha256": "54433d6a8700d88a1835344572331aacd363ec0467e01051d2cad0e29258adcf"
+    },
+    {
+      "path": "world-steps-defined-nm.txt",
+      "sha256": "cc51196a7a34da8c52367cb84128ea93bc51d411bdcc2ca813d8c6693908df0b"
+    }
+  ],
+  "scope": "Actual bound feature/COFF/archive/staged-source/export isolation. Engine C optimization1 is source/build-derived; no O2/FPU or runtime-neutrality measurement. No native run or physical authority accepted."
+}
