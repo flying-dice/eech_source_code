@@ -1,0 +1,134 @@
+{
+  "files": [
+    {
+      "path": "audit-physical-flags-witness-5d2c-native-Root-20261107.py",
+      "bytes": 7475,
+      "sha256": "fc04faf468b35fd40aefe690700f3d6d95046646acacddf328c5d69be9182dd4"
+    },
+    {
+      "path": "independent-physical-flags-witness-5d2c-controller-launch-20261107.json",
+      "bytes": 11864,
+      "sha256": "0573f8e1d8f6a816fe52ef6f5ce7e86eeec63c354b19144400b2e50fe45cc835"
+    },
+    {
+      "path": "independent-physical-flags-witness-5d2c-native-20261107.json",
+      "bytes": 18925,
+      "sha256": "1ae3698d34e3178b1215f35e23c852a64f649aaa989274790aa3effc43536e05"
+    },
+    {
+      "path": "ledger-witness-source-closure-v186-preservation-20261107.json",
+      "bytes": 244,
+      "sha256": "aa5914a61f07067397d82c4ac9064fde702548d1e40958f34c239bcb71901198"
+    },
+    {
+      "path": "physical-flags-pw3dcb-e62c-all9-CI-readback-20261107.json",
+      "bytes": 16841,
+      "sha256": "da46415b5c20e4051944dd5591cd3d5f13ef7890b8a6ee8eb51c935568b931d5"
+    },
+    {
+      "path": "physical-flags-witness-5d2c-native-20261107-completion.json",
+      "bytes": 105640,
+      "sha256": "a90cb69e069af3a2d2671a5fe1e54f6dc3ec3f2ce09623229aa92d379c5ea365"
+    },
+    {
+      "path": "physical-flags-witness-5d2c-native-Root-binding-20261107.json",
+      "bytes": 60453,
+      "sha256": "e18e6bb100ec62b314ad77b6fbedc79312d9eff1a10077e324e1789ff7d50ed0"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2461,
+      "sha256": "9d33460173c263356bba25cb6c473938ba26e2263f9aac0af3fe72b7f4dcaa62"
+    },
+    {
+      "path": "reports/01-flags_original.txt",
+      "bytes": 795,
+      "sha256": "1958172b2d462a852bbcd046efc04aef94919ba3328e2b5e17edca936c3725d9"
+    },
+    {
+      "path": "reports/02-flags_control.txt",
+      "bytes": 1271,
+      "sha256": "59363cd8e2cfc89e58b0b9c61c1e8b7304551c106f63fbb93c2ed969c1577df1"
+    },
+    {
+      "path": "reports/04-group_withheld.txt",
+      "bytes": 1297,
+      "sha256": "284fe33d87456b6e50a043d3ae277be433659e6e38ab008269107f0ad948d8d1"
+    },
+    {
+      "path": "reports/05-group_malformed.txt",
+      "bytes": 1301,
+      "sha256": "51a123995866fd9e9d700d5e40d18d52e8c7d768414dac2a05fea54f816a298c"
+    },
+    {
+      "path": "reports/06-group_wrong_state.txt",
+      "bytes": 1330,
+      "sha256": "f162c414542747da1e4ca80fc3a594b8e97b99c6a04865be3656df308a56a44f"
+    },
+    {
+      "path": "reports/07-set_withheld.txt",
+      "bytes": 1391,
+      "sha256": "695178eb4a90e99ebb82cf568b2ac7419357659b9ced01cfa299edd95c24d773"
+    },
+    {
+      "path": "reports/08-set_malformed.txt",
+      "bytes": 1395,
+      "sha256": "cd19cef232bc8ddc1a99f0389aefafd47c81ba65c7cd86ef3bb9e0be6ca2d6d2"
+    },
+    {
+      "path": "reports/09-set_wrong_state.txt",
+      "bytes": 1424,
+      "sha256": "7f4785ccec4a062602e2c58b80da711c65603fa3c879b56b2060c354ed5c9a55"
+    },
+    {
+      "path": "reports/13-reset_withheld.txt",
+      "bytes": 1193,
+      "sha256": "d0c21d02d81c4c19d89218572a2ef4c694fff09a1be3ba7c0e2e3e5b60adcbdf"
+    },
+    {
+      "path": "reports/14-reset_malformed.txt",
+      "bytes": 1197,
+      "sha256": "f83e8b9799fbe6f2b214c9d8e8fecaf507172de96b2531f343d659e7e462acea"
+    },
+    {
+      "path": "reports/15-reset_wrong_state.txt",
+      "bytes": 1226,
+      "sha256": "03c724441fe2ace5db334928e31c69fe7a1954ef8320de83f42fb52d5596f6c4"
+    },
+    {
+      "path": "reports/16-group_bad_key.txt",
+      "bytes": 1292,
+      "sha256": "7f519b91df0d8963a40ed2ef44a3a3e90ff83b40163cca488e3a46c222d49c6c"
+    },
+    {
+      "path": "reports/17-group_duplicate_key.txt",
+      "bytes": 1530,
+      "sha256": "b1ca8b1bb301a8485bb33df64ecf85ec4cb0b43fc9a79d7344cfe0f06021e419"
+    },
+    {
+      "path": "reports/18-group_wrong_eligibility.txt",
+      "bytes": 1314,
+      "sha256": "87e7fd1ef8e7913210c5677109bbe361e72721b29c8542f7f1ecbd04b70b3da9"
+    },
+    {
+      "path": "reports/19-set_wrong_lane.txt",
+      "bytes": 1383,
+      "sha256": "ea8f6b4039309e92861e14f62c4c4b8b3f8d95e534fc836dcbc7251651f877e1"
+    },
+    {
+      "path": "reports/20-set_wrong_word.txt",
+      "bytes": 1409,
+      "sha256": "c6b8b79c09f0fceb18cc95173c86798f71fd329d5f388ef2a528f5d4d3fa20d7"
+    },
+    {
+      "path": "reports/23-reset_wrong_array.txt",
+      "bytes": 1187,
+      "sha256": "c7901b8c3095c4f351a696cc1d32e399431f546a3545c0a930943c4aa95b5bd9"
+    },
+    {
+      "path": "witness-source-closure-live-services-20261107.json",
+      "bytes": 888,
+      "sha256": "7d4e8e253b815b54f1a3e2d92beae49a8bb1602eef5e970a38d3c639afd6fe6d"
+    }
+  ]
+}

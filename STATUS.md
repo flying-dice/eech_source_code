@@ -1,4 +1,14 @@
-# CURRENT — D3 Task49: witness source findings closed; finite native execution next (7 November 2026)
+# CURRENT — D3 Task49: finite native flag controls reviewed; next actual supply consumer (7 November 2026)
+
+**Moved/proved:** host-owned public Lua30ad through the real020 campaign module to host flag store:17 native PASS (Original/paired hosted positives and15 matched immediate refusals). SIX READ-dependent cases are UNREACHED_PREREQUISITE/not launched, never PASS. SAME actuals review `1ae3698d34e3178b1215f35e23c852a64f649aaa989274790aa3effc43536e05` and [literal packet](eech-campaign/reference/d3-entity-collision/physical-flags-witness-5d2c-native/README.md). Control35frames:492 groups/50540 sets/0reads/35resets accepted, oracle0; all51 child exits0,34 input manifests match,180 built payloads unchanged. Prior source73bec closes both diagnostic P2s; controller0573 is cleared.
+
+**Tacview:** prior020 default six COMPLETE files remain byte-equal80fd; the witness produces no new recording. Original764 full40/all8 remains running, growing prefix equality only. No baseline/window/tolerance changes or completed-experiment replay.
+
+**Next sole lane:** characterize the actual gd_supply_arrival descriptor over hosted UPDATED and real Rust validation, Original first, same scenarios. This is the next named required consumer, not optional prep; retain raw-mask/destructive behavior and characterize the existing bool mismatch before any semantic proposal.
+
+**Still coupled/open:** native READ/changed-carried-fact authority, other consumers/lifetimes/FPU/DCS, wholeheight/sharedterrain/RNG/hierarchy/services/natural moving/finalcensus, all10/current40/all8/fourinputs/currentCI/formalreview/normalmerge/Task49/D3. Whole native-acceptance row remains OPEN/blocks_cutover, prep2 retained. No D4/D5/TypeScript. Actual process/controller state is in D3-CURRENT.json.
+
+# HISTORICAL (finite native actuals superseded this summary) — D3 Task49: witness source findings closed; finite native execution next (7 November 2026)
 
 **Moved:** the candidate5d2c public physical-flag witness clears SAME review73bec with findings empty; both diagnostic P2s are CLOSED_SOURCE. The [review packet](eech-campaign/reference/d3-entity-collision/physical-flags-witness-5d2c-reviewed/README.md) retains literal Root bindings:3993 source rows/33 extras/current readers,3805 compiled product inputs unchanged from sealed020, five final commands0/1368 instances;59 committed packet entries and55 external copies match. Thirty focused checks pass after the meaningful parent RED26/4. No product/new Windows/default replay was needed.
 

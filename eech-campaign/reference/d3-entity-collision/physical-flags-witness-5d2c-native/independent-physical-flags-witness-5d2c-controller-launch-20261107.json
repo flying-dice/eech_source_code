@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "kind": "Independent concrete finite physical-flag witness controller prerequisite review",
+  "created_utc": "2026-11-07T21:35:37.961285+00:00",
+  "plan_sha256": "10ee98ee954c9c92427846be00e0b6e200fce39cf19e01356984db48956df346",
+  "controller_sha256": "508b02e7c1fab4f48dcb5bae979d0cfa84353e345ce5f00fcd068cd14a86ebf8",
+  "source_review": "R:\\d3-evidence\\independent-physical-flags-public-witness-5d2c-source-20261107.json",
+  "source_review_sha256": "73bec4cfd41a0ebb7f6546c0e3b8252e27667cdb19581b6e2fad4731b2e9925d",
+  "decision": {
+    "status": "CLEAR_EXACT_FINITE_CONTROLLER",
+    "native_controller_launch_clearance": true,
+    "findings": [],
+    "allowed_plan": "R:\\d3-evidence\\physical-flags-witness-5d2c-native-plan-20261107.json",
+    "allowed_controller": "R:\\d3-evidence\\run-physical-flags-witness-5d2c-native-20261107.py",
+    "physical_flag_authority_accepted": false,
+    "Task49_D3_fullshipping_delivery_accepted": false,
+    "meaning": "Only the exact sequential23-step source-reviewed logical plan on true020 profiles with external5d2c Lua may be launched. This clears its concrete execution prerequisite, not native results or generic authority. UNREACHED/unlaunched cases are never accepted."
+  },
+  "findings": [],
+  "source_identity": {
+    "compiled_runtime": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "diagnostic_source": "5d2c54f38d3232c172f3ef7e47f0add3778fca58",
+    "diagnostic_metadata": "e62c878dd2978368094bceb763dff5c9b83fb7a4",
+    "driver": {
+      "path": "D:\\EECH-Migration-Evidence\\physical-flags-witness-5d2c-literal-20261107\\physical-flags-witness.lua",
+      "bytes": 60874,
+      "sha256": "30adcae241d43deddb710d014ac4585b3c0f282a7309b833c77c08cc71881ad7"
+    },
+    "driver_git_blob": "add513356a6fd4eb00f7138dd95b93b5863c2145",
+    "driver_raw_equals_committed_Git": true,
+    "source_snapshot_exact020_and_fullclean": true,
+    "native_plan_embedded_deep_equals_reviewed_Git": true,
+    "native_plan_Git_SHA256": "601cfd09a8be54b9ae1c96b9417a6e9a685bff479d312a54a58a119167986d8b",
+    "bundled_payloads": "Both profile binary paths and full90-payload lists exactly equal retained actual build8def; no bundled files or producer identities are relabelled. Old entity-authority.lua helpers are not used by this standalone witness."
+  },
+  "artifacts": {
+    "plan": {
+      "path": "R:\\d3-evidence\\physical-flags-witness-5d2c-native-plan-20261107.json",
+      "bytes": 56624,
+      "sha256": "10ee98ee954c9c92427846be00e0b6e200fce39cf19e01356984db48956df346"
+    },
+    "controller": {
+      "path": "R:\\d3-evidence\\run-physical-flags-witness-5d2c-native-20261107.py",
+      "bytes": 8169,
+      "sha256": "508b02e7c1fab4f48dcb5bae979d0cfa84353e345ce5f00fcd068cd14a86ebf8"
+    },
+    "source_review": {
+      "path": "R:\\d3-evidence\\independent-physical-flags-public-witness-5d2c-source-20261107.json",
+      "bytes": 13524,
+      "sha256": "73bec4cfd41a0ebb7f6546c0e3b8252e27667cdb19581b6e2fad4731b2e9925d"
+    },
+    "original_controller_retained": {
+      "path": "R:\\d3-evidence\\run-physical-flags-witness-5d2c-native-20261107-attempt1.py",
+      "bytes": 7668,
+      "sha256": "c5fd3d056dbf6a1d61e889514cae081b2f9c5add45dcd775241a2cd30521e667"
+    }
+  },
+  "read_only_binding_assessment": {
+    "bindings": [
+      {
+        "path": "R:\\d3-evidence\\independent-physical-flags-public-witness-5d2c-source-20261107.json",
+        "sha256": "73bec4cfd41a0ebb7f6546c0e3b8252e27667cdb19581b6e2fad4731b2e9925d",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "R:\\d3-evidence\\physical-flags-pw3dcb-5d2c-Root-binding-20261107.json",
+        "sha256": "eb3d0cb63510b7ccabe813e56b4c2948a2925feb3bf80ce2aa67db3796783174",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "R:\\d3-evidence\\physical-flags-pw3dcb-e62c-publication-Root-20261107.json",
+        "sha256": "14e540c8096c544909819f3d85a99d915fb9e89729bdcf2265bd9d79f5d4b7a5",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "R:\\d3-evidence\\D3-PHYSICAL-FLAGS-PUBLIC-WITNESS-RESIDUAL-CODE-FROZEN-20261107.json",
+        "sha256": "99427bda00654338504fb1ac545f4b939f9761c31b7235300779485294513772",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "R:\\d3-evidence\\physical-flags-native-source-snapshot-020-20261107.json",
+        "sha256": "12dfa33936fbb28280be238dfa1d04a26afd83452fa62d2ff2f25c312d26b8e9",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "R:\\d3-evidence\\physical-flags-native-windows-020-20261107-completion.json",
+        "sha256": "8def045f2f4380e62de3429cac50e6831b78d7b1cd960eb4243bdc9e6ecbb186",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "R:\\d3-evidence\\physical-flags-native-020-profile-20261107-completion.json",
+        "sha256": "5a1ff2a2c4cff94934b1c273ec7b57f106c7fc051518f67398817efb4bd792b9",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "R:\\d3-evidence\\physical-flags-020-WINDOWS-CACHE-RELEASE-20261107.json",
+        "sha256": "2272fd770222e481df6047b036c0879afa80123b25db1d8aba5c44c441574b91",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "R:\\d3-evidence\\physical-flags-default-020-Root-binding-20261107.json",
+        "sha256": "40e8813378c1b9c4db88cd461f5d28d94145b8cf5512ca04d86174067edf0b4c",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source\\eech-campaign\\tools\\input-manifest.py",
+        "sha256": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+        "actual_hash_joined": true
+      },
+      {
+        "path": "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+        "actual_hash_joined": true
+      }
+    ],
+    "facts": [
+      "All11 plan evidence/tool/reference binding hashes were joined read-only. Source review73bec grants conditional source clearance and closes both witnessP2s; this report fulfills only its concrete controller prerequisite.",
+      "Materialized external60874-byte Lua raw equals immutable5d2c Git/SHA30adcae and blobadd513. The embedded23-step logical plan deep equals reviewed601cfd Git JSON. Both ordinary and Original full90-payload lists/binary paths match actual build8def exactly.",
+      "The original020 snapshot is exactHEAD/fullstatusclean. Root/out/process/completion paths were absent at the retained read-only prelaunch observation. Controller requires their absence itself before creating a new run.",
+      "Closed Windows volumes are not used by this controller. Retained actual source/bin/profile/payload artifacts and distinct producer/read-only-reader qualifications remain; no reviewer cache access or rebuilding."
+    ]
+  },
+  "controller_correctness_boundary": [
+    "Before creating execution roots, the controller requires exact launch-report boolean, its own SHA, plan SHA, source-review SHA and all declared binding hashes; it rechecks external literal SHA, frozen020 HEAD/fullstatus and both90 payload size/SHA lists.",
+    "Steps are sequential and each gets a new root/out pair, a pristine retail copy and actual repository pre-input check. Earlier positive stepPASS and required control first-event are checked before any child case/root/native; missing prerequisites become explicit UNREACHED_PREREQUISITE.",
+    "The final same-pass correction also requires a unique complete consume tuple before read_changed is even created. This preserves a legitimate group/set/reset-only or nonconsumed-read control for other eligible modes without causing an unnecessary invalid step3 launch.",
+    "Original is first; hosted control consumes the successful Original report; changed/refusal cases consume the successful same-run paired control. Reference file hashes are recorded and rechecked after the case. Full positive schema/coherence and matched event trajectory are enforced by the separately source-reviewed Lua, not reconstructed independently by this thin controller reader.",
+    "Each actual native returns before the post-input tool runs, including nonzero native returns. Actual native/controller/input stages remain separate. Success requires native0 with reportPASS; nonzero UNREACHED is retained distinctly; any unexpected failure stops the plan without retry, normalization or accepted-data changes.",
+    "All child PID/creation time/argv/cwd/stage/raw stdout-stderr hashes and completion data are retained. No process is reused, stopped, restarted or attached to another run.",
+    "Payload and literal hashes are rechecked per launched case before and after native; source status/payloads are checked at completion. Receipt writes preserve real overall failure status. Controller0 means planned bounded execution with limitations retained; it is not23PASS when some cases are UNREACHED."
+  ],
+  "module_lookup": {
+    "sufficient": true,
+    "source": "eech-campaign/crates/eech-world/src/main.rs at frozen020 lines1286-1294",
+    "reason": "eech-world derives exe_dir from current_exe and prepends that directory to package.cpath. Thus running the absolute external Lua with cwd=case output still loads the correct adjacent sealed profile eech_dc.dll; script directory and cwd do not select a different module. Lua library/executable/DLL are sealed payloads. No bundled Lua overwrite or module-copy workaround is needed."
+  },
+  "same_pass_issue_and_correction": {
+    "status": "CORRECTED_BEFORE_LAUNCH",
+    "old_controller_SHA256": "c5fd3d056dbf6a1d61e889514cae081b2f9c5add45dcd775241a2cd30521e667",
+    "issue": "The first controller checked a read_consumable event/count but did not require the consumed positive relation. A legitimate PASS control with no consume row could launch step3 only to have Lua refuse before output/boot and controller fail on a missing report. Source refusal was already safe; it was an orchestration prerequisite gap.",
+    "minimal_delta": "report_facts now exposes complete_consume from a unique exact full consume row and step3 requires it before case/root/native creation. No other plan/source/binary changes; plan hash10ee98 unchanged. Original controller bytes retained.",
+    "verification": "Read-only exact old/new diff and final hashes; no source/test/native/checker execution."
+  },
+  "execution_limits": [
+    "Only this exact plan10ee98/controller508b/source-review73bec/externalLua30adcae on sealed020 ordinary/Original bins. A changed controller/plan/literal requires a bound new disposition; never relabel binaries as later source.",
+    "Fixed lebanon_retail/hours0.001/frame100ms/seed1/35frames3.5s family, one fresh verified root per launched case. No actor, geometry, seed, frame, duration or baseline tuning.",
+    "Original/hosted positives gate all interventions. Missing reached event or complete consumed positive means UNREACHED_PREREQUISITE and no launch; nativeUNREACHED is retained as unaccepted. No author/schema refusal is a campaign PASS.",
+    "The controller is a thin orchestration reader; reviewed Lua owns strict schema/reference/causal verdict checks. Future independent actual review must join raw whole reports, native statuses, interventions, carried fact/refusal causes, references, full manifests and sealed payloads.",
+    "No generic all-array/all-consumer/lifetime/FPU/native authority, wholeheight/full40/all8/finalcurrentinputs/currentCI/Task49/D3/delivery or formal GitHub approval follows. Prior source and finite default scopes remain unchanged.",
+    "Original764 fullshipping jobs, source/bin/roots/raw stay untouched and independent. No reviewer tests/builds/cacheexec/native/source edits/nested agents; only this external immutable LF report is written."
+  ]
+}
