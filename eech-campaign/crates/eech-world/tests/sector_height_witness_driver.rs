@@ -476,7 +476,8 @@ fn damaged(report: &str, how: &str) -> String {
             let at = position(&lines, "sh-witness-counts");
             lines.remove(at);
         }
-        "schema1" => lines[0] = lines[0].replace("schema=2", "schema=1"),
+        "schema1" => lines[0] = lines[0].replace("schema=3", "schema=1"),
+        "schema2" => lines[0] = lines[0].replace("schema=3", "schema=2"),
         "no_pack" => {
             let at = position(&lines, "sh-witness-pack ");
             lines.remove(at);
@@ -503,9 +504,50 @@ fn damaged(report: &str, how: &str) -> String {
             let at = position(&lines, "sh-witness-original");
             lines.remove(at);
         }
-        other => panic!("unknown damage {other}"),
+        other => {
+            // `<verb>_<record>_<key>[=<value>]`: drop a key, set a key, or add a second copy of a key, in one record (handoff, identity, counts, trajectory)
+            let (verb, rest) = other.split_once('_').unwrap_or_else(|| panic!("unknown damage {other}"));
+            let (record, key) = rest.split_once('_').unwrap_or_else(|| panic!("unknown damage {other}"));
+            let prefix = match record {
+                "handoff" => "sh-witness-handoff ",
+                "identity" => "sh-witness-identity ",
+                "counts" => "sh-witness-counts ",
+                "trajectory" => "sh-witness-trajectory ",
+                _ => panic!("unknown damage {other}"),
+            };
+            match verb {
+                "drop" => edit_token(&mut lines, prefix, key, None),
+                "set" => {
+                    let (key, value) = key.split_once('=').unwrap_or_else(|| panic!("unknown damage {other}"));
+                    edit_token(&mut lines, prefix, key, Some(value))
+                }
+                "dup" => {
+                    let at = position(&lines, prefix);
+                    lines[at].push_str(&format!(" {key}"));
+                }
+                _ => panic!("unknown damage {other}"),
+            }
+        }
     }
     lines.join("\n") + "\n"
+}
+
+/// drop (None) or replace (Some) the one `key=value` token of the first line starting with `prefix`; the key must exist, so a damage never silently does nothing
+fn edit_token(lines: &mut [String], prefix: &str, key: &str, value: Option<&str>) {
+    let at = lines.iter().position(|l| l.starts_with(prefix)).unwrap_or_else(|| panic!("no {prefix} line"));
+    let mut seen = false;
+    let tokens: Vec<String> = lines[at]
+        .split(' ')
+        .filter_map(|token| match token.split_once('=') {
+            Some((k, _)) if k == key => {
+                seen = true;
+                value.map(|v| format!("{key}={v}"))
+            }
+            _ => Some(token.to_string()),
+        })
+        .collect();
+    assert!(seen, "no {key} token in the {prefix} record: {}", lines[at]);
+    lines[at] = tokens.join(" ");
 }
 
 fn write_temp(text: &str) -> std::path::PathBuf {
@@ -621,8 +663,13 @@ fn the_original_profile_characterisation_comes_first_and_the_paired_control_must
     let r = report(&o);
     assert!(
         line_of(&r, "sh-witness-identity").starts_with(
-            "sh-witness-identity schema=2 mode=clearance_original profile=original-solver scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0002 window=none"
+            "sh-witness-identity schema=3 mode=clearance_original profile=original-solver scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0002 window=none"
         ),
+        "{r}"
+    );
+    // the EFFECTIVE setup, never a root path: the scenario's own campaign script and map
+    assert!(
+        line_of(&r, "sh-witness-identity").contains(r" campaign=LEBANON.CHC map=..\common\maps\map5 name=none"),
         "{r}"
     );
     assert!(
@@ -698,6 +745,7 @@ fn a_reference_report_that_is_not_whole_successful_and_of_the_same_setup_is_refu
         "wrong_mode",
         "no_counts",
         "schema1",
+        "schema2",
         "wrong_profile",
     ] {
         let file = write_temp(&damaged(&original, how));
@@ -720,6 +768,7 @@ fn a_reference_report_that_is_not_whole_successful_and_of_the_same_setup_is_refu
         "no_trajectory",
         "unpaired",
         "profile_original",
+        "schema2",
     ] {
         let file = write_temp(&damaged(&control, how));
         let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, control = '{}'", path_text(&file)), "");
@@ -773,6 +822,192 @@ fn the_clearance_control_credits_the_first_window_followed_by_a_complete_same_ca
     assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{r}");
     // the control stops at the first hand-off: the fourth frame is never run
     assert_eq!(o.log.iter().filter(|l| l.as_str() == "move fixed_wing_move").count(), 1, "{:?}", o.log);
+}
+
+// the consumed reference's physical words and effective setup (ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1, residual of the review 507f49b7): positive first, then ONE removal or ONE damage at a time
+#[test]
+fn a_control_reference_must_hold_every_physical_word_finite_and_whole_before_anything_is_compared_or_credited() {
+    let p = paired("");
+    let original = std::fs::read_to_string(&p.original).unwrap();
+    let control = std::fs::read_to_string(&p.control).unwrap();
+    // positive first: the coherent pair and a valid changed-word run, whose effect is a stated comparison of two REAL words
+    let o = p.intervene("clearance_changed_word", "");
+    o.result.as_ref().expect("the valid changed-word run passes");
+    let effect = line_of(&report(&o), "sh-witness-effect").to_string();
+    assert!(effect.contains("handoff=changed physical=") && !effect.contains("nil"), "{effect}");
+    // ONE removal or ONE damage of a field the intervention consumes: refused BEFORE the output, the boot or the intervention, never a changed physical output
+    let needle_word = |key: &str| format!("hand-off {key} is absent or not a finite raw word");
+    let cases: Vec<(String, String)> = vec![
+        ("drop_handoff_answered_y".into(), needle_word("answered_y")),
+        ("drop_handoff_min_height".into(), needle_word("min_height")),
+        ("drop_handoff_elevation".into(), needle_word("elevation")),
+        ("drop_handoff_pre_y".into(), needle_word("pre_y")),
+        ("set_handoff_answered_y=nil".into(), needle_word("answered_y")),
+        ("set_handoff_min_height=nil".into(), needle_word("min_height")),
+        ("set_handoff_answered_y=0x1234".into(), needle_word("answered_y")),
+        ("set_handoff_answered_y=0x3F80000G".into(), needle_word("answered_y")),
+        ("set_handoff_answered_y=0x7f800000".into(), needle_word("answered_y")),
+        ("set_handoff_answered_y=0xff800000".into(), needle_word("answered_y")),
+        ("set_handoff_answered_y=0x7fc00000".into(), needle_word("answered_y")),
+        ("set_handoff_min_height=0x7f800001".into(), needle_word("min_height")),
+        ("set_handoff_min_height=0xffc00000".into(), needle_word("min_height")),
+        ("drop_handoff_host_id".into(), "hand-off host_id is absent".into()),
+        ("set_handoff_host_id=nil".into(), "hand-off host_id is absent".into()),
+        ("drop_handoff_phase".into(), "hand-off phase is absent or malformed".into()),
+        ("set_handoff_phase=7".into(), "hand-off phase is absent or malformed".into()),
+        ("set_handoff_ordinal=0".into(), "hand-off ordinal is absent or malformed".into()),
+        ("drop_handoff_sector".into(), "hand-off sector is absent or malformed".into()),
+        (
+            "set_handoff_real_word=0x12".into(),
+            "hand-off real_word is neither none nor one raw word".into(),
+        ),
+        ("dup_handoff_answered_y=0x3f800000".into(), "the key answered_y is given twice".into()),
+        ("drop_counts_height_reads".into(), "counts height_reads is absent or malformed".into()),
+        ("set_counts_altered_reads=1".into(), "altered a window".into()),
+        ("set_counts_height_reads=0".into(), "never answered a sector height".into()),
+        ("drop_trajectory_frame".into(), "trajectory frame is absent or malformed".into()),
+        ("set_trajectory_scan_reads=x".into(), "trajectory scan_reads is absent or malformed".into()),
+    ];
+    for (how, needle) in &cases {
+        let file = write_temp(&damaged(&control, how));
+        let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, control = '{}'", path_text(&file)), "");
+        let credited = o
+            .report
+            .as_deref()
+            .and_then(|r| r.lines().find(|l| l.starts_with("sh-witness-effect")))
+            .unwrap_or("none");
+        assert!(o.result.is_err(), "the control damaged by {how} was ACCEPTED and credited ({credited})");
+        assert_refused_before_any_effect(&o, needle);
+        remove(&[&file]);
+    }
+    // the same for the first-hand-off reference of the original profile (consumed by the control's parity claim)
+    for (how, needle) in [
+        ("drop_handoff_answered_y", needle_word("answered_y")),
+        ("set_handoff_min_height=nil", needle_word("min_height")),
+        ("set_handoff_elevation=0x7f800000", needle_word("elevation")),
+        ("drop_handoff_pre_y", needle_word("pre_y")),
+        ("set_counts_altered_windows=1", "no first hand-off with the host never asked".to_string()),
+    ] {
+        let file = write_temp(&damaged(&original, how));
+        let o = clearance(&format!("mode = 'clearance_control', original = '{}'", path_text(&file)), "");
+        assert_refused_before_any_effect(&o, &needle);
+        remove(&[&file]);
+    }
+    p.clean();
+}
+
+#[test]
+fn a_reference_must_name_the_same_effective_campaign_and_map_and_never_a_root_path() {
+    let p = paired("");
+    let original = std::fs::read_to_string(&p.original).unwrap();
+    let control = std::fs::read_to_string(&p.control).unwrap();
+    // positive first: an explicit override EQUAL to the default is the same effective setup (the old parser accepts this too), then change ONLY the campaign, or ONLY the map, of the run itself: refused before any effect
+    let o = clearance(
+        &format!(
+            r"mode = 'clearance_changed_word', window = 2, campaign = 'LEBANON.CHC', map = '..\\common\\maps\\map5', control = '{}'",
+            path_text(&p.control)
+        ),
+        "",
+    );
+    o.result
+        .as_ref()
+        .expect("an explicit override equal to the default is the same effective setup");
+    let o = clearance(
+        &format!(
+            "mode = 'clearance_changed_word', window = 2, campaign = 'GEORGIA.CHC', control = '{}'",
+            path_text(&p.control)
+        ),
+        "",
+    );
+    assert!(
+        o.result.is_err(),
+        "a run of ANOTHER effective campaign was accepted against the control ({:?})",
+        o.report.as_deref().and_then(|r| r.lines().find(|l| l.starts_with("sh-witness-verdict")))
+    );
+    assert_refused_before_any_effect(&o, "of another setup: campaign=LEBANON.CHC, this run GEORGIA.CHC");
+    let o = clearance(
+        &format!(
+            r"mode = 'clearance_changed_word', window = 2, map = '..\\common\\maps\\map3', control = '{}'",
+            path_text(&p.control)
+        ),
+        "",
+    );
+    assert!(
+        o.result.is_err(),
+        "a run of ANOTHER effective map was accepted against the control ({:?})",
+        o.report.as_deref().and_then(|r| r.lines().find(|l| l.starts_with("sh-witness-verdict")))
+    );
+    assert_refused_before_any_effect(&o, "of another setup: map=");
+    // the explicit-default run's own identity names the effective setup
+    let o = clearance(
+        &format!(
+            r"mode = 'clearance_changed_word', window = 2, campaign = 'LEBANON.CHC', map = '..\\common\\maps\\map5', control = '{}'",
+            path_text(&p.control)
+        ),
+        "",
+    );
+    let line = line_of(&report(&o), "sh-witness-identity").to_string();
+    assert!(line.contains(r" campaign=LEBANON.CHC map=..\common\maps\map5 "), "{line}");
+    // the references carry the effective setup; two fresh roots are separate paths of ONE setup (the pair above was made from two roots and passes)
+    for report in [&original, &control] {
+        assert!(
+            line_of(report, "sh-witness-identity").contains(r" campaign=LEBANON.CHC map=..\common\maps\map5 "),
+            "{report}"
+        );
+    }
+    // change ONLY the effective campaign or ONLY the effective map of the supplied control: refused before any effect
+    for (how, needle) in [
+        ("set_identity_campaign=GEORGIA.CHC", "of another setup: campaign=GEORGIA.CHC"),
+        (r"set_identity_map=..\common\maps\map3", "of another setup: map="),
+        ("drop_identity_campaign", "of another setup: campaign=nil"),
+        ("drop_identity_map", "of another setup: map=nil"),
+    ] {
+        let file = write_temp(&damaged(&control, how));
+        let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, control = '{}'", path_text(&file)), "");
+        assert_refused_before_any_effect(&o, needle);
+        remove(&[&file]);
+        let file = write_temp(&damaged(&original, how));
+        let o = clearance(&format!("mode = 'clearance_control', original = '{}'", path_text(&file)), "");
+        assert_refused_before_any_effect(&o, needle);
+        remove(&[&file]);
+    }
+    // an override that is not one token cannot be a setup identity
+    let o = clearance(
+        &format!(
+            "mode = 'clearance_changed_word', window = 2, map = 'a b', control = '{}'",
+            path_text(&p.control)
+        ),
+        "",
+    );
+    assert_refused_before_any_effect(&o, "map= must be one non-empty token");
+    p.clean();
+}
+
+#[test]
+fn a_save_report_binds_the_map_and_names_a_campaign_but_the_generated_script_of_the_load_is_a_different_campaign() {
+    let (path, saved) = healthy_save();
+    // the positive relationship stays valid: the save booted the original campaign, the load boots the generated saved script `alpha.Sch`, and the saved raw NaN and infinite histories are untouched by the finiteness rule of the clearance fields
+    assert!(
+        line_of(&saved, "sh-witness-identity").contains(r" campaign=LEBANON.CHC map=..\common\maps\map5 "),
+        "{saved}"
+    );
+    assert!(saved.contains("word=0x7fc00000") && saved.contains("word=0xff800000"), "{saved}");
+    let o = load_run(&path, &saved, &format!("mode = 'load', name = 'beta', seeds = '{SEEDS}'"), "");
+    let loaded = o.result.as_ref().map(|_| report(&o)).expect("the load of the generated script passes");
+    assert!(line_of(&loaded, "sh-witness-identity").contains(" campaign=alpha.Sch map="), "{loaded}");
+    // change ONLY the save report's effective map, or remove its campaign or map: refused before any load side effect
+    for (how, needle) in [
+        (r"set_identity_map=..\common\maps\map3", "of another setup: map="),
+        ("drop_identity_map", "of another setup: map=nil"),
+        ("drop_identity_campaign", "names no effective campaign"),
+        ("set_identity_campaign=none", "names no effective campaign"),
+    ] {
+        let file = write_temp(&damaged(&saved, how));
+        let o = load_run(&file, &saved, "mode = 'load', name = 'beta'", "");
+        assert_refused_before_any_effect(&o, needle);
+        remove(&[&file]);
+    }
+    remove(&[&path]);
 }
 
 #[test]
@@ -1318,6 +1553,7 @@ fn a_save_report_that_is_not_whole_successful_and_matched_is_refused_before_any_
         "gap",
         "bad_word",
         "wrong_profile",
+        "schema2",
     ] {
         let file = write_temp(&damaged(&saved, how));
         let o = load_run(&file, &saved, "mode = 'load', name = 'beta'", "");

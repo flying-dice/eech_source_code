@@ -1,0 +1,18 @@
+
+running 1 test
+test a_reference_must_name_the_same_effective_campaign_and_map_and_never_a_root_path ... FAILED
+
+failures:
+
+---- a_reference_must_name_the_same_effective_campaign_and_map_and_never_a_root_path stdout ----
+
+thread 'a_reference_must_name_the_same_effective_campaign_and_map_and_never_a_root_path' (124) panicked at crates/eech-world/tests/sector_height_witness_driver.rs:904:5:
+a run of ANOTHER effective campaign was accepted against the control (Some("sh-witness-verdict mode=clearance_changed_word status=PASS detail=clearance_changed_word: window 2, the hand-off 0x47c061c0 is the round-toward-zero value of 100000.0 - elevation 0x44bb9000, the control's caller"))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_reference_must_name_the_same_effective_campaign_and_map_and_never_a_root_path
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.02s
+

@@ -51,8 +51,10 @@
 --                              ONE fault at the FIRST restore, the campaign's own boot stopping at the named marker: callback / entity_scan.sector_height (a restore echoed for another sector) / entity_scan.state (`height` for a
 --                              restore) / entity_scan.sector_height (the host stored a word that is not the one stated). Positive-first: each is the single fault of the same boot as `load` (same `expect=` validation).
 --
--- Every report this driver consumes (original=, control=, expect=) is read as a WHOLE successful report of this driver version (schema 2): known records only, unique single records, ordered rows, no fault record, a terminal
--- PASS of the expected mode and profile, and the same scenario, seed, frame_ms and hours; anything else refuses before any side effect. Every host request and reply it credits is checked as the exact raw grammar of the public
+-- Every report this driver consumes (original=, control=, expect=) is read as a WHOLE successful report of this driver version (schema 3): known records only, unique single records, ordered rows, no fault record, a terminal
+-- PASS of the expected mode and profile, and the same SEMANTIC setup (scenario, seed, frame_ms, hours and the EFFECTIVE map and campaign the run boots, never the fresh root's path; a save report's own campaign is the original
+-- of which a load boots the generated saved script, so only its name relation and the map are bound); a clearance reference must also hold EVERY field its parity or effect claim consumes (hand-off, trajectory and counts: whole
+-- numbers, and the four physical words elevation, min_height, pre_y, answered_y as FINITE raw words; the saved raw HEIGHT histories of M6 keep every word, a NaN too); anything else refuses before any side effect. Every host request and reply it credits is checked as the exact raw grammar of the public
 -- C bridge: comma lists of exactly the stated 0x%08x patterns (an empty or extra comma segment is malformed), no placement name, the sector echoed, a restore's word acknowledged.
 --
 -- host.args: root, out (the report; created EXCLUSIVELY first), mode, scenario (lebanon_retail default, georgia_retail), map, campaign (a load's saved script), hours (M5 default 3: the accepted regression-pack window, 3
@@ -233,6 +235,65 @@ local KNOWN = {
 	["sh-witness-save"] = "one", ["sh-witness-pack"] = "one", ["sh-save-seed"] = "many", ["sh-save-word"] = "many", ["sh-load-restore"] = "many", ["sh-witness-verdict"] = "one",
 }
 local REFUSED_RECORD = { ["sh-witness-fatal"] = true, ["sh-witness-reply-fault"] = true, ["sh-witness-request-fault"] = true }
+-- the EFFECTIVE setup this run boots (the campaign script and the map the campaign really loads, an override or the scenario's own), never a physical root path: two fresh roots are separate paths of one setup
+local effective_campaign = args.campaign or scenario.campaign
+local effective_map = args.map or scenario.map
+for _, key in ipairs ({ "map", "campaign" }) do
+	local value = args [key]
+	if value ~= nil and (type (value) ~= "string" or value == "" or string.find (value, "%s")) then refuse (key .. "= must be one non-empty token without white space (it is part of the report's setup identity)") end
+end
+-- a whole non-negative integer in canonical decimal form (a report's count, ordinal or window), or nil
+local function whole_number (text, minimum, maximum)
+	if type (text) ~= "string" or not string.match (text, "^%d+$") or #text > 9 then return nil end
+	local n = tonumber (text)
+	if tostring (n) ~= text or n < (minimum or 0) or (maximum ~= nil and n > maximum) then return nil end
+	return n
+end
+-- a finite single as a raw word: eight hex digits whose exponent field is not all ones (an infinity or a NaN is no physical value); the saved raw HEIGHT histories of M6 keep every word and are never tested by this
+local function finite_word (text)
+	local word = strict_patterns (text, 1)
+	if word == nil then return nil end
+	local n = tonumber (string.sub (word [1], 3), 16)
+	local exponent = math.floor (n * 0.00000011920928955078125) -- n * 2^-23, exact
+	if exponent >= 256 then exponent = exponent - 256 end
+	if exponent == 255 then return nil end
+	return word [1]
+end
+-- the first hand-off record of a clearance report as exact data: EVERY field a parity or effect claim consumes is present, canonical and in its domain, or the run is refused before it writes, boots or intervenes
+local function whole_handoff (h, role)
+	if h == nil then refuse ("the " .. role .. " report holds no hand-off record") end
+	local out = {}
+	-- the original-solver profile never asks the host, so its first hand-off has no window, read or sector; a hosted hand-off always has all three
+	local floor = role == "original" and 0 or 1
+	for _, item in ipairs ({ { "ordinal", 1 }, { "window", floor }, { "reads", floor }, { "phase", 0, 3 } }) do
+		if whole_number (h [item [1]], item [2], item [3]) == nil then refuse ("the " .. role .. " report's hand-off " .. item [1] .. " is absent or malformed: " .. tostring (h [item [1]])) end
+		out [item [1]] = h [item [1]]
+	end
+	if type (h.host_id) ~= "string" or h.host_id == "" or h.host_id == "nil" then refuse ("the " .. role .. " report's hand-off host_id is absent") end
+	out.host_id = h.host_id
+	if type (h.sector) ~= "string" or not (string.match (h.sector, "^%d+,%d+$") or (role == "original" and h.sector == "none")) then refuse ("the " .. role .. " report's hand-off sector is absent or malformed: " .. tostring (h.sector)) end
+	out.sector = h.sector
+	for _, key in ipairs ({ "real_word", "answered_word" }) do
+		if h [key] ~= "none" and strict_patterns (h [key], 1) == nil then refuse ("the " .. role .. " report's hand-off " .. key .. " is neither none nor one raw word: " .. tostring (h [key])) end
+		out [key] = h [key] == "none" and "none" or string.lower (h [key])
+	end
+	for _, key in ipairs ({ "elevation", "min_height", "pre_y", "answered_y" }) do
+		local word = finite_word (h [key])
+		if word == nil then refuse ("the " .. role .. " report's hand-off " .. key .. " is absent or not a finite raw word (a missing physical answer is never a changed one): " .. tostring (h [key])) end
+		out [key] = word
+	end
+	return out
+end
+-- the counts and trajectory records of a clearance report: every field present and a whole number
+local function whole_fields (record, names, role, what)
+	if record == nil then refuse ("the " .. role .. " report has no " .. what .. " record") end
+	local out = {}
+	for _, name in ipairs (names) do
+		if whole_number (record [name], 0) == nil then refuse ("the " .. role .. " report's " .. what .. " " .. name .. " is absent or malformed: " .. tostring (record [name])) end
+		out [name] = record [name]
+	end
+	return out
+end
 -- the whole successful report of this driver at `path` for `role` (original | control | save), or a refusal naming what is missing or inconsistent with THIS run's setup
 local function read_reference (path, role, expected_mode)
 	local file = io.open (path, "rb")
@@ -264,29 +325,43 @@ local function read_reference (path, role, expected_mode)
 	file:close ()
 	if order [1] ~= "sh-witness-identity" or last ~= "sh-witness-verdict" then refuse ("the " .. role .. " report does not begin with its identity and end with its verdict") end
 	local id, verdict_record = rec ["sh-witness-identity"], rec ["sh-witness-verdict"]
-	if id.schema ~= "2" or id.mode ~= expected_mode or verdict_record.mode ~= expected_mode or verdict_record.status ~= "PASS" then
-		refuse ("the " .. role .. " report is not a successful schema 2 " .. expected_mode .. " report (mode " .. tostring (id.mode) .. ", verdict " .. tostring (verdict_record.status) .. ")")
+	if id.schema ~= "3" or id.mode ~= expected_mode or verdict_record.mode ~= expected_mode or verdict_record.status ~= "PASS" then
+		refuse ("the " .. role .. " report is not a successful schema 3 " .. expected_mode .. " report (mode " .. tostring (id.mode) .. ", verdict " .. tostring (verdict_record.status) .. ")")
 	end
 	if id.profile ~= MODES [expected_mode].profile then refuse ("the " .. role .. " report names profile " .. tostring (id.profile) .. ", not " .. MODES [expected_mode].profile) end
-	for key, mine in pairs ({ scenario = scenario_name, seed = tostring (seed), frame_ms = tostring (frame_ms), hours = tostring (hours) }) do
+	-- the semantic setup: scenario, seed, frame, hours and the EFFECTIVE map; the effective campaign too, except for a save report, whose own campaign is the ORIGINAL script of which the load boots the generated saved script
+	local setup = { scenario = scenario_name, seed = tostring (seed), frame_ms = tostring (frame_ms), hours = tostring (hours), map = effective_map }
+	if expected_mode ~= "save" then setup.campaign = effective_campaign end
+	for key, mine in pairs (setup) do
 		if id [key] ~= mine then refuse ("the " .. role .. " report is of another setup: " .. key .. "=" .. tostring (id [key]) .. ", this run " .. mine) end
 	end
+	if expected_mode == "save" and (type (id.campaign) ~= "string" or id.campaign == "" or id.campaign == "none") then refuse ("the save report names no effective campaign") end
 	if rec ["sh-witness-counts"] == nil then refuse ("the " .. role .. " report has no counts record") end
 	return rec
 end
 
 local reference = {}
+local COUNT_FIELDS = { "windows", "windows_without_handoff", "scan_reads", "height_reads", "altered_windows", "altered_reads", "handoffs", "unbound_lookaheads", "frames" }
+local TRAJECTORY_FIELDS = { "window", "frame", "windows_without_handoff", "scan_reads", "handoffs" }
+local PAIR_FIELDS = "host_id,elevation,min_height,pre_y,answered_y,phase"
 if mode == "clearance_control" and args.original ~= nil then
 	local rec = read_reference (args.original, "original", "clearance_original")
-	local h = rec ["sh-witness-handoff"]
-	if h == nil or h.ordinal ~= "1" or rec ["sh-witness-counts"].height_reads ~= "0" then refuse ("the original report holds no first hand-off with the host never asked") end
+	local counts = whole_fields (rec ["sh-witness-counts"], COUNT_FIELDS, "original", "counts")
+	local h = whole_handoff (rec ["sh-witness-handoff"], "original")
+	if h.ordinal ~= "1" or counts.height_reads ~= "0" or counts.altered_windows ~= "0" or counts.altered_reads ~= "0" then refuse ("the original report holds no first hand-off with the host never asked and nothing altered") end
 	reference.original = h
 elseif plan.family == "clearance" and plan.intervene then
+	-- the whole paired control BEFORE any output, boot or intervention: its counts, hand-off (every physical word finite and raw), trajectory and pairing record, all present and well formed
 	local rec = read_reference (args.control, "control", "clearance_control")
-	local h, t = rec ["sh-witness-handoff"], rec ["sh-witness-trajectory"]
-	if h == nil or t == nil or rec ["sh-witness-original"] == nil or rec ["sh-witness-original"].equal ~= "1" then
-		refuse ("the control report is not a PAIRED control with its hand-off and trajectory (an unpaired control makes no parity and unlocks no intervention)")
+	local counts = whole_fields (rec ["sh-witness-counts"], COUNT_FIELDS, "control", "counts")
+	local paired = rec ["sh-witness-original"]
+	if paired == nil or paired.equal ~= "1" or paired.fields ~= PAIR_FIELDS then
+		refuse ("the control report is not a PAIRED control with its pairing record (an unpaired control makes no parity and unlocks no intervention)")
 	end
+	local h = whole_handoff (rec ["sh-witness-handoff"], "control")
+	local t = whole_fields (rec ["sh-witness-trajectory"], TRAJECTORY_FIELDS, "control", "trajectory")
+	if counts.altered_windows ~= "0" or counts.altered_reads ~= "0" then refuse ("the control report altered a window: it is not an unaltered control") end
+	if tonumber (counts.height_reads) < 1 then refuse ("the control report's host never answered a sector height: it is not the hosted control") end
 	if tonumber (t.window) ~= target_window or tonumber (h.window) ~= target_window then refuse ("window=" .. tostring (target_window) .. " is not the control's window " .. tostring (t.window)) end
 	reference.control, reference.trajectory = h, t
 elseif loading then
@@ -802,7 +877,10 @@ local function clearance_verdict ()
 			end
 			return verdict ("FAILURE", string.format ("%s: the hand-off %s is neither the round-toward-zero value %s of 100000.0 - elevation nor the control's larger term", mode, tostring (bits_or (h.min_height)), tostring (bits_or (expected))))
 		end
-		state.effect = { handoff = bits_or (h.min_height) ~= c.min_height and "changed" or "unchanged", physical = bits_or (h.answered_y) ~= c.answered_y and "changed" or "unchanged" }
+		-- a physical or hand-off effect is claimed only between two REAL finite words: an absent word of either side is no effect and no pass (the reference was validated whole before the run; this keeps the claim from ever resting on nil)
+		local mine_min, mine_y = bits_or (h.min_height), bits_or (h.answered_y)
+		if mine_min == nil or mine_y == nil or c.min_height == nil or c.answered_y == nil then return verdict ("FAILURE", mode .. ": a hand-off or physical answer word to compare is absent: no effect is claimed") end
+		state.effect = { handoff = mine_min ~= c.min_height and "changed" or "unchanged", physical = mine_y ~= c.answered_y and "changed" or "unchanged" }
 		return verdict ("PASS", string.format ("%s: window %d, the hand-off %s is the round-toward-zero value of 100000.0 - elevation %s, the control's caller", mode, h.window, tostring (bits_or (h.min_height)), tostring (bits_or (h.elevation))))
 	end
 	-- the control: the hand-off is bounded below by the original expressions over the word the host answered, under the accepted round-toward-zero profile
@@ -954,7 +1032,7 @@ local function session_verdict ()
 end
 
 local function report ()
-	emit (string.format ("sh-witness-identity schema=2 mode=%s profile=%s scenario=%s seed=%s frame_ms=%s hours=%s window=%s campaign=%s name=%s", mode, plan.profile, scenario_name, tostring (seed), tostring (frame_ms), tostring (hours), target_window and tostring (target_window) or "none", args.campaign or "none", save_name or "none"))
+	emit (string.format ("sh-witness-identity schema=3 mode=%s profile=%s scenario=%s seed=%s frame_ms=%s hours=%s window=%s campaign=%s map=%s name=%s", mode, plan.profile, scenario_name, tostring (seed), tostring (frame_ms), tostring (hours), target_window and tostring (target_window) or "none", effective_campaign, effective_map, save_name or "none"))
 	if plan.family == "clearance" then
 		emit (string.format ("sh-witness-counts windows=%d windows_without_handoff=%d scan_reads=%d height_reads=%d altered_windows=%d altered_reads=%d handoffs=%d unbound_lookaheads=%d frames=%s", state.window, state.windows_without_handoff, state.scan_reads, state.height_reads, state.altered_windows, state.altered_reads, state.handoff_count, state.unbound_lookaheads, tostring (state.frames_run)))
 		local h = state.handoff

@@ -1,0 +1,26 @@
+{
+  "q1-witness-driver-tests": {
+    "actual_exit": 1,
+    "why": "BLOCKED PREREQUISITE with ZERO test coverage, not a result and not a regression: the old leased image sha256:810e0121... was unresident ('No such image') after Root's build retagging; run before Root's explicit 9d247 lease; no substitute was used"
+  },
+  "q2-witness-driver-tests": {
+    "actual_exit": 101,
+    "why": "first run on the new 9d247 image: 19 passed, 7 failed; a real defect of the author's new Lua: the save reference is read under the role name `expect`, so the campaign-binding exemption keyed on role == save never applied and a load's generated script alpha.Sch was compared with the save's LEBANON.CHC (the legitimate relationship refused); plus one test needle that quoted the report's side of the setup-mismatch message. Fixed (the exemption keys on the expected mode save), q3 green"
+  },
+  "q4-red-previous-lua-physical-words": {
+    "actual_exit": 101,
+    "why": "RED on the PREVIOUS Lua (only the Lua file reverted from HEAD for the run, then restored byte-identical; tests unchanged): after the positive-first coherent pair and valid changed-word run, a control with a field removed was accepted (the test then printed no damage name; q5 repeats it with the damage named)"
+  },
+  "q5-red-previous-lua-physical-words": {
+    "actual_exit": 101,
+    "why": "RED on the PREVIOUS Lua, the same single-field test with a self-describing assertion: 'the control damaged by drop_handoff_answered_y was ACCEPTED and credited (sh-witness-effect handoff=changed physical=changed)': a removed answered_y was credited as a changed physical output (the review's exact false credit); the new Lua refuses it before output, boot or intervention"
+  },
+  "q6-witness-driver-tests": {
+    "actual_exit": 101,
+    "why": "test setup, not a driver defect: the restructured setup test's Lua override strings held single backslashes (a Lua invalid escape turned the map into ..commonmapsmap5) because the shell collapsed them; corrected to Lua-escaped double backslashes, q7 green"
+  },
+  "q8-red-previous-lua-effective-setup": {
+    "actual_exit": 101,
+    "why": "RED on the PREVIOUS Lua: after the positive-first explicit-default override pair was accepted, a run of ANOTHER effective campaign (GEORGIA.CHC against a LEBANON.CHC control) was accepted with 'status=PASS' (the previous setup match ignored the campaign and the effective map); the new Lua refuses it before any effect"
+  }
+}

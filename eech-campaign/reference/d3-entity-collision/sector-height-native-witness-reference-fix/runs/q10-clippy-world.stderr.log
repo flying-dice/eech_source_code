@@ -1,0 +1,26 @@
+info: downloading component clippy
+   Compiling cfg-if v1.0.5
+    Checking smallvec v1.16.1
+    Checking memchr v2.8.3
+    Checking scopeguard v1.2.0
+    Checking serde_core v1.0.229
+    Checking libc v0.2.189
+    Checking num-traits v0.2.19
+    Checking typeid v1.0.3
+    Checking zmij v1.0.23
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Checking itoa v1.0.18
+    Checking rustc-hash v2.1.3
+    Checking either v1.18.0
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+    Checking lock_api v0.4.14
+    Checking ordered-float v2.10.1
+    Checking parking_lot_core v0.9.12
+    Checking parking_lot v0.12.5
+    Checking serde v1.0.229
+    Checking erased-serde v0.4.10
+    Checking bstr v1.13.1
+    Checking serde_json v1.0.151
+    Checking serde-value v0.7.0
+    Checking mlua v0.10.5
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.85s

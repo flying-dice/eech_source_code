@@ -1,0 +1,44 @@
+{
+  "pre_fingerprint": "780b1951553742be9a1d5056190d48e1034ae0bc1639e1af39ad7e97c6ad9788",
+  "post_fingerprint": "780b1951553742be9a1d5056190d48e1034ae0bc1639e1af39ad7e97c6ad9788",
+  "file_count_pre": 3976,
+  "file_count_post": 3976,
+  "rows_only_in_pre": [],
+  "rows_only_in_post": [],
+  "rows_that_differ": [],
+  "all_rows_equal": true,
+  "head_sha": "99eeaa57975c324bb504bfa88aad80b068d632dc",
+  "changed_from_head_count": [
+    5,
+    5
+  ],
+  "deleted_from_head": [
+    [],
+    []
+  ],
+  "raw_vs_git_filtered_disagreements": {
+    "pre": [
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "modules/system/malloc.c.h",
+      "modules/system/nedmalloc.c"
+    ],
+    "post": [
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "modules/system/malloc.c.h",
+      "modules/system/nedmalloc.c"
+    ]
+  },
+  "extra_identity_equal": true,
+  "extra_identity_aggregate": [
+    "df1be67257093044b9ae05c1594070a68b8a2a5e206af657bdc993f21cc79e9a",
+    "df1be67257093044b9ae05c1594070a68b8a2a5e206af657bdc993f21cc79e9a"
+  ]
+}
