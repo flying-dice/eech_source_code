@@ -1,0 +1,41 @@
+{
+  "kind": "consumer-reference correction: PRESERVED CHECKPOINT (not frozen, not validated)",
+  "utc": "2026-11-07T12:55:33.690912+00:00",
+  "head": "99eeaa57975c324bb504bfa88aad80b068d632dc",
+  "committed_checkpoint1": "99eeaa579 (literal review 507f49b7 + Root binding 17f, three ids closed, consumer open with both residual facts; guards run)",
+  "uncommitted_working_tree": {
+    "eech-campaign/crates/eech-world/lua/sector-height-witness.lua": {
+      "sha256": "521423fdea929a898a13701cd746ed657e58345559bc89ab2d624997234b3759"
+    },
+    "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs": {
+      "sha256": "a936bcc88c25ffd90206101f90c13188857128bb12724dd674bda0e1d2572dcc"
+    },
+    "eech-campaign/docs/d3-sector-height-production-contract.md": {
+      "sha256": "65151e88c5c12c66688a506064fdf04f9b2de6b3bb9d341d9604eb39ed839355"
+    }
+  },
+  "state": "source edits written (Lua reference validation: whole finite raw physical fields, effective campaign/map schema 3; Rust driver tests: new damage vocabulary + three new tests; contract 12.5) but NO test, fmt or clippy has run on them; scripts for PRE/final/freeze written and syntax-checked only",
+  "blocker": "the sole leased image sha256:810e0121... is absent from Docker (read-only `docker image ls -a --no-trunc`: 9 images, none 810e, none dangling); Root's marker state=released/source17f was present at 12:53:09Z. The lane does not substitute an image, build one, or touch Root's volumes/snapshots.",
+  "q1": {
+    "actual_exit": 1,
+    "why": "BLOCKED PREREQUISITE, not a result: the leased image sha256:810e0121c7081fc7f4b51d8973beec085759e659be46e241e0bb8864245b13c2 is absent from Docker after Root's release marker (the check script's `docker image inspect` failed: No such image); it existed at the 12:24:55Z and 12:31Z lease-before reads of the previous batch. No test ran; no substitute image was used or built."
+  },
+  "scripts": {
+    "hwref-join-20261107.py": "da86a5a5d28f4933d3f30365325071782ca5a821fbef50171c1947f3d2a27009",
+    "hwref-extra-identity-20261107.py": "60b5a24cbd7a9e84a3aa2f535a950b4120c0d2e5686d76228be897637094d4e7",
+    "run-hwref-final-set-20261107.sh": "653a6f41c2a7cae307cfac1127eb34ec1b8b5de034fe61e9f98480a38242613f",
+    "freeze-hwref-20261107.py": "1229ac48cb4e5d553788c155fd7381dbf6f3b65169b464dab43a9ba9477fcb2a",
+    "publish-reference-review-20261107.py": "248462bcbeaf5ba4b2b37d123a6313b7fb2833a1abd2649d0f318655271b8496",
+    "patch-card-status-reference-checkpoint1-20261107.py": "cd1b718263257faba2e2f6b9c48d29f6f6074f3cac0071409fe09e7aa243793e",
+    "hwref-wip-20261107.patch": "1e4dc3e7da8e2a1ab378db9783bd767569ef68c4f9ee7736711bc89e56a14776"
+  },
+  "next_bounded_action": "Root restores/confirms the named image (or names the substitute explicitly); then: q2 world driver tests (witness driver incl. the three new tests) -> fix any failure -> RED run of the new tests on the previous Lua (git stash only the Lua file) -> readers PRE record (hwref-readers-PRE-20261107.json, hwref-PRE-utc) -> PRE maps -> run-hwref-final-set -> POST -> freeze-hwref (absolute repo path) -> commit source+packet -> metadata checkpoint. Add the q-series retained failures to hwref-retained-dev-runs-20261107.json before PRE.",
+  "not_done": [
+    "no Linux/cargo check of the new source",
+    "no PRE/POST",
+    "no freeze",
+    "no source commit",
+    "card/STATUS still say the residual correction is in progress (correct)"
+  ],
+  "constraints_kept": "no C/Rust product/build/Cargo change; D3-CURRENT, services, Jira/Confluence/PR untouched; no cache/volume/image mutation"
+}

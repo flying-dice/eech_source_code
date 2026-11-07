@@ -1,0 +1,135 @@
+{
+  "source": "537c36fafae6e16555bcea0c95b4a272921cfd93",
+  "actual_controller_exit": 1,
+  "source_runtime_scope": "Original controlled geometry and existing host replay measured; source not accepted because actual state controls failed",
+  "payloads_unchanged": true,
+  "all3_pre_post_inputs": 0,
+  "all3_default_report_and_trace_byte_equal_f3": true,
+  "geometry": [
+    {
+      "queries": 4802,
+      "lookups": 9598,
+      "geometry_entered": 35,
+      "geometry_hits": 22,
+      "geometry_misses": 13,
+      "geometry_hit_depths": [
+        0,
+        1
+      ],
+      "host_library_actual_exit": 0,
+      "host_lua_actual_exit": 0,
+      "coverage": [
+        {
+          "branch_entered": 35,
+          "event": "geometry_witness_coverage",
+          "flags_0_0": 3,
+          "flags_0_1": 25,
+          "flags_1_0": 3,
+          "flags_1_1": 4,
+          "gaps": "none",
+          "geometry_hits": 22,
+          "geometry_misses": 13,
+          "geometry_misses_with_a_partial_write": 13,
+          "hits_after_the_first_triangle": 3,
+          "label": "controlled_forest_geometry",
+          "restored": 1,
+          "walks_exhausted": 13
+        }
+      ],
+      "case": "georgia"
+    },
+    {
+      "queries": 5126,
+      "lookups": 10148,
+      "geometry_entered": 24,
+      "geometry_hits": 19,
+      "geometry_misses": 5,
+      "geometry_hit_depths": [
+        0,
+        1
+      ],
+      "host_library_actual_exit": 0,
+      "host_lua_actual_exit": 0,
+      "coverage": [
+        {
+          "branch_entered": 24,
+          "event": "geometry_witness_coverage",
+          "flags_0_0": 3,
+          "flags_0_1": 15,
+          "flags_1_0": 3,
+          "flags_1_1": 3,
+          "gaps": "none",
+          "geometry_hits": 19,
+          "geometry_misses": 5,
+          "geometry_misses_with_a_partial_write": 5,
+          "hits_after_the_first_triangle": 1,
+          "label": "controlled_forest_geometry",
+          "restored": 1,
+          "walks_exhausted": 5
+        }
+      ],
+      "case": "lebanon"
+    },
+    {
+      "queries": 5126,
+      "lookups": 10148,
+      "geometry_entered": 24,
+      "geometry_hits": 19,
+      "geometry_misses": 5,
+      "geometry_hit_depths": [
+        0,
+        1
+      ],
+      "host_library_actual_exit": 0,
+      "host_lua_actual_exit": 0,
+      "coverage": [
+        {
+          "branch_entered": 24,
+          "event": "geometry_witness_coverage",
+          "flags_0_0": 3,
+          "flags_0_1": 15,
+          "flags_1_0": 3,
+          "flags_1_1": 3,
+          "gaps": "none",
+          "geometry_hits": 19,
+          "geometry_misses": 5,
+          "geometry_misses_with_a_partial_write": 5,
+          "hits_after_the_first_triangle": 1,
+          "label": "controlled_forest_geometry",
+          "restored": 1,
+          "walks_exhausted": 5
+        }
+      ],
+      "case": "lebanon-repeat"
+    }
+  ],
+  "failures": [
+    {
+      "case": "default-controlled-default without rearming trace",
+      "actual_exit": 1,
+      "report_equal": true,
+      "facts_equal": true,
+      "records_equal": false,
+      "witness_fields_present_in_next_default": true
+    },
+    {
+      "case": "public range refusal after geometry arm",
+      "actual_exit": 1,
+      "bad_argument_refused": true,
+      "next_valid_probe_has_witness": true
+    },
+    {
+      "case": "public conversion refusal after geometry arm",
+      "actual_exit": 1,
+      "bad_argument_refused": true,
+      "next_valid_probe_has_witness": true
+    }
+  ],
+  "controls": {
+    "tree-geometry-one-shot-control-20261029.lua": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+    "tree-geometry-refused-probe-control-20261029.lua": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+    "tree-geometry-conversion-refused-control-20261029.lua": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0"
+  },
+  "post_controls_georgia_input_exit": 0,
+  "limits": "No production ownership, shipping acceptance, model-loader migration, independent review or D3 completion."
+}

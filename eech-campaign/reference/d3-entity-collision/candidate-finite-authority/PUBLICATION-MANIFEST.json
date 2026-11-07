@@ -1,0 +1,35 @@
+{
+  "scope": "Exact committed bytes, no runtime normalization",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 30,
+      "sha256": "93aacecaa993509cce94958a3a85bfc06b3cb21a747bab51b8021652a3acb878"
+    },
+    {
+      "path": "candidate-finite-authority-summary.json",
+      "bytes": 14652,
+      "sha256": "ab80eab8fa887f2b2f04d0f2b71f7a6904eee48397fd273c7b5c6351552b2b91"
+    },
+    {
+      "path": "entity-candidate-builds-and-payloads-1ccc9e2ed-20261105.json",
+      "bytes": 3480,
+      "sha256": "9ab3b7993daed72be1ed351c88ddcbdef2ca7f80143b71c16358ec0234f5a85f"
+    },
+    {
+      "path": "entity-candidate-ordinary-short-comparison-1ccc9e2ed-20261105.json",
+      "bytes": 2203,
+      "sha256": "2d6eb6614f19d43374462419d9c632ab0f570ae1d9df6363a29aba9455248821"
+    },
+    {
+      "path": "independent-entity-candidate-public-authority-d39-native1ccc-20261105.json",
+      "bytes": 26046,
+      "sha256": "0e27b680f812de14d9aa837b70fbfbfb634576b96e7382fbcc8904a2374d1456"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3751,
+      "sha256": "b9d17bf6208ffeb84fb4a2661ac181a3f7445877ed83ef5825eec66488478e1d"
+    }
+  ]
+}

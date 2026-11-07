@@ -1,0 +1,40 @@
+
+running 5 tests
+test a_sector_height_read_is_unreached_and_never_credited_without_an_eligible_consumer ... FAILED
+test every_altered_sector_height_answer_stops_the_engine_at_its_own_named_marker_and_the_changed_word_is_shown_consumed ... FAILED
+test the_sector_height_control_credits_only_an_eligible_read_whose_word_a_candidate_question_carried_back ... FAILED
+test a_sector_height_read_and_restore_cross_the_public_driver_to_the_real_roster_and_are_counted_and_checked_with_nothing_altered ... ok
+test each_single_fault_of_the_sector_height_grammar_is_counted_at_its_question_and_is_never_a_pass ... ok
+
+failures:
+
+---- a_sector_height_read_is_unreached_and_never_credited_without_an_eligible_consumer stdout ----
+
+thread 'a_sector_height_read_is_unreached_and_never_credited_without_an_eligible_consumer' (161) panicked at crates/eech-world/tests/entity_authority.rs:4958:5:
+runtime error: entity-authority: unknown mode 'sector_height_wrong_word'
+stack traceback:
+	[C]: in ?
+	[C]: in function 'error'
+	[string "entity-authority.lua"]:230: in function 'refuse'
+	[string "entity-authority.lua"]:563: in main chunk
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- every_altered_sector_height_answer_stops_the_engine_at_its_own_named_marker_and_the_changed_word_is_shown_consumed stdout ----
+
+thread 'every_altered_sector_height_answer_stops_the_engine_at_its_own_named_marker_and_the_changed_word_is_shown_consumed' (163) panicked at crates/eech-world/tests/entity_authority.rs:4974:9:
+sector_height_wrong_word: Err("runtime error: entity-authority: unknown mode 'sector_height_wrong_word'\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"entity-authority.lua\"]:230: in function 'refuse'\n\t[string \"entity-authority.lua\"]:563: in main chunk")
+
+
+---- the_sector_height_control_credits_only_an_eligible_read_whose_word_a_candidate_question_carried_back stdout ----
+
+thread 'the_sector_height_control_credits_only_an_eligible_read_whose_word_a_candidate_question_carried_back' (164) panicked at crates/eech-world/tests/entity_authority.rs:1644:28:
+no authority row: 
+
+
+failures:
+    a_sector_height_read_is_unreached_and_never_credited_without_an_eligible_consumer
+    every_altered_sector_height_answer_stops_the_engine_at_its_own_named_marker_and_the_changed_word_is_shown_consumed
+    the_sector_height_control_credits_only_an_eligible_read_whose_word_a_candidate_question_carried_back
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 109 filtered out; finished in 0.02s
+

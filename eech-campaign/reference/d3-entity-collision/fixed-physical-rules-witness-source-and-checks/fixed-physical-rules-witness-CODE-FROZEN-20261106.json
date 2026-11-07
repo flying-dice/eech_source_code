@@ -1,0 +1,274 @@
+{
+  "schema": "d3.task49.fixed-rule-witness.code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN: TEST-ONLY witness correction, source and Linux checks only. No SourceClearance of this material, no native actual of it, no CI of this head, no acceptance is claimed.",
+  "scope": "The test driver (lua/entity-authority.lua) and its Rust harness (tests/entity_authority.rs) only. The sealed 681 runtime, every C/Rust production/ABI/toolchain/FP/RNG input, the shipping campaign.lua, baselines and tolerances are unchanged and not replayed. One bounded correction of the changed_fixed_rule negative whose native attempt on the sealed 681 was UNREACHED.",
+  "producer": {
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "lane": "one fresh compact witness-only lane; local tools only; no subagents/nested agents/MCP/auth/model change; no native/Windows build, fullpack, actor/time/geometry search, cache cleanup or merge"
+  },
+  "identity": {
+    "code": "96cc958d5fca9fdf847cf1853020583071dedde8",
+    "code_parent": "33d1fc30e60477c26851204b88e9912d61726630",
+    "meta_commit": null,
+    "runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "branch": "codex/d3-object-tree-collision",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 223560,
+        "sha256": "25fe9bbf83c600a9c092cce8c5d3f0006821adcfed55a44bdce578cd1bdff959",
+        "git_blob": "917bff921c48c1aeed4d7b27f268d4a2c0e9c64a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "bytes": 317627,
+        "sha256": "f9080b52085fb08e4f242aa63fa57a2f6fdcbf2dd4810801b59f606675b4f2bd",
+        "git_blob": "6e8e3571b5744bed2270cb28a939107bd4f8a604"
+      }
+    ],
+    "note": "meta_commit and publication are the tracked null placeholders in this repository copy; Root's external copy names the metadata commit"
+  },
+  "sealed_runtime": {
+    "source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "review": {
+      "path": "R:/d3-evidence/independent-fixed-rules-combined-source-681ccfe54-20261106.json",
+      "repo_literal_copy": "independent-fixed-rules-combined-source-681ccfe54-20261106.json",
+      "sha256": "5fdab426ca4f6b0b90ef5c747c5d7cb684c9ae9e6eb2b87710c3884e81849e92",
+      "bytes": 34302,
+      "decision": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION, findings [], conditional and finite; native authority NOT accepted"
+    },
+    "current_ci": "exact 33d1 head: all nine checks SUCCESS (campaign run 42264119434 all seven jobs, historical 42264119327, structural 42264119574), as reported by Root and recorded in the review; this witness head has NO CI yet",
+    "positive_actuals_reused": "Windows builds of the sealed 681 (ordinary/hosted/Original, actual 0, 88 payloads each); complete ordinary short Tacview/observations/metrics literally equal 80fd; healthy proof: all native/helper/outer 0, all 190 pre-existing fields exact, only the four declared fixed_rule_* additions (0, 0, empty, empty), physical terminal complete 180 B; fixed_joined 1224, city_state_joined 4484. Reused by Root's byte/source binding, not replayed here"
+  },
+  "prior_unreached": {
+    "completion": "R:/d3-evidence/fixed-rules-changed-rule-681ccfe54-20261106-completion.json",
+    "sha256": "4499e85e92cd090c951af08882295d98ef61fe3591d828cc4f0a30868a1159f2",
+    "outcome": "outer/helper/native 1; engine completed, no request or reply fault, 70040 keyed non-mobile questions, fixed_rule_eligible 0 and changed 0: UNREACHED, no ordinary fixed need_placement; pre/post inputs 0. The root is CONSUMED and the attempt preserved; no actor, case, geometry or time was searched for"
+  },
+  "finding": {
+    "id": "ENV-FIXED-RULES-WITNESS-PRECONDITION-1",
+    "text": "The old selector required an ORDINARY fixed placement answered need_placement; the retail case never asked one (the f734 withdrawn_fixed_state succeeded on the same case only because its predicate admits buildings listed under a city). A building listed under a city has CONSUMED its held sub-type-derived collision flag once its placement question yields the final pose.",
+    "source_reason": "model_host.rs fixed_join: for `of_city` (flag_given, position_given) = (placement_given, true) and the flag is compared with `state.collision_fixed() && !mobile_flag` once given (fixed_flag != expected_fixed -> `[candidate.mirror] the campaign's collision-fixed flag differs from the host's fixed state of the placement`); the join returns BEFORE `candidate_in_store`, which takes the store by shared reference (no UPDATED, terrain, RNG or time). An ordinary fixed candidate has the flag given from its fixed facts and is covered by the same predicate. The real provider's refusal after a sub-type restatement is pinned for an ordinary fixed placement by tests/model_target_point.rs (a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from) and for a listed building its building test pins the SAME comparison in the opposite direction (the campaign flag false against a colliding record: `[candidate.mirror]` ... `collision-fixed` at the placement stage); neither was re-run in this lane (scope was entity_authority only), and no test pins the restated-UNKNOWN direction for a listed building: that is the fact of the native run."
+  },
+  "contract": {
+    "eligible": "the campaign's FINAL placement question (placement fact 44 and collision flag fact 8 given, not a city, not mobile, named by the served key, the key held by an acknowledged FIXED_STATE report whose sub type fact 11 is not UNKNOWN) whose UNMODIFIED payload was delegated to the real provider and answered `test` with a final pose of exactly twelve patterns. Counted as fixed_rule_eligible BEFORE anything is changed.",
+    "restatement": "ONLY that record's sub type is restated as UNKNOWN with the record's current other words (kept from every acknowledged report in BOTH windows, armed and before the launch), to the same provider, and must satisfy scan.fixed.reply_problem: `placed`, the same key, no cursor. A cursor, another key, another state or a provider that fails to answer is fixed_rule_changed = -1, a reply fault with its own verdict, and the payload is NOT re-asked.",
+    "extra_evaluation": "the SAME payload is asked of the SAME provider once more (scene, depth, kind, definition, key identical). This is a declared extra Host-only evaluation of one actual question across two controlled Host states; it is NOT a question the campaign asked and is not counted as one (candidate_after stays 6).",
+    "refusal": "the provider's own refusal [candidate.mirror] ... collision-fixed is handed back to the campaign in place of the pose and must be the only fault (request faults 0, reply fault 1). An answer other than a refusal, or a raise, is a failure of the claim and is never a pass.",
+    "diagnostic_fields": "the four fixed_rule_* row fields keep their names and are still emitted by every mode (zero or empty outside this one); their meaning is declared in the driver header: eligible = final placement questions validated before the change; changed = 1 acknowledged / -1 not; changed_next = \"placement\" when the re-evaluated payload was the same placement's final placement question (NOT a next campaign question); changed_cause = fixed_rule_mirror_differs when the failure is the mirror refusal. No default or control field was added or changed.",
+    "side_effects": "the re-evaluation is refused by fixed_join before the narrow phase: no kernel, UPDATED getter, terrain read, random draw, movement step or engine action. The harness asserts the engine, movement, query and pose logs are empty and the placement stayed standing. The floating-point state is untouched because fixed_join is integer-only and runs before any float conversion.",
+    "not_claimed": "no natural ordinary-sector coverage and no claim that all fifteen sub types are natively proven: a listed building is an ACTUAL required fixed-family consumer of the held flag at that question, one sub type (CITY_BUILDING) in the harness"
+  },
+  "tests": {
+    "new": [
+      {
+        "name": "a_listed_buildings_final_placement_question_is_re_evaluated_over_its_restated_sub_type_and_the_providers_mirror_refusal_is_handed_back",
+        "on_33d1": "FAILED (UNREACHED)",
+        "on_code": "passed"
+      },
+      {
+        "name": "a_restatement_not_acknowledged_under_the_fixed_report_contract_at_a_listed_buildings_final_question_is_never_credited_and_the_payload_is_never_re_evaluated",
+        "on_33d1": "FAILED (eligible 0 against 1 for the first of four damaged acknowledgements)",
+        "on_code": "passed"
+      },
+      {
+        "name": "a_listed_building_that_never_reaches_the_final_pose_or_a_run_that_failed_first_is_never_a_pass_of_the_changed_rule",
+        "on_33d1": "passed (characterisation: the old driver was UNREACHED or failed first there too)",
+        "on_code": "passed"
+      }
+    ],
+    "harness_changes": [
+      "a listed-building dialogue (need_fixed under a city reads the building flag, placement, normal, final pose)",
+      "the scripted provider states the mirror refusal for a listed building only once its placement is given, as fixed_join does, and the hold probe takes the child flag",
+      "campaign FIXED_STATE report for the listed building",
+      "three restatement-acknowledgement damages (key echo, state, provider failure) beside the existing cursor",
+      "every candidate call is logged (candidate_calls) so the same-payload relation is asserted on the actual calls"
+    ],
+    "preserved": "the 87 existing tests (every default and other mode, including the ordinary FIXED_STATE changed_fixed_rule control, which now reaches the same mode through its final question) pass unchanged; entity_authority is 90/90 on the committed bytes",
+    "controls_batched_in_the_same_pass": [
+      "positive-first control (unchanged scan_real: dialogue reaches the final pose, fields 0/0/empty/empty, candidate_after 6)",
+      "the six campaign questions and their answers are the control's (unmodified payloads)",
+      "seventh call is the sixth call's payload byte for byte, answered `refused` with the mirror reason",
+      "strict ACK: cursor, wrong key, wrong state, failed provider",
+      "no final pose (skip), no held state, engine stop first, reply fault first"
+    ]
+  },
+  "red_green": {
+    "red": "red-33d1-listed-c: on the UNCHANGED 33d1 driver Lua the listed-building scenario reaches all six campaign questions and the old mode answers `UNREACHED: changed_fixed_rule: no staged candidate question of an ordinary fixed placement ... (1 fixed states acknowledged, 4 eligible lookups served, 6 keyed non-mobile questions)`; fixed_rule_eligible 0, changed 0 (the native symptom). The positive control passed first.",
+    "setup_accidents_not_counted": [
+      "red-33d1-listed",
+      "red-33d1-listed-b"
+    ],
+    "red_layout_note": "the RED ran on the test file before rustfmt layout (layout-only difference, fmt-apply)",
+    "green": "final-green-debug: entity_authority 90 passed, 0 failed (debug, x86_64-unknown-linux-gnu, --locked), plus fmt --check and scoped clippy -D warnings clean, all on the committed bytes"
+  },
+  "final_checks_on_named_code_commit": [
+    "final-green-debug",
+    "final-fmt-check",
+    "final-clippy"
+  ],
+  "reused_scope": "Not replayed: whole workspace, EECH_C_OPT=2, i686, release, other eech-world test binaries (including model_target_point), original-C/math/tree/scan/profile experiments, healthy/short/profile native evidence, Windows builds. The two CI --no-fail-fast flags are IMPLEMENTED in 681.",
+  "blocker_dispositions": {
+    "closed_to_scope_of_5fd_and_33d1_actual_ci_success_only": [
+      "ENV-FIXED-RULES-RESTATEMENT-ACK-1",
+      "ENV-CI-DEBUG-SCAN-FPU-1",
+      "ENV-SCAN-PRE-SAVE-SUBNORMAL-FPU-1",
+      "ENV-CI-I686-FPU-TEST-GATE-1",
+      "ci-lints-latent-eech-dc-expect-err",
+      "ENV-TREE-NOHIT-RAW-WORDS-I686-1",
+      "ENV-I686-ENTITY-CANDIDATE-NARROW-ULP-1"
+    ],
+    "closure_scope": "SOURCE and CI of the 681 runtime only (the same reviewer's 5fd report plus the exact 33d1 all-nine CI success). Not native acceptance, not whole Task49, not the new witness material.",
+    "still_open": [
+      "fixed-physical-rules-source-review-native (this counterfactual: the same reviewer on the new Lua/test, then Root's ONE negative actual)",
+      "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION (mandatory next production after the finite flags)",
+      "fixed-draw-align-direct-reads-final-census"
+    ]
+  },
+  "pending": {
+    "ci": "PENDING: no CI of this head; the new test must run on the CI matrix including both i686 jobs (only x86_64 debug was run here)",
+    "independent_review": "PENDING: the same reviewer follows only the new Lua/test material",
+    "native_counterfactual": "PENDING: Root's ONE negative actual on a fresh root with the sealed 681 binary and this commit's Lua passed separately (--literal-driver/--literal-source/--literal-git-blob/--literal-sha256), bound to Git at the code commit",
+    "all_ten_d3_requirements": "ALL TEN remain; REQUIRED_CITY_BOX_LIFECYCLE_RETENTION, sector height/hints/writers, effectful UPDATED/shared terrain, raw TREE/FOREST/CLOUD RNG, needed hierarchy/devices/services, DCS mapping, natural moving, final 40/all8, current CI, normal merge, census and whole-D3 acceptance remain; no D4/D5/TypeScript"
+  },
+  "limitations": [
+    "The real provider answers the re-evaluation in the native run only; in this harness the provider's candidate answers are scripted (the real roster is read through a probe), so the harness proves the driver contract and the ACK, not the refusal bytes of the real provider.",
+    "A listed building is the covered consumer; whether the retail case asks a placement question with a collision-fixed held sub type at a listed building is the native run's fact, and UNREACHED stays a non-pass.",
+    "Only x86_64 debug was run locally; fmt and scoped clippy are of eech-world only."
+  ],
+  "next_action": "Same independent reviewer over the new Lua/test material only; Root: observe CI of the committed head; then ONE negative actual on a fresh root. REQUIRED_CITY_BOX_LIFECYCLE_RETENTION is the next production change after the finite flags.",
+  "created_utc": "2026-11-06T19:14:57.659144+00:00",
+  "checks": {
+    "red-33d1-listed": {
+      "role": "SETUP ACCIDENT, not a RED: the harness listed the child with entity type 21 but reported type 6, so every control failed at boot ([roster.fixed]); corrected in the harness (child type 6 for the listed-building scenario)",
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T19:05:06.185585+00:00",
+      "completed_utc": "2026-11-06T19:05:10.585654+00:00",
+      "receipt_sha256": "17d9bd383cd2ab6967a51c4f98951c55f7a2aecb681fcbdba910a1dae64a5c7f",
+      "result_rows": 1,
+      "passed": 87,
+      "failed": 3,
+      "stdout_sha256": "cb6d55fdfb904426fa13d4320c63471c0f5f80739f404e1feb7a42a7bc988ee3",
+      "stderr_sha256": "e88705b740d09e5a3bf686c17494ff54094af1c5c60d2315c12b0c4b5a47b693"
+    },
+    "red-33d1-listed-b": {
+      "role": "SETUP ACCIDENT, not a RED for the first test: the positive control used mode=control, which demands a mobile candidate (UNREACHED); the second test already showed eligible 0 against 1. Corrected (scan_real control, as the sibling tests)",
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T19:05:21.326550+00:00",
+      "completed_utc": "2026-11-06T19:05:24.436100+00:00",
+      "receipt_sha256": "4749a5c4debb0aa42659a47243fad7ad42e2ea5a3b650bd7f6aeba2cdbca4281",
+      "result_rows": 1,
+      "passed": 88,
+      "failed": 2,
+      "stdout_sha256": "dfc38107c02e454231264ac42d4dab55fa50cade1513c8511587b52b33f2a9df",
+      "stderr_sha256": "3ceb13b36dc995516983099686da1137f4ac0a743e4fd90df6df8d1922077764"
+    },
+    "red-33d1-listed-c": {
+      "role": "THE RED on the unchanged 33d1 driver Lua: 88 passed, 2 failed (the new final-placement tests); the positive control passed",
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T19:05:42.978671+00:00",
+      "completed_utc": "2026-11-06T19:05:45.756573+00:00",
+      "receipt_sha256": "ae18d47af387eea68b5c5ddcff0deed6563d34efa0f02a9b89b9eed3a6d5afe8",
+      "result_rows": 1,
+      "passed": 88,
+      "failed": 2,
+      "stdout_sha256": "98a14bf33a6954ce4b226be7a310dbe413191d2e9bc264b7aac921a0dbbaf792",
+      "stderr_sha256": "7335e1944b78cf26263437be40685637455ab6f9a10a33c75201aa7445ea2c27"
+    },
+    "green-a": {
+      "role": "first GREEN after the driver change, before rustfmt layout: 90 passed",
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:07:38.730004+00:00",
+      "completed_utc": "2026-11-06T19:07:42.569545+00:00",
+      "receipt_sha256": "7248a77cd84c54f5c0f6293f2f08ca70efe954dc21779e78889bccb8fa8a523e",
+      "result_rows": 1,
+      "passed": 90,
+      "failed": 0,
+      "stdout_sha256": "be933d0cf10c377e3771bbe08da541fba7fbe37c08d644c267ae5703ea5b7f25",
+      "stderr_sha256": "b38f79bcf6a35e129f042c6d3964d81c76ebc73ce7e9a39c025cbd9d88497abb"
+    },
+    "fmt-prelim": {
+      "role": "rustfmt --check: layout differences in the new tests only (exit 1), not final",
+      "command": "cargo fmt -p eech-world -- --check",
+      "actual_exit": 1,
+      "started_utc": "2026-11-06T19:08:30.891407+00:00",
+      "completed_utc": "2026-11-06T19:08:35.373214+00:00",
+      "receipt_sha256": "8cea3903bbdd822eb92b0016d16806f1e03583353e6ad96a32b72ced071862cb",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "38d19306f7d031568c930abffc5349a4411b501eb123045a941af6ca490b5b54",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "fmt-apply": {
+      "role": "cargo fmt -p eech-world applied (only entity_authority.rs changed; layout only)",
+      "command": "cargo fmt -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:08:46.336270+00:00",
+      "completed_utc": "2026-11-06T19:08:50.251758+00:00",
+      "receipt_sha256": "31c4ca4eb645171ed375075cc80873c36d28b36240c088a6cc4cf17de7a6eee3",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "final-green-debug": {
+      "role": "FINAL on the committed bytes: entity_authority debug x86_64, 90 passed",
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:10:33.093320+00:00",
+      "completed_utc": "2026-11-06T19:10:36.554018+00:00",
+      "receipt_sha256": "a082f3a482c267841263dcad9cfc4784b00578364a444571f1fb391082dcb9bf",
+      "result_rows": 1,
+      "passed": 90,
+      "failed": 0,
+      "stdout_sha256": "26482171a05a95f85cf6368e887a9524d47776ace15d30d56a5f886ae18153ac",
+      "stderr_sha256": "98f84dbb31521f4c43230a2e7a896fcb03554778e354506fc0167bb52002ad95"
+    },
+    "final-fmt-check": {
+      "role": "FINAL: cargo fmt -p eech-world -- --check",
+      "command": "cargo fmt -p eech-world -- --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:10:36.646431+00:00",
+      "completed_utc": "2026-11-06T19:10:39.974683+00:00",
+      "receipt_sha256": "ea3134f865f25c87dcfd61ff26cc5e3488d5c2604ee79cb2babbfc59848832dc",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "final-clippy": {
+      "role": "FINAL: scoped cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+      "command": "cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:10:40.070282+00:00",
+      "completed_utc": "2026-11-06T19:10:42.854084+00:00",
+      "receipt_sha256": "2c34ffe43753bf24d65ee50bbbb18c7232f8009801e97e5269c999af0b41a431",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "77304459043d01d99a1083d1b15ee5dcb5d4af79a2f99bf39dc7b587bf58ed5a"
+    }
+  },
+  "maps": {
+    "before": {
+      "path": "R:/d3-evidence/fixed-rule-witness-20261106/inputmap-before-final-20261106.json",
+      "bytes": 3629422,
+      "sha256": "3d7ce217741ab1c81181a127c4b841aed3c149b0c28214b3ee836dacd14c3f5c"
+    },
+    "after": {
+      "path": "R:/d3-evidence/fixed-rule-witness-20261106/inputmap-after-final-20261106.json",
+      "bytes": 3629421,
+      "sha256": "0567edfbb14b36b551e50f2f8c2c5b32b658225355a1acf1b122699134f6e7b6"
+    }
+  },
+  "publication": null
+}

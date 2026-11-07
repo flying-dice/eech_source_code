@@ -1,0 +1,21 @@
+
+running 1 test
+test tests::the_physical_flag_stores_questions_and_answers_cross_every_phase_with_the_group_key_and_the_raw_words_bit_for_bit ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 121 filtered out; finished in 0.00s
+
+
+running 1 test
+test module::tests::a_physical_flag_answer_carries_three_bit_patterns_and_a_groups_key_and_every_raw_word_comes_back_exactly_and_a_number_or_a_short_list_is_refused ... FAILED
+
+failures:
+
+---- module::tests::a_physical_flag_answer_carries_three_bit_patterns_and_a_groups_key_and_every_raw_word_comes_back_exactly_and_a_number_or_a_short_list_is_refused stdout ----
+Error: "[model-provider:entity_scan.answer] result must be first, expanded, height, restored, next, offer, done_none, done_hit, placed, removed, cleared or refused"
+
+
+failures:
+    module::tests::a_physical_flag_answer_carries_three_bit_patterns_and_a_groups_key_and_every_raw_word_comes_back_exactly_and_a_number_or_a_short_list_is_refused
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 71 filtered out; finished in 0.00s
+

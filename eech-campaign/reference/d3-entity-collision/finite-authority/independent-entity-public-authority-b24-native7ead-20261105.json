@@ -1,0 +1,435 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T10:27:30.818007+00:00",
+  "review": "Independent combined correctness, clean-code and boundary-safety review of the new ENTITY public-authority witness and completed native matrix",
+  "source": {
+    "diagnostic_commit": "b24ca9038b0aa3e2829f980e741cb24d6364f0ed",
+    "native_commit": "7ead34d09e05c394c56bc2ef0d8bd315929b312c",
+    "corrected_production_commit": "f1532a6fda1f9d34bf39e7a76c3e477495629d1b",
+    "literal_git_blob": "dcf9c1eae1c7adacc5d33d7d9784a105405665c1",
+    "literal_sha256": "61b1cda03f0fc527feb7f0393f02dab7d73d63ad6e2fe511485ce507299213fa",
+    "literal_bytes": 48901,
+    "new_paths_vs_native": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md",
+      "eech-campaign/reference/d3-entity-collision/.gitattributes",
+      "eech-campaign/reference/d3-entity-collision/entity-authority-witness-gate-20261105.json",
+      "eech-campaign/reference/d3-entity-collision/independent-entity-output-contract-source-7ead34d09-20261105.json"
+    ],
+    "compiled_production_and_existing_fixture_inputs_unchanged": true,
+    "identity_rule": "The external b24 Lua is literal Git data run on sealed 7ead binaries. Native results are not relabeled b24 builds. Both hosted and Original fixture profiles are explicit; ordinary short uses the ordinary 7ead profile."
+  },
+  "decision": {
+    "status": "FINITE_STATIONARY_ENTITY_HANDOFF_AUTHORITY_VERIFIED",
+    "findings": [],
+    "witness_source_review_no_blocking_findings": true,
+    "finite_public_stationary_authority_closed": true,
+    "finite_ordinary_short_conformance_closed": true,
+    "moving_candidate_native_parity_or_authority_closed": false,
+    "whole_entity_extraction_or_Task49_or_D3_accepted": false
+  },
+  "witness_source_assessment": [
+    "The witness delegates every other operation and all prelaunch ENTITY questions to the unchanged host model provider. Armed modifications use a validated 18/22-word question and real reply; they retain the real scene identity. The forced hit supplies a full write mask and the request old endpoint; forced miss supplies a valid normal-only mask with zero unassigned words. Malformed/missing requests are not credited as authority.",
+    "The configured VIEW_WEAPON input is copied into the existing aim reply r0 only; other answer/request fields and floats are retained. It applies globally while armed. The protocol provides no weapon identity, so provider questions and fixture counters are explicitly global and are not assigned uniquely to the controlled weapon.",
+    "Fallible provider setup, boot and case execution are inside the exclusive output owner. Writes, flush and checked close are handled; a close failure cannot follow a successful verdict. Engine refusals require the anchored native first-line wrapper and exact marker. Once poisoned, the witness makes no further Engine reads; unknown counters and pending membership remain -1 rather than invented zero.",
+    "The real launcher/target/weapon selection is finite and deterministic but is not treated as a proof that a candidate reaches narrowphase. Actual configured-view application, precision counter, weapon entity lookup and host question observations are required. Empty, incomplete and duplicate controlled cohorts fail. Launch reports and terminal fields are checked before success, and physical comparisons exclude ordinal.",
+    "Original requires both collision-fixture API presence and a reached entity-collision caller lookup, plus zero host ENTITY questions. This is a real-call capability RED of the handoff, not proof that an Original narrowphase candidate was tested and not an API-absence success. Its expected native/controller exit remains 1."
+  ],
+  "focused_actual_gate": {
+    "directory": "D:\\EECH-Migration-Evidence\\entity-witness-20261105-e",
+    "direct_steps": [
+      {
+        "name": "fmt",
+        "child_exit": 0
+      },
+      {
+        "name": "test-entity-authority",
+        "child_exit": 0
+      },
+      {
+        "name": "test-tree-authority-unchanged",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-eech-world",
+        "child_exit": 0
+      }
+    ],
+    "container_exit": 0,
+    "entity_driver_tests_passed": 14,
+    "unchanged_tree_driver_tests_passed": 17,
+    "fmt_exit": 0,
+    "world_all_target_strict_exit": 0,
+    "log_bytes": 8911,
+    "log_sha256": "39c7202da8644d1ce6931b007f2aefe318754f4376524cb09e89b311c540f225",
+    "source_receipts_literal_equal": true,
+    "scope": "Real Lua driver with scripted collaborators, compiler and lint gates; no invented native branch or physical result. Earlier terminal-field development failure is retained, not counted as a passing gate."
+  },
+  "native_actuals": {
+    "healthy_plus_matrix_controls": 7,
+    "matrix_queue_exit": 0,
+    "matrix_completed_utc": "2026-11-05T10:25:19.939082+00:00",
+    "full_input_checks": 14,
+    "payloads_each": 87,
+    "literal_driver_verified_current": true,
+    "results": [
+      {
+        "name": "control",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_per_input_check": 1179,
+        "payloads_verified_unchanged": 87,
+        "raw_json": {
+          "bytes": 2024,
+          "sha256": "3aeac6641ef2c8625e2ab51b36411db90050f74649fd75fb9513be58e364a624",
+          "rows": 7
+        },
+        "controller_sha256": "4b6697a783112f430c43207eaefad60340b734d9bb7734e87f7900e4a4d54b41",
+        "native_log_sha256": "ef6f87088934dba3276a2840baac44df4a1371263f67cb6bfb639be2e703cd8b",
+        "armed_entity_questions": 279,
+        "stationary": 279,
+        "moving": 0,
+        "real_hits": 44,
+        "real_misses": 235,
+        "accepted_armed_alterations": 0,
+        "answered_hits": 0,
+        "answered_misses": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "actual_weapon_entity_lookup_delta": 6,
+        "actual_weapon_entity_hit_delta": 0,
+        "precision_high_delta": 6,
+        "configured_view_applications": 25,
+        "cohort_size": 1,
+        "cohort_terminal_rows": 1,
+        "pending": 0,
+        "completed": true,
+        "duplicates": 0,
+        "foreign_terminals": 0,
+        "later_births": 0,
+        "named_failure_marker": "",
+        "original_fixture_api_present": false
+      },
+      {
+        "name": "forced_hit",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_per_input_check": 1179,
+        "payloads_verified_unchanged": 87,
+        "raw_json": {
+          "bytes": 2027,
+          "sha256": "13946da39d15c493af1c32ec309a378ee47407d9c35f8d1647765c5cd81bf337",
+          "rows": 7
+        },
+        "controller_sha256": "84bc88a6e5b804c9b9c2ad0bd25c54797783b1d66b3e6c2cd83395401991fdfd",
+        "native_log_sha256": "c0ad8dbc02515d8ab6d095387a5f355ad822087656605847c8c105088e88470f",
+        "armed_entity_questions": 45,
+        "stationary": 45,
+        "moving": 0,
+        "real_hits": 0,
+        "real_misses": 45,
+        "accepted_armed_alterations": 45,
+        "answered_hits": 45,
+        "answered_misses": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "actual_weapon_entity_lookup_delta": 1,
+        "actual_weapon_entity_hit_delta": 1,
+        "precision_high_delta": 1,
+        "configured_view_applications": 3,
+        "cohort_size": 1,
+        "cohort_terminal_rows": 1,
+        "pending": 0,
+        "completed": true,
+        "duplicates": 0,
+        "foreign_terminals": 0,
+        "later_births": 0,
+        "named_failure_marker": "",
+        "original_fixture_api_present": false
+      },
+      {
+        "name": "forced_miss",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_per_input_check": 1179,
+        "payloads_verified_unchanged": 87,
+        "raw_json": {
+          "bytes": 2249,
+          "sha256": "e0e9c2119cb1a0e14a79fa474667bcedfe9d3cc2db6c6abbba95e25dc57cc051",
+          "rows": 11
+        },
+        "controller_sha256": "97de0ebcd27447d117dabd4f67d53d0b4ddc9688ac9cac9bc43daac3535bb2da",
+        "native_log_sha256": "51af1ccf5e4d3e51dc7972e5c544ed8c3b1da7846ef4a7c5ba8919aef26a82a3",
+        "armed_entity_questions": 749,
+        "stationary": 749,
+        "moving": 0,
+        "real_hits": 165,
+        "real_misses": 584,
+        "accepted_armed_alterations": 749,
+        "answered_hits": 0,
+        "answered_misses": 749,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "actual_weapon_entity_lookup_delta": 26,
+        "actual_weapon_entity_hit_delta": 0,
+        "precision_high_delta": 46,
+        "configured_view_applications": 145,
+        "cohort_size": 1,
+        "cohort_terminal_rows": 1,
+        "pending": 0,
+        "completed": true,
+        "duplicates": 0,
+        "foreign_terminals": 0,
+        "later_births": 4,
+        "named_failure_marker": "",
+        "original_fixture_api_present": false
+      },
+      {
+        "name": "withheld_entity",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_per_input_check": 1179,
+        "payloads_verified_unchanged": 87,
+        "raw_json": {
+          "bytes": 1957,
+          "sha256": "17843dd6679d50dad6b08663e0d499508023b7704b42adcdb7947a33863f49f1",
+          "rows": 6
+        },
+        "controller_sha256": "e3ee53460b5a48ed67d52d23742688d8eba58e5544cd0f080060fad83420a099",
+        "native_log_sha256": "d2f2c6a728160badee3a080abdda048c71fba3c19997e2fabd05626ed2edb966",
+        "armed_entity_questions": 1,
+        "stationary": 1,
+        "moving": 0,
+        "real_hits": 0,
+        "real_misses": 1,
+        "accepted_armed_alterations": 1,
+        "answered_hits": 0,
+        "answered_misses": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "actual_weapon_entity_lookup_delta": -1,
+        "actual_weapon_entity_hit_delta": -1,
+        "precision_high_delta": -1,
+        "configured_view_applications": 1,
+        "cohort_size": 1,
+        "cohort_terminal_rows": 0,
+        "pending": -1,
+        "completed": false,
+        "duplicates": 0,
+        "foreign_terminals": 0,
+        "later_births": 0,
+        "named_failure_marker": "entity_collision.callback",
+        "original_fixture_api_present": false
+      },
+      {
+        "name": "bad_write_mask",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_per_input_check": 1179,
+        "payloads_verified_unchanged": 87,
+        "raw_json": {
+          "bytes": 2011,
+          "sha256": "21bff8dbab2b8c4dd32905d83096d3d89338bcfc3ceb2a46a0d03a0a9fa01205",
+          "rows": 6
+        },
+        "controller_sha256": "299d9767ddb2ce386a439d8c433134d998e55082ec2a81a5b92cc8dbf040cae4",
+        "native_log_sha256": "516c63123bf3247da5430461cf8d5b134aad1e94f721a7226fbf42d5d9f99623",
+        "armed_entity_questions": 1,
+        "stationary": 1,
+        "moving": 0,
+        "real_hits": 0,
+        "real_misses": 1,
+        "accepted_armed_alterations": 1,
+        "answered_hits": 1,
+        "answered_misses": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "actual_weapon_entity_lookup_delta": -1,
+        "actual_weapon_entity_hit_delta": -1,
+        "precision_high_delta": -1,
+        "configured_view_applications": 1,
+        "cohort_size": 1,
+        "cohort_terminal_rows": 0,
+        "pending": -1,
+        "completed": false,
+        "duplicates": 0,
+        "foreign_terminals": 0,
+        "later_births": 0,
+        "named_failure_marker": "entity_collision.write_mask",
+        "original_fixture_api_present": false
+      },
+      {
+        "name": "bad_answer",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_per_input_check": 1179,
+        "payloads_verified_unchanged": 87,
+        "raw_json": {
+          "bytes": 1930,
+          "sha256": "ad8241b34bbe2f01069e1df8c7a42fdcd862d132a51944854d4de7a7729c91c7",
+          "rows": 6
+        },
+        "controller_sha256": "d1458b05793e7e7b3eefa980acfde2a02c777af311593f3a92da20fd3b6342b0",
+        "native_log_sha256": "0bb84191172284c7ac9233c00a4eb30e29692dd7b36697ae82edd4d613ebeaf3",
+        "armed_entity_questions": 1,
+        "stationary": 1,
+        "moving": 0,
+        "real_hits": 0,
+        "real_misses": 1,
+        "accepted_armed_alterations": 1,
+        "answered_hits": 1,
+        "answered_misses": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "actual_weapon_entity_lookup_delta": -1,
+        "actual_weapon_entity_hit_delta": -1,
+        "precision_high_delta": -1,
+        "configured_view_applications": 1,
+        "cohort_size": 1,
+        "cohort_terminal_rows": 0,
+        "pending": -1,
+        "completed": false,
+        "duplicates": 0,
+        "foreign_terminals": 0,
+        "later_births": 0,
+        "named_failure_marker": "entity_collision.answer",
+        "original_fixture_api_present": false
+      },
+      {
+        "name": "original-control",
+        "native_exit": 1,
+        "controller_exit": 1,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_per_input_check": 1179,
+        "payloads_verified_unchanged": 87,
+        "raw_json": {
+          "bytes": 2013,
+          "sha256": "aacaabf8f0c1d6b4a362383c8c9b7fbe8548ea85f4f768d755b47249bd3d3329",
+          "rows": 7
+        },
+        "controller_sha256": "97fb3dd3fc53078d4e0e0ca2be667f03e2ddf9f223f398f51a7b2873924d6d41",
+        "native_log_sha256": "31a9441cd3cdb877a02387d12b5a11202045637c5894d260c03308e346dca0e1",
+        "armed_entity_questions": 0,
+        "stationary": 0,
+        "moving": 0,
+        "real_hits": 0,
+        "real_misses": 0,
+        "accepted_armed_alterations": 0,
+        "answered_hits": 0,
+        "answered_misses": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "actual_weapon_entity_lookup_delta": 6,
+        "actual_weapon_entity_hit_delta": 0,
+        "precision_high_delta": 6,
+        "configured_view_applications": 25,
+        "cohort_size": 1,
+        "cohort_terminal_rows": 1,
+        "pending": 0,
+        "completed": true,
+        "duplicates": 0,
+        "foreign_terminals": 0,
+        "later_births": 0,
+        "named_failure_marker": "",
+        "original_fixture_api_present": true
+      }
+    ]
+  },
+  "physical_and_refusal_findings": {
+    "healthy": "279 armed stationary host questions: 44 real hits and 235 real misses; the actual weapon caller made six entity lookups and recorded no weapon entity hit. One case member ended completely with no duplicate/foreign terminal. All request/reply faults are zero.",
+    "forced_hit": "45 changed, valid hit answers; one actual weapon entity hit. The case terminal changes from hit_land at six steps to hit_target at one step. The full physical tuple (type, code, steps, position, velocity, lifetime) differs from healthy with ordinal excluded. No raw coordinates are reproduced here.",
+    "forced_miss": "749 changed, valid normal-only miss answers, zero actual weapon entity hits. All case membership completes. Its physical tuple is identical to healthy, so this proves accepted miss/partial-write authority, not a changed case trajectory. Four later natural births are recorded separately and do not enlarge the frozen one-member cohort.",
+    "refusals": "Withheld, inconsistent hit mask and out-of-domain mask each stop at one armed question with the exact native markers entity_collision.callback, entity_collision.write_mask and entity_collision.answer. Unknown postfatal weapon/precision counters and pending membership remain -1; no campaign continuation, cleanup or restoration after poison is claimed.",
+    "original": "The explicit Original profile has the fixture API, six actual entity-collision caller lookups, positive precision/view observations, zero host ENTITY questions, and expected native/controller exit 1 with CAPABILITY RED rather than UNREACHED. Its complete case physical tuple is identical to healthy. This does not measure the Original narrowphase invocation count.",
+    "attribution": "Stationary provider measurements and whole-war configured inputs only. Moving questions observed: zero. No camera or unique-weapon/provider attribution."
+  },
+  "ordinary_and_build_reuse": {
+    "windows_profiles": [
+      "ordinary",
+      "weapon-fixture hosted",
+      "weapon-fixture plus collision-fixture Original"
+    ],
+    "actual_build_exits": [
+      0,
+      0,
+      0
+    ],
+    "all_current_payloads_rehashed_per_profile": 87,
+    "build_info_binding": "All three current BUILD-INFO files and 87 payloads per profile rehashed and matched their seals; clean 7ead commit and explicit profile banners verified. Existing corrected-source review 1ab8b6a2 is reused without a new source sweep.",
+    "ordinary_short": {
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "files": [
+        {
+          "file": "recording.acmi",
+          "bytes": 230871,
+          "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "observations.jsonl",
+          "bytes": 1553674,
+          "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "metrics.json",
+          "bytes": 7477,
+          "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "complete_literal_equal": true
+        }
+      ],
+      "scope": "Exact retained hours0.001 recording arguments; complete files and endings, no normalization. This is neither full40/all8 nor visual/Tacview inspection."
+    }
+  },
+  "root_audit_binding": {
+    "path": "R:/d3-evidence/entity-public-authority-actual-audit-b24-native7ead-20261105.json",
+    "bytes": 21666,
+    "sha256": "041d1a9577067e1246e162ef601b2df6cac58e6fd33d89e87dc7625fb8087e1b",
+    "all_35_recorded_controller_JSONL_native_log_and_input_file_hashes_checked": true,
+    "privacy": "The private Root audit includes physical tuples and stays private; this independent report projects counts, hashes and outcome classifications only."
+  },
+  "limits_and_next_required_work": [
+    "Finite stationary public handoff, accepted valid hit/miss effects and named refusals are verified. These controls do not establish complete retail numeric parity of every ENTITY candidate or the moving branch. Previously closed original/kernel/source proofs remain at their own identities; this review does not relabel them as new native measurements.",
+    "No new direct full public ENTITY-caller x87/MXCSR measurement, RNG measurement or all-intermediate trace is claimed. The unchanged arithmetic guards and prior component proofs remain scoped; no concrete new glue-FP blocker was found in this changed witness/evidence pass.",
+    "Physical broadphase/sector/city classification, roster, live pose derivation, destructive UPDATED consequences, raw terrain/tree loaders, forest/cloud ownership, hierarchy/instances and complete DCS geometry/API provenance remain REQUIRED D3 work. They are not waived by successful stationary authority.",
+    "Whole Task49/full shipping pack, applicable current CI, dependency delivery, whole D3 and final merge acceptance remain open. Root owns later affected validation and the eventual complete Task49 regression pack; no additional full war is required for each internal seam.",
+    "TREE 7ad, corrected output-contract source 1ab and Task50/52 full-pack/delivery conclusions are reused at their original identities and were not reopened."
+  ],
+  "review_operations": "Read exact new Git source, controllers, raw JSONL/native logs and retained build/short receipts; rehashed payloads and complete short files. No source edits, builds, tests, native runs, restarts, cache/VM operations, nested agents or external application writes.",
+  "publication_safety": "No retail geometry, coordinates, full physical tuples, entity allocation indices, raw pointers or model catalogue. Safe counts/hashes/source identities and outcome labels only."
+}

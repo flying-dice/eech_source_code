@@ -331,6 +331,9 @@ static void draw_min_max_box (vec3d *min_position, vec3d *max_position, rgb_colo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// the face wrappers serve the original solvers only (the entity narrow phase and the tree query); neither is compiled into the hosted module
+#if !defined(EECH_CAMPAIGN_HOST_ENTITY) || !defined(EECH_CAMPAIGN_HOST_TREE)
+
 static int get_3d_line_triangle_face_intersection
 (
 	vec3d *source_old_position,
@@ -436,9 +439,92 @@ static int get_3d_line_quad_face_intersection
 	return (FALSE);
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+#if !defined(EECH_CAMPAIGN_HOST_MOVEMENT) || !defined(EECH_CAMPAIGN_HOST_IDENTITIES)
+#error "the hosted entity decision takes a mobile candidate's pose from the host's physical record: it needs the hosted movement and identities, which bind every mobile, with that record, before it is in a sector list"
+#endif
+
+// EEDCS-49 (D3): in the headless campaign module the physical decisions of get_line_of_sight_collision_entity are the host's (mb_hostmodel.h, ENTITY_CANDIDATE and ENTITY_COLLISION). For each
+// candidate the campaign OFFERS, the host decides everything the original decided from the candidate's state: the tallest-structure skip of a sector, which branch applies, whether a mobile
+// candidate is moving, the sweep ends from the UPDATED answer and the frame time, the broad-phase box of radius + 10 m (the radius is the host's own model data), a city's box, and a
+// stationary fixed candidate's live pose; and the transform and intersection of the narrow phase (the candidate pose the host derived is what ENTITY_COLLISION is then asked about). The
+// caller's intercept point and face normal go to neither and their final words come back, whether or not the segment hits, as the original's intersection helpers left them. The original
+// arithmetic is not compiled into it; the explicit original-characterisation profile (feature collision-fixture) keeps it.
+//
+// What the campaign keeps, declared and required to move: the exclusion of the source and the target (a comparison only the entity heap can make), a city's buildings (the tallest structure of a sector is the host's word since Task49: the sector's getter asks it),
+// the sector lists themselves (its entity state, and the CONFORMANCE MIRROR of the host's roster: WHICH entities stand in a sector and in what order is the host's, mb_hostplace.c and mb_hostscan.h; a
+// disagreement stops the scan by name and the campaign's list never answers), the reads of the entity's own state the host is given as facts (in stages, only as
+// the host asks for the next one, so a candidate the original skipped is not made to supply a shape, a fixed flag or a model), the two services with effects of their own that the host names
+// when it needs them (the destructive UPDATED getter and the terrain face-normal question, each performed exactly once, at the place the original performed it) and the consequences of a hit. The debug drawing of the collision boxes (draw_collision_boxes) is a declared unsupported
+// diagnostic of the hosted module and is not carried: the host owns the boxes (the characterisation never probed it either).
+
+#include "entity/mobile/mb_hostmodel.h"
+
+#include "entity/mobile/mb_hostplace.h"
+
+extern int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal);
+
+// The campaign's offer of one candidate (mb_hostoffer.h, shared with the isolated control of its dialogue) is bound here to the real entity getters. It reads an entity's state in stages, only as
+// the host asks for the next stage, in the order the original read it; the two getters with effects of their own are the real ones.
+
+#define CAMPAIGN_OFFER_ENTITY entity
+
+#define CAMPAIGN_OFFER_MOBILE_FLAG(E) get_local_entity_int_value ((E), INT_TYPE_COLLISION_TEST_MOBILE)
+#define CAMPAIGN_OFFER_FIXED_FLAG(E) get_local_entity_int_value ((E), INT_TYPE_COLLISION_TEST_FIXED)
+#define CAMPAIGN_OFFER_IS_CITY(E) (get_local_entity_type ((E)) == ENTITY_TYPE_CITY)
+#define CAMPAIGN_OFFER_IS_CITY_BUILDING(E) (get_local_entity_type ((E)) == ENTITY_TYPE_CITY_BUILDING)
+#define CAMPAIGN_OFFER_SHAPE(E) get_local_entity_int_value ((E), INT_TYPE_OBJECT_3D_SHAPE)
+#define CAMPAIGN_OFFER_POSITION(E,OUT) memcpy ((OUT), get_local_entity_vec3d_ptr ((E), VEC3D_TYPE_POSITION), sizeof (vec3d))
+#define CAMPAIGN_OFFER_MOTION(E,OUT) memcpy ((OUT), get_local_entity_vec3d_ptr ((E), VEC3D_TYPE_MOTION_VECTOR), sizeof (vec3d))
+#define CAMPAIGN_OFFER_ATTITUDE(E,OUT) do { matrix3x3 offer_attitude; get_local_entity_attitude_matrix ((E), offer_attitude); memcpy ((OUT), offer_attitude, 9 * sizeof (float)); } while (0)
+#define CAMPAIGN_OFFER_HEADING(E) get_local_entity_float_value ((E), FLOAT_TYPE_HEADING)
+#define CAMPAIGN_OFFER_ALIGN(E) get_local_entity_int_value ((E), INT_TYPE_ALIGN_WITH_TERRAIN)
+// a city's buildings are the HOST's list (mb_hostplace.c, seventh slice): the host serves the first building and the one after each, and the campaign's own list at the same place is only the mirror they are compared with
+#define CAMPAIGN_OFFER_FIRST_BUILDING(E) campaign_place_child_first ((E), get_local_entity_first_child ((E), LIST_TYPE_CITY_BUILDING))
+#define CAMPAIGN_OFFER_NEXT_BUILDING(C,B) campaign_place_child_next ((C), (B), get_local_entity_child_succ ((B), LIST_TYPE_CITY_BUILDING))
+#define CAMPAIGN_OFFER_BOX(E,MIN,MAX) do { vec3d offer_min, offer_max; get_local_entity_vec3d ((E), VEC3D_TYPE_BOUNDING_BOX_MIN, &offer_min); get_local_entity_vec3d ((E), VEC3D_TYPE_BOUNDING_BOX_MAX, &offer_max); memcpy ((MIN), &offer_min, sizeof (vec3d)); memcpy ((MAX), &offer_max, sizeof (vec3d)); } while (0)
+#define CAMPAIGN_OFFER_UPDATED(E) get_local_entity_int_value ((E), INT_TYPE_UPDATED)
+#define CAMPAIGN_OFFER_TERRAIN_NORMAL(X,Z,OUT) do { vec3d offer_normal; get_3d_terrain_face_normal (&offer_normal, (X), (Z)); memcpy ((OUT), &offer_normal, sizeof (vec3d)); } while (0)
+#define CAMPAIGN_OFFER_DELTA_TIME() get_delta_time ()
+// the roster's identity domain and the model request's identity field are the same size (a mismatch is a negative array size)
+typedef char campaign_model_host_id_domain_is_the_rosters [(CAMPAIGN_MODEL_HOST_ID_MAX == CAMPAIGN_HOST_ID_MAX) ? 1 : -1];
+
+#define CAMPAIGN_OFFER_TYPE(E) get_local_entity_type ((E))
+#define CAMPAIGN_OFFER_ALIVE(E) get_local_entity_int_value ((E), INT_TYPE_ALIVE)
+#define CAMPAIGN_OFFER_HOST_ID(E) campaign_roster_host_id ((E))
+// a candidate that is not a mobile of a sector list is named to the host by the key of the placement the host served it by (mb_hostplace.c): the host joins it to the record that holds the fixed collision state
+#define CAMPAIGN_OFFER_FIXED_KEY(E,OF_CITY) campaign_place_key ((E), (OF_CITY))
+
+#include "entity/mobile/mb_hostoffer.h"
+
+// The host's cursor over ITS roster of the sector lists (mb_hostscan.h, shared with the isolated control of its dialogue) is bound here to the real entity heap: the entry the host serves by key is resolved
+// to the campaign's entity (mb_hostplace.c), and the real sector lists, read with the original's getters in its order, are the conformance mirror of the host's order.
+
+#define CAMPAIGN_SCAN_ENTITY entity
+
+#define CAMPAIGN_SCAN_SIDE_LENGTH() ((float) SECTOR_SIDE_LENGTH)
+#define CAMPAIGN_SCAN_MAP_MIN_X() ((float) MIN_MAP_X)
+#define CAMPAIGN_SCAN_MAP_MIN_Z() ((float) MIN_MAP_Z)
+#define CAMPAIGN_SCAN_MAP_MAX_X() ((float) MAX_MAP_X)
+#define CAMPAIGN_SCAN_MAP_MAX_Z() ((float) MAX_MAP_Z)
+#define CAMPAIGN_SCAN_SECTOR_VALID(X,Z) (((X) >= MIN_MAP_X_SECTOR) && ((X) <= MAX_MAP_X_SECTOR) && ((Z) >= MIN_MAP_Z_SECTOR) && ((Z) <= MAX_MAP_Z_SECTOR))
+#define CAMPAIGN_SCAN_SECTOR(X,Z) get_local_raw_sector_entity ((X), (Z))
+#define CAMPAIGN_SCAN_TALLEST(S) get_local_entity_float_value ((S), FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT)
+#define CAMPAIGN_SCAN_FIRST(S) get_local_entity_first_child ((S), LIST_TYPE_SECTOR)
+#define CAMPAIGN_SCAN_SUCC(E) get_local_entity_child_succ ((E), LIST_TYPE_SECTOR)
+#define CAMPAIGN_SCAN_PRED(E) get_local_entity_child_pred ((E), LIST_TYPE_SECTOR)
+#define CAMPAIGN_SCAN_ENTITY_OF(KEY) campaign_place_entity ((KEY))
+
+#include "entity/mobile/mb_hostscan.h"
+
+#else
 
 static int accurate_stationary_bounding_box_collision_test
 (
@@ -1131,6 +1217,8 @@ static int accurate_moving_bounding_box_collision_test
 	return (FALSE);
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1215,6 +1303,18 @@ entity *get_line_of_sight_collision_entity
 		create_debug_3d_line (source_old_position, source_new_position, LOS_COLOUR, collision_box_lifetime);
 	}
 	
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+	//
+	// the ENUMERATION is the host's (ENTITY_SCAN, mb_hostscan.h): the segment's min and max, the sector window, the traversal order, the tail-first lists, the exclusions of the source and the
+	// target and the end of the scan at the first hit are decided there. The campaign serves the host's cursor over its own sector lists (the transitional backing dependency) and offers each entry for
+	// its decisions (campaign_offer_candidate, mb_hostoffer.h).
+	//
+
+	return (campaign_scan_entities (los_source, los_target, &source_old_position->x, &source_new_position->x, &source_intercept_point->x, &face_normal->x));
+
+#else
+
 	////////////////////////////////////////
 	//
 	// get source min and max positions
@@ -1740,6 +1840,8 @@ entity *get_line_of_sight_collision_entity
 	}
 
 	return (NULL);
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1759,6 +1861,71 @@ entity *get_line_of_sight_collision_entity
 ////////////////////////////////////////
 
 #define TREE_RADIUS	(5.0)
+
+//
+// EECH_COLLISION_FIXTURE (test-only, EEDCS-49): the tree query's two terrain-elevation lookups below go through a fixture function that makes the IDENTICAL call
+// (same macro, same two float arguments, same float result, same order) and, when a private transcript is armed, records the coordinates and the elevation it
+// returned. Without the feature this macro expands to exactly the original call, so the shipping text is unchanged. It is used ONLY at the two lookups in
+// get_line_of_sight_collision_tree; get_ground_impact_point and everything else are untouched.
+//
+
+#ifdef EECH_COLLISION_FIXTURE
+extern float eech_collision_tree_elevation (float x, float z);
+#define TREE_QUERY_TERRAIN_ELEVATION(X,Z) eech_collision_tree_elevation (X, Z)
+#else
+#define TREE_QUERY_TERRAIN_ELEVATION(X,Z) get_3d_terrain_elevation (X, Z)
+#endif
+
+//
+// EECH_COLLISION_FIXTURE (test-only, EEDCS-49, controlled forest geometry witness): the tree query's two reads of the forest tree object's collision triangles below go
+// through a fixture function that makes the IDENTICAL call (get_object_3d_collision_object_geometry_triangle with OBJECT_3D_FOREST_TREE_OBJECT and the same two arguments, once,
+// in the same order) and, when a witness query is open, records by value that the branch asked, what it answered and at which depth. It adds no other query. Without the
+// feature this macro expands to exactly the original call, so the shipping text is unchanged. It is used ONLY at the two reads in get_line_of_sight_collision_tree.
+//
+
+#ifdef EECH_COLLISION_FIXTURE
+extern int eech_collision_tree_geometry_triangle (vec3d *points, int depth);
+#define TREE_QUERY_GEOMETRY_TRIANGLE(P,D) eech_collision_tree_geometry_triangle (P, D)
+#else
+#define TREE_QUERY_GEOMETRY_TRIANGLE(P,D) get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, P, D)
+#endif
+
+#ifdef EECH_CAMPAIGN_HOST_TREE
+
+// EEDCS-49 (D3): in the headless campaign module the segment-against-forest search is the host's (mb_hostterrain.c carries the question: the host owns the tree data, the forest tree's collision
+// triangles, the sector scan, the tie rules and the intersection arithmetic, and asks this module for the two terrain elevations the original reads); the original search below is not compiled
+// into it.  The caller's buffers keep their original contract: their initial words go to the host and its final words come back, so a miss leaves them as the original did.  The explicit
+// original-characterisation profile (feature collision-fixture) keeps the original search below on purpose.
+
+extern int campaign_terrain_tree_collision (const vec3d *old_position, const vec3d *new_position, vec3d *intercept_point, vec3d *face_normal, int ignore_forest_edge_trees, int skip_tree_top_test);
+
+int get_line_of_sight_collision_tree
+(
+	vec3d *source_old_position,
+	vec3d *source_new_position,
+	vec3d *source_intercept_point,
+	vec3d *face_normal,
+	int ignore_forest_edge_trees,
+	int skip_tree_top_test
+)
+{
+	ASSERT (source_old_position);
+
+	ASSERT (source_new_position);
+
+	ASSERT (source_intercept_point);
+
+	ASSERT (face_normal);
+
+	if (draw_collision_boxes && (get_view_mode () == VIEW_MODE_EXTERNAL))
+	{
+		create_debug_3d_line (source_old_position, source_new_position, LOS_COLOUR, collision_box_lifetime);
+	}
+
+	return (campaign_terrain_tree_collision (source_old_position, source_new_position, source_intercept_point, face_normal, ignore_forest_edge_trees, skip_tree_top_test));
+}
+
+#else
 
 int get_line_of_sight_collision_tree
 (
@@ -1841,7 +2008,7 @@ int get_line_of_sight_collision_tree
 
 	if (point_inside_map_area (source_old_position))
 	{
-		source_old_position_rad_alt = source_old_position->y - get_3d_terrain_elevation (source_old_position->x, source_old_position->z);
+		source_old_position_rad_alt = source_old_position->y - TREE_QUERY_TERRAIN_ELEVATION (source_old_position->x, source_old_position->z);
 	}
 	else
 	{
@@ -1850,7 +2017,7 @@ int get_line_of_sight_collision_tree
 
 	if (point_inside_map_area (source_new_position))
 	{
-		source_new_position_rad_alt = source_new_position->y - get_3d_terrain_elevation (source_new_position->x, source_new_position->z);
+		source_new_position_rad_alt = source_new_position->y - TREE_QUERY_TERRAIN_ELEVATION (source_new_position->x, source_new_position->z);
 	}
 	else
 	{
@@ -1989,7 +2156,7 @@ int get_line_of_sight_collision_tree
 								if ((tree_position.x + 25.0 >= source_min_position.x) && (tree_position.x - 25.0 <= source_max_position.x) &&
 									(tree_position.z + 25.0 >= source_min_position.z) && (tree_position.z - 25.0 <= source_max_position.z))
 								{
-									if (tree->type == 1 && get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, p, depth++))
+									if (tree->type == 1 && TREE_QUERY_GEOMETRY_TRIANGLE (p, depth++))
 									{
 										get_identity_matrix3x3(attitude);
 
@@ -2022,7 +2189,7 @@ int get_line_of_sight_collision_tree
 												return TRUE;
 											}
 										}
-										while (get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, p, depth++));
+										while (TREE_QUERY_GEOMETRY_TRIANGLE (p, depth++));
 									}
 									else
 									{
@@ -2173,6 +2340,8 @@ int get_line_of_sight_collision_tree
 
 	return (hit_tree);
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

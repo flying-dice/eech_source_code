@@ -1,0 +1,100 @@
+{
+  "scope": "Literal source/selected-gate/profile/complete-short and finite real host-roster dependency evidence. Not wholephysical/fullpack/Task49/D3 acceptance.",
+  "files": [
+    {
+      "path": "independent-sector-roster-source-7bec-20261106.json",
+      "bytes": 22650,
+      "sha256": "a21e4443f3fe835b3e30d987c3cca9610a9a0a9e33a0204cc3f112fc17d1acf5"
+    },
+    {
+      "path": "independent-sector-roster-corrected-source-92d-20261106.json",
+      "bytes": 16988,
+      "sha256": "6582a2e662459294fd9247d680d0243da09d568363a3ce3cfacb1c82b1e9b5a6"
+    },
+    {
+      "path": "independent-sector-roster-driver-join-source-5182-20261106.json",
+      "bytes": 13595,
+      "sha256": "d6ab97330b44bf78bafb06ee7cc3e4f437dd19ec6b93bf3bc41685f507d72362"
+    },
+    {
+      "path": "independent-sector-roster-real-withhold-source-505-native5182-20261106.json",
+      "bytes": 10120,
+      "sha256": "91a755cf4cda60cb31de117a6844c757b1cfb1e7318d991f346156206c5e4940"
+    },
+    {
+      "path": "sector-roster-CODE-FROZEN-20261105.json",
+      "bytes": 31351,
+      "sha256": "50f38e54775eb730c69f23d66453266c2226f7403cea28072e02d30baf3c941f"
+    },
+    {
+      "path": "sector-roster-corrections-CODE-FROZEN-20261106.json",
+      "bytes": 51799,
+      "sha256": "8df9aad2122d9deb7df75f4cff150bd261ae4db7196b9dcd65b551c57dd654bc"
+    },
+    {
+      "path": "sector-roster-driver-join-CODE-FROZEN-20261106.json",
+      "bytes": 19808,
+      "sha256": "41faa507a33f81b330c848713a3f89aecf6cc59a6969d868aa271bdc11c0818d"
+    },
+    {
+      "path": "sector-roster-real-withhold-CODE-FROZEN-20261106.json",
+      "bytes": 17600,
+      "sha256": "f9d13350ab37a6b5bf7d68d055774bb4c7d303f4ef0c5427069eadfbe201c5dd"
+    },
+    {
+      "path": "sector-roster-5182-frozen-gates-20261106-completion.json",
+      "bytes": 6586,
+      "sha256": "2dde247f2630b714bd3696aa74ae91aea3288c08bec6fb1be669f83bd53d452b"
+    },
+    {
+      "path": "sector-roster-windows-profile-isolation-5182-20261106.json",
+      "bytes": 5858,
+      "sha256": "5f2f2afff78077d7c2e5800cd3a866a6a3d961bf681a2c937a869c6ead55a01c"
+    },
+    {
+      "path": "sector-roster-ordinary-short-comparison-5182-20261106.json",
+      "bytes": 1750,
+      "sha256": "2d1e63b91ca62ad7b1b72a40561fd9bdea807d6cd533e4ed5722ab423c72a94a"
+    },
+    {
+      "path": "roster-windows-work-default-prefix-3475-20261106.json",
+      "bytes": 1452,
+      "sha256": "24747b326821bd5204293568392ebf95f7d44cf5fb56df5d86a9ca3aa2035070"
+    },
+    {
+      "path": "sector-roster-profile-audit-ROOT-CORRECTIONS-20261106.txt",
+      "bytes": 1385,
+      "sha256": "e09d274db1b18421f4d89ad45ebc8bab55ffe5064a901a765b14ee8e986c1897"
+    },
+    {
+      "path": "ledger-roster-source-v157-preservation-20261106.json",
+      "bytes": 207,
+      "sha256": "43af32bb54dd42698731edb1a58732559a1c068b3922634d8f068b5b7e12525a"
+    },
+    {
+      "path": "independent-sector-roster-real-withhold-actuals-505-native5182-20261106.json",
+      "bytes": 13084,
+      "sha256": "9b7dcbefa647d9163cf7f8e1fd4c1eac4c29e1b73bb798a3a2d40472807d85ab"
+    },
+    {
+      "path": "sector-roster-safe-actual-facts-505-native5182-20261106.json",
+      "bytes": 3588,
+      "sha256": "677a0c5c8636d682fef95e1fdaa56d59db03d64d096a9176b9c1aeaedc64c5d0"
+    },
+    {
+      "path": "sector-roster-healthy-physical-comparison-505-native5182-20261106.json",
+      "bytes": 977,
+      "sha256": "2d697da18d3945ac8899001f9ce937498a1a761c73c0bf3f4042bc1ebd0c5221"
+    },
+    {
+      "path": "sector-roster-final-frozen-binding-5182-20261106.json",
+      "bytes": 989,
+      "sha256": "282a3f99a8e80ce795ec834491ac141db39d94d15bf646cfa8b0b8983d72a12b"
+    },
+    {
+      "path": "cleanup-closed-sector-roster-5182-windows-cache-20261106.json",
+      "bytes": 684,
+      "sha256": "a4ae65125915327d733e8015caecec7d298f6bb2d886ece7b3e171efb0a014ad"
+    }
+  ]
+}

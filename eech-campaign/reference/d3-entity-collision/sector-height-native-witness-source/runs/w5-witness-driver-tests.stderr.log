@@ -1,0 +1,9 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+error[E0762]: unterminated character literal
+   --> crates/eech-world/tests/sector_height_witness_driver.rs:376:118
+    |
+376 |     let o = clearance(&format!("mode = 'clearance_control', original = '{}'", original_out.to_string_lossy().replace('\', "/")), "");
+    |                                                                                                                      ^^^^^^
+
+For more information about this error, try `rustc --explain E0762`.
+error: could not compile `eech-world` (test "sector_height_witness_driver") due to 1 previous error

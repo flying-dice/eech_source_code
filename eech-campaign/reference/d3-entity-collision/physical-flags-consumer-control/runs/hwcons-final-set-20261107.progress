@@ -1,0 +1,6 @@
+k1-fmt-check exit=0
+k2-clippy-engine-sys-default exit=0
+k3-clippy-engine-sys-both-features exit=0
+k4-engine-sys-default exit=0
+k5-flags-controls-and-census exit=0
+DONE

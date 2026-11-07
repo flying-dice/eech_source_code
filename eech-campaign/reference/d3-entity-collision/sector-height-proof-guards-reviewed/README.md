@@ -1,0 +1,9 @@
+# Reviewed sector-height source and proof guards
+
+SAME independent review `cbbd27d713adc2d7505ac4931e7fa91c5a22bb46fe43ebdf888d6ac2d319dd94` closes the two diagnostic P2s and the original public-proof-plan SOURCE finding for code `e326a35724feb0566491c51d84d587995e2f9de8`, tested metadata `c4c9d0f1771860cda60dcd418245a7e5f21e2079`. Findings are empty. Clearance is conditional only for fresh exact-source Windows/profile/payload gates, the unchanged finite ordinary short and scoped scan comparison, then an eligible healthy height control FIRST and matched modes on fresh verified roots. It is not native authority, M5/M6, Task49, D3 or delivery acceptance.
+
+The older proof-guards packet is unchanged: 62 of 63 manifest entries match literal Git bytes. Its Windows Python audit stdout has the original 232-byte CRLF identity in that manifest and the LF identity in Git. `audit-output-dual-identity.json` and Root's binding give both exact hashes and the only transformation; the raw 232-byte output is retained. Neither a baseline nor a recording changed. This new packet's own manifest describes its actual stored bytes.
+
+Four final Cargo children passed plus a separate read-only Python shape audit of the unchanged accepted report. The latter is an independent port, not a Lua/native execution. The three inherited Lua raw-CRLF/Git qualifications and four Core filter-only identities remain explicit in the bindings. The prior post-POST join-reader edit remains qualified in its own source packet.
+
+`scan_whole` describes only the live hosted scan. A valid live scan may have `scan_whole=1` with `INVALID_ACCEPTED`; that comparison status/exit is still non-pass. Only successful actual completion with `EQUAL_AT_SCOPE` earns equality. Guarded fixed-wing execution and real native Core server save/load remain required OPEN, as do all ten D3 requirements and final current40/all8/fourinputs/CI/review/normalmerge/census. No D4/D5/TypeScript.

@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "record": "city-own-state-source-and-checks",
+  "source_commit": "78ef839dd75d325c42acb3127d097fee400388c2",
+  "files": {
+    "README.md": {
+      "bytes": 4616,
+      "sha256": "2c40f4c905d34f36f1d60f885f94f40254038925711154ea1b1dbdf188732843"
+    },
+    "city-own-state-CODE-FROZEN-20261106.json": {
+      "bytes": 63537,
+      "sha256": "cc6ed8d96e0a036e137ba8c941bf5393a7decc90b7f6a1a04e9c8a16894601c7"
+    },
+    "city-own-state-raw-source-binding-78ef839dd-20261106.json": {
+      "bytes": 2245,
+      "sha256": "24865fd553e5a80983d1183abbffd580164cdbdc540d8f9f1c0659b2629b0f58"
+    },
+    "independent-city-collision-state-source-78ef839-20261106.json": {
+      "bytes": 26335,
+      "sha256": "45e6798ec6d16de8f61764b99d3434e7ab7a84043fbea3520aed12ae867dc1bf"
+    },
+    "city-state-78ef-source-gates-20261106.json": {
+      "bytes": 5447,
+      "sha256": "95bb2787eb66a20335ba640d669c41b8af77930df79eb97d1cec52492ee5469a"
+    },
+    "city-state-78ef-windows-20261106-completion.json": {
+      "bytes": 45950,
+      "sha256": "b21e232a31c32cafb5390b7a8520631c852b6501c2a6de960043978f5b1fe501"
+    },
+    "city-state-windows-profile-isolation-78ef-20261106.json": {
+      "bytes": 6952,
+      "sha256": "8159c45f94577aa74f3567ccb4b84f288521956ee2fc607fae5476af3bad8744"
+    },
+    "city-state-ordinary-short-comparison-78ef-20261106.json": {
+      "bytes": 1754,
+      "sha256": "bf013d15023fdfa83f6f479e7fa09534d8d32a2c035423c6f4f5f515f9516731"
+    },
+    "city-state-healthy-78ef839dd-20261106-completion.json": {
+      "bytes": 1756,
+      "sha256": "3b40fa42b4f3341e5f9590f2ee1e06b8b1f4b8ee0a788b3cc6bc51925bb421c9"
+    },
+    "city-state-withdrawn-78ef839dd-20261106-completion.json": {
+      "bytes": 1955,
+      "sha256": "5aa960942739888a8632a0fcc1c22760d25e10d9223ac843974fb755274f219f"
+    },
+    "city-state-finite-actual-facts-78ef-20261106.json": {
+      "bytes": 4323,
+      "sha256": "da4d3accc4a54de1a6be27b0728aa6f0ee40e073a28b2d235ecbb6163d602b70"
+    },
+    "independent-city-state-finite-actual-78ef-20261106.json": {
+      "bytes": 19027,
+      "sha256": "47fe03f7f2a084f87523969683e3f2d046da58c25264a60c1000a1a5c152e2e2"
+    },
+    "cleanup-closed-city-state-78ef-windows-cache-20261106.json": {
+      "bytes": 711,
+      "sha256": "374122f5268bf3c31eafa3b38bebba0ac06f39b0bf9d8850a741f822fd8776d4"
+    },
+    "claude-d3-city-collision-state-20261106-completion.json": {
+      "bytes": 1113,
+      "sha256": "3e343c8e463a1005b71f615b11b90db107b57358c901a5d269bb9e2275861280"
+    },
+    "ledger-fixed-static-finite-v162-preservation-20261106.json": {
+      "bytes": 656,
+      "sha256": "1b8ec9a342a73de09be96646197fb92a2e31f1516f7ca8fef321e3afca519960"
+    },
+    "city-state-source-clear-default-prefix-f734-20261106.json": {
+      "bytes": 2332,
+      "sha256": "591b69c15e84d60feab9ef927da830fdf1656483a69f9bc121b450f9bf4d87b7"
+    }
+  },
+  "status": "FINITE canonical CITY position/box backing closed; remaining CITY physical construction/predicates and wholeD3 required"
+}

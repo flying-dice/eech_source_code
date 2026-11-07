@@ -1,0 +1,82 @@
+{
+  "schema": "d3.city-box.finite-authority.literal.v1",
+  "source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+  "files": {
+    ".gitattributes": {
+      "bytes": 61,
+      "sha256": "22106984a6c1274ead5c283789ca11d75b303658949aaa627698747e7b2d6160"
+    },
+    "city-box-finite-actual-facts-4c0b-20261106.json": {
+      "bytes": 8149,
+      "sha256": "263fff9a7fe38b34deba0f2bf9dbe08d7f169a8c70c3304c8b4f2cccf5aadfe5"
+    },
+    "city-box-finite-close-default-prefix-f734-20261106.json": {
+      "bytes": 2338,
+      "sha256": "ec650677e0384edd367c2a6c37f8bfb098a346d18a31017581b67284d7a7bfde"
+    },
+    "city-box-healthy-4c0b89263-20261106-completion.json": {
+      "bytes": 2107,
+      "sha256": "3d6e86d27f6ffdd09475cdabe5db19ee658ce6f908e9a96e3d3cfad3a70874f7"
+    },
+    "city-box-healthy-comparison-4c0b-20261106.json": {
+      "bytes": 1174,
+      "sha256": "7d2bb5c67efd40a88dd7b455e2058bfcb99f8e4fb0449a8eca71f46046daea53"
+    },
+    "city-box-ordinary-short-4c0b89263-20261106-completion.json": {
+      "bytes": 1901,
+      "sha256": "63e3941aa5b74fd21213b2c1a70356a8969578e7a543354a7ebb2728b37a94da"
+    },
+    "city-box-ordinary-short-comparison-4c0b-20261106.json": {
+      "bytes": 1563,
+      "sha256": "ad7654a26bbcf3a81383cb881d542db2f22d9b6c48266ef8693f5b81166f132f"
+    },
+    "city-box-windows-profile-isolation-4c0b-20261106.json": {
+      "bytes": 7062,
+      "sha256": "25a62d05cd15aeb4f14151c78e789a4478995d418998b00bc4cde11bc810b527"
+    },
+    "city-box-withdrawn-construction-4c0b89263-20261106-completion.json": {
+      "bytes": 2444,
+      "sha256": "8fb43800ffc5ed9c5e9b97979f605e18fd67ee86fd8559224ec3a49800c8bf0f"
+    },
+    "cleanup-closed-city-box-4c0b-windows-cache-20261106.json": {
+      "bytes": 707,
+      "sha256": "b232cde607206d6377f516d94bb7aefef21958acc67fdae8aaf97b80f2456460"
+    },
+    "independent-city-box-finite-actual-4c0b-20261106.json": {
+      "bytes": 18339,
+      "sha256": "f267c38d505c4192672014e7cee9caa103a44d6c28c3bb1675bcf434a10b2396"
+    },
+    "process-learnings-20261106-finite-constructor.md": {
+      "bytes": 33490,
+      "sha256": "44d1e35defa72f718a4ca381286e7bc7b5903a789701d45ff3e16f2102cfddc3"
+    },
+    "profile-artifact-preservation.json": {
+      "bytes": 5916,
+      "sha256": "1c5e091154fd57658dc952678722c04526b0dba0a169762e5b9fda47c0f7c66d"
+    },
+    "README.md": {
+      "bytes": 3182,
+      "sha256": "4ccdb612e2103d82f97a5cf3b9014757f1bc9fe750f3ab8f7acc233f704c4ed7"
+    },
+    "reproduction/audit-city-box-finite-actuals-4c0b-20261106.py": {
+      "bytes": 6914,
+      "sha256": "162fea14edd993e3b1c60a2e67f22245ce94c541c072070d143dea0eaeac5651"
+    },
+    "reproduction/cleanup-city-box-windows-cache-4c0b-20261106.py": {
+      "bytes": 2010,
+      "sha256": "81a3960142df77e867732338c7e540105ab98cf3aa1d5a5957060f06ac78036c"
+    },
+    "reproduction/retain-city-box-profile-artifacts-4c0b-20261106.py": {
+      "bytes": 4211,
+      "sha256": "fb2720930b96b57ca09c9d8ffc9ac4e8d848161b7984314c0ed914b31c4d5886"
+    },
+    "reproduction/retain-city-box-profile-artifacts-4c0b-20261106.sh": {
+      "bytes": 1137,
+      "sha256": "32a8efd7d2516b4527794efdc2513bab203ff0f3c879beca7b1f8b356098fb85"
+    },
+    "reproduction/run-city-box-native-4c0b-20261106.py": {
+      "bytes": 10486,
+      "sha256": "cee636c20bf0593afd2f9b7d8ea5fc5d0d163783567df33111ed14adcd017201"
+    }
+  }
+}

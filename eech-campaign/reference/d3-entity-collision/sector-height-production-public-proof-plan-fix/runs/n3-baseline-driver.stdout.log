@@ -1,0 +1,45 @@
+
+running 11 tests
+test the_driver_grammar_is_the_emitters ... ok
+test an_existing_output_is_never_overwritten_and_nothing_boots ... ok
+test the_arguments_are_checked_before_any_side_effect ... ok
+test a_module_built_without_the_observer_is_refused ... ok
+test a_whole_observation_is_written_in_order_after_the_ordinary_boot_and_the_finite_default_window ... ok
+test a_hosted_scan_that_differs_from_the_accepted_report_at_scope_is_refused_with_every_difference_written ... FAILED
+test an_observation_that_is_not_whole_is_refused_after_the_file_is_closed ... ok
+test sequence_numbers_that_do_not_increase_are_refused ... ok
+test a_hosted_scan_equal_to_the_accepted_report_at_scope_is_credited_and_writes_no_original_link_record ... FAILED
+test the_real_c_report_is_replayed_through_the_driver_line_for_line ... ok
+test a_hosted_scan_at_another_window_or_against_an_unreadable_report_is_not_comparable_and_no_scan_is_unreached ... ok
+
+failures:
+
+---- a_hosted_scan_that_differs_from_the_accepted_report_at_scope_is_refused_with_every_difference_written stdout ----
+
+thread 'a_hosted_scan_that_differs_from_the_accepted_report_at_scope_is_refused_with_every_difference_written' (121) panicked at crates/eech-world/tests/sector_height_baseline_driver.rs:327:5:
+sho-baseline schema=1 scenario=georgia seed=1 frame_ms=100 hours=0.001 frames=36 elapsed_seconds=1.500 observer=read-only scope=hosted-scan
+sho-summary schema=2 note=x
+sho-counts seq=9 inserts_total=5
+sho-clearance leader_reached=0 follow_reached=0 reads=0 stored=0
+sho-scan reads=3 firsts=3 sectors=1 fact_offers=2 fact_nonzero=2 fact_equal_first=2 fact_differ_first=0 fact_without_first=0
+sho-tables events_used=5 events_capacity=524288 events_overflow=0 scan_out_of_range=0 mismatches=2
+sho-complete value=0
+sho-scan i=0 sx=1 sz=2 reads=3 first_seq=4 last_seq=9 first_word=0x42ca0000 last_word=0x42ca0000 changes=0 fact_offers=2 fact_equal_first=2 fact_differ_first=0 fact_first_word=0x42ca0000 fact_last_word=0x42ca0000 fact_changes=0
+sho-compare scope=scan-reads-and-fact12 status=DIFFERENT sectors_hosted=1 reason=1_differences_at_scope differences=1
+sho-compare-diff sector=1,2 field=row hosted=present accepted=absent
+sho-verdict scope=hosted-scan scan_whole=1 status=DIFFERENT clearances=0 sectors=1 original_link_pack_hooks=not_compared
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- a_hosted_scan_equal_to_the_accepted_report_at_scope_is_credited_and_writes_no_original_link_record stdout ----
+
+thread 'a_hosted_scan_equal_to_the_accepted_report_at_scope_is_credited_and_writes_no_original_link_record' (120) panicked at crates/eech-world/tests/sector_height_baseline_driver.rs:305:14:
+an equal scan completes: "runtime error: hosted-scan comparison DIFFERENT: 1 differences at scope\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"sector-height-baseline.lua\"]:225: in main chunk"
+
+
+failures:
+    a_hosted_scan_equal_to_the_accepted_report_at_scope_is_credited_and_writes_no_original_link_record
+    a_hosted_scan_that_differs_from_the_accepted_report_at_scope_is_refused_with_every_difference_written
+
+test result: FAILED. 9 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

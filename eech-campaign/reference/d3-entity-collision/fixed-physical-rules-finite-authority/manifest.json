@@ -1,0 +1,78 @@
+{
+  "schema": "d3.fixed-physical-rules.finite-authority.literal.v1",
+  "runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+  "literal_source": "879b0ebde110250169513dfd9fecc4c83f3b7b01",
+  "metadata_source": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+  "listed_files": 17,
+  "files_including_manifest": 18,
+  "files": {
+    ".gitattributes": {
+      "bytes": 61,
+      "sha256": "22106984a6c1274ead5c283789ca11d75b303658949aaa627698747e7b2d6160"
+    },
+    "README.md": {
+      "bytes": 3923,
+      "sha256": "68e66fd4ae12701ab168a4ea754cab5d4a015273c1c1743c0b886919da2e20c2"
+    },
+    "ci-fixed-rule-witness-97dc-20261106.json": {
+      "bytes": 3460,
+      "sha256": "8c7aefca3bd7866a2b6de4a6f0b51ce7525c630c690f8577733e108c6bffb466"
+    },
+    "fixed-rule-positive-contract-Root-binding-879b-20261106.json": {
+      "bytes": 8461,
+      "sha256": "8d42367dc84b415da95615eeeef4ae95f5458ec8315cb1f87149734542372495"
+    },
+    "fixed-rule-witness-checker-recovery-20261106.json": {
+      "bytes": 2890,
+      "sha256": "020f877fdda8328eb3fce2815c90e27f8f2e47f7e4a34131efdfed254c9d12a3"
+    },
+    "fixed-rule-witness-native-20261106-completion.json": {
+      "bytes": 2465,
+      "sha256": "fe6ce47404bfc1bbf3067ec8bd8062a13723e878396d7362cda42a450d477bd0"
+    },
+    "fixed-rule-witness-source-clear-gate-20261106.json": {
+      "bytes": 1001,
+      "sha256": "ccdff8ce4315f7d3cf21aacb3bf8c0b78e982e146f725694689b181df8690249"
+    },
+    "fixed-rules-healthy-comparison-681cc-20261106.json": {
+      "bytes": 1276,
+      "sha256": "6598d43c5fec0cd09ee86198fb4fbb8cd83f72b97828a426b45c28899f1fc0b9"
+    },
+    "fixed-rules-native-partial-681cc-20261106.json": {
+      "bytes": 4347,
+      "sha256": "f5007876404f8d3a4dc11f293693f02d62326b00699beec0ff1a77cdc2f3063e"
+    },
+    "fixed-rules-ordinary-short-comparison-681cc-20261106.json": {
+      "bytes": 1566,
+      "sha256": "39127cfd9fdeb46962fdaf6155437c3b5a4e9cbd23cc8e45b40407cfb1508f5d"
+    },
+    "fixed-rules-windows-profile-isolation-681cc-20261106.json": {
+      "bytes": 7062,
+      "sha256": "af7ccb1c808157ef5452595a4c623526f98cade03a9c0024112105e1f290b9e8"
+    },
+    "fixed-rules-world-objects-681cc-20261106.json": {
+      "bytes": 1932,
+      "sha256": "1c9fdffb16ec5b058271b269807575ccdc1ef6544338f04c5bbfec157c66a851"
+    },
+    "independent-fixed-rule-witness-positive-source-879b-20261106.json": {
+      "bytes": 14085,
+      "sha256": "a747ed52c5601e1e9389ac4444f676e6ef4ec024303f04d43f5feb9a11979d23"
+    },
+    "independent-fixed-rules-finite-native-681-879b-20261106.json": {
+      "bytes": 16044,
+      "sha256": "4540f0142ee4b595cb1ba8122f4975bb6334386a6187622a0a4b0ed54e698f75"
+    },
+    "reproduction/recover-fixed-rule-witness-checker-20261106.py": {
+      "bytes": 5174,
+      "sha256": "c963b1ffbd1c7a1b36c5c1bf90b1da641a96c19750870c8bf036196e8f684930"
+    },
+    "reproduction/run-entity-public-native-pipe-20261105.py": {
+      "bytes": 6946,
+      "sha256": "3da2855f8b8b67c73d4ac0e157b40c81acdf633bdf21560daa3e588f024b0582"
+    },
+    "reproduction/run-fixed-rule-witness-native-20261106.py": {
+      "bytes": 6321,
+      "sha256": "10003ec91524a7cad8e81e9d4da7bab8f78b40ea300dde52696dde08a87b3cc6"
+    }
+  }
+}

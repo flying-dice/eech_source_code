@@ -1,0 +1,79 @@
+{
+  "created_utc": "2026-11-07T06:10:41.316216+00:00",
+  "source": "f01e64e7950d8d323da0a7bda5c065f899f30be5",
+  "raw_report": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-baseline-20261107\\sector-height-lebanon_retail-seed1.txt",
+  "raw_bytes": 82080972,
+  "raw_sha256": "ffa21b5120b8dd9b1b096cb899e5bd63ece3664033ddc1bb92ef81def7a7284a",
+  "full_event_rows": 304811,
+  "kind_counts": {
+    "insert": 77531,
+    "stmt_fixed": 121166,
+    "link": 77531,
+    "stmt_city": 28583
+  },
+  "records": 77531,
+  "joined_initial_links": 77531,
+  "callback_orders": {
+    "insert>stmt_fixed>link": 63136,
+    "insert>stmt_city>link": 14395
+  },
+  "valid_shape_position_words_literal_statement_matches": 63136,
+  "invalid_shape_position_not_observed": 14395,
+  "shape_word_literal_statement_matches": 63136,
+  "link_families": {
+    "fixed": 8311,
+    "city": 14395,
+    "city_building": 54825
+  },
+  "observed_shapes": {
+    "fixed:valid": 8311,
+    "city:invalid": 14395,
+    "city_building:valid": 54825
+  },
+  "height_word_changes": 4424,
+  "invalid_city_height_changes": 0,
+  "sector_previous_word_chain_matches": true,
+  "all_observed_held_words_finite_and_nonlowering": true,
+  "child_stage_statements": 54825,
+  "scan_aggregates_without_private_coordinates": [
+    {
+      "reads": 40,
+      "fact_offers": 25384,
+      "fact_equal_first": 25384,
+      "fact_differ_first": 0,
+      "FIRST_changes": 0,
+      "fact_changes": 0
+    },
+    {
+      "reads": 23,
+      "fact_offers": 2231,
+      "fact_equal_first": 2231,
+      "fact_differ_first": 0,
+      "FIRST_changes": 0,
+      "fact_changes": 0
+    }
+  ],
+  "event_record_bytes": 136,
+  "static_event_bytes": 71303168,
+  "errors": {},
+  "safe_summary_lines": [
+    "sho-baseline schema=1 scenario=lebanon_retail seed=1 frame_ms=100 hours=0.001 frames=35 elapsed_seconds=3.500 observer=read-only",
+    "sho-summary schema=2 note=read-only-observer-one-boot-per-process",
+    "sho-counts seq=332489 inserts_total=82054 inserts_fixed=63136 inserts_city=14395 inserts_mobile=4523 removes_total=322 removes_recorded=0 removes_mobile=322 released_open=0",
+    "sho-join records=77531 link_total=82054 link_fixed=63136 link_city=14395 link_mobile=4523 links_joined=77531 links_unjoined=0 stmt_joined=94924 stmt_unjoined=0 stmt_type_mismatch=0 stmt_child=54825 stmt_child_unexpected=0 double_insert=0 remove_unjoined=0 index_out_of_range=0",
+    "sho-shape fixed_valid=63136 fixed_invalid=0 fixed_unobserved=0 city_valid=0 city_invalid=14395 city_unobserved=0 raised=4424",
+    "sho-statements fixed=121166 city=28583",
+    "sho-scan reads=63 firsts=63 sectors=2 fact_offers=27615 fact_nonzero=27615 fact_equal_first=27615 fact_differ_first=0 fact_without_first=0",
+    "sho-clearance leader_reached=0 follow_reached=0 reads=0 stored=0",
+    "sho-session pack_total=0 pack_stored=0 pack_omitted=0 unpack_total=0 unpack_stored=0 unpack_omitted=0",
+    "sho-tables events_used=304811 events_capacity=524288 event_record_bytes=136 events_overflow=0 clearance_capacity=4096 clearance_overflow=0 scan_out_of_range=0 mismatches=0 pending=0",
+    "sho-complete value=1",
+    "sho-verdict whole=1 events=304811 clearances=0 sectors=2"
+  ],
+  "unreached": [
+    "guarded fixed-wing clearance",
+    "session pack",
+    "session unpack"
+  ],
+  "scope": "FULL fixed35frame public observation, same-record initial callback order, VALID-shape raw position/shape state words and sector-word/FIRST/fact12 transport only. Invalid CITY does not read position/bbox: zero report placeholders are unobserved, never compared as actual positions. Initial Root parser incorrectly tried that comparison and failed before proof creation; correction is read-only with no native rerun. Bbox tops are recorded but no independent Host bbox equality is inferred. Native restored nonfinite histories/lifecycle beyond reached rows are not measured; accepted179 source controls retain own scope. Not natural weapon engagement, host-owned scalar, physicalcutover/wholeTask49/D3/delivery."
+}

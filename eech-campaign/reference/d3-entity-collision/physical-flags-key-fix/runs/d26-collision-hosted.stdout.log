@@ -1,0 +1,10 @@
+
+running 1 test
+physical flags collision expectations made: 0
+HOSTED PROFILE BLOCKED BY THE HOST: host model: [test-bridge:entity_candidate.refused] candidate record: the host holds no physical record for this mobile candidate (no host identity: the campaign has none for this mobile candidate)
+
+questions asked of the provider (scan, candidate, pose, collision, flag, other): [5, 1, 1, 0, 0, 3027]; candidate decisions: []
+test the_moving_mobile_pass_through_of_the_collision_query_reads_the_raw_updated_word_destructively_and_swaps_the_path_it_tests ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+

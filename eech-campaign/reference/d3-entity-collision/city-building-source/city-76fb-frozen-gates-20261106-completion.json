@@ -1,0 +1,88 @@
+{
+  "controller_pid": 16380,
+  "source": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+  "snapshot": "D:\\EECH-Migration-Evidence\\city-building-backing-20261106-source",
+  "state": "terminal",
+  "started_utc": "2026-11-06T04:23:30.494879+00:00",
+  "checks": [
+    {
+      "label": "fmt",
+      "command": "cargo fmt -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world -- --check",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+        "/mnt/d/EECH-Migration-Evidence/city-building-backing-20261106-source",
+        "cargo fmt -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world -- --check"
+      ],
+      "started_utc": "2026-11-06T04:23:30.614263+00:00",
+      "stdout": "R:\\d3-evidence\\city-76fb-frozen-gates-20261106-fmt.stdout.log",
+      "stderr": "R:\\d3-evidence\\city-76fb-frozen-gates-20261106-fmt.stderr.log",
+      "state": "terminal",
+      "pid": 19032,
+      "actual_exit": 0,
+      "completed_utc": "2026-11-06T04:23:34.834625+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "check",
+      "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+        "/mnt/d/EECH-Migration-Evidence/city-building-backing-20261106-source",
+        "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world"
+      ],
+      "started_utc": "2026-11-06T04:23:34.954433+00:00",
+      "stdout": "R:\\d3-evidence\\city-76fb-frozen-gates-20261106-check.stdout.log",
+      "stderr": "R:\\d3-evidence\\city-76fb-frozen-gates-20261106-check.stderr.log",
+      "state": "terminal",
+      "pid": 19656,
+      "actual_exit": 0,
+      "completed_utc": "2026-11-06T04:24:48.013887+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "b70ed48e7ba1c2c641736d7cb3ddb0c0d49b2b9a86e1bd4071368b83d03009c6"
+    },
+    {
+      "label": "dialogue",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+        "/mnt/d/EECH-Migration-Evidence/city-building-backing-20261106-source",
+        "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard"
+      ],
+      "started_utc": "2026-11-06T04:24:48.135789+00:00",
+      "stdout": "R:\\d3-evidence\\city-76fb-frozen-gates-20261106-dialogue.stdout.log",
+      "stderr": "R:\\d3-evidence\\city-76fb-frozen-gates-20261106-dialogue.stderr.log",
+      "state": "terminal",
+      "pid": 17112,
+      "actual_exit": 0,
+      "completed_utc": "2026-11-06T04:26:05.440528+00:00",
+      "stdout_sha256": "7fdbc671a3dbd67feb78ee7e2a9ce8eaf047b1f0634c6ae79e685804ccf2fbb3",
+      "stderr_sha256": "c5612a70e8d3bcd6fd5b8e988e57ecd003302c4c0402ebaf74656aaaebd8c286"
+    }
+  ],
+  "before": "R:\\d3-evidence\\city-76fb-snapshot-before-20261106.json",
+  "before_sha256": "cbb6a62aa601bdf872951fd5a7481524d142654a8eb891aa063e2c7d4a30218b",
+  "scope": "Exact immutable source THREE selected integration gates: fmt/default4check/realCdialogue+guard. Reuse exact reviewed author World/Engine passes and changed Git-blob joins; do not repeat unrelated old matrix. No native acceptance.",
+  "after": "R:\\d3-evidence\\city-76fb-snapshot-after-20261106.json",
+  "after_sha256": "cbb6a62aa601bdf872951fd5a7481524d142654a8eb891aa063e2c7d4a30218b",
+  "before_after_source_maps_literal_equal": true,
+  "all_scoped_raw_files_equal_committed_Git": true,
+  "file_count": 3952,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-06T04:26:08.374562+00:00"
+}

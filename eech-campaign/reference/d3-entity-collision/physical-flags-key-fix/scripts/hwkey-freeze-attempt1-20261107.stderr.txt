@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "R:\d3-evidence\freeze-hwkey-20261107.py", line 252, in <module>
+    shutil.copyfile(EXT / "keyfix-fixed-sources-at-the-red-run" / name, copies / name)
+  File "C:\Users\starscream\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\shutil.py", line 260, in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'R:\\d3-evidence\\keyfix-fixed-sources-at-the-red-run\\mb_hostentity.h'

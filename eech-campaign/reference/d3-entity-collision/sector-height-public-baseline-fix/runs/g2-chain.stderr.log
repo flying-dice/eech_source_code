@@ -1,0 +1,5 @@
+wsl: Failed to translate 'R:\d3-evidence\collision-characterization-20261029'
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.86s
+     Running tests/sector_height_observer_cap.rs (/target/debug/deps/sector_height_observer_cap-275732925c10abc4)
+     Running tests/sector_height_observer_chain.rs (/target/debug/deps/sector_height_observer_chain-15dd248560bbfea0)

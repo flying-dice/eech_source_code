@@ -1,0 +1,35 @@
+{
+  "kind": "Bounded lead guidance for ONE sectorheight characterization, not a source verdict",
+  "source_before": "8a525b145c8c54f2b22863c20d908ee3389759e5",
+  "scope": "Characterization only. Earlier ordinary longrun blocker stays OPEN/blocks_cutovertrue.",
+  "guidance": [
+    "A dedicated sector-height-check test feature following the existing optional test-feature mechanism is acceptable; do not couple unrelated features just to satisfy the prompt's shorthand 'existing opt-in'. It must stay off default/shipping, with all fixture entry/code guarded and no production behavior change. Bind this qualification in the freeze.",
+    "Continue invoking actual linked sector messages/getter and actual pack/unpack. Hand-built entity/model/sector data must be declared; message-table invocation is not the actual en_list public funnel. Name a minimal real public trigger/consumer plan for later Root validation, and keep that gap explicit.",
+    "Save/restore every global pointer/table/map and FPU environment the control changes, including failure paths; do not allow another test to inherit synthetic model state. If exact ownership prevents restoration, isolate execution and explain the actual safety bound.",
+    "Characterize supported original float/save semantics without turning finite-only convenience into a new production policy. Preserve high-water behavior and reader/order/FPU/RNG findings; do not manufacture RED for characterization.",
+    "Root removed only closed215a/354ab Windows caches after0owners/retaining14COFF+35proof each; all snapshots/binaries/roots/raw retained. Your active Linux cache and all4original f734 natives are untouched. Root is writing external publication/checkpoints only."
+  ],
+  "facts": {
+    "city_actual_review": "e8efee7408379b7db634e7483f29ff9b5a0a5c9f05253b1bdc207541431b78c6",
+    "all9_8a_CI_success": true,
+    "jira_comment": "11012",
+    "ledger_version": 170
+  },
+  "no_additional_batch_or_review_fleet": true,
+  "execution_note": "Use explicit Windows Python C:/Users/starscream/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe -B -X utf8 for Windows scripts (or an actual verified Linux interpreter inside WSL). PATH python/python3 may be Windows Store stubs; do not change global aliases/auth. No rerun of unchanged checks just for interpreter/prose bookkeeping.",
+  "retained_followup_evidence": [
+    "city-finite-8a525b145-CI-readback-20261106.json: ALL9SUCCESS exact8a, not characterization CI",
+    "cleanup-closed-city-lifecycle-354abd9c0-windows-cache-20261106.json",
+    "cleanup-closed-city-lifecycle-215a8-windows-cache-20261106.json",
+    "ledger-city-finite-v170-preservation-20261106.json: all5reportmacroparams literal; only2equivalentbold/linknesting qualifications."
+  ],
+  "census_qualification": "Label text-pattern/source guards as source/build-derived census, not an actual exhaustive preprocessed-symbol or runtime census. Where compiled inclusion is inferred from build flags rather than directly measured, say so. Such guards cannot close whole-D3 final compiled-consumer disposition. No new broad build matrix is requested for characterization.",
+  "mutation_limit": "Root observed the four already-started original-C sensitivity mutations. Preserve their actuals, finish/restore them; do not add more mutation or matrix batches. These are harness-sensitivity evidence, not a reproduced product defect/required RED. Before final checks, prove all mutated production C bytes restored to the exact original Git blobs and ensure the final real-C control uses restored compiled inputs rather than a last-mutant staged cache. Keep original failed harness/probe records; do not replay completed baseline/native experiments.",
+  "concrete_guard_failure": {
+    "receipt": "fixed-rules-correction-shf3-guard-x86_64.json",
+    "actual_exit": 101,
+    "actual": "5of6pass; newly added bbox-route test fails on exact English comment substring in build/main.rs, not physicalbehavior. RealCcontrol shf2actual0 and unchanged existingguards shf4actual0.",
+    "fix": "Do not assert an English comment as a contract. Pin the actual feature/patch-selection condition or explicit source/builder behavior; comment reflow alone must not fail a semantic guard. Preserve the original failed record.",
+    "validation": "Guard-only changes need formatting, changedguard and affectedclippy; they do not by themselves justify another unchanged real-C control or broadbuild/native replay. If reusing shf2, explicitly bind its own4080PRE inputs to finalsource and prove all C-control/code/build/target inputs remain literal while only unrelated sourceguard text changed. Otherwise run only the missing affectedcheck. Keep finalmaps/source identities honest."
+  }
+}

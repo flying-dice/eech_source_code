@@ -1,0 +1,42 @@
+{
+  "observed_utc": "2026-11-07T00:36:15.026822+00:00",
+  "base": "8a525b145c8c54f2b22863c20d908ee3389759e5",
+  "code": "a8ef0ce662df0528dcae414287ffe45b2847cd8f",
+  "raw_rows_Git_literal": 4077,
+  "raw_rows_inherited_CRLF_only": 3,
+  "total_final_rows": 4080,
+  "qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "Git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+      "raw_bytes": 3691,
+      "Git_bytes": 3608,
+      "raw_CRLF_pairs": 83,
+      "exact_CRLF_to_LF_only": true,
+      "Git_base_and_code_literal_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "Git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+      "raw_bytes": 5848,
+      "Git_bytes": 5720,
+      "raw_CRLF_pairs": 128,
+      "exact_CRLF_to_LF_only": true,
+      "Git_base_and_code_literal_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "Git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+      "raw_bytes": 3683,
+      "Git_bytes": 3600,
+      "raw_CRLF_pairs": 83,
+      "exact_CRLF_to_LF_only": true,
+      "Git_base_and_code_literal_equal": true
+    }
+  ],
+  "raw_specimens_retained": "D:\\EECH-Migration-Evidence\\sector-height-source-binding-a8ef0ce66-20261107\\inherited-lua-raw",
+  "scope": "No source/input normalization or rerun. Three pre-existing eech-world testLua raw CRLF forms in conservative workspace map differ from Git LF; unchanged across char maps/baseCode and unrelated to sys C-control target. Do not claim all4080 literalGit. All other4080-maprows literalGit per Rootjoin; no native/authority/wholeD3 acceptance."
+}

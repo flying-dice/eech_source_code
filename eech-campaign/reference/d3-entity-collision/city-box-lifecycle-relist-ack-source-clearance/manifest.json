@@ -1,0 +1,45 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "city-box-lifecycle-relist-ack-CODE-FROZEN-20261106.json",
+      "bytes": 33425,
+      "sha256": "5c9b91c14e99d8a345e575920d1a0771d305d96466211343fc20b0664e235881"
+    },
+    {
+      "path": "city-relist-native-plan-runtime354ab-literal-e4895-20261106.json",
+      "bytes": 5762,
+      "sha256": "18c234a0b89a729f3087f5b9bb099688f11f7aabdd860f23cc0f65a7d572a3eb"
+    },
+    {
+      "path": "city-relist-Root-final-binding-e4895-90db-20261106.json",
+      "bytes": 1961,
+      "sha256": "edae716dd6a1313d6dfa28f59d378b7442201ee09eccbb2d2e1babc738923040"
+    },
+    {
+      "path": "city-relist-runtime-equivalence-e4895-on-354ab-20261106.json",
+      "bytes": 2220,
+      "sha256": "1a6ff7af841e352ae3a033bdd3ef1b719745fbade514d8dea5885bd89c980ae8"
+    },
+    {
+      "path": "independent-city-lifecycle-relist-ack-source-e4895-20261106.json",
+      "bytes": 22623,
+      "sha256": "5b5cbc95ddf9e64cc5f9545578e854aed362741269d664c966ae83507a3de628"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2336,
+      "sha256": "7fa6b1a4de2bf59bbaaf82ffda91d5827186e819c1698941f2827fbf5a60d3d9"
+    },
+    {
+      "path": "run-city-lifecycle-native-from-plan-v2-20261106.py",
+      "bytes": 6817,
+      "sha256": "f74da35a9e0fa57ce08ba8f5f520eb1228e6ca097718d8e5845c42f1b153bd53"
+    }
+  ],
+  "scope": "Literal safe source-clearance evidence only; no native or wholeD3 acceptance."
+}

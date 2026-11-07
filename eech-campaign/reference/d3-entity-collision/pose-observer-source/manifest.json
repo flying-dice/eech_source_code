@@ -1,0 +1,32 @@
+{
+  "source": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+  "metadata_before_publication": "369560540ad21fb32eef23029fec8d97c4c015ac",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 62,
+      "sha256": "9464b301a283a4eb3e9d7857adc11aee7074bf311ae6da26117d3458bad5be13"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3234,
+      "sha256": "da75738cd366a63f454f10dcc51d8ac5764a12dfa0321e3bf22397bcf73026fa"
+    },
+    {
+      "path": "source-binding.json",
+      "bytes": 5127,
+      "sha256": "7a8a445ee41a9ac625e3de4a08ebafdf9734b12908c21a80655075669acfe3e0"
+    },
+    {
+      "path": "source-review.json",
+      "bytes": 22760,
+      "sha256": "d801a38d1459bfbf8876e38f9db0dc7eb4db9fd70f3d9fb577880f950357201d"
+    },
+    {
+      "path": "windows-source-freeze.json",
+      "bytes": 674,
+      "sha256": "12d7a7a32e989efb2d499752db9c9e4a26458b2e8ee1b18032c73a1d7a21f520"
+    }
+  ],
+  "scope": "Literal source clearance and binding only; no new native result or physical authority acceptance."
+}

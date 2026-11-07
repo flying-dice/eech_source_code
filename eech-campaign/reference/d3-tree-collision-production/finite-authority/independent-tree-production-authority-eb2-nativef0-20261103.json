@@ -1,0 +1,540 @@
+{
+  "schema": "independent-finite-tree-authority-actual-review-v1",
+  "reviewed_utc": "2026-11-03T04:06:58.566595+00:00",
+  "scope": "One combined finite production TREE query-handoff/authority/evidence review: new ten-case native matrix plus reused independently verified healthy configured-view control, source clearances, ordinary short, builds and exact diagnostic/runtime mapping. No new source sweep or old kernel/helper/Task52 re-review.",
+  "source_identity": {
+    "native_production_and_fixtures": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+    "external_diagnostic": "eb2b2eb6781fefce7e6b76abdbbd4d947010a7f7",
+    "external_Lua_Git_blob": "9123f1448ec8ec412b146a2ff290360e5d7769ab",
+    "external_Lua_sha256": "0feb86a0ed7bbf08da4b298531c793f969455524f0fcc6916dc91451bf33ae2a",
+    "ordinary_source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+    "no_binary_relabel": true
+  },
+  "decision": {
+    "verdict": "FINITE_TREE_QUERY_HANDOFF_AND_AUTHORITY_CLOSED",
+    "finite_query_handoff_authority_closed": true,
+    "actual_healthy_and_matrix_verified": true,
+    "findings": [],
+    "new_concrete_glue_FP_blocker_identified": false,
+    "new_direct_TREE_caller_FP_measurement_claimed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_or_dependency_or_merge_accepted": false
+  },
+  "primary_evidence": {
+    "matrix_queue": {
+      "path": "D:/EECH-Migration-Evidence/tree-view-authority-matrix-eb2-nativef0-20261103/queue.json",
+      "bytes": 22165,
+      "sha256": "f7c72f902b71c86efa0ede2ff911c8fdf07d84dbcb1f6b4e917d0dd0cd57a9dc"
+    },
+    "queue_terminal_actual_exit": 0,
+    "queue_completed_utc": "2026-11-03T04:02:36.377518+00:00",
+    "new_cases": [
+      {
+        "case": "new_only",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "expected_exit": 0,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "b3adc4ee24d19d9f167bf4273cc3b2bf5d176477bb882cb847b5d6e46c5154cc",
+        "complete_raw_sha256": "17f02a0e17cf3de4448f5b6117609640b2ff67d32e75264f4c11ae0749fc9f8a",
+        "result_receipt_sha256": "d7bac868e9eb2033cf142f610722e9efd92fe2e02ef4b5bcc472dc7f196c33f6",
+        "observed": {
+          "tests_delta": 7,
+          "tree_begin_after": 7,
+          "tree_terrain_after": 7,
+          "queries": 7,
+          "precision_high_delta": 7,
+          "view_applied": 29,
+          "need_terrain_replies": 7,
+          "done_replies": 7,
+          "ends_none": 0,
+          "ends_old": 0,
+          "ends_new": 7,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 7,
+          "altered_terrain": 7,
+          "failure_marker": ""
+        },
+        "terminal_signature_sha256": "7281fa91520b7fe60f425e4aef62b449cd20d565536dd44463b9976212b38239"
+      },
+      {
+        "case": "forced_hit",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "expected_exit": 0,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "ea80034c6992a1dd5a0c612b4ef8e6f824b701e73f2aec8dcd63e48f1abb6d7b",
+        "complete_raw_sha256": "a383650c0a45d0def4dff84f4a5aa3c467ff7e738de9ebd79c9034c275617efc",
+        "result_receipt_sha256": "cc1104b07d1bf6f73ea87205d2a3d150480d09fe6de94524acaf653761baa14b",
+        "observed": {
+          "tests_delta": 1,
+          "tree_begin_after": 1,
+          "tree_terrain_after": 0,
+          "queries": 1,
+          "precision_high_delta": 1,
+          "view_applied": 4,
+          "need_terrain_replies": 0,
+          "done_replies": 1,
+          "ends_none": 1,
+          "ends_old": 0,
+          "ends_new": 0,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 1,
+          "altered_terrain": 0,
+          "failure_marker": ""
+        },
+        "terminal_signature_sha256": "b23e799ec68d6cff158a6c29a359e94bee4e953274d0eee7433e26267cc8e934"
+      },
+      {
+        "case": "withheld_tree",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "expected_exit": 0,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "2b47eb6dd1acedd454d9a185d94806ed3fdf42eed18ed9e66ee682e546d8ff0e",
+        "complete_raw_sha256": "b50386cde43a860559117ef59f4626ca53de8906359169fac65d37f274df3da3",
+        "result_receipt_sha256": "bc119323d047d648a14d2ff08b8556e40a200d60fed15c2f4520f0809d0b258b",
+        "observed": {
+          "tests_delta": -1,
+          "tree_begin_after": 1,
+          "tree_terrain_after": 0,
+          "queries": 0,
+          "precision_high_delta": -1,
+          "view_applied": 2,
+          "need_terrain_replies": 0,
+          "done_replies": 0,
+          "ends_none": 0,
+          "ends_old": 0,
+          "ends_new": 0,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 1,
+          "altered_terrain": 0,
+          "failure_marker": "tree_begin.callback"
+        },
+        "terminal_signature_sha256": null
+      },
+      {
+        "case": "bad_tree_state",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "expected_exit": 0,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "6b16f9254800b4a4a788fa3579d29d91c51c4e61850de37eb0fdbec697c992b4",
+        "complete_raw_sha256": "fd70abe03cb6a2486a82097bc1c12f34e61a7e011ad36d73c68e1a931e66b27f",
+        "result_receipt_sha256": "5d48756f93c49ae6f414af357b1a8c3302d36a7da4390d75e1a84d4377845d38",
+        "observed": {
+          "tests_delta": -1,
+          "tree_begin_after": 1,
+          "tree_terrain_after": 0,
+          "queries": 1,
+          "precision_high_delta": -1,
+          "view_applied": 2,
+          "need_terrain_replies": 0,
+          "done_replies": 0,
+          "ends_none": 0,
+          "ends_old": 0,
+          "ends_new": 0,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 1,
+          "altered_terrain": 0,
+          "failure_marker": "tree_begin.answer"
+        },
+        "terminal_signature_sha256": null
+      },
+      {
+        "case": "bad_tree_word",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "expected_exit": 0,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "4ba69fea0e65ca1f0d19d462e63841ba1da8b62813da39949447b713398651d5",
+        "complete_raw_sha256": "a17be6feef7d5d9744a76aa92b27acb374d6dcf1b429922299acf21350773a10",
+        "result_receipt_sha256": "5832c82f91164113f90b01589d29355adcb142458c857486eec58b1c6bc52a58",
+        "observed": {
+          "tests_delta": -1,
+          "tree_begin_after": 1,
+          "tree_terrain_after": 0,
+          "queries": 1,
+          "precision_high_delta": -1,
+          "view_applied": 2,
+          "need_terrain_replies": 1,
+          "done_replies": 0,
+          "ends_none": 0,
+          "ends_old": 0,
+          "ends_new": 0,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 1,
+          "altered_terrain": 0,
+          "failure_marker": "tree_begin.answer"
+        },
+        "terminal_signature_sha256": null
+      },
+      {
+        "case": "done_not_boolean",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "expected_exit": 0,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "46c30e11668ba5bc17699ff6975647cae0747ae8fb31a54d60a49ee86e17849b",
+        "complete_raw_sha256": "f69bf16ff6cbfad7a05e0e31b2e0c801ab97ec8abbcd1aab6d20c5366051ef5a",
+        "result_receipt_sha256": "4c797684e9f8d5dc2af9e795211a038405f1aca2d415633b75ae322028140eb3",
+        "observed": {
+          "tests_delta": -1,
+          "tree_begin_after": 1,
+          "tree_terrain_after": 0,
+          "queries": 1,
+          "precision_high_delta": -1,
+          "view_applied": 2,
+          "need_terrain_replies": 0,
+          "done_replies": 1,
+          "ends_none": 1,
+          "ends_old": 0,
+          "ends_new": 0,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 1,
+          "altered_terrain": 0,
+          "failure_marker": "tree_begin.answer"
+        },
+        "terminal_signature_sha256": null
+      },
+      {
+        "case": "new_then_old",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "expected_exit": 0,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "70411edfc4df68c3cdab3574547db7054ebded0365a971b6b3a9ce722ab74952",
+        "complete_raw_sha256": "cf2296f79d9ab0c9c7013c96dd33fe5ecb10f0c6321593a7aad3443bb15e1d8f",
+        "result_receipt_sha256": "7faabc6d80cb3e328dba867ea30fa96f58237af23adbbc40470538e04b9f249f",
+        "observed": {
+          "tests_delta": -1,
+          "tree_begin_after": 1,
+          "tree_terrain_after": 1,
+          "queries": 1,
+          "precision_high_delta": -1,
+          "view_applied": 2,
+          "need_terrain_replies": 2,
+          "done_replies": 0,
+          "ends_none": 0,
+          "ends_old": 0,
+          "ends_new": 0,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 1,
+          "altered_terrain": 1,
+          "failure_marker": "tree.lookups"
+        },
+        "terminal_signature_sha256": null
+      },
+      {
+        "case": "old_twice",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "expected_exit": 0,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "32bc22d9c0f7cb0b695a0f7f73237205ddb965fe6963f5b4ba8d2d6cd181f253",
+        "complete_raw_sha256": "604327ee4e76a5e6cc38bea9d397ab98a757d4eaa0572e0bcc927aefe97a2dba",
+        "result_receipt_sha256": "b521095fce5900d152bfdf98ce67709d6198907c907bb0d1d60453843509dc75",
+        "observed": {
+          "tests_delta": -1,
+          "tree_begin_after": 1,
+          "tree_terrain_after": 1,
+          "queries": 1,
+          "precision_high_delta": -1,
+          "view_applied": 2,
+          "need_terrain_replies": 2,
+          "done_replies": 0,
+          "ends_none": 0,
+          "ends_old": 0,
+          "ends_new": 0,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 1,
+          "altered_terrain": 1,
+          "failure_marker": "tree.lookups"
+        },
+        "terminal_signature_sha256": null
+      },
+      {
+        "case": "third_lookup",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "expected_exit": 0,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "8d9f377f40813ff8cffb5ab134dd8f2422bd35fec8d6bf4bc00a19f807b2c447",
+        "complete_raw_sha256": "cdfce8bf7cb3cedc174b45e1b07d292275a4e6df04e30e83775d55e9116c7ecd",
+        "result_receipt_sha256": "4b4d7ec86557c10394c250dce380b9abcc4c0be10d21230d92615c15ce53f280",
+        "observed": {
+          "tests_delta": -1,
+          "tree_begin_after": 1,
+          "tree_terrain_after": 2,
+          "queries": 1,
+          "precision_high_delta": -1,
+          "view_applied": 2,
+          "need_terrain_replies": 3,
+          "done_replies": 0,
+          "ends_none": 0,
+          "ends_old": 0,
+          "ends_new": 0,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 1,
+          "altered_terrain": 2,
+          "failure_marker": "tree.lookups"
+        },
+        "terminal_signature_sha256": null
+      },
+      {
+        "case": "original-control",
+        "native_actual_exit": 1,
+        "controller_actual_exit": 1,
+        "expected_exit": 1,
+        "full_input_check_exits": [
+          0,
+          0
+        ],
+        "payloads_verified": 87,
+        "controller_sha256": "fed1e159221116236581d8bd6ea481a4c2a08b931276b35e1a74ad53fae77937",
+        "complete_raw_sha256": "5619c44a4aac6ffb56ec5fe6ef40ded28891548a3494a519cef01a682914de9e",
+        "result_receipt_sha256": "4b05be3e7f841a767e4c088606ad91632043056ea2f0d9783c372647a5bd208d",
+        "observed": {
+          "tests_delta": 7,
+          "tree_begin_after": 0,
+          "tree_terrain_after": 0,
+          "queries": 0,
+          "precision_high_delta": 7,
+          "view_applied": 29,
+          "need_terrain_replies": 0,
+          "done_replies": 0,
+          "ends_none": 0,
+          "ends_old": 0,
+          "ends_new": 0,
+          "ends_old_new": 0,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "altered_begin": 0,
+          "altered_terrain": 0,
+          "failure_marker": ""
+        },
+        "terminal_signature_sha256": "7281fa91520b7fe60f425e4aef62b449cd20d565536dd44463b9976212b38239"
+      }
+    ],
+    "reused_healthy_controller": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnosticeb2-view-control-20261103/controller.json",
+      "bytes": 4323,
+      "sha256": "fd245e85795b14c96dd789ce081f8ce1bb28a891fbf79e037e034e028e38ef35"
+    },
+    "reused_healthy_complete_raw": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnosticeb2-view-control-20261103/model.jsonl",
+      "bytes": 1742,
+      "sha256": "e03f3bbd0e1457cbe223debd522791aa33c0c6e32efea8ee784bfb03c4995752"
+    },
+    "reused_healthy_independent_review": {
+      "path": "R:/d3-evidence/independent-tree-view-healthy-actual-eb2-nativef0-20261103.json",
+      "bytes": 7830,
+      "sha256": "b6a845bd205f58af4bfe40280b72f93184b89796be1ec52b3d191ea93b2e127c"
+    }
+  },
+  "actual_totals": {
+    "native_controls": 11,
+    "native_actual_exit_zero": 10,
+    "expected_real_Original_native_exit_one": 1,
+    "matrix_outer_controller_actual_exit": 0,
+    "full_input_checks_for_controls": 22,
+    "unchanged_payloads_per_profile": 87,
+    "new_matrix_full_input_checks_independently_joined": 20,
+    "ordinary_short_additional_full_input_checks": 2,
+    "total_control_plus_short_full_input_checks": 24
+  },
+  "independent_actual_join": [
+    "Every new per-case controller is terminal and its native/controller actual exit equals its expected exit. Original remains native/controller1, not relabeled a successful native run. Outer matrix controller0 means all expected outcomes collected.",
+    "All twenty new full pre/post manifests match the retained reference file lists, sizes/hashes and combined digest:1179 files/102239559 bytes per check. Healthy two checks were independently verified earlier. Ordinary short two full reports were also directly joined in this pass.",
+    "Hosted and explicit Original BUILD-INFO hashes and every one of their87 current payload hashes were independently rechecked; each case uses the same literal reviewed external eb2 script. Complete raw JSONL hashes/parsed authority and terminal rows agree with each retained result receipt.",
+    "The ordinary profile87 payload hashes were also rechecked. Source/runtime/profile hashes remain distinguished; differing actual build-image IDs are preserved, not treated as interchangeable from matching compiler labels.",
+    "Whole raw cross-profile files are not declared equal. Physical terminal comparison uses exactly type/code/steps/pos/velocity/lifetime, unchanged strings, excluding ordinal and event identity only. No coordinate normalization, rounding or golden update is performed."
+  ],
+  "healthy_control": {
+    "observed": {
+      "tests_delta": 7,
+      "tree_begin_after": 7,
+      "tree_terrain_after": 14,
+      "queries": 7,
+      "precision_high_delta": 7,
+      "view_applied": 29,
+      "need_terrain_replies": 14,
+      "done_replies": 7,
+      "ends_none": 0,
+      "ends_old": 0,
+      "ends_new": 0,
+      "ends_old_new": 7,
+      "cohort_size": 1,
+      "case_weapons_ended": 1,
+      "case_weapons_pending": 0,
+      "foreign_terminals": 0,
+      "duplicate_terminals": 0,
+      "altered_begin": 0,
+      "altered_terrain": 0,
+      "failure_marker": ""
+    },
+    "all_order_pairing_coordinate_hint_faults_zero": true,
+    "terminal_signature_sha256": "7281fa91520b7fe60f425e4aef62b449cd20d565536dd44463b9976212b38239",
+    "result": "Seven real weapon TREE tests equal seven host begins/done replies, with fourteen actual OLD-then-NEW terrain reads; precision_high7/view_applied29. One coherent cohort completes, zero pending/foreign/duplicate terminals. Provider TREE answers unmodified under the configured-view context."
+  },
+  "matrix_interpretation": [
+    "new_only: seven real TREE tests, seven host begins and seven NEW-only lookups, no OLD requests or sequence/pairing/coordinate/hint faults. One complete cohort and its selected physical terminal signature equal healthy. This is a valid controlled endpoint-sequence answer, not a natural map-entry frequency claim.",
+    "forced_hit: one actual TREE test/begin answered hit, no terrain lookups, and the real cohort terminal signature changes from healthy hit_land/7steps to self_destruct/1step with changed position/velocity/lifetime. Those numeric/position fields remain private; only the selected-signature hashes are published. Core determines the terminal consequence; no event or terminal is fabricated.",
+    "Seven refusals: withheld_tree stops at tree_begin.callback; bad_tree_state/bad_tree_word/done_not_boolean at tree_begin.answer; new_then_old/old_twice/third_lookup at tree.lookups. Every stop has the exact anchored Engine-owned first line, intended cause and altered-provider application. The diagnostic native/controller exits0 only because the expected stop was caught and verified.",
+    "Refused runs correctly leave postfatal TREE/precision counters and pending-members as -1 (not measured); they contain no terminal fact. Fault counters for deliberately malformed order are not described as healthy zeros. No postpoison Engine census/query/restoration/buffer-zero/cleanup success is claimed.",
+    "Original: declared weapon-fixture+collision-fixture API is present, seven real original TREE tests and precision_high7 occur, but the host receives zero TREE questions. Expected native/controller1 explicitly says CAPABILITY RED, not setup/UNREACHED. Under the identical configured-view context its selected physical terminal signature equals healthy exactly."
+  ],
+  "ordinary_conformance_reuse": {
+    "comparison": {
+      "path": "R:/d3-evidence/tree-ordinary-short-comparison-f0f928147f-20261103.json",
+      "bytes": 1903,
+      "sha256": "bb0dd20699708851c69e3fc826c26607f9dc7b7b87f5a1890a734bf7ab8c3964"
+    },
+    "native_actual_exit": 0,
+    "controller_actual_exit": 0,
+    "all_three_COMPLETE_outputs_directly_recompared_literal": true,
+    "scope": "Exact retained0.001-hour ordinary Lebanon scenario; all3 complete bytes including endings equal80fd. Not a full40/all8/full-war result.",
+    "files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "literal_complete_equal": true
+      }
+    ]
+  },
+  "build_and_scope_reuse": {
+    "f0_build_receipt": {
+      "path": "R:/d3-evidence/tree-f0-builds-and-payloads-20261103.json",
+      "bytes": 3097,
+      "sha256": "5890e13d2ae0cac0f2265b03a5ab72458daeed9c2a5b15b50ed1691a62e8ace6"
+    },
+    "eb2_scope_and_focused": {
+      "path": "R:/d3-evidence/tree-view-eb2-nativef0-scope-and-focused-20261103.json",
+      "bytes": 1747,
+      "sha256": "752422d477e6478bca2aab0c8b9f9c75ee5c03697c8a6d06e6b3c88349042bdb"
+    },
+    "source_clearance": {
+      "path": "R:/d3-evidence/independent-tree-production-source-f0f928147-20261103.json",
+      "bytes": 8811,
+      "sha256": "ad1c1503522a324bdbb08ee7e8ca0ebe16d2cb04f93c36fe03bde622fbff4e3c"
+    },
+    "diagnostic_clearance": {
+      "path": "R:/d3-evidence/independent-tree-authority-view-eb2b2eb67-20261103.json",
+      "bytes": 8749,
+      "sha256": "5120c508b161e29409dc17a80846ecfff43bce61414919a69be867d00045ac2e"
+    },
+    "scope": "f0 actual ordinary/hosted/Original Windows builds and Linux hosted fixture compile0 reused at their own identities; prior d7 four-crate/source checks and eb2 focused17/fmt/Worldstrict0 retain exact scopes. No current final CI or new full-suite claim."
+  },
+  "FPU_qualification": {
+    "closed_component": "Existing closed TREE kernel establishes its own full-FP behavior; the numerical kernel is unchanged. Accepted generic engine-entry caller-state preservation is also unchanged source.",
+    "not_a_new_measurement": "This matrix does not record TREE caller x87 control/status/MXCSR before/after. Ordinary output equality and terminal parity are not full caller-FP measurements. Existing model_host_fpu measures model probes/counters only and is NOT relabeled TREE evidence.",
+    "disposition": "No new actual glue-FP mismatch or concrete source-backed break requiring another diagnostic programme is identified in this bounded handoff/authority pass. Closure is limited to the explicit value/control/consequence evidence above; it does not assert new all-path/full public TREE FP-state proof."
+  },
+  "scope_limits": [
+    "Configured VIEW_WEAPON=true is a declared host input for every armed weapon step, not a measured camera/player condition. The protocol does not identify an individual weapon; global armed-window TREE/precision/provider counters are not attributed uniquely to the case. Cohort terminal accounting is a separate actual join.",
+    "Controlled answer authority is established; arbitrary models/scenarios/weapon families and all natural collision paths are not covered. No visual/Tacview inspection, live DCS behavior or blanket physical-loader dormancy is claimed.",
+    "Two earlier real controls remain native/controller1 UNREACHED with zero TREE tests; old selector RED chronology and source CHANGES_REQUIRED reports stay immutable. No failure or old identity is retrospectively promoted into acceptance.",
+    "Required raw Core loader/forest/cloud constructor and conditional CRT effects, entity/object collision, hierarchy coupling, concrete DCS TREE mapping, dependencies and full Task49 pack remain OPEN. This is not whole Task49/D3 delivery or merge clearance."
+  ],
+  "next_required_work": "Proceed with the separately required remaining physical extraction/delivery work. No repeat of these completed controls or old kernel/helper/source audits is needed solely for handover; new material changes or concrete failures justify their own bounded follow-up.",
+  "review_execution": "Same sole independent reviewer; completed immutable raw/controller/input/payload and literal-script reads only. No source edits, builds/tests/native runs, cache/VM/daemon/auth/app operations or subagents. Active entity/object implementation WIP and both protected long packs were not touched.",
+  "safe_report": "Selected counts, markers, source/build/log/raw hashes and terminal-signature hashes only; no raw retail coordinates, geometry, private pose/catalogue, allocation identities, pointers, credentials or binaries. New canonical-LF immutable report."
+}

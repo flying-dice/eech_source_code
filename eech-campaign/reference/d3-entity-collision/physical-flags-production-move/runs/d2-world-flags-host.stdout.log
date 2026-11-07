@@ -1,0 +1,12 @@
+
+running 7 tests
+test a_provider_with_no_roster_state_refuses_a_flag_question_by_name_instead_of_answering_zero ... ok
+test a_boot_and_a_new_roster_identity_never_clear_the_store_because_the_originals_static_arrays_are_not_cleared ... ok
+test the_answer_to_every_phase_has_exactly_the_three_words_of_its_grammar ... ok
+test the_three_words_and_the_groups_are_independent_and_a_read_of_one_destroys_nothing_of_another ... ok
+test a_set_and_a_destructive_read_through_the_public_provider_answer_the_originals_raw_masks_and_destroy_the_neighbours ... ok
+test a_reset_reaches_only_the_groups_inside_the_originals_extent_and_the_array_it_names ... ok
+test every_malformed_unknown_or_wrong_identity_question_is_refused_by_name_and_changes_nothing_and_the_corrected_question_is_accepted ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

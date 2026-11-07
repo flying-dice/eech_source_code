@@ -1,0 +1,408 @@
+{
+ "schema": "sector-roster-driver-join-CODE-FROZEN/v1",
+ "written_utc": "2026-11-06T02:02:07Z",
+ "lane": "Sonnet 5.5 High, same context as the 92d0739a1 correction lane (Task49/PR109)",
+ "status": "UNREVIEWED CODE_FROZEN. Focused Linux checks only. Not a native clearance and not a Task49/D3/ordinary/full-pack acceptance. It corrects the ONE residual of the SAME review of 92d0739a1; the corrected source is not reviewed.",
+ "branch": "codex/d3-object-tree-collision",
+ "worktree": "R:/d3-evidence/collision-characterization-20261029",
+ "newCodeSHA": "5182b526d08aefdd40ea93803188227fd74abae5",
+ "actual_direct_parent_git_rev_parse": "1aa35d4dbcb336efeb9ba5e8c5d328c9936df09b",
+ "reviewed_92d_commit": "92d0739a18a34905223f76d0cbbc081375e3c845",
+ "metadataSHA": "aff5ac2fa0d0fbeb60e7f3fffb16e1dc90ef9caa",
+ "metadata_delta_over_code": [
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json"
+ ],
+ "pushed": "normal pushes, no force; code before metadata",
+ "joined_review": {
+  "path": "R:/d3-evidence/independent-sector-roster-corrected-source-92d-20261106.json",
+  "bytes": 16988,
+  "sha256": "6582a2e662459294fd9247d680d0243da09d568363a3ce3cfacb1c82b1e9b5a6",
+  "decision": "CHANGES_REQUIRED_NARROW_DRIVER_RESIDUAL; FP and provider groups and grammar compatibility closed"
+ },
+ "root_checker_note_read": {
+  "path": "R:/d3-evidence/sector-roster-corrections-ROOT-CHECKER-NOTE-20261106.txt",
+  "bytes": 1579,
+  "sha256": "db6c20f1598b4e9d8bdaf52202ddb340ecf8921321a825281f362232b08bd0a0"
+ },
+ "residual_corrected": {
+  "id": "ENV-SECTOR-ROSTER-DRIVER-CONTRACT-1 (refusal-credit residual)",
+  "change": "lua/entity-authority.lua scan_question: `local joined = parsed ~= nil and request_join_problem (parsed) or nil` is kept for the whole function (the request fault is still counted from it) and the alteration gate is now `if parsed == nil or joined or problem then return real end`, so a well-formed question failing the last-served/ended standing-key join is excluded from scan alteration exactly like a parse or reply failure. No new file-level local (Lua 5.1 limit 60 untouched); provider pass-through, delegation counts, key grammar, lifecycle counters and every physical/query criterion are unchanged (the 56 earlier driver tests pass unchanged).",
+  "test": "entity_authority.rs a_standing_key_that_fails_the_request_join_is_a_request_fault_and_is_never_altered_or_credited_as_a_scan_refusal: positive first, the valid withheld_scan is still recognised at its first armed scan question (marker entity_scan.callback, scan_altered 1, request_faults 0); then a scan first seen at ENTRY standing at a well-formed roster key that is not the last served ('last_served'), or that has ended ('ended'), gives request_faults >= 1 with the exact 'scan request:' join text, scan_altered 0, no engine failure marker, and the verdict 'the engine did not stop at entity_scan.callback' (no refusal credit). Fixture: scan_from_entry (a scan the wrapper first sees mid-way; it ends after RESOLVED).",
+  "red": "qjoin-red2-authority: with the 92d Lua restored (git checkout of that one file, the fixed copy compared byte-identical afterwards) and the final test and fixture, 56 passed and 1 failed at entity_authority.rs:2172 'last_served: the malformed question was altered' (scan_altered 1, failure_marker entity_scan.callback): the false credit reproduced; the positive withheld_scan part passed first. qjoin-red-authority is the same failure with the first version of the fixture."
+ },
+ "attempt_history_kept": {
+  "first_version_of_the_test": "expected scan_altered 0 for the whole walk. qjoin-final-2-authority (with the fix and the first fixture, 56 passed 1 failed) still failed: withheld_scan has no eligibility rule, so after the bad ENTRY and RESOLVED questions it legitimately altered the later END question (no standing key, no join), exactly as it does after a parse fault. That was a test-design error, not a failure of the fix; the fixture now ends a mid-way scan after RESOLVED so the bad-join questions are the only candidates. Its maps (qjoin-20261106-inputmap-before/after-final) were literally equal and are kept as the record of that failed frozen attempt, not as the final proof.",
+  "formatting": "qjoin-pre-fmt-check exit 1 on my own new test lines only (entity_authority.rs); applied by qjoin-fmt-apply (only the two intended files changed).",
+  "verdict_qualification": "a refusal mode still credits a LATER valid question that it alters even when an earlier question of the run was a request fault; this is the pre-existing behaviour for parse and reply faults too and the verdict was deliberately not widened (minimum fix). Say so to the reviewer rather than treat it as closed by this change."
+ },
+ "tests_actual": {
+  "red": [
+   {
+    "label": "qjoin-red-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T01:57:29.993402+00:00",
+    "completed_utc": "2026-11-06T01:57:36.088272+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-red-authority.json",
+     "bytes": 958,
+     "sha256": "53753738f62e5aeb3cf8ceca1217637f91acef558c3a63549da0ec6e566f1964"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-red-authority.stdout.log",
+     "bytes": 7543,
+     "sha256": "6da3b887c04e84dd2ea420269135fb7ba26130a6aaf449acbbcd80036e47c275"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-red-authority.stderr.log",
+     "bytes": 11577,
+     "sha256": "a6cfabd96954fa27929e4e171726eeae81e56116c01ac05f015790172a65caec"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 56,
+      "failed": 1
+     }
+    ],
+    "failed_tests": [
+     "a_standing_key_that_fails_the_request_join_is_a_request_fault_and_is_never_altered_or_credited_as_a_scan_refusal"
+    ]
+   },
+   {
+    "label": "qjoin-red2-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T02:00:12.237994+00:00",
+    "completed_utc": "2026-11-06T02:00:18.497399+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-red2-authority.json",
+     "bytes": 959,
+     "sha256": "ce64163fde435849e39fb57e75d1edf06a9c3e6d1483f17ba9e8c1424ac5a959"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-red2-authority.stdout.log",
+     "bytes": 7543,
+     "sha256": "902dfec5af5869c2cc02876ebb475ce2d2926ac30b5d18e4c1b51cbbfe5a2f27"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-red2-authority.stderr.log",
+     "bytes": 11577,
+     "sha256": "40f35a98eb707365f61e813b4d6fca81fe12fb5038c87e3e919331f97a5d931d"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 56,
+      "failed": 1
+     }
+    ],
+    "failed_tests": [
+     "a_standing_key_that_fails_the_request_join_is_a_request_fault_and_is_never_altered_or_credited_as_a_scan_refusal"
+    ]
+   }
+  ],
+  "failed_first_frozen_attempt": [
+   {
+    "label": "qjoin-pre-fmt-check",
+    "command": "cargo fmt -p eech-world -- --check",
+    "actual_exit": 1,
+    "started_utc": "2026-11-06T01:57:55.290285+00:00",
+    "completed_utc": "2026-11-06T01:57:58.629524+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-pre-fmt-check.json",
+     "bytes": 861,
+     "sha256": "3dd63b9678a59f2c79885a700eb58ef48db0b5b627ceed6377c2f6eeb36fa143"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-pre-fmt-check.stdout.log",
+     "bytes": 627,
+     "sha256": "d6cca82e6d04cd9a9ebd6ae4e14c9cb02f49f04ab5ad64cb666670be946d680c"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-pre-fmt-check.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qjoin-fmt-apply",
+    "command": "cargo fmt -p eech-world",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:58:01.825358+00:00",
+    "completed_utc": "2026-11-06T01:58:05.486029+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-fmt-apply.json",
+     "bytes": 838,
+     "sha256": "00914076a0845daf881a5c89ae1af4562715a56fea178643ae6b8c0d89d970fe"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-fmt-apply.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-fmt-apply.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qjoin-final-1-fmt",
+    "command": "cargo fmt -p eech-world -- --check",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:58:18.738489+00:00",
+    "completed_utc": "2026-11-06T01:58:22.366801+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-final-1-fmt.json",
+     "bytes": 860,
+     "sha256": "7ec367dd21138d1170baa68d90841492c7c82aa87a04267eff56028d30675f92"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-final-1-fmt.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-final-1-fmt.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qjoin-final-2-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T01:58:22.472726+00:00",
+    "completed_utc": "2026-11-06T01:58:28.541817+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-final-2-authority.json",
+     "bytes": 929,
+     "sha256": "f61709d3d017cde247a74d79f784d13756a833f707d4ede82485fc1a3e448c62"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-final-2-authority.stdout.log",
+     "bytes": 7543,
+     "sha256": "37e5ac120b28e366ff6c4d14f42590a741f6a9342cf852d730984b8071e43eb8"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin-final-2-authority.stderr.log",
+     "bytes": 11509,
+     "sha256": "92cc9fc72f3fc4f54a0af21fbfed107c435b4704feb92ce05e29023d9be75e4e"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 56,
+      "failed": 1
+     }
+    ],
+    "failed_tests": [
+     "a_standing_key_that_fails_the_request_join_is_a_request_fault_and_is_never_altered_or_credited_as_a_scan_refusal"
+    ]
+   }
+  ],
+  "final_on_frozen_bytes": [
+   {
+    "label": "qjoin2-pre-fmt-check",
+    "command": "cargo fmt -p eech-world -- --check",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:00:27.311959+00:00",
+    "completed_utc": "2026-11-06T02:00:30.562794+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin2-pre-fmt-check.json",
+     "bytes": 861,
+     "sha256": "a339cd1dba47af2aaebf9de643540d7e0f9d07805e48be66c99d235fe67457e7"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin2-pre-fmt-check.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin2-pre-fmt-check.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qjoin2-final-1-fmt",
+    "command": "cargo fmt -p eech-world -- --check",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:00:33.237560+00:00",
+    "completed_utc": "2026-11-06T02:00:36.448125+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-1-fmt.json",
+     "bytes": 861,
+     "sha256": "fb54b7c34f3cf69306493f2b5e7222a660c6a000ee62b2493f4307336587257e"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-1-fmt.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-1-fmt.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qjoin2-final-2-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:00:36.547563+00:00",
+    "completed_utc": "2026-11-06T02:00:41.761385+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-2-authority.json",
+     "bytes": 927,
+     "sha256": "6675ea2440ea96647a2208065b8cb4fa23d33fcbede1692102a8044660af548c"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-2-authority.stdout.log",
+     "bytes": 6828,
+     "sha256": "76fa69903be446195afa17ac5ca1274e53cbd94088fdde5e1f8ce0eea514396c"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-2-authority.stderr.log",
+     "bytes": 11342,
+     "sha256": "0c178708c3c1bb640057ddff9183a95a27a0d5f968d35e08b8dd91506ee37f0b"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 57,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   }
+  ],
+  "final_summary": "cargo fmt -p eech-world -- --check exit 0; cargo test --release --locked -p eech-world --test entity_authority exit 0, 57 passed 0 failed (the 56 earlier plus the one new); each its own scoped helper child, separate raw stdout/stderr, actual exit from the helper, no pipeline; no compiler warnings in the final stderr"
+ },
+ "final_fast_maps_literal_proof": {
+  "helper": {
+   "path": "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py",
+   "bytes": 5094,
+   "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "same_arguments_and_schema_as_the_original_inputmap": true,
+  "order": "edits and formatting finished; map BEFORE the selected checks; the two selected checks; map AFTER them; no source edit or commit between the two maps (the code commit came after the after-map)",
+  "before": {
+   "path": "R:/d3-evidence/qjoin2-20261106-inputmap-before-final.json",
+   "bytes": 2028902,
+   "sha256": "2b8d571e5c495d74ed74645fa23210488e9c2c43d40b1adb613cdb246823f866"
+  },
+  "after": {
+   "path": "R:/d3-evidence/qjoin2-20261106-inputmap-after-final.json",
+   "bytes": 2028902,
+   "sha256": "2b8d571e5c495d74ed74645fa23210488e9c2c43d40b1adb613cdb246823f866"
+  },
+  "file_count": [
+   3952,
+   3952
+  ],
+  "files_object_literally_equal": true,
+  "fingerprint_before": "2b94a1795a6ce04f6672cc2b8ea818c6d18c5da5dfec700e6299ac51d935489d",
+  "fingerprint_after": "2b94a1795a6ce04f6672cc2b8ea818c6d18c5da5dfec700e6299ac51d935489d",
+  "fingerprints_equal": true,
+  "head_rev_arg": "HEAD (1aa35d4db at both captures)",
+  "head_sha_at_capture": [
+   "1aa35d4dbcb336efeb9ba5e8c5d328c9936df09b",
+   "1aa35d4dbcb336efeb9ba5e8c5d328c9936df09b"
+  ],
+  "raw_changes_against_the_92d_after_map": [
+   "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "qualification_pre_existing_raw_vs_filter_differences_preserved_not_normalized": [
+   "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+   "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+   "modules/system/malloc.c.h",
+   "modules/system/nedmalloc.c"
+  ],
+  "failed_first_attempt_maps_for_the_record": {
+   "before": {
+    "path": "R:/d3-evidence/qjoin-20261106-inputmap-before-final.json",
+    "bytes": 2028902,
+    "sha256": "fc719c4031b23c3380c7e7cc10b3541f5545e49ce05722c312fc17496101a7fc"
+   },
+   "after": {
+    "path": "R:/d3-evidence/qjoin-20261106-inputmap-after-final.json",
+    "bytes": 2028902,
+    "sha256": "fc719c4031b23c3380c7e7cc10b3541f5545e49ce05722c312fc17496101a7fc"
+   },
+   "literally_equal": true
+  },
+  "earlier_maps_qualification": "the earlier qrofix before/after maps were not literal-frozen around their selected checks (the reviewer's qualification stands); these are."
+ },
+ "changed_files_git_byte_join": [
+  {
+   "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "reviewed_92d_blob": "beb7fdc877079f9ef57849a5c5b3e0dd0d0150e3",
+   "before_git_blob_at_direct_parent": "beb7fdc877079f9ef57849a5c5b3e0dd0d0150e3",
+   "before_bytes": 149909,
+   "before_sha256": "bde7abfc24b80d9bcb49d28dcebdf8f905a8c3927eb6751a31f69f9601fed074",
+   "after_git_blob_at_code_commit": "ff7c60410280098a9170fa7f8ffcb8df938feaff",
+   "after_bytes": 150180,
+   "after_sha256": "bada79dfa6331aa647560e04dcac6dc0668a89ec17b102bc7c2f25e50efc188d",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "git_hash_object_of_raw_bytes": "ff7c60410280098a9170fa7f8ffcb8df938feaff",
+   "lines_added_removed": [
+    4,
+    3
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+   "reviewed_92d_blob": "fb9c1cbdefaec0faf075f5053aa9ffb3ea2c6be0",
+   "before_git_blob_at_direct_parent": "fb9c1cbdefaec0faf075f5053aa9ffb3ea2c6be0",
+   "before_bytes": 206316,
+   "before_sha256": "fb0df3d66509538858a890e3ab48ef3d4e286bd8abb981be1f50b5c9afacee7a",
+   "after_git_blob_at_code_commit": "92128c05543a06336ad48fd6812adbb42b56a13c",
+   "after_bytes": 208842,
+   "after_sha256": "bcc344a10329b6835b02b71e01f32287e4479b7affa121f7e733a9d9ff353b49",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "git_hash_object_of_raw_bytes": "92128c05543a06336ad48fd6812adbb42b56a13c",
+   "lines_added_removed": [
+    56,
+    16
+   ]
+  }
+ ],
+ "no_other_changes": "no C, FFI, engine, dc, sys, provider (model_host.rs, roster.rs) or other test file changed; the 92d results of entity_roster_host 9, the roster library filter 7, model_target_point 33 and the 7bec C passes remain at their own identity and were not rerun or relabelled",
+ "not_run_not_claimed": [
+  "independent review of this source",
+  "any Windows or native build or run, ordinary short, complete 40/all8, a changed-roster native control",
+  "strict clippy or any matrix",
+  "a fault check inside the refusal verdict (not requested)"
+ ],
+ "process_notes": [
+  "the stray enum.py in the Temp directory was avoided by running every script with python -I",
+  "the 3475 ordinary pack, its snapshot, processes and bins were not read or touched",
+  "one docker owner at a time through the helper; no restart, no cache prune"
+ ],
+ "remaining_gates": [
+  "same-reviewer closure of this residual on the two changed files",
+  "Root exact gates: Windows builds, native changed-roster control, ordinary short, complete 40/all8, current CI",
+  "all other Task49 and whole D3 requirements (city lists and structure link, static pose/shape/live flags, hierarchy, UPDATED/terrain record, raw tree/forest/cloud RNG, devices, DCS mapping, natural moving weapon); D4/D5/TypeScript unstarted",
+  "technical-lead APPROVED review before any merge; no self-approval or merge here"
+ ],
+ "no_native_clearance": true
+}

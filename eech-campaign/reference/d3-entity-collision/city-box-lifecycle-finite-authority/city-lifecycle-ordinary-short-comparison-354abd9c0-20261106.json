@@ -1,0 +1,41 @@
+{
+  "source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+  "candidate": "D:\\EECH-Migration-Evidence\\city-lifecycle-ordinary-short-354abd9c0-20261106",
+  "baseline": "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030",
+  "native_actual_exit": 0,
+  "helper_actual_exit": 0,
+  "controller_actual_exit": 0,
+  "pre_post_input_exits": [
+    0,
+    0
+  ],
+  "payloads_unchanged": 88,
+  "files": [
+    {
+      "file": "recording.acmi",
+      "candidate_bytes": 230871,
+      "baseline_bytes": 230871,
+      "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "literal_complete_equal": true
+    },
+    {
+      "file": "observations.jsonl",
+      "candidate_bytes": 1553674,
+      "baseline_bytes": 1553674,
+      "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "literal_complete_equal": true
+    },
+    {
+      "file": "metrics.json",
+      "candidate_bytes": 7477,
+      "baseline_bytes": 7477,
+      "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "literal_complete_equal": true
+    }
+  ],
+  "all_three_complete_literal_equal": true,
+  "scope": "THREE complete ordinary3.6simsec files only, not full40/all8/authority/wholeD3 acceptance."
+}

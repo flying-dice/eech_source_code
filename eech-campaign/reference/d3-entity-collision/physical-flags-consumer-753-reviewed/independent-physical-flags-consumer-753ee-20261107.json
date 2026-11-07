@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "kind": "Independent changed-material physical-flags first immediate-consumer source/check review",
+  "created_utc": "2026-11-07T16:32:09.083573+00:00",
+  "source": {
+    "commit": "753ee9671291e322ad12c7e82a62a9a998f60462",
+    "metadata_commit": "ad0292f4fb0f90f5fabf2931fab9682c3e01b775",
+    "parent": "c2f05190487090377ef996dfd8e639669ec7bbf6",
+    "clean_and_pushed_at_binding": true,
+    "changed_inputs": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+        "bytes": 7656,
+        "sha256": "2113c4011517573593a078b9bb2c68ed1d6bc24d5483dde3615a7284257b3be8"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "bytes": 26769,
+        "sha256": "72ca5555303ca9aea8883257f7343040190e214c3d109e95e9e5dafaf5b2e90a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+        "bytes": 18613,
+        "sha256": "7e10be74934711209242256077b874b4c074b02d3a868d35a98eefd50f1fe3f6"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+        "bytes": 21912,
+        "sha256": "1be5497d040141d0db614229b879ef08ce2a94e7ba4dd5b35502063981172f80"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_consumer.rs",
+        "bytes": 2127,
+        "sha256": "b95057a5fe986736409480aaee4e75662e7fe241d1a0b58af36ae1a57aa1fc0c"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+        "bytes": 14414,
+        "sha256": "bfbd184f3d2daadc9db94d24b28bf9eed21431e3e13e82ca22813a35f5940273"
+      },
+      {
+        "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+        "bytes": 15144,
+        "sha256": "f6daafe48d3672a1d364d37e4d123df15c55e7cc611d05e8dc7ba260ae4a9750"
+      }
+    ],
+    "method": "Immutable Git blobs and retained direct receipts/maps; no test/build/cache/native/checker replay, process change, tracked source edit or nested agent."
+  },
+  "decision": {
+    "status": "FINITE_CHARACTERIZATION_ACCEPTED",
+    "findings": [],
+    "closed_ids": [
+      "ENV-PHYSICAL-FLAGS-HIGH-INDEX-PERSISTENCE-1"
+    ],
+    "first_real_immediate_consumer_gate_met": true,
+    "original_raw_word_and_first_consumer_characterization_accepted": true,
+    "raw_word_contract_finding_scope": "ENV-PHYSICAL-FLAGS-RAWWORD-CONTRACT-1: the original raw getter/reset/domain and first real guide-consumer characterization precondition is satisfied; ownership implementation and other needed consumer/whole-D3 proof remain outstanding. Root owns canonical disposition.",
+    "native_launch_clearance": false,
+    "generic_physical_flags_cutover_clearance": false,
+    "host_flag_authority_verified": false,
+    "all_consumers_verified": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "current_full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-PHYSICAL-FLAGS-CONSUMER-CODE-FROZEN-20261107.json",
+      "bytes": 33216,
+      "sha256": "4a2a522a8af77e1181b5065df4934028d0124dc8a5c80423cb06cd66154cb871"
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-consumer-753-Root-binding-20261107.json",
+      "bytes": 11519,
+      "sha256": "cfdd1d732767a6776857ae9f73b5cdb285154247cb522ea8efbfba3da2ff21da"
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-consumer-ad029-publication-Root-20261107.json",
+      "bytes": 1186,
+      "sha256": "1840f47d4ed621fdacb8e7eb6400bc289e83b4b80e4ee8811a5a124f0c0b6c41"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-physical-flags-consumer-20261107-completion.json",
+      "bytes": 1529,
+      "sha256": "bcccd24ad21c2ab8027396a8fa642ac2cfad1e7de49e502fae7fb8188529950c"
+    }
+  ],
+  "closure": {
+    "prior_persistence_P2": "The contract and old C control comments now distinguish survival of reset from permanence, including the supply-descriptor reachability explanation. The new real consumer additionally demonstrates that a high-index bit survives two resets and repeated own-bit reads but is cleared by a word-mate consumer read. No legacy &= or reset extent was repaired.",
+    "vehicle_domain_precision": "MOBILE_MOVING is now correctly distinguished from the three arrays and names both aircraft ac_int and vehicle vh_int installations. No raw-mask boolean normalization or supply descriptor fix was made.",
+    "old_199_control": "Executable old control body remains unchanged; comment-only corrections do not relabel older evidence. Its retained new final execution still reports199 expectations."
+  },
+  "correctness_and_boundary_review": [
+    "The new fixture calls actual notify_local_entity, which dispatches receiver->type/message directly to the installed original fixed-wing response. It uses actual LANDED/DISTANCE/VELOCITY/motion/position getters, guide-criterion accessors, get_delta_time and the actual bounded-segment vector helper. It does not substitute consumer arithmetic, returned values, a provider-only surrogate or a new public ABI.",
+    "The coherent initial trajectory reaches the pass-through branch: airborne, radius valid, range greater than radius, range minus velocity no greater than radius, weapon-vector criterion off. Unset UPDATED yields TRUE; changing only that actual flag yields FALSE. Raw offsets0,1,2,30,31 cover nonboolean masks including the accepted-profile negative bit31 result. Radius and dt perturbations change the actual body result as expected.",
+    "Early landed/range exits leave both receiver and neighbour bits intact. Both orderings of two set receivers give firstFALSE/secondTRUE through the destructive shared-word getter. An unset receiver clears its neighbour. Low reset extent, high reset survival plus neighbour clearing, and a fresh raw record in the same slot are checked through the real consumer. The slot case is not a measured full heap release/reallocation lifecycle.",
+    "The source-supported legacy GUIDE_POSITION behavior is preserved: the response asks the fixed-wing receiver, not the guide. No mobile/aircraft/fixed-wing getter is installed for that type; default_get_entity_vec3d writes zero. The fixture leaves that actual default in place and does not replace it with alternative geometry.",
+    "The shipping guide router first selects campaign supply/radius arrival paths and retains this original response for other cases. The test directly characterizes the retained original response; it does not prove runtime reach through the whole shipping router or every required consumer.",
+    "Hand-made data are explicit: calloc engine entity/fixed_wing/guide records, pool slots, SERVER model, system_delta_time and empty update list. They are legitimate focused collaborator inputs, not a campaign policy modification, actor search or public-native proof.",
+    "On normal completion the fixture restores all modified int/float/vector/list/message tables, arrays, entity/update pointers, locked_frame_rate, dt and comms model and frees temporary records. It avoids set_manual_delta_time private history. It is a dedicated single-test executable, not a reentrant public control or allocation-failure program.",
+    "Geometry executes floating arithmetic, sqrt and normalization. Whole FPU status/control/rounding preservation was NOT measured or saved by this fixture. Restoration of listed globals is not a whole-FPU restoration claim. No engine-C O2/i686/strict-C/signaling-NaN or universal numeric profile claim is made.",
+    "Feature wiring is opt-in, the Rust runner requires physical-flags-consumer-check, and the entire C translation unit is guarded by EECH_PHYSICAL_FLAGS_CONSUMER_CHECK. No original product function, host store, campaign solver, ABI or public DLL export changed. The census remains text/source evidence, distinct from the executed body."
+  ],
+  "actual_checks_and_provenance": {
+    "PRE_utc": "2026-11-07T16:19:43Z",
+    "POST_utc": "2026-11-07T16:24:29Z",
+    "full_source_rows": 3982,
+    "literal_PRE_POST_sha256": "87cbffa10a74d3e6680291d475c52ed4c72917cea7c40b40974e6e714ad1b27e",
+    "source_raw_current_and_actual_Git_joined": true,
+    "inherited_qualifications": "Three unchanged uncompiled Lua files retain working CRLF/committed LF dual identity; no normalization.",
+    "final_direct_children": 5,
+    "all_actual_exit_zero": true,
+    "default_selected_instances": 49,
+    "default_result_rows": 10,
+    "feature_selected_instances": 6,
+    "feature_result_rows": 3,
+    "C_expectations": {
+      "original_word_control": 199,
+      "new_consumer_control": 56
+    },
+    "no_fabricated_RED_required": "This characterizes unchanged original behavior. Earlier c* development checks and final k* receipts retain separate identities.",
+    "extras": {
+      "PRE_POST_equal": 23,
+      "current_equal": 22,
+      "sole_exception": "Publisher freeze script changed after POST from20d6cf2935f0052973618ddb783d5abfd7bc4947205b787d79b0558eca952d16 toac5a761cd9f7c3ac3f896e4eb52005025e5a1b4e778a545082200c26ffabafc2. The first publisher crashed copying a stale physical-flags record prefix; the actual prefix is flags-consumer. PRE body and traceback remain literal. This reader-only correction changes no tested source or check and justifies no replay."
+    },
+    "feedback_timing": "Root1626 feedback arrived after the completed checks and was unread by the first freeze. It was subsequently read and joined by an immutable erratum/preflight; it is not retroactively represented as a PRE test input.",
+    "publication": "Root1840 verifies54 new consumer/erratum files and6 prior-review packet files as actual Git/current literals and external copies. Only STATUS/card change between source753 and metadataad029.",
+    "producer": {
+      "actual_exit": 0,
+      "result_is_error": false,
+      "completed_utc": "2026-11-07T16:29:21.320312+00:00",
+      "model": "claude-sonnet-5-5"
+    }
+  },
+  "next_finite_production_responsibility": {
+    "responsibility": "Implement the physical ownership boundary for the complete UPDATED/MOVED/ROTATED store and its set, destructive raw read and reset operations, preserving original raw masks, neighbour grouping effects, reset extent, lifetime/index-reuse behavior and set/read/reset ordering. Core retains scheduling, update ordering and campaign decisions.",
+    "constraints": "No second authoritative Core flag store, mirror-as-answer, guessed truth, boolean normalization, silent supply-descriptor repair, discarded MOVED/ROTATED scope, public raw heap-index/pointer exposure or preselected ABI/layout is authorized. The known descriptor mismatch remains an unconfirmed separate candidate. The required physical move needs its own immutable changed-source review and actual public boundary/default validation.",
+    "evidence_reuse": "Reuse the accepted199+56 original controls as the finite behavioral contract. The new owner must preserve these outcomes and side effects; other needed collision/supply/Tacview consumers and real lifecycle behavior remain in scope. No optional diagnostic inventory or replay of closed controls is required merely to recover context."
+  },
+  "limits": [
+    "This accepts the finite original raw-word and first guide-consumer characterization; it does not execute a Host-owned flag service or establish native authority, all consumer coverage or a completed physical extraction.",
+    "Protected764 full40/all8 continues unchanged. No new Windows/native/campaign ran in this characterization; partial prefixes remain partial. Prior M5/M6/P1 evidence retains its own exact scope/identity.",
+    "All ten D3 requirements, wholeheight, current-candidate final full40/all8/four-input gates, remaining physical/API/DCS/hierarchy/RNG/natural services, exact current CI, independent review/normal merge/final census/Task49/D3 delivery remain required. Preparation remains2; no D4/D5 or historical TypeScript port."
+  ]
+}

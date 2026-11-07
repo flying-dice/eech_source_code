@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T12:33:35.472563+00:00",
+  "review": "Independent changed-material correctness, clean-code and boundary-safety follow-up of the ENTITY_CANDIDATE source findings",
+  "source": {
+    "commit": "6db5f5306f0d2c881f16623c9924c14262f7acba",
+    "runtime_commit": "fb3163f283ded50fce320c7640b5282b3a68e3bc",
+    "reviewed_predecessor": "42054567a95c1efe91004ec492a339c20dff4ec8",
+    "repository": "R:/d3-evidence/collision-characterization-20261029",
+    "changed_paths": [
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_host_guard.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/tests/entity_candidate_host.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md"
+    ],
+    "metadata_only_paths_after_runtime": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/reference/d3-entity-collision/entity-candidate-correction-direct-gate-20261105.json",
+      "eech-campaign/reference/d3-entity-collision/independent-entity-candidate-source-42054567a-runtime2d-20261105.json"
+    ],
+    "runtime_blobs_and_modes_unchanged_runtime_to_head": true
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "source_review_no_blocking_findings": false,
+    "closed_findings": [
+      "ENV-ENTITY-CANDIDATE-PRECONDITION-1"
+    ],
+    "partially_corrected_findings": [
+      "ENV-ENTITY-CANDIDATE-REPLY-1"
+    ],
+    "finite_candidate_native_acceptance": false,
+    "whole_Task49_or_D3_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-ENTITY-CANDIDATE-REPLY-1",
+      "priority": "P2",
+      "title": "The new NEED_PLACEMENT state does not yet exclude known scene-less or skip-only branches before entity getters",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostentity.h:193",
+        "aphavoc/source/entity/mobile/mb_hostoffer.h:163",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c:819"
+      ],
+      "evidence": "check_candidate_reply accepts NEED_PLACEMENT when placement has not been read and the nonmobile/non-city-child candidate has FIXED_GIVEN=1. It does not require an actual placement-bearing role or a scene. After a legitimate NEED_FIXED, a CITY or direct CITY_BUILDING has FIXED=1, FIXED_GIVEN=1 and scene0, so a malformed NEED_PLACEMENT is accepted. The shared offer then invokes HEADING and ALIGN for that entity even though the original city/direct-building branch never called them. A known unflagged candidate after NEED_FIXED also passes the validator. The existing malformed-placement cases cover repetition and placement-before-fixed-facts, but not these known skip/scene-less roles.",
+      "impact": "The reply is used to invoke Core getters before the intended entity_candidate.state refusal. A scene-less invalid-shape test currently reaches its later TEST refusal after an unnecessary placement request. This is a precise new-state service-precondition gap, not a demand for Core to reproduce host physical broadphase decisions.",
+      "minimum_correction": "Reject NEED_PLACEMENT before any getter when no scene exists or the role is already a city, directly listed city building, or known unflagged ordinary candidate. Require an eligible mobile, city-child, or ordinary fixed branch with the necessary stage facts and placement not already supplied. Preserve the legitimate city-child case whose collision flags are intentionally read during placement, and preserve scene-less SKIP/NEED_FIXED paths. Do not reintroduce radius/skip arithmetic into Core or require geometry for the skip.",
+      "minimum_validation": "Extend the existing actual shared C-offer/dialogue controls: keep coherent mobile/fixed/city-child placement positives first, then offer malformed NEED_PLACEMENT for city, direct building and known unflagged/scene-less cases and assert entity_candidate.state before any added getter or collision. No known-bad native, 32-bit experiment, broad framework or repeated war is required."
+    }
+  ],
+  "closed_corrections": [
+    {
+      "finding": "ENV-ENTITY-CANDIDATE-PRECONDITION-1",
+      "assessment": "Corrected. The real offer is now mb_hostoffer.h, included by en_cllsn.c and the compiled C control. A nonmobile first offer has only the staged initial facts and scene0; the host can tallest-skip without reading the fixed flag, shape, position, heading or model. NEED_FIXED reads the fixed branch only when requested. A directly listed city building remains scene-less and reaches its explicit skip. The host radius closure is called only when the C kernel asks NEED_RADIUS; skipped/city/direct-building paths need no model, whereas branches requiring unavailable geometry refuse rather than inventing radius/model/miss."
+    },
+    {
+      "finding": "ENV-ENTITY-CANDIDATE-REPLY-1 raw classifier",
+      "assessment": "Corrected. candidate_word_is_finite takes const float* and memcpy-classifies the raw word before any floating argument conversion. The focused C cases include a signaling-NaN pose. This closes the source-level issue; no x87/32-bit trapping experiment or native FP claim is made."
+    },
+    {
+      "finding": "ENV-ENTITY-CANDIDATE-REPLY-1 identity marker",
+      "assessment": "Corrected. A separate CAMPAIGN_ENTITY_CANDIDATE_IDENTITY is bound to entity_candidate and used for the new dialogue, while the closed entity_collision identity remains unchanged. The actual shared C expectation and the retained wrong-label mutant discriminate the new operation."
+    }
+  ],
+  "other_reviewed_delta_observations": [
+    "C/Rust/Lua transport agrees on 44 facts, the two added stage flags and seven public states. Internal NEED_RADIUS is handled solely within the host with one checked retry and cannot become a public Core decision. TEST still carries only 12 or 16 finite candidate floats and is validated before caller pose use.",
+    "The known reference host requests placement only after its broadphase passes. NEED_UPDATED and NEED_NORMAL remain the real Core services, with supplied-state flags preventing repeat requests; the updated getter remains the original destructive shared-word operation. The new getter-log controls exercise the actual shared offer, rather than just the prior Rust transcription. The residual concerns malformed provider states that the reference host does not emit.",
+    "Host radius lookup uses the same finalized announced-order ModelStore. No second roster or physical data store is introduced. The original-profile build exclusions and closed narrowphase output-only/partial-write contract are retained.",
+    "Pure base-state snapshots and stage markers are not a literal replay of every old getter call; the finite correctness claim concerns required data prerequisites, preserved physical calculations and enabled effectful services. Native equivalence remains to be measured on the corrected source.",
+    "Debug collision-box drawing is now explicitly a declared unsupported hosted diagnostic; the former unproved no-external-view rationale is removed. This does not infer global renderer/UI dormancy or request a new renderer product."
+  ],
+  "retained_actual_gates": {
+    "directory": "D:\\EECH-Migration-Evidence\\entity-candidate-fix-20261105-a",
+    "direct_steps": [
+      {
+        "name": "fmt",
+        "child_exit": 0
+      },
+      {
+        "name": "tests-four-crates",
+        "child_exit": 0
+      },
+      {
+        "name": "test-model-walk",
+        "child_exit": 0
+      },
+      {
+        "name": "test-tree-dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "test-entity-dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "build-collision-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-weapon-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-model-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-model-host-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-weapon-and-collision-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-four-crates",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-dc-collision",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-dc-weapon",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-dc-weapon-and-collision",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-engine-sys-tree-dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-engine-sys-entity-dialogue",
+        "child_exit": 0
+      }
+    ],
+    "container_exit": 0,
+    "test_result_rows": 65,
+    "tests_passed": 1183,
+    "tests_failed": 0,
+    "gate_log": {
+      "bytes": 273681,
+      "sha256": "e34df2947fb405412eb13e9578dc91c6ed5aad37aa0d5c34b306e324684f322d"
+    },
+    "source_receipts": {
+      "bytes_each": 468855,
+      "literal_equal": true,
+      "sha256": "10307f97783eada5149d479ca2c27b21a0ac49f2e905d137eaa3608b00ae452b",
+      "rows": 2916,
+      "raw_column_sha256": "72c2bd43fcacc46715e06c236bb58db2cf77afe53e4abe3f7612e93bb298369c",
+      "filtered_column_sha256": "506f748ba2b2276520ef7e7470cb42bbc885bb6a60923335dd2e94e97931adb3",
+      "qualification": "Working-byte and clean-filter identities remain distinct; pre-existing CRLF qualifications are retained. No source or accepted recording was normalized."
+    },
+    "shared_C_control": "Passing compiled control asserts at least 216 expectations and includes the exact mb_hostentity.h and mb_hostoffer.h against getter-logging scripted entities. This is actual isolated C execution, not a retail/native campaign. It does not contain the newly identified malformed-placement role checks.",
+    "red_before_fix": "Retained r1 real provider/ModelStore and r2 shared C-dialogue tests genuinely failed with exit101 on the rejected scene0 behavior before the correction; neither is counted as green.",
+    "targeted_mutants": {
+      "count": 5,
+      "child_exits": [
+        101,
+        101,
+        101,
+        101,
+        101
+      ],
+      "summary_sha256": "2ac501f94d9ba43dc1a72489a26479e0fa97e5407ce95df2173e84454293f681",
+      "restoration_reported_for_each": true,
+      "subjects": [
+        "radius before skip",
+        "fixed facts never asked",
+        "eager fixed getter",
+        "eager attitude getter",
+        "candidate identity label"
+      ]
+    },
+    "failed_final_predecessor": "The test-helper then_some Clippy failure is retained separately; the final16 commands are all direct zero exits. No test, build or native run was executed by this reviewer."
+  },
+  "next_gate_and_limits": [
+    "Close the one bounded NEED_PLACEMENT eligibility residual using the existing focused C guards, then obtain source clearance before Windows/native validation. Original two specific corrections and unaffected code need not be reviewed again.",
+    "The corrected candidate source has no Windows/retail/native authority or ordinary-short acceptance yet. Root owns the first exact retained short comparison and wall-time observation, then changed/withheld ENTITY_CANDIDATE authority, with exact source/profile/Lua identities.",
+    "All prior narrowphase 1ab, stationary authority ae1, TREE7ad and Task50/52 results remain closed at their original identities. No old sweep or separate full war per helper is requested.",
+    "Sector-window/list enumeration, source/target exclusion, physical roster/live-pose ownership, raw loaders/forest/cloud, hierarchy/devices/rotor/smoke, semantic host identities and complete DCS mapping remain required. Whole Task49/D3, full shipping, delivery, complete public caller FP/RNG and visual/Tacview acceptance are not granted."
+  ],
+  "review_operations": "Read exact changed Git source and retained raw gate evidence. Wrote this new safe canonical-LF report only; no source edits, builds, tests, native/campaign runs, cache/VM/process actions, nested agents or external application writes.",
+  "publication_safety": "Source/contract descriptions, counts and hashes only; no retail geometry, coordinates, catalogue, allocation identities or raw pointers."
+}

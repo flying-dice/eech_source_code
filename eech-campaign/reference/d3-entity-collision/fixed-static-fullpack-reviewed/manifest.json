@@ -1,0 +1,95 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "complete-comparison.json",
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    {
+      "path": "controller-completion.json",
+      "bytes": 2864,
+      "sha256": "042285acacc1ca9455cdb5bb9815d01a56a84a490be8752d63f08a4602eb6553"
+    },
+    {
+      "path": "final-inputs-georgia.log",
+      "bytes": 349,
+      "sha256": "a6fb8f10bd7192a6bc3b062276ee0c7a6f088aef6a5a2fb6a8e3252389dcca6f"
+    },
+    {
+      "path": "final-inputs-internal-lebanon.log",
+      "bytes": 350,
+      "sha256": "b076f234de8e146ad0978b611c28615acee0db0341b9468dfdd44e470c82cf8d"
+    },
+    {
+      "path": "final-inputs-lebanon-repeat.log",
+      "bytes": 344,
+      "sha256": "59852c23f89cc22beaa4add4dce15605ab38ae8a6c1b1d455a438b0f9861e25a"
+    },
+    {
+      "path": "final-inputs-lebanon.log",
+      "bytes": 337,
+      "sha256": "2fe06c067fc9bf4049dae865e9280246b0cd28f05fb8c71ae11f0a1da11723c3"
+    },
+    {
+      "path": "independent-fixed-static-fullpack-f734-20261107.json",
+      "bytes": 10198,
+      "sha256": "4de6d2e91947f3f2cf664b1c26f23c0662b5644a2666be057d34b331acd914cd"
+    },
+    {
+      "path": "launcher-completion.json",
+      "bytes": 817,
+      "sha256": "c8e856461a27ac86e5243286f24165b1ad4071d86b53ad551aee2c994877acde"
+    },
+    {
+      "path": "original-controller.py",
+      "bytes": 6087,
+      "sha256": "3cf2d43de3323f6332dbdaed667e2de973c70604d24318d3d993aade769e91b6"
+    },
+    {
+      "path": "original-preflight.json",
+      "bytes": 16839,
+      "sha256": "055b79f0accf605007f84d6a0fafa7a113ec4f555b62c10e175a9bc3d2897546"
+    },
+    {
+      "path": "original-reference-summary.txt",
+      "bytes": 1410,
+      "sha256": "393d5ca4034fb8d550d88a388beb6976ba340a05de8f7bc0f499ede02f5d6b2f"
+    },
+    {
+      "path": "original-reference.txt",
+      "bytes": 1383,
+      "sha256": "fc244c85d90cc6aff5c3559a419295812e7c8223684886e90320aa9cf98c4df1"
+    },
+    {
+      "path": "original-regress.txt",
+      "bytes": 3209,
+      "sha256": "2ffe3d0a2b8f959f2639d9bda2c1dd976ee8b8b69eb2b60b709501cd395d0417"
+    },
+    {
+      "path": "original-report.json",
+      "bytes": 39506,
+      "sha256": "9a262b888abdeafc31bbb51e885926aff63534570a574ffc5e98a39ad765e77d"
+    },
+    {
+      "path": "original-runner-completion.json",
+      "bytes": 934,
+      "sha256": "6dd919e7fcf0b383634bec272b716f9a2b97dd9f38a8d16570cc72af57f06efc"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3092,
+      "sha256": "70ecb5524327ddfad58dfa04fb7f87dbae1cc9cb760eeec88506caaab5c41017"
+    },
+    {
+      "path": "Root-binding.json",
+      "bytes": 26028,
+      "sha256": "5b49ee9e18011980512c3d3419e3ed07593fe5530d166276279033b37185b533"
+    }
+  ],
+  "scope": "Completed parent fullpack closes one named long-run finding only; current Task49/D3/delivery and all remaining requirements are unaccepted."
+}

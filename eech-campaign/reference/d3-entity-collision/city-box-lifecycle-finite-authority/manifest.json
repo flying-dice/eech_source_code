@@ -1,0 +1,60 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "city-lifecycle-complete-default-prefix-f734-20261106.json",
+      "bytes": 2338,
+      "sha256": "9a84408b07a166c4cbc0892ad610989edb0af11d6d4e20c83f73e12285b85869"
+    },
+    {
+      "path": "city-lifecycle-healthy-comparison-354abd9c0-20261106.json",
+      "bytes": 1059,
+      "sha256": "67a99ef5846d1f68e272441c6dac78a1ecda14e545c4d240a60288ac6e78ae17"
+    },
+    {
+      "path": "city-lifecycle-ordinary-short-comparison-354abd9c0-20261106.json",
+      "bytes": 1569,
+      "sha256": "803028da58eb2d0b831219bdfaf2f90b46a6f31ed06360959ffe088770194f85"
+    },
+    {
+      "path": "city-lifecycle-Root-actual-join-runtime354ab-literal-e4895-20261106.json",
+      "bytes": 13773,
+      "sha256": "07160a624300d81e8f8d3937d2c166d8bfda14d0470d558e160eac81347cd319"
+    },
+    {
+      "path": "city-lifecycle-windows-profile-isolation-354abd9c0-20261106.json",
+      "bytes": 7224,
+      "sha256": "be65923b0da42a76d4ba320723f9606a2009e6048afcaca811d34b8cf29df12e"
+    },
+    {
+      "path": "city-lifecycle-witness-354abd9c0-windows-20261106-completion.json",
+      "bytes": 47152,
+      "sha256": "5545eaac75e35f16d7c617022b058987eef4e1b9024360c7a8642ea9ec8a78c8"
+    },
+    {
+      "path": "city-lifecycle-world-objects-354abd9c0-20261106.json",
+      "bytes": 1932,
+      "sha256": "481117188596479c3a2eeb7351f7434848d44e55a7b77724927fec62dc722722"
+    },
+    {
+      "path": "independent-city-lifecycle-finite-actual-runtime354ab-literal-e4895-20261106-final.json",
+      "bytes": 9849,
+      "sha256": "e8efee7408379b7db634e7483f29ff9b5a0a5c9f05253b1bdc207541431b78c6"
+    },
+    {
+      "path": "independent-city-lifecycle-finite-actual-runtime354ab-literal-e4895-20261106-v2.json",
+      "bytes": 23091,
+      "sha256": "1cbfa20d3966a3488abe46cab0991b9ca1c6b91b6672e40ce5fe78bd66b4f0d9"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3810,
+      "sha256": "4877f078417485c5d82beb2ebf514dbe446d9b04f04809d2eeabe17bf1c12d78"
+    }
+  ],
+  "scope": "Finite CITY lifecycle only; raw private outputs retained externally; exact Git bytes."
+}

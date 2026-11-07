@@ -24,6 +24,8 @@ terrain-fixture = []
 aim-fixture = []
 # TEST-ONLY (EEDCS-45): the physical weapon-execution characterisation trace, event log and controlled launch case. Never enabled in the shipping build.
 weapon-fixture = []
+# TEST-ONLY (EEDCS-49): the object and tree collision characterisation probe. Never enabled in the shipping build.
+collision-fixture = []
 # TEST-ONLY (EEDCS-50): read-only questions to the original collision-model accessors. Never enabled in the shipping build.
 model-fixture = []
 # TEST-ONLY (EEDCS-50, D3): the shipping host-owned model data PLUS a diagnostic that counts the host's answers and overwrites the campaign's own model arrays that the
@@ -44,11 +46,107 @@ route-original = []
 # TEST-ONLY (EEDCS-52, D3): the observer of the ORIGINAL get_local_entity_target_point, the callers that reach it and the boot census of target_point_offsets[] (en_maths.c, wn_dbase.c, weapon.c, wn_move.c), reported through three read-only entries. Never enabled in the shipping build.
 target-point-fixture = []
 
+# TEST-ONLY (EEDCS-49): the isolated control of the campaign's half of the host-owned tree segment query (csrc/eech_tree_dialogue_check.c). Never enabled in the shipping build.
+tree-dialogue-check = []
+
+# TEST-ONLY (EEDCS-49): the isolated control of the campaign's half of the host-owned entity collision narrow phase (csrc/eech_entity_dialogue_check.c). Never enabled in the shipping build.
+entity-dialogue-check = []
+
+# TEST-ONLY (EEDCS-49, D3): the isolated control of the controlled moving entity query case's report codec and bounds (csrc/eech_mq_report.h, csrc/eech_mq_report_check.c). Never enabled in the shipping build.
+mq-report-check = []
+
+# TEST-ONLY (EEDCS-49, D3): the characterisation of the sector's tallest-structure high-water value against the REAL sector insertion response, float getter and session pack/unpack linked into the engine (csrc/eech_sector_height_check.c). Never enabled in the shipping build.
+sector-height-check = []
+# TEST-ONLY (EEDCS-49, D3): the characterisation of the per-entity UPDATED / MOVED / ROTATED word against the REAL mobile getter and setter, the three flag arrays and the real update reset linked into the engine (csrc/eech_physical_flags_check.c). Never enabled in the shipping build.
+physical-flags-check = []
+# TEST-ONLY (EEDCS-49, D3): the real immediate-consumer control of the UPDATED word: the ORIGINAL fixed-wing response_to_check_mobile_reached_guide through the real message dispatch (csrc/eech_physical_flags_consumer_check.c). Never enabled in the shipping build.
+physical-flags-consumer-check = []
+# TEST-ONLY (EEDCS-49, D3, Task49): the second real immediate-consumer control of the UPDATED word: the moving-mobile pass-through of get_line_of_sight_collision_entity through the real public function in the ORIGINAL profile (csrc/eech_physical_flags_collision_check.c); the hosted profile runs nothing and says why. Never enabled in the shipping build.
+physical-flags-collision-check = []
+
+# TEST-ONLY (EEDCS-49, D3): the read-only observer of the sector tallest-structure word on the real public path: staged hooks (build/patches.rs SECTOR_HEIGHT_OBSERVER_PATCHES), csrc/eech_sho.c, and four
+# read-only report entries. Never enabled in the shipping build; with it off no hook, patch or definition exists.
+sector-height-observer = []
+
+# TEST-ONLY (EEDCS-49, D3): the control of the observer's JOIN against the REAL staged placement map (mb_hostplacemap.h, with its staged hooks) bound to scripted entities and a scripted host
+# (csrc/eech_sho_funnel_check.c). It compiles that file and gates the entity-reading hooks of eech_sho.c out in favour of the scripted ones. Never enabled in the shipping build.
+sector-height-funnel-check = ["sector-height-observer"]
+
+# TEST-ONLY (EEDCS-49, D3): the fixture METHOD of the native server-session witness (csrc/eech_hw_witness.c, eech_engine_sh_witness_save): the campaign's own store_session on the live session. No staged patch, no hook
+# and no other definition; never enabled in the shipping build; with it off the file defines nothing and no entry exists.
+sector-height-witness = []
+
 # TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
 [[test]]
 name = "model_walk"
 path = "tests/model_walk.rs"
 required-features = ["model-fixture"]
 
+[[test]]
+name = "entity_dialogue"
+path = "tests/entity_dialogue.rs"
+required-features = ["entity-dialogue-check"]
+
+[[test]]
+name = "mq_report"
+path = "tests/mq_report.rs"
+required-features = ["mq-report-check"]
+
+[[test]]
+name = "physical_flags"
+path = "tests/physical_flags.rs"
+required-features = ["physical-flags-check"]
+
+[[test]]
+name = "physical_flags_consumer"
+path = "tests/physical_flags_consumer.rs"
+required-features = ["physical-flags-consumer-check"]
+
+[[test]]
+name = "physical_flags_hosted_faults"
+path = "tests/physical_flags_hosted_faults.rs"
+required-features = ["physical-flags-check"]
+
+[[test]]
+name = "physical_flags_identity"
+path = "tests/physical_flags_identity.rs"
+required-features = ["physical-flags-check"]
+
+[[test]]
+name = "physical_flags_collision"
+path = "tests/physical_flags_collision.rs"
+required-features = ["physical-flags-collision-check"]
+
+[[test]]
+name = "sector_height"
+path = "tests/sector_height.rs"
+required-features = ["sector-height-check"]
+
+[[test]]
+name = "sector_height_observer"
+path = "tests/sector_height_observer.rs"
+required-features = ["sector-height-check", "sector-height-observer"]
+
+[[test]]
+name = "sector_height_hosted_clearance"
+path = "tests/sector_height_hosted_clearance.rs"
+required-features = ["sector-height-check", "sector-height-observer"]
+
+[[test]]
+name = "sector_height_witness"
+path = "tests/sector_height_witness.rs"
+required-features = ["sector-height-witness"]
+
+[[test]]
+name = "tree_dialogue"
+path = "tests/tree_dialogue.rs"
+required-features = ["tree-dialogue-check"]
+
 [build-dependencies]
 cc = { version = "1.2", features = ["parallel"] }
+
+# TEST-ONLY (Task49): the hosted profile of the real-C flag controls asks the REAL host store (`eech_world::model_host::flag_answer`), so the test serves the engine's model provider with it (tests/support/flags_host.rs)
+[dev-dependencies]
+eech-world = { path = "../eech-world" }
+# the collision control's test bridge drives the real reference provider (`host.model`) from a Lua state of its own (tests/support/lua_provider.rs)
+mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }

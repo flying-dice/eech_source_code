@@ -1,0 +1,75 @@
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs:1027:
+ fn an_expanded_boxs_axis_order_is_checked_from_the_raw_words_before_any_word_of_the_callers_box_is_written() {
+     let text = source("entity/mobile/mb_hostentity.h");
+     let start = text.find("static void check_city_expand_reply (").expect("the reply check");
+-    let end = start + text[start..].find("\nstatic void campaign_entity_city_expand_exchange").expect("the exchange follows the check");
++    let end = start
++        + text[start..]
++            .find("\nstatic void campaign_entity_city_expand_exchange")
++            .expect("the exchange follows the check");
+     let check = &text[start..end];
+     let order = "finite_word_order (&reply->candidate [index]) > finite_word_order (&reply->candidate [index + 3])";
+     assert!(check.contains(order), "the expanded axes are ordered by the reply check");
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs:1034:
+     // every raw word (finite, no word beyond the six) is classified before the order, and no floating value of the untrusted words is loaded or compared
+     before(check, "candidate_word_is_finite (&reply->candidate [index])", order, "mb_hostentity.h");
+     before(check, "the host answered more than %d words for a city expansion", order, "mb_hostentity.h");
+-    assert!(!check.contains("reply->candidate [index] >") && !check.contains("reply->candidate [index] <"), "no float comparison of an untrusted word");
++    assert!(
++        !check.contains("reply->candidate [index] >") && !check.contains("reply->candidate [index] <"),
++        "no float comparison of an untrusted word"
++    );
+     // the check is the exchange's, before the words are copied out: the campaign's ASSERTs in ct_msgs.c only log in a shipping build and run after the writes
+     let exchange = &text[end..];
+-    before(exchange, "check_city_expand_reply (&reply, city);", "memcpy (box, reply.candidate", "mb_hostentity.h");
++    before(
++        exchange,
++        "check_city_expand_reply (&reply, city);",
++        "memcpy (box, reply.candidate",
++        "mb_hostentity.h",
++    );
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:5070:
+         "{layout}: {row}"
+     );
+     assert!(row["request_faults"].as_i64().unwrap() >= 1, "{layout}: {row}");
+-    assert!(
+-        row["first_fault"].as_str().unwrap().contains("is not listed under the city"),
+-        "{layout}: {row}"
+-    );
++    assert!(row["first_fault"].as_str().unwrap().contains("is not listed under the city"), "{layout}: {row}");
+     // the provider acknowledged only states: no building's state was withdrawn and no state was restated
+     assert!(
+         driven.fixed_log.iter().all(|entry| entry.1 == "placed"),
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:5112:
+                 row["request_faults"].clone(),
+                 row["reply_faults"].clone()
+             ),
+-            (Value::from(1), Value::from(1), Value::from("city_box_building_state_withdrawn"), Value::from(0), Value::from(1)),
++            (
++                Value::from(1),
++                Value::from(1),
++                Value::from("city_box_building_state_withdrawn"),
++                Value::from(0),
++                Value::from(1)
++            ),
+             "{layout}: {row}"
+         );
+         // exactly the building's state was withdrawn, once, and the question was delegated once
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:5137:
+             row["box_withdrawn_cause"].clone(),
+             row["physical_after_stop"].clone()
+         ),
+-        (Value::from(true), Value::from("entity_scan.refused"), Value::from(0), Value::from(0), Value::from(""), Value::from(-1)),
++        (
++            Value::from(true),
++            Value::from("entity_scan.refused"),
++            Value::from(0),
++            Value::from(0),
++            Value::from(""),
++            Value::from(-1)
++        ),
+         "{row}"
+     );
+     let error = error_of(driven);

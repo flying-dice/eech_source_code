@@ -1,0 +1,43 @@
+
+running 4 tests
+test a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read ... FAILED
+test a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds ... FAILED
+test a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box ... FAILED
+test a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed ... FAILED
+
+failures:
+
+---- a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read stdout ----
+
+thread 'a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read' (65) panicked at crates/eech-world/tests/model_target_point.rs:2693:9:
+a building of another city: fact 6 of an entity scan question must be a whole number within 1..16777216
+
+---- a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds stdout ----
+
+thread 'a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds' (64) panicked at crates/eech-world/tests/model_target_point.rs:2635:5:
+assertion `left == right` failed: the host built the box
+  left: ("refused", "", "fact 6 of an entity scan question must be a whole number within 1..16777216")
+ right: ("expanded", "1", "")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box stdout ----
+
+thread 'a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box' (67) panicked at crates/eech-world/tests/model_target_point.rs:2711:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "expanded"
+
+---- a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed stdout ----
+
+thread 'a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed' (66) panicked at crates/eech-world/tests/model_target_point.rs:2653:9:
+the invalid scene: fact 6 of an entity scan question must be a whole number within 1..16777216
+
+
+failures:
+    a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds
+    a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read
+    a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed
+    a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box
+
+test result: FAILED. 0 passed; 4 failed; 0 ignored; 0 measured; 52 filtered out; finished in 0.01s
+

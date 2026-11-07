@@ -1,0 +1,20 @@
+{
+  "controller_pid": 23120,
+  "state": "terminal",
+  "started_utc": "2026-11-06T20:20:22.742731+00:00",
+  "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard"
+  ],
+  "scope": "One Cargo command, lifecycle-scoped. Separate stdout/stderr files. Return is the actual Cargo/docker exit. Working-tree check only unless separately frozen.",
+  "pid": 9012,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-06T20:20:36.148923+00:00"
+}

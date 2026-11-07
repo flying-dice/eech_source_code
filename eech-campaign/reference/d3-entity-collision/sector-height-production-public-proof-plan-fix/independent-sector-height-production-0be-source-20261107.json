@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-07T08:21:13.104077+00:00",
+  "review_kind": "One combined independent correctness, clean-code, boundary and evidence review of the new production sector-height cut; unchanged closed proofs reused only at scope",
+  "source": {
+    "commit": "0be1dd8465d9bf38da69cd3b303206cf5a64574d",
+    "parent_before_production": "93495d1b6ddc519f8ec4fee9c6b1147d2c292f39",
+    "metadata_commit": "1cf5e5fe1875df8fcaaff842e061902062c3ba23",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "HEAD_and_clean_status_observed": true,
+    "metadata_only_delta": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "changed_paths": [
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "aphavoc/source/entity/mobile/mb_hostplace.c",
+      "aphavoc/source/entity/mobile/mb_hostscan.h",
+      "aphavoc/source/entity/special/sector/sc_float.c",
+      "aphavoc/source/entity/special/sector/sc_msgs.c",
+      "aphavoc/source/entity/special/sector/sc_pack.c",
+      "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_sho_funnel_check.c",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/build.rs",
+      "eech-campaign/crates/eech-world/csrc/entity_scan_step.c",
+      "eech-campaign/crates/eech-world/csrc/model_step.c",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/models.rs",
+      "eech-campaign/crates/eech-world/src/roster.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+      "eech-campaign/docs/d3-sector-height-contract.md",
+      "eech-campaign/crates/eech-world/csrc/sector_height_raise.h",
+      "eech-campaign/crates/eech-world/tests/sector_height_host.rs",
+      "eech-campaign/crates/eech-world/tests/support/model_root.rs",
+      "eech-campaign/docs/d3-sector-height-production-contract.md"
+    ]
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED_PUBLIC_VALIDATION_PLAN",
+    "findings": [
+      "ENV-SECTOR-HEIGHT-PUBLIC-PROOF-PLAN-1"
+    ],
+    "production_functional_defect_established": false,
+    "native_launch_clearance": false,
+    "source_math_protocol_accepted_as_native_proof": false,
+    "sector_height_host_move_open_facts_closed": false,
+    "physical_sector_height_cutover_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-SECTOR-HEIGHT-PUBLIC-PROOF-PLAN-1",
+      "severity": "P2",
+      "category": "Executable public validation and truthful consumer/evidence scope; not an established new solver defect",
+      "title": "The promised public word-comparison/authority gate is not executable and the observer/restore control descriptions overstate their scope",
+      "evidence": [
+        "eech-campaign/docs/d3-sector-height-production-contract.md sections7-9 and ACTIVE-EXTRACTION next_action promise a declared-window word-for-word comparison and controlled Host-change/withheld/malformed/wrong-sector/restoration witnesses.",
+        "The new entity-authority.lua phase17/18 branch parses and counts unaltered replies, but implements no height-input intervention/refusal mode and persists no Host-word stream for the promised comparison. The scripted tests generate17/18 themselves; they are not a native campaign witness.",
+        "The existing sector-height-baseline.lua requires observer feature methods. Its existing hooks have split scope after the move: SH2/3 raise and SH4/5 legacy save/restore hooks are inside original-only branches; SH10/11 still observe the now-Host-returned FIRST/fact12 word. Therefore the blanket claim that the observer observes no Host word is false, while a whole unchanged original-LINK report comparison is also invalid.",
+        "eech_sho.c clearance helper still reads raw->tallest_structure_height. That is retired storage in a hosted production build, not the Host getter value actually consumed by fw_move. It cannot supply M5 Host-input evidence if the guard is reached.",
+        "Contract section8 initially claims the real guarded fixed-wing expression is controlled, but its final named blocker correctly says no real-C or native control reaches the guards. The hosted control exercises the getter and actual pack/unpack over a scripted provider, not fw_move guarded execution.",
+        "Contract section7 includes restore-after-insertion among named refusals, but model_host.rs sector_height_event accepts a well-formed phase18 raw restore without an insertion-time guard; provider tests deliberately restore while placements are live. Restore-after-insertion must not be made invalid merely to satisfy that sentence."
+      ],
+      "minimum_correction": "Provide a scoped executable public baseline/comparison and Host authority/refusal witness using existing public bridge/provider paths, with exact phase/row schema and eligible real consuming request before effect/credit. Existing SH10/11 capture may be reused with explicit original-only diagnostic changes; no new framework or production API is required. Declare which words/reads are compared, same provider/current sector joins, strict complete ACK, named expected failure and no postfatal engine reads. Distinguish a real Core save/load from a Host-only controlled raw-state operation. Preserve absence as UNREACHED and do not hunt actors, geometry, seeds or duration. Correct or explicitly exclude/label the stale M5 observer field; do not reread a provider and call that the original consumed word. Align sections7-10/README/card with actual controls and actual legal restore timing.",
+      "bounded_gate_scope": "A minimal test-only witness/plan correction and affected sociable driver/boundary checks with honest final maps suffice for the next changed-material review. Do not repeat unchanged179/kernel/workspace matrices solely for prose. M5 guarded clearance and native M6 may remain named required OPEN gates; no larger war or claim of reaching them follows from compilation. Current source is not cleared for native launch until the executable scoped plan is reviewed."
+    }
+  ],
+  "production_source_assessment": {
+    "ownership": "One height word per sector lives in the existing SectorRoster heights map. The Host computes each arrival from stated canonical-record input and its own ModelStore scene box top; it does not accept a Core-computed height. This is not a second physical world/cache. The legacy member remains layout storage but has no authoritative hosted read/write; allocation zero-fill does not make it a second owner.",
+    "arrival_and_lifecycle": "Per-sector-entry arrived tracks the first state statement under a newly issued sector key, including a building whose city-list record already held state. The accepted public callback order places that nested statement before LINK_CHILD. Later setters/restatements do not raise; removal does not lower; relink/new key gives a new arrival. City shape0 avoids a model read; a valid stated CITY shape can raise. The original fixed predicate is constant by the nine overload families, not a subtype or Corefalse bypass.",
+    "commit_safety": "Statement words are classified by integer domain checks. The raise is computed before record mutation and applied only after set_fixed/set_city succeeds; arrived is then consumed once. The exclusive roster borrow prevents a concurrent entry change between these stages. Reads/restores validate facts/identity/sector before updating height. No query-time repair or old-field fallback is introduced.",
+    "writers_readers_reset": "Reset clears height words before new sectors/entities. The hosted sc_msgs raise is excluded, sc_float getter issues phase17, sc_pack uses that getter and phase18 restoration before entity unpack order, and client/browse modes do not add height storage. Existing scan FIRST and guarded clearance expressions call the getter. Original solver profiles retain their explicit original bodies.",
+    "raw_protocol": "C→Engine→Lua bridge→real provider→reply→C uses hex word transport for the raw height. C validates phase-specific state, exact3-word count, empty name, raw cursor echo, restore word echo and zero candidate tail before using output. Shared counts/states agree across C/sys/Engine/DC. Any malformed/refused response is fatal without fallback. Negative/Inf/qNaN histories remain raw; fact12 alone is exempted from finite classification and is bit-joined to the Host word for the candidate sector.",
+    "math_and_FP": "The shared C expression retains one float addition and strict greater-than against the actual held word. ModelStore uses bounding_box[3], matching the established xmin/xmax/ymin/ymax/zmin/zmax transport. The kernel uses the existing model environment guard and caller restoration; controls cover rounding modes/caller masks/state and original-C result differentials. These are not a proof of original-vs-new internal sticky flags at every Core point, Windows execution, engine-C O2 or signalling-NaN behavior. No new concrete observable FP defect was established in this pass. No new RNG draw or campaign-policy/time change was found.",
+    "clean_code_boundary": "The scalar remains in the existing roster/store/kernel architecture; no second ABI, service process or generic framework was added. Fixed/CITY stage-specific handling and integer transport remain bounded. Map absence represents fresh-sector zero as declared; the Host lacks a world-map validity catalogue, so it must not claim exhaustive geography validation.",
+    "required_remaining_coupling": "Static poses, shape provenance, source/target exclusion, hierarchy/model consumers and other all-ten D3 requirements remain explicit. The finite scalar move does not waive guarded clearance/native save/restore or final compiled-consumer census."
+  },
+  "evidence": {
+    "freeze": {
+      "path": "R:/d3-evidence/D3-sector-height-PRODUCTION-CODE-FROZEN-20261107.json",
+      "bytes": 53632,
+      "sha256": "5e93b0a50bff3f77b0724d3e9af85df99a9551aff58010480edc0f2e9677ea42"
+    },
+    "initial_Root_binding_retained_with_reader_error": {
+      "path": "R:/d3-evidence/sector-height-production-Root-binding-0be-20261107.json",
+      "bytes": 14150,
+      "sha256": "7b5cc4a7986967707d30b2dd9db8bd6155dd26d4c6bae0c3b049b18d866636a3"
+    },
+    "corrected_Root_raw_binding": {
+      "path": "R:/d3-evidence/sector-height-production-Root-binding-0be-v2-20261107.json",
+      "bytes": 15007,
+      "sha256": "ec7015b66db79a17f84753aad2a3324bb0c693827959704bd4ca05db113a227d"
+    },
+    "current_CI": {
+      "path": "R:/d3-evidence/sector-height-production-1cf5-CI-readback-20261107.json",
+      "bytes": 17092,
+      "sha256": "03abecc4ae50b7b6b7f519daa454f8772365ca1f6344c81a0d3cc48a97655c18"
+    },
+    "producer": "Actual terminal0/result_is_errorfalse at2026-11-07T08:07:14Z, as recorded in the frozen/bound completion; no active author at review.",
+    "checks": "Root binds49 actual retained checks including16 final children all0, chronologically inside PRE07:21:37/POST08:05:13. Full3970-row PRE/POST JSONs are literal SHA c4454bb233503b941581e37ea14759a9f2796fc14890facd028c870c21f040c2;10 extra identities and190 Git packet entries bind literally.",
+    "scope_of_passing_checks": "Hosted real sector control150; original solver221 consisting of unchanged179 plus42 original-C/shared-expression comparisons over21 cases/two rounding modes; x64 workspace1482 and i6861461 plus declared stack/C_OPT2 variants. The C_OPT2 label does not measure engine-C O2. Real pack/unpack controls use a scripted provider; guarded fw execution is not covered. Failures during fixture/protocol/census updates remain actual failures, not many independent newly discovered runtime defects.",
+    "raw_byte_qualification": "The initial Root proof confused filtered identities with raw bytes. Direct immutable Git-byte v2 comparison, also checked in this review, shows exactly three unchanged Lua CRLF raw-vs-Git exceptions (tree-geometry conversion-refused/one-shot/refused-probe controls). Four unchanged Core headers/allocator files have literal raw Git bytes and only filtered-identity differences. Author maps correctly list all seven raw-vs-filtered disagreements. No file was normalized or test rerun to repair this evidence qualification.",
+    "CI_limit": "Exact1cf5 all-nine-success is separately bound; no formal GitHub approval, native authority, final current pack or delivery is inferred.",
+    "retained_failures": "All earlier fixture/census/fmt/clippy failures and initial Root reader failure remain retained; current green is at the final bound source. No source/tests/native/checker/campaign/build replay was performed by the reviewer."
+  },
+  "next_scope_after_correction": [
+    "Same-reviewer changed-material follow-up of only the executable test-only witness/comparison and truthful plan/prose changes, with actual affected checks/maps. No physical solver rewrite is requested by this report.",
+    "Then Root fresh exact-source profiles/object/export/payload gates and observer-off ordinary short at accepted identity; any additional observer comparison uses its own bound profile and explicitly limited hooks. No prior binary is relabelled.",
+    "Actual public equivalent-word and changed/withheld/refused-provider controls must establish reached consumption/causes with immutable fresh roots and exact args. Complete/UNREACHED/FAILED statuses remain distinct; source compilation or scripted collaborators cannot replace them.",
+    "ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1 and ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1 remain required OPEN until their actual declared proofs. No automatic enlarged war or physical acceptance."
+  ],
+  "preserved_limits": [
+    "Accepted finite3665 baseline,0759/04b/636 source scopes and P1 fullpack4de closure remain untouched; no repeated closed reviews.",
+    "Prep2 and all ten D3 requirements remain. Remaining physical/API/DCS/hierarchy/RNG/services/natural moving work, final CURRENT40/all8/fourinputs/currentCI/review/normalmerge/finalcensus, Task49/D3/delivery remain unaccepted. No D4/D5 or historical TypeScript work.",
+    "Only this safe LF report is written outside Git. No raw retail coordinates, keys/IDs, physical vectors/geometry tuples, reports, assets or binaries are published."
+  ]
+}

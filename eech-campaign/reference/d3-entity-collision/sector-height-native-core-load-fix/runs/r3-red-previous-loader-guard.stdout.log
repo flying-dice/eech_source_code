@@ -1,0 +1,208 @@
+
+running 3 tests
+test every_byte_must_arrive_and_the_unpack_must_not_overflow_or_the_loader_stops_by_name ... FAILED
+test the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open ... FAILED
+test the_unpack_side_still_returns_its_overflow_and_the_pack_side_still_sizes_to_the_last_used_byte ... ok
+
+failures:
+
+---- every_byte_must_arrive_and_the_unpack_must_not_overflow_or_the_loader_stops_by_name stdout ----
+
+thread 'every_byte_must_arrive_and_the_unpack_must_not_overflow_or_the_loader_stops_by_name' (3953) panicked at crates/eech-engine-sys/tests/saved_campaign_load_guard.rs:40:41:
+the loader no longer contains `bytes_read = (int) fread (campaign_buffer, 1, campaign_size, saved_file_ptr);`:
+case FILE_TAG_SAVED_CAMPAIGN:
+			{
+
+				int
+					server_version_number,
+					client_version_number,
+					campaign_size;
+
+				FILE
+					*saved_file_ptr;
+
+				unsigned char
+					*load_ptr,
+					*campaign_buffer;
+				char
+					filename [128];
+
+
+
+
+				
+				result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
+
+				ASSERT (result == FILE_TAG_PATH);
+
+				get_next_file_string (file_ptr, current_session->data_path, sizeof (current_session->data_path));
+
+				
+				result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
+
+				ASSERT (result == FILE_TAG_PATH);
+
+				get_next_file_string (file_ptr, current_session->campaign_directory, sizeof (current_session->campaign_directory));
+
+				
+				strcpy (temp_filename, current_session->campaign_filename);
+
+				load_ptr = (unsigned char *) strrchr (temp_filename, '.');
+
+				*load_ptr = 0;
+
+				sprintf (filename, "%s\\%s\\%s.sav",
+								current_session->data_path,
+								current_session->campaign_directory,
+								temp_filename);
+
+				
+				result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
+
+				ASSERT (result == FILE_TAG_FILENAME);
+
+				get_next_file_string (file_ptr, current_session->campaign_filename, sizeof (current_session->campaign_filename));
+
+				
+				saved_file_ptr = safe_fopen (filename, "rb");
+
+				campaign_size = file_size (filename);
+
+				campaign_buffer = (unsigned char *) malloc_heap_mem (sizeof (char) * (campaign_size + 1));
+
+				load_ptr = campaign_buffer;
+
+				fread (campaign_buffer, campaign_size + 1, 1, saved_file_ptr);
+
+				
+				
+				client_version_number = get_global_version_number ();
+
+				server_version_number = get_list_item (load_ptr, int);
+
+				campaign_size -= sizeof (int);
+
+				if (client_version_number != server_version_number)
+				{
+
+					debug_fatal ("COMM_MAN: Server Version No. %d, Client Version No. %d", server_version_number, client_version_number);
+				}
+				
+				
+
+				
+				
+				
+				unpack_session (load_ptr, campaign_size, PACK_MODE_SERVER_SESSION);
+				
+
+				fclose (saved_file_ptr);
+
+				free_mem (campaign_buffer);
+
+				
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open stdout ----
+
+thread 'the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open' (3954) panicked at crates/eech-engine-sys/tests/saved_campaign_load_guard.rs:47:5:
+the size must not come from the text-mode helper:
+case FILE_TAG_SAVED_CAMPAIGN:
+			{
+
+				int
+					server_version_number,
+					client_version_number,
+					campaign_size;
+
+				FILE
+					*saved_file_ptr;
+
+				unsigned char
+					*load_ptr,
+					*campaign_buffer;
+				char
+					filename [128];
+
+
+
+
+				
+				result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
+
+				ASSERT (result == FILE_TAG_PATH);
+
+				get_next_file_string (file_ptr, current_session->data_path, sizeof (current_session->data_path));
+
+				
+				result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
+
+				ASSERT (result == FILE_TAG_PATH);
+
+				get_next_file_string (file_ptr, current_session->campaign_directory, sizeof (current_session->campaign_directory));
+
+				
+				strcpy (temp_filename, current_session->campaign_filename);
+
+				load_ptr = (unsigned char *) strrchr (temp_filename, '.');
+
+				*load_ptr = 0;
+
+				sprintf (filename, "%s\\%s\\%s.sav",
+								current_session->data_path,
+								current_session->campaign_directory,
+								temp_filename);
+
+				
+				result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
+
+				ASSERT (result == FILE_TAG_FILENAME);
+
+				get_next_file_string (file_ptr, current_session->campaign_filename, sizeof (current_session->campaign_filename));
+
+				
+				saved_file_ptr = safe_fopen (filename, "rb");
+
+				campaign_size = file_size (filename);
+
+				campaign_buffer = (unsigned char *) malloc_heap_mem (sizeof (char) * (campaign_size + 1));
+
+				load_ptr = campaign_buffer;
+
+				fread (campaign_buffer, campaign_size + 1, 1, saved_file_ptr);
+
+				
+				
+				client_version_number = get_global_version_number ();
+
+				server_version_number = get_list_item (load_ptr, int);
+
+				campaign_size -= sizeof (int);
+
+				if (client_version_number != server_version_number)
+				{
+
+					debug_fatal ("COMM_MAN: Server Version No. %d, Client Version No. %d", server_version_number, client_version_number);
+				}
+				
+				
+
+				
+				
+				
+				unpack_session (load_ptr, campaign_size, PACK_MODE_SERVER_SESSION);
+				
+
+				fclose (saved_file_ptr);
+
+				free_mem (campaign_buffer);
+
+				
+
+
+failures:
+    every_byte_must_arrive_and_the_unpack_must_not_overflow_or_the_loader_stops_by_name
+    the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

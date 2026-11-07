@@ -1,0 +1,61 @@
+{
+  "source": "8b85230826ad1c1bea289f6d2592f31b705a03f6",
+  "snapshot": "D:\\EECH-Migration-Evidence\\entity-scan-production-8b8523082",
+  "checked_utc": "2026-11-05T14:22:17.781876+00:00",
+  "profiles": [
+    {
+      "profile": "ordinary",
+      "bin": "D:\\EECH-Migration-Evidence\\entity-scan-production-8b8523082\\eech-campaign\\target\\windows-entity-scan-8b8523082",
+      "actual_build_exit": 0,
+      "verified_payloads": 88,
+      "BUILD_INFO_sha256": "a8d17b320c8d79a88e1c2925915485b6d93f71e903cba96a6947e0e9bf3f4418",
+      "toolchain": [
+        "commit: 8b85230826ad1c1bea289f6d2592f31b705a03f6",
+        "uncommitted changes in the build inputs: 0 files",
+        "image: sha256:372e211b5816ff00315c3bea7ca2b2686fb27086f7ec32106a7f338160d1b327",
+        "rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "cargo: cargo 1.99.1 (5f94df478 2026-08-27)",
+        "mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+        "lua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)",
+        "target: x86_64-pc-windows-gnu, release"
+      ]
+    },
+    {
+      "profile": "hosted",
+      "bin": "D:\\EECH-Migration-Evidence\\entity-scan-production-8b8523082\\eech-campaign\\target\\weapon-fixture\\entity-scan-8b8523082",
+      "actual_build_exit": 0,
+      "verified_payloads": 88,
+      "BUILD_INFO_sha256": "5d6b3ecce8504baa0ff93dd0d59c73d5026377384d3b021ad8ddf3da1d598775",
+      "toolchain": [
+        "commit: 8b85230826ad1c1bea289f6d2592f31b705a03f6",
+        "uncommitted changes in the build inputs: 0 files",
+        "image: sha256:bd7ec893742589643253f3470d66ea9f5c4e3f757d0a46e7dade8ef5c619f791",
+        "rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "cargo: cargo 1.99.1 (5f94df478 2026-08-27)",
+        "mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+        "lua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)",
+        "target: x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/weapon-fixture): test-only, not a shipping artifact"
+      ]
+    },
+    {
+      "profile": "original",
+      "bin": "D:\\EECH-Migration-Evidence\\entity-scan-production-8b8523082\\eech-campaign\\target\\weapon-fixture\\original-entity-scan-8b8523082",
+      "actual_build_exit": 0,
+      "verified_payloads": 88,
+      "BUILD_INFO_sha256": "4389eb164f1624efbff00b5dbf23f65bbc1eef9953d762ea12cb09cb78460d5d",
+      "toolchain": [
+        "commit: 8b85230826ad1c1bea289f6d2592f31b705a03f6",
+        "uncommitted changes in the build inputs: 0 files",
+        "image: sha256:4222d5a33c8d2f959fb05b9825108cccfb2f4d78644467fb8c00f7934d2528c5",
+        "rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "cargo: cargo 1.99.1 (5f94df478 2026-08-27)",
+        "mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+        "lua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)",
+        "target: x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/weapon-fixture,eech-dc/collision-fixture): explicit Original control, not shipping"
+      ]
+    }
+  ],
+  "all_current_payloads_verified": true,
+  "completion_sha256": "c702d4eff9b4db1e64ca3e096ac0a6a9efc28fc8a1f1872aa7b861fd1c076b64",
+  "scope": "Windows build/profile/source seals only. Ordinary short has separate actual proof; no candidate authority/fullpack/D3 acceptance."
+}

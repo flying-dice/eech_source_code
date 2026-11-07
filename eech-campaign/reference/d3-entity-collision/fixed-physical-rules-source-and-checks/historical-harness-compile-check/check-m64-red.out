@@ -1,0 +1,7 @@
+aphavoc/source/entity/system/en_funcs/en_list.c: In function 'insert_local_entity_into_parents_child_list':
+aphavoc/source/entity/system/en_funcs/en_list.c:498:3: error: implicit declaration of function 'campaign_place_insert' [-Werror=implicit-function-declaration]
+aphavoc/source/entity/system/en_funcs/en_list.c:503:3: error: implicit declaration of function 'campaign_place_child_insert' [-Werror=implicit-function-declaration]
+aphavoc/source/entity/system/en_funcs/en_list.c: In function 'delete_local_entity_from_parents_child_list':
+aphavoc/source/entity/system/en_funcs/en_list.c:571:4: error: implicit declaration of function 'campaign_place_remove' [-Werror=implicit-function-declaration]
+aphavoc/source/entity/system/en_funcs/en_list.c:575:4: error: implicit declaration of function 'campaign_place_child_remove' [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors

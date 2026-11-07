@@ -1,0 +1,380 @@
+{
+  "kind": "Root actual immutable production source/check/packet binding; no tests or native replay",
+  "utc": "2026-11-07T08:08:45.373838+00:00",
+  "code": "0be1dd8465d9bf38da69cd3b303206cf5a64574d",
+  "head": "1cf5e5fe1875df8fcaaff842e061902062c3ba23",
+  "clean": true,
+  "freeze_sha256": "5e93b0a50bff3f77b0724d3e9af85df99a9551aff58010480edc0f2e9677ea42",
+  "source_rows": 3970,
+  "full_pre_post_json_literal": true,
+  "pre_post_map_sha256": "c4454bb233503b941581e37ea14759a9f2796fc14890facd028c870c21f040c2",
+  "raw_current_rows_equal": true,
+  "raw_vs_committed_qualified_unchanged": [
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+  ],
+  "changed_paths_bound": 37,
+  "extra_rows": 10,
+  "extra_pre_post_literal": true,
+  "packet_entries": 190,
+  "packet_git_literal": true,
+  "runs": [
+    {
+      "label": "c1-check-world",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c1-check-world.json",
+      "receipt_sha256": "d031ffac29f8843c116269a0aa921f6e508a5a4adab6384be807bb4748351537"
+    },
+    {
+      "label": "c10-engine-dc",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c10-engine-dc.json",
+      "receipt_sha256": "6be6e77d6508b48f4d3109798d139607cc82c2f299dfc0eea764addb904d4270"
+    },
+    {
+      "label": "c11-driver",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c11-driver.json",
+      "receipt_sha256": "a7b2bebe1194c3f03ba54f0000064c676c207a334391d25d9a06d51e01f34a39"
+    },
+    {
+      "label": "c12-driver",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c12-driver.json",
+      "receipt_sha256": "95d7e04b41d6b809985915dc30e1038cd2f90a8b6b09f700cab705250fc39376"
+    },
+    {
+      "label": "c13-driver",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c13-driver.json",
+      "receipt_sha256": "601d1ffa29fb3640e3f94a74428842067cefae69b848d10707a236e530c293bb"
+    },
+    {
+      "label": "c14-sys",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c14-sys.json",
+      "receipt_sha256": "b9680195654d43b8d95531a871766c9179441f23f1086f86164eb393a5933ad7"
+    },
+    {
+      "label": "c15-sys",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c15-sys.json",
+      "receipt_sha256": "87876d9cc11bdcc97a8ebaaaec920f062dd1a2d8eea24ff8b242928651fc6a34"
+    },
+    {
+      "label": "c16-sys",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c16-sys.json",
+      "receipt_sha256": "b779cd1bff474a3f62a87a33b385928b7a622a162dc23eaac1fa285d7a750d4a"
+    },
+    {
+      "label": "c17-obs-hosted",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c17-obs-hosted.json",
+      "receipt_sha256": "1d6e4e035ba49a02e13cc165b9420b135f5aa88706fad64133d4aab6a3dddc55"
+    },
+    {
+      "label": "c18-obs-legacy",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c18-obs-legacy.json",
+      "receipt_sha256": "9eda7c7ba30bff44a4cebb350721ac5d3cfe64165170f15fb8225dcfb39a2056"
+    },
+    {
+      "label": "c19-obs-legacy",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c19-obs-legacy.json",
+      "receipt_sha256": "415243910d9bc18ff2ff7577f5c39b700b39ff8b1b039397af83c243f873c31a"
+    },
+    {
+      "label": "c2-dialogue",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c2-dialogue.json",
+      "receipt_sha256": "7e8368733074c46861854a457c6e5193e6cbb6537c7e3aed561afb67e5c37dc2"
+    },
+    {
+      "label": "c20-obs-engine",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c20-obs-engine.json",
+      "receipt_sha256": "de4595e31b67bc79239076a6630d48b123377acbe76e72a8d7524f01ed6e5e78"
+    },
+    {
+      "label": "c3-check-hosted",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c3-check-hosted.json",
+      "receipt_sha256": "8edf7520ab3e52998ba87772e830219335b82b2a12e260f6dd744191ae23b2bf"
+    },
+    {
+      "label": "c4-check-legacy",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c4-check-legacy.json",
+      "receipt_sha256": "c794fde7d657e782232a7e7bd03a09589b6a95089cc39edf763c03272da89277"
+    },
+    {
+      "label": "c5-world-tests",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c5-world-tests.json",
+      "receipt_sha256": "9caaddae72b348635377d69e82b0f3f2ecd8d1e66e577aebaf0a6c3ce7ddb3f8"
+    },
+    {
+      "label": "c6-mtp",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c6-mtp.json",
+      "receipt_sha256": "178ed92735249629496fee83ca1044b53d22499b08b96dc755d3e642ab3df8aa"
+    },
+    {
+      "label": "c7-mtp",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c7-mtp.json",
+      "receipt_sha256": "f1e568a1a532df1a86edb4b1571a1f70782aff54acf5f2e9b9dcc959d7304753"
+    },
+    {
+      "label": "c8-world",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-c8-world.json",
+      "receipt_sha256": "9a2dff09628f96672e84518ac039f5f70ea5c13f4ce231a8ae7583bfb9f9c6a2"
+    },
+    {
+      "label": "c9-world",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-c9-world.json",
+      "receipt_sha256": "e59b7e9fbea0589729a6689d472959b447ded2651b81c1b6928614fd2b89b0ca"
+    },
+    {
+      "label": "f1-fmt-check",
+      "final": false,
+      "actual_exit": 1,
+      "receipt": "sector-height-production-f1-fmt-check.json",
+      "receipt_sha256": "136f55a2077002d165e14ef3ac192370f4921b1c6473d23598b015344b8044b9"
+    },
+    {
+      "label": "f2-fmt-apply",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-f2-fmt-apply.json",
+      "receipt_sha256": "7792a99ac8dfed62e5d13b5b08569d978e27103ecd377b0218939a876c0dc50f"
+    },
+    {
+      "label": "f3-clippy",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-f3-clippy.json",
+      "receipt_sha256": "1912ea3a3d55bef961ea419e62e9021a7ae90ec6348b4b9bc4ae09ceade002ac"
+    },
+    {
+      "label": "f4-clippy",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-f4-clippy.json",
+      "receipt_sha256": "3b24648e95b67b4efa5de6abf1f99719ad2ff6c9fc8d429128853b418758862d"
+    },
+    {
+      "label": "f5-clippy",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-f5-clippy.json",
+      "receipt_sha256": "a07890d53a815a51ed1a4456e1320dc113dd388faa009b322d2b8a709472aaa2"
+    },
+    {
+      "label": "f6-clippy-sys",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-f6-clippy-sys.json",
+      "receipt_sha256": "a259b3f3e21f3b22de83de30ea8539d9ac674455843ef80b53b5388450662b05"
+    },
+    {
+      "label": "f7-clippy-engine",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-f7-clippy-engine.json",
+      "receipt_sha256": "c0ab0ca31ef9082b55242c8297e82648071ec06e5d4865c7858bdcb80ba4a88b"
+    },
+    {
+      "label": "f8-fmt-apply",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-f8-fmt-apply.json",
+      "receipt_sha256": "93d99f16e34a5fc61c7f7f3c1db883032eb71dd49595ef409450a1d7b4f1cf91"
+    },
+    {
+      "label": "f9-fmt-check",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-f9-fmt-check.json",
+      "receipt_sha256": "91f28fcccbec79ad3e845e865e4325ff76e73ff31c69abf6c98f71fdb8a663ed"
+    },
+    {
+      "label": "i686-i1-legacy",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-i686-i1-legacy.json",
+      "receipt_sha256": "c80bf39fec306cea79bc1c5e20c59b40a8b06162393fb6e363c3c70447558818"
+    },
+    {
+      "label": "i686-i2-hosted",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-i686-i2-hosted.json",
+      "receipt_sha256": "32ac722aca2c67413d4436f1bf7e52f7e9a48e24b77d098097dd83931b0abc78"
+    },
+    {
+      "label": "i686-i3-dialogue",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-i686-i3-dialogue.json",
+      "receipt_sha256": "55f2a55e6b64d9d17ba00af5f4b4a08e8898ec5068ff9208073a4b691fdf8017"
+    },
+    {
+      "label": "i686-i4-world",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-i686-i4-world.json",
+      "receipt_sha256": "c6f2b33739837b5d989cb3b75c4ebab1721e76219a94f59681fac92a4c5cfa42"
+    },
+    {
+      "label": "i686-t12-control-hosted-i686",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-i686-t12-control-hosted-i686.json",
+      "receipt_sha256": "c500464ed5b4f69ab6e3206385b1724dd6efec37dad0d267a38f7117e415d2ff"
+    },
+    {
+      "label": "i686-t13-control-legacy-i686",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-i686-t13-control-legacy-i686.json",
+      "receipt_sha256": "d4c7de66a00b07ef40ff88b2c0b7ba1a27b24775d7650305f8786e94db8504ba"
+    },
+    {
+      "label": "i686-t14-dialogue-i686",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-i686-t14-dialogue-i686.json",
+      "receipt_sha256": "a15bf7ff6f1e6bc63a3ac4fcd93d758dfbff34159cb61162084bf7d33d8bafdd"
+    },
+    {
+      "label": "i686-t15-workspace-tests-i686",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-i686-t15-workspace-tests-i686.json",
+      "receipt_sha256": "3b785c7456177b266b8170a2546de37eaf81688a441686e615426533cc489305"
+    },
+    {
+      "label": "i686-t16-workspace-tests-i686-stack",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-i686-t16-workspace-tests-i686-stack.json",
+      "receipt_sha256": "511ac371512112e248dea7580a316fc6a93b76b110092cccd76ac2e0f47f5a14"
+    },
+    {
+      "label": "t1-fmt-check",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t1-fmt-check.json",
+      "receipt_sha256": "6047cb79c7621bee9efade4cf2f307b59d45f7b2e836f6313d9d9269d520837c"
+    },
+    {
+      "label": "t10-observer-chain-engine",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t10-observer-chain-engine.json",
+      "receipt_sha256": "7338970f513813b1ea93604bec771c1772e91f9be39a3e9a669f7bfc3ac6a98e"
+    },
+    {
+      "label": "t11-workspace-tests-x64-copt2",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t11-workspace-tests-x64-copt2.json",
+      "receipt_sha256": "9e4db05ba157bf89fba2a6ee2c9e2840476947d03e00a2fecb66ae4e214655e9"
+    },
+    {
+      "label": "t2-clippy-workspace",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t2-clippy-workspace.json",
+      "receipt_sha256": "3c66727e8f5c1df56a6cdff60428384b648e9a94f3fa65b6c68f32cea0c247f5"
+    },
+    {
+      "label": "t3-clippy-sys-features",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t3-clippy-sys-features.json",
+      "receipt_sha256": "b2792a62c15d5f37756b2050636593c13a1a158001aff40e6928e54f0fbad9a5"
+    },
+    {
+      "label": "t4-clippy-engine-funnel",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t4-clippy-engine-funnel.json",
+      "receipt_sha256": "f6284487ce96f67f36976fd91ee53975a02b9ac69121b480694ff6b95bb050b6"
+    },
+    {
+      "label": "t5-workspace-tests-x64",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t5-workspace-tests-x64.json",
+      "receipt_sha256": "461653be7928fa78652e65629ec5e987bad323c8d5e058a6996f8376c92f3be4"
+    },
+    {
+      "label": "t6-control-hosted",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t6-control-hosted.json",
+      "receipt_sha256": "87e6d5b350a48dc73fb47d660d5aaf790af2b3564c77b22149a4e312bf942b8f"
+    },
+    {
+      "label": "t7-control-legacy",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t7-control-legacy.json",
+      "receipt_sha256": "40553772c0a1196b3955c42e1e063afb23002f3ef95b69c41a2d98ce9cf5b687"
+    },
+    {
+      "label": "t8-observer-control-legacy",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t8-observer-control-legacy.json",
+      "receipt_sha256": "9d4b5c9302439af3e3611a5fe92abf3960c4517b43884d13549102c7979dc679"
+    },
+    {
+      "label": "t9-dialogue-x64",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-t9-dialogue-x64.json",
+      "receipt_sha256": "f0ce9ce29092e9a399ed8a34b7634c472fb6c10223b981ec80ed5e54f283be3e"
+    }
+  ],
+  "final_runs": 16,
+  "final_all_zero": true,
+  "metadata_only_delta": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json"
+  ],
+  "author_completion_sha256": "278f8cd36f4a8e40b9daff85eff35eaacca676dad4f40d0248d5fe3b7ac94e53",
+  "limits": [
+    "Source/check identity only; not independent review/native clearance/authority/fullpack/Task49/D3 acceptance.",
+    "Inherited raw/Git qualifications are named, not literal-source equality or new build equivalence.",
+    "M5 guarded-clearance and M6 native save/restore remain OPEN."
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "scope": "Safe derived facts of ONE focused instrumented replay and the correction it identifies. No actor identity, coordinate, pose or motion word, retail table or recording is published; the raw first-mismatch trace stays outside Git.",
+  "failed_production_runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "diagnostic": {
+    "source": "bd6e9c5794c26fc7e3fadbbcbcd31ae292b8d0ce",
+    "parent": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "kind": "observational integer trace of each mobile's host requests and, at the first ENTITY_POSE position/attitude/motion mismatch, one private record; written only when EECH_POSE_MOTION_DIAG names a file; no answer, predicate, FPU, RNG or order change",
+    "changed_paths": [
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/movement.rs"
+    ],
+    "windows_build_info_sha256": "194e2b23a9bdeceddc1b0ab9fa64773cd3b978badd3fb248dffc8976185f41ea",
+    "payload_hashes_differing_from_ea2b": [
+      "eech_dc.dll",
+      "eech-world.exe"
+    ],
+    "payload_hashes_equal_to_ea2b": [
+      "lua.dll",
+      "every lua/*.lua"
+    ],
+    "qualification": "the build image identifier differs from the ea2b build (rustc and cargo versions equal); the diagnostic is a different binary from ea2b and was run on a fresh retail root copy",
+    "windows_cache": "fresh uniquely named volume, build exit 0, removed by Root after the replay (receipt R:/d3-evidence/cleanup-closed-pose-motion-diag-bd6e-windows-cache-20261105.json)"
+  },
+  "replay": {
+    "configuration": "Lebanon retail campaign, hours=3, record=0, checkpoint_every=3600, seed 1 and frame 100 (the argv of the failed pack's Lebanon regress run)",
+    "native_exit": 1,
+    "helper_exit": 1,
+    "pre_and_post_retail_manifest_exits": [
+      0,
+      0
+    ],
+    "verified_payloads": 88,
+    "native_started_utc": "2026-11-05T20:54:48",
+    "native_completed_utc": "2026-11-05T21:27:05",
+    "fatal": "[model-provider:entity_pose.mirror] difference mask 20 (motion vector bit 4 plus the diagnostic formula bit 16), the same marker and mask as all four failed-pack logs",
+    "mismatches_in_trace": 1,
+    "private_trace_sha256": "9fafa239c4217f2cb914ec086741513b902fbecdff93c3e7c4440eafca04d34b",
+    "private_trace_bytes": 3517
+  },
+  "first_mismatch": {
+    "movement_kind": "Person (infantry)",
+    "entity_type": 19,
+    "alive": 1,
+    "stage": 0,
+    "position_words_equal": true,
+    "canonical_held_motion_equals_the_zero_bind_seed": true,
+    "campaign_motion_nonzero_and_differs_from_held": true,
+    "campaign_motion_magnitude_equals_the_speed_to_float_precision": true,
+    "campaign_motion_has_a_nonzero_vertical_part_so_it_is_not_attitude_row_two_times_speed": true,
+    "accepted_requests_of_the_record": {
+      "create_place": 1,
+      "person_begin": 3752,
+      "person_end": 3752
+    },
+    "refused_requests": 0,
+    "the_last_sixteen_requests_are_eight_begin_end_pairs_and_every_held_after_word_is_still_the_zero_seed": true,
+    "not_captured": "the returned Outcome words themselves, a frame clock, and any writer other than the one the source join shows; the other three failed-pack logs are not proven to be the same actor"
+  },
+  "source_join": {
+    "campaign_application": "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c apply_person_pose writes the host's returned attitude, position, speed and motion vector into the person (called by campaign_movement_person_begin when the step is not pending and by campaign_movement_person_end)",
+    "hosted_caller": "aphavoc/source/entity/mobile/vehicle/person/ps_move.c calls campaign_movement_person_begin and, for a man who follows the terrain, campaign_movement_person_end under EECH_CAMPAIGN_HOST_MOVEMENT; the legacy vector write is in the excluded #else branch",
+    "host_defect": "eech-world movement.rs begin_person/end_person returned the solver's motion vector in the Outcome but did not retain it in the record, so the canonical held vector stayed at the bind seed for every completed person step",
+    "prose_error_corrected": "the provider doc said the hosted build wrote no vector for a person",
+    "cross_check": "the first-mismatch campaign vector has the length of the man's speed and a vertical part, as the legacy person step's increment over the frame time does, and not the vehicle formula"
+  },
+  "correction": {
+    "source": "c2aa4f52b4d2c114cae89747208874c1bcd2d8b0",
+    "boundary": "a non-pending begin (a man who does not follow the terrain) and a completed end retain the exact Outcome vector the campaign applies; a pending begin leaves the held vector unchanged",
+    "unchanged": [
+      "the person kernel arithmetic and outputs",
+      "the Core apply order",
+      "the mirror predicate and mask",
+      "the canonical registry ownership",
+      "baselines, tolerances, seed, frame and inputs"
+    ],
+    "not_done": [
+      "no query-time Core adoption or cache",
+      "no formula approximation or guessed zero",
+      "no suppression of bit 4 or relaxed oracle",
+      "no new refusal on a legitimate completed step"
+    ],
+    "red": "an_infantrymans_step_retains_the_motion_vector_the_campaign_applies failed for the real reason (the retained vector was the zero seed, the applied vector was the walking vector) before the change, with the real Movers and the real C person kernel",
+    "green": "the same test passes (direct and two-phase, walking, running, turning without distance and walking again, with the pending-preserved assertion); eech-world lib 352 passed"
+  },
+  "limitations": [
+    "no corrected-source Windows build, native run, ordinary short, healthy control or full 40/all8 pack has been run by this lane; the long-run conformance of the corrected source is unmeasured",
+    "other kinds could still hold a stale vector at a boundary this source search did not reach; the dispatch arms of the routed, ship, fixed-wing and helicopter steps were read and retain their Outcome vector at their boundary, but the lifecycle arms were not re-read and no complete census of every Core writer against every host retention was run",
+    "a timing window between a routed vehicle's retained step vector and the campaign's copy after the position setter is noted by the reviewer; no query reentry in that interval was established",
+    "the diagnostic did not capture the returned person Outcome words directly",
+    "whole physical pose authority, natural moving weapon integration, full Task49 and whole D3 remain required and open"
+  ]
+}

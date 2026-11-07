@@ -1,0 +1,138 @@
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:4789:
+             row["reply_faults"].clone(),
+             row["candidate_after"].clone()
+         ),
+-        (Value::from(0), Value::from(0), Value::from(""), Value::from(""), Value::from(0), Value::from(0), Value::from(6)),
++        (
++            Value::from(0),
++            Value::from(0),
++            Value::from(""),
++            Value::from(""),
++            Value::from(0),
++            Value::from(0),
++            Value::from(6)
++        ),
+         "{row}"
+     );
+     let dialogue: Vec<&str> = control.candidate_calls.iter().map(|call| call.2.as_str()).collect();
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:4808:
+             row["fixed_rule_changed_next"].clone(),
+             row["fixed_rule_changed_cause"].clone()
+         ),
+-        (Value::from(1), Value::from(1), Value::from("placement"), Value::from("fixed_rule_mirror_differs")),
++        (
++            Value::from(1),
++            Value::from(1),
++            Value::from("placement"),
++            Value::from("fixed_rule_mirror_differs")
++        ),
+         "{row}"
+     );
+     // no campaign answer or request was altered: the only fault is the provider's named refusal, handed back for the ONE question the campaign asked at that stage. The campaign asked six questions, never a seventh:
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:4823:
+             row["candidate_after"].clone(),
+             row["entity_after"].clone()
+         ),
+-        (Value::from(0), Value::from(0), Value::from(0), Value::from(0), Value::from(1), Value::from(6), Value::from(0)),
++        (
++            Value::from(0),
++            Value::from(0),
++            Value::from(0),
++            Value::from(0),
++            Value::from(1),
++            Value::from(6),
++            Value::from(0)
++        ),
+         "{row}"
+     );
+     assert_eq!(row["first_fault"], "candidate reply: result refused");
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:4830:
+     // the provider received the campaign's six questions exactly as the control's, a SEVENTH call that is the sixth's payload byte for byte (same scene, same text, same key) and its refusal by name
+     assert_eq!(driven.candidate_calls.len(), 7, "{:?}", driven.candidate_calls);
+-    assert_eq!(driven.candidate_calls[..6], control.candidate_calls[..], "the six questions and their real answers are the control's");
++    assert_eq!(
++        driven.candidate_calls[..6],
++        control.candidate_calls[..],
++        "the six questions and their real answers are the control's"
++    );
+     let (final_question, again) = (&driven.candidate_calls[5], &driven.candidate_calls[6]);
+-    assert_eq!(final_question.2, "test", "the final pose was answered over the held state before anything was restated");
+-    assert_eq!((again.0, &again.1), (final_question.0, &final_question.1), "the same payload to the same provider");
++    assert_eq!(
++        final_question.2, "test",
++        "the final pose was answered over the held state before anything was restated"
++    );
++    assert_eq!(
++        (again.0, &again.1),
++        (final_question.0, &final_question.1),
++        "the same payload to the same provider"
++    );
+     assert_eq!((again.2.as_str(), again.3.as_str()), ("refused", MIRROR));
+     // the provider acknowledged the building's own report and then the host's restatement of ONLY that record, both `placed` under the building's key
+     let child = final_question.1.rsplit(' ').next().expect("the building's key").to_string();
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:4846:
+     );
+     // the extra evaluation took no destructive, terrain, motion or engine action: nothing reached the engine, the movement registry or the controlled query surface
+     assert!(
+-        driven.entity_log.is_empty() && driven.move_log.is_empty() && driven.query_calls.is_empty() && driven.demand_log.is_empty() && driven.pose_log.is_empty(),
++        driven.entity_log.is_empty()
++            && driven.move_log.is_empty()
++            && driven.query_calls.is_empty()
++            && driven.demand_log.is_empty()
++            && driven.pose_log.is_empty(),
+         "{:?} {:?} {:?}",
+         driven.entity_log,
+         driven.move_log,
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:4853:
+         driven.query_calls
+     );
+-    assert!(driven.roster_log.iter().all(|event| event.0 != "0x40a00000"), "the placement stayed standing: no roster removal");
++    assert!(
++        driven.roster_log.iter().all(|event| event.0 != "0x40a00000"),
++        "the placement stayed standing: no roster removal"
++    );
+     assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:4859:
+ #[test]
+-fn a_restatement_not_acknowledged_under_the_fixed_report_contract_at_a_listed_buildings_final_question_is_never_credited_and_the_payload_is_never_re_evaluated() {
++fn a_restatement_not_acknowledged_under_the_fixed_report_contract_at_a_listed_buildings_final_question_is_never_credited_and_the_payload_is_never_re_evaluated()
++{
+     // positive first: the same scenario with a correct acknowledgement is credited (the test above). Only the restatement's acknowledgement is damaged: a cursor beside `placed`, another placement's key, another
+     // state, and a provider that fails to answer at all
+     for fault in ["restatement_cursor", "restatement_echo", "restatement_state", "restatement_error"] {
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:4881:
+         // the final pose is the campaign's last answer: nothing was asked of the provider after the failed restatement, and no refusal was handed back
+         let dialogue: Vec<&str> = driven.candidate_calls.iter().take(6).map(|call| call.2.as_str()).collect();
+         assert_eq!(dialogue, LISTED_DIALOGUE, "{fault}");
+-        assert!(driven.candidate_calls.len() >= 6 && driven.candidate_calls.iter().skip(6).all(|call| call.1 != driven.candidate_calls[5].1), "{fault}: the payload was re-asked");
++        assert!(
++            driven.candidate_calls.len() >= 6 && driven.candidate_calls.iter().skip(6).all(|call| call.1 != driven.candidate_calls[5].1),
++            "{fault}: the payload was re-asked"
++        );
+         let error = error_of(driven);
+         assert!(
+             error.contains("mode changed_fixed_rule") && error.contains("restatement of the fixed rule") && error.contains("not acknowledged as placed"),
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:4907:
+         &[("mode", "changed_fixed_rule")],
+     ));
+     assert!(
+-        !error.contains("UNREACHED") && error.contains("stopped at [model-provider:entity_candidate.callback], not at [model-provider:entity_candidate.refused]"),
++        !error.contains("UNREACHED")
++            && error.contains("stopped at [model-provider:entity_candidate.callback], not at [model-provider:entity_candidate.refused]"),
+         "{error}"
+     );
+-    let error = error_of(drive(&healthy(&format!("{LISTED}, bad_real_candidate = 'state'")), &[("mode", "changed_fixed_rule")]));
+-    assert!(!error.contains("UNREACHED") && error.contains("reply_faults=1") && error.contains("candidate reply:"), "{error}");
++    let error = error_of(drive(
++        &healthy(&format!("{LISTED}, bad_real_candidate = 'state'")),
++        &[("mode", "changed_fixed_rule")],
++    ));
++    assert!(
++        !error.contains("UNREACHED") && error.contains("reply_faults=1") && error.contains("candidate reply:"),
++        "{error}"
++    );
+ }
+ 
+ #[test]

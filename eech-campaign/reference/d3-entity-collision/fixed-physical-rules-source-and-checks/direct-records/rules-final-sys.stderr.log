@@ -1,0 +1,7 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+    Finished `release` profile [optimized] target(s) in 6m 25s
+     Running unittests src/lib.rs (/target/release/deps/eech_sys-d4a14f91c11000f7)
+     Running tests/findings.rs (/target/release/deps/findings-137691177ee2c595)
+     Running tests/smoke.rs (/target/release/deps/smoke-f625568acd405b7f)
+   Doc-tests eech_sys

@@ -1,0 +1,53 @@
+{
+  "schema": "d3-city-relist-ack-final-map-summary.v1",
+  "tool": "env/sector-roster-inputmap-batched-20261106.py <repo> <out> a1ef80b05612f4b8f2d355ad024cef6037426e55",
+  "head_rev_of_comparison": "a1ef80b05612f4b8f2d355ad024cef6037426e55",
+  "chronology": [
+    "dev checks (every record before relist-final-*) ran BEFORE the final maps; the C mutant was restored byte for byte before them",
+    "FINAL-PRE-CHECK map captured 2026-11-06T23:10:58.254484Z to 2026-11-06T23:11:00.988361Z on the frozen, formatted bytes",
+    "targeted final checks relist-final-fmt, -world, -c, -clippy ran 2026-11-06T23:11:05.874507+00:00 to 2026-11-06T23:12:36.966854+00:00",
+    "FINAL-POST-CHECK map captured 2026-11-06T23:12:41.775037Z to 2026-11-06T23:12:44.966722Z",
+    "the code commit eb3861ea8 followed and was pushed; each blob equals the raw bytes of its map entry"
+  ],
+  "pre_map": {
+    "path": "R:/d3-evidence/city-relist-ack-20261106/final-pre-check-inputmap.json",
+    "bytes": 2030077,
+    "sha256": "2ff50b41584a0a439f39215422e2c04828451283825554811435082a58e23980"
+  },
+  "post_map": {
+    "path": "R:/d3-evidence/city-relist-ack-20261106/final-post-check-inputmap.json",
+    "bytes": 2030077,
+    "sha256": "2ff50b41584a0a439f39215422e2c04828451283825554811435082a58e23980"
+  },
+  "file_count": 3954,
+  "all_file_entries_equal_pre_to_post": true,
+  "changed_from_parent": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "changed_from_parent_note": "the three listed code paths are the intended change; the three tree-geometry Lua controls are the known checkout-filter files that also differ from their blobs at the parent",
+  "code_paths": {
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
+      "bytes": 255678,
+      "raw_sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db",
+      "git_blob": "3591429759763d9ed3a2216790402c2d5e9e0c09",
+      "blob_at_parent": "86b26df1f0d58db471d8248c3d1f4ff69c250277"
+    },
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs": {
+      "bytes": 357618,
+      "raw_sha256": "6228ddebcab065899bd7543f6dd4519193375093d0e9c5de62dd52237cfe5263",
+      "git_blob": "7dc4b6de0f2d4f87e1f612b7868bfafcee4fc437",
+      "blob_at_parent": "b28d547d741b171509236ba7c13f814bf042cd34"
+    },
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c": {
+      "bytes": 205207,
+      "raw_sha256": "ff1734ceed305759fb975b600884a165689d74b1cdaf88300f657b5ddb3890ff",
+      "git_blob": "73f98af9115106224b5e32e8da40c59793abed15",
+      "blob_at_parent": "91d70ad1b75060fa7a9776a4022c226c741f5d1f"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the external sealed files",
+  "files": {
+    "independent-sector-height-finite-native-1b89-ci-lua-635-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 20359,
+      "sha256": "8edddd934b091ea58567d43e3a71f4eaab378431de7b0b378990ae2703e77c32"
+    },
+    "Root-feedback-height-native-CI-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 2222,
+      "sha256": "452b10c8a4d129bc647cab737c01d637e8b7ff9b7e7dfefdff1aa5b7de12670a"
+    },
+    "ci-lua-635-all9-CI-readback-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 15872,
+      "sha256": "8c241395cb9e9dd99770cf6f6c551b52ec8dfe30eddc3982f45a47d14c0f13da"
+    },
+    "sector-height-native-Root-binding-1b89-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 13442,
+      "sha256": "fa02f29a90c38a1cbb08d78b7b5dcf8d753916f51f3ba392a41a3bfec6d15698"
+    }
+  },
+  "problems": []
+}

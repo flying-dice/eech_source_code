@@ -1,0 +1,51 @@
+{
+  "source": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "snapshot": "D:\\EECH-Migration-Evidence\\canonical-pose-production-ea2b23481",
+  "scope": "Exact tiny test-only correction; production/C byte-identical to f310. Retain failed original matrix literally; reuse its 15 applicable passing steps with this explicit delta. Run affected classifier tests, formatting and four-crate strict lint at corrected source. No native/fullpack/wholeD3 acceptance.",
+  "parent_source": "f3107332bf28e156ec6205ba321432bfad14dc60",
+  "parent_actuals": "R:\\d3-evidence\\canonical-pose-f310-matrix-and-source-actuals-20261105.json",
+  "parent_actuals_sha256": "7aace59e73d21db6ce20d94fb46f8764ce5095a8b2b283d44b3d561a2ff4ce12",
+  "parent_matrix_actual_exit": 1,
+  "parent_failed_step": "clippy-four-crates 101",
+  "production_and_C_inputs_unchanged": true,
+  "only_code_scope_delta": [
+    "eech-campaign/crates/eech-world/src/entity_host.rs"
+  ],
+  "targeted_actual_exit": 0,
+  "targeted_steps": [
+    "fmt 0",
+    "classifier-tests 0",
+    "clippy-four-crates 0",
+    "gate_failed_steps=0"
+  ],
+  "source_before_after_literal_equal": true,
+  "source_map_sha256": "5d955b62be7c5a1f6a422bc148814457b18db49f55305fb678bb06c7725d7443",
+  "rows": 2920,
+  "all_raw_files_equal_committed_git_bytes": true,
+  "filtered_exceptions": [
+    {
+      "path": "aphavoc/laa.c",
+      "filtered_git_blob": "231ff17ecfa62e4898ff258279054b7ba1b10d4b",
+      "raw_sha256": "da03dd3170ac6aa19b7d00e60c8ec29c2b56913c0f6d47961a8e6f503951c396",
+      "committed_git_blob": "6fbe4af688b560f1b3bb079e0a6c195665a8acb9"
+    },
+    {
+      "path": "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "filtered_git_blob": "f966bd343405d97eeb10febd753f8417279cf2db",
+      "raw_sha256": "1f93a282881d0bd44c661bef4dce7bfae8ed85ed073d977560de87979f494b30",
+      "committed_git_blob": "7bec8a6007bf077b530c5a60aebfcc28afb600be"
+    },
+    {
+      "path": "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+      "filtered_git_blob": "a0265692697709cae4957697da7a4e56a861259b",
+      "raw_sha256": "7770f4c0170378a32bbe74d454de69cfe20600fe351d8a6fbb9fd7ea20c9cc52",
+      "committed_git_blob": "1ed3e3908b56ee1af3f544249f0b4869e64a74fa"
+    }
+  ],
+  "filtered_column_sha256": "1a005677d07200b039cf4672c1a989267535f2df551aed4f26e4b1df3460547d",
+  "raw_column_sha256": "58518fac0dbe72738ff375faec90703973aaf3d4ad35ee91d15d094ed367caa2",
+  "test_results": [
+    "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 349 filtered out; finished in 1.36s"
+  ],
+  "matrix_output": "D:\\EECH-Migration-Evidence\\canonical-pose-lintfix-gate-ea2b23481-20261105"
+}

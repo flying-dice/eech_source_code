@@ -1,0 +1,69 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "independent-sector-height-capacity-f01-native-20261107.json",
+      "bytes": 10775,
+      "sha256": "3665b264316b598b7d9892bb2bd66645a935c97bed68afdea0673141cbde498e"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5432,
+      "sha256": "ff5760fab02a0b045dcee1ed037b4315878842eb43b4700273e1a004a14f4172"
+    },
+    {
+      "path": "receipts/sector-height-capacity-f01-baseline-20261107-completion.json",
+      "bytes": 4680,
+      "sha256": "ea9bbe6e84803e98b22876830a2d9e0c253b10e6de9e72f7b3ab5e9fd6444b84"
+    },
+    {
+      "path": "receipts/sector-height-capacity-f01-plan-20261107.json",
+      "bytes": 4265,
+      "sha256": "56b5c274604fa932d7d936f1f8d1c453c14b512152b5775425fb9a82f5849b71"
+    },
+    {
+      "path": "receipts/sector-height-capacity-f01-profile-20261107-completion.json",
+      "bytes": 2654,
+      "sha256": "9a654ef53a079e9a8029d79cc3466e5d60da849aa414f95a2edc473832acce19"
+    },
+    {
+      "path": "receipts/sector-height-capacity-f01-short-20261107-completion.json",
+      "bytes": 4563,
+      "sha256": "eb6b479234f583cc92a24de978816e30416f79258a773f4da247851d704478c1"
+    },
+    {
+      "path": "receipts/sector-height-capacity-f01-short-comparison-20261107.json",
+      "bytes": 1497,
+      "sha256": "fd49d760042e47d23f4bab7a7f2c4637bbb8f216c97a384c42f2aea4c826eb5e"
+    },
+    {
+      "path": "receipts/sector-height-capacity-f01-windows-20261107-completion.json",
+      "bytes": 17094,
+      "sha256": "20a225af602f865bebcc3fd04181ce103166c0b2180b7225859d7161bc6d35c3"
+    },
+    {
+      "path": "Root-sector-height-production-start-disposition-20261107.json",
+      "bytes": 2988,
+      "sha256": "91c6ffa51bb8b4e125a3c3cd27cef24b6f6ab83f8c6ccbd93236d0b50350cd28"
+    },
+    {
+      "path": "sector-height-capacity-428-CI-readback-20261107.json",
+      "bytes": 1950,
+      "sha256": "1af12f18779dcb520b4a9ec93322327c1f2124aea71d0c02054fa71dda552d12"
+    },
+    {
+      "path": "sector-height-capacity-f01-actuals-Root-binding-20261107.json",
+      "bytes": 23019,
+      "sha256": "bac255fdc587c1f9a8c86dcbe98ba1ad22c98b54bdd175e7414dc10571766598"
+    },
+    {
+      "path": "sector-height-capacity-f01-Root-baseline-characterization-20261107.json",
+      "bytes": 4011,
+      "sha256": "1af90106db5bd68fc008315e32111aafc6386509eb6b3c48f54ff0dcf4b618f8"
+    }
+  ]
+}

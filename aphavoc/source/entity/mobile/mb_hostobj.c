@@ -35,6 +35,8 @@
 
 #include "entity/mobile/mb_hostobj.h"
 
+#include "entity/mobile/mb_hostplace.h"
+
 typedef struct object_record
 {
 	char host_id[CAMPAIGN_OBJECT_ID_MAX + 1];
@@ -388,6 +390,10 @@ const char *campaign_object_identify (struct ENTITY *en)
 	insert_into_table ((int) record_count - 1);
 
 	record_of_entity[index] = (int) record_count;
+
+	// the host's placements of this entity (its place in a sector's list and in a city's) are named by the identity the host just issued, so that its one record and the identity the campaign reports about are the
+	// same record; the identity itself was issued lazily and exactly as before, and an entity with no placement yet is named when it is placed
+	campaign_place_name (en, records[record_count - 1].host_id);
 
 	return records[record_count - 1].host_id;
 }

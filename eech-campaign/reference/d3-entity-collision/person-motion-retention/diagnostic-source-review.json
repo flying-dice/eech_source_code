@@ -1,0 +1,176 @@
+{
+  "schema": 1,
+  "review_date": "2026-11-05",
+  "reviewer_role": "sole independent Codex reviewer",
+  "scope": "ONE bounded new diagnostic-source and directly relevant motion-retention boundary inspection, while the immutable replay runs. No broad closed-source review or new test/native campaign.",
+  "source": {
+    "commit": "bd6e9c5794c26fc7e3fadbbcbcd31ae292b8d0ce",
+    "parent_failed_runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "snapshot": "D:/EECH-Migration-Evidence/pose-motion-diag-bd6e9c579-20261105",
+    "clean_HEAD_verified": true,
+    "only_diagnostic_changed_paths": [
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/movement.rs"
+    ],
+    "C_motion_writer_sources_unchanged_from_failed_parent": true,
+    "source_hashes": [
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "git_blob": "a9344ace0ccb83ee1611a19d375ebe15aea4dc69",
+        "bytes": 110995,
+        "sha256": "409e34fc895ed4eacf12b32dff8d39bdd3e6d975547cf3df69bd00fbb041138b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/movement.rs",
+        "git_blob": "1fea23b772f4c8b6153cdfd236a04ee0a7965a4d",
+        "bytes": 371039,
+        "sha256": "53ff287d338ad1cb424ae8b609789a6a2eb2f672cf3c58cdaefd2254c15cae82"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c",
+        "git_blob": "c36dc28c106dd524d61acfaa068fb27ec799cd7b",
+        "bytes": 65296,
+        "sha256": "ebc6fa9d0a6780d94492f44b3c6118224fb040fe770265b0877fb01655d4c40c"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/person/ps_move.c",
+        "git_blob": "5ce9ff234175b13b2658e26f14e935f43905fc2d",
+        "bytes": 11765,
+        "sha256": "5d396181a5a966dd4c62ab7aa17d83c73034c234311f3cc103c194e1edbbb973"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/vh_int.c",
+        "git_blob": "2504979a42ad8c8aa18f5393c4fccb50fd559ecc",
+        "bytes": 36391,
+        "sha256": "54138d2b7fa15c394ddccad891afcf6c77a849f1dc9a3a1be0e1c0c542f9b522"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/vh_vec3d.c",
+        "git_blob": "4766ef48c2fe31fcc92df59380f1a45c45e89901",
+        "bytes": 16977,
+        "sha256": "9a1f4f5e4769ae33ec8d44df8178e3b404d403a563ee56f7c232bf2363d087c4"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_move.c",
+        "git_blob": "f6420d2afcea3ad8eefd17fc9e55ece3e7819850",
+        "bytes": 30093,
+        "sha256": "5a82726f371ac6dbb56be982181cbfffaf7291a847c53cd6f380688400060194"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/anti_air/aa_move.c",
+        "git_blob": "cbfda8765970673791ac346b35b94a595db79140",
+        "bytes": 16310,
+        "sha256": "a7dbfde68385cf2d84f9e5999a9c4b04f26aa57e1cc29a430164257a3ce8a283"
+      }
+    ]
+  },
+  "decision": {
+    "status": "DIAGNOSTIC_DELTA_NONDECISIONAL_SOURCE_CANDIDATE_FOUND_TRACE_PENDING",
+    "new_production_clearance": false,
+    "root_cause_of_actual_failed_actor_confirmed": false,
+    "existing_production_P1": "ENV-ENTITY-POSE-LONG-RUN-MOTION-1",
+    "candidate_count": 1,
+    "candidate_is_a_real_active_source_boundary": true,
+    "whole_pose_authority_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "instrumentation_assessment": {
+    "answer_and_predicate": "model_host.rs564-578 calls the dump only after observe has computed the Recorded difference, and returns the original observation unchanged. No mirror mask, candidate answer or physical predicate is replaced.",
+    "step_order": "movement.rs1900-1917 retains dispatch order and its original outcome/error propagation. It inserts a trace note after dispatch and before the existing previous_position/rotor result handling. Accepted/refused status is logged, not used to decide. No callback, solver step or getter is added.",
+    "bind_and_retire": "After existing bind validation, note_bind records raw initial state before the same physical record insertion. Retire removes the diagnostic history; it does not decide registry lifetime. These are diagnostic maps, not a second pose authority.",
+    "RNG": "No campaign/CRT/entity RNG call or reseed is added. Extra standard-library allocation/hash bookkeeping and wall-time overhead exist; no physical decision reads them.",
+    "FPU": "The added value capture uses to_bits, integer counters/maps, and integer/hex formatting. The formula diagnostic calls the existing integer product_toward_zero. No new physical floating-point operation/comparison is introduced. File/format library internals were not measured as a new caller-FPU proof; existing engine fatal/restore behavior is unchanged.",
+    "bounds": "The ring is bounded to16 entries per currently traced identity; operation names are static Request names and counters are integer. The number of identity histories follows bind/retire activity rather than a new fixed global16-entry cap.",
+    "observational_limits": [
+      "Every request is represented only after dispatch, so a refused request can show the record state after whatever the original dispatch did; accepted=false is not an atomic rollback claim.",
+      "No request arguments, returned Outcome.motion_vector, Core application event or simulated frame/time stamp is retained in the ring.",
+      "Only the last16 requests remain; lifetime per-name counts and the bind snapshot survive until retire, but neither proves a complete event sequence.",
+      "Retirement removes history and issued-without-record identities have no bind trace; absence of history is not universal lifetime coverage.",
+      "Dump creation/write/flush errors are ignored and dumping is enabled only by EECH_POSE_MOTION_DIAG. An absent file alone is not proof that no mismatch occurred. No current replay process was modified.",
+      "The new file is append-based. In this native path the same mirror failure normally stops the engine immediately after the reply; the instrumentation itself is not a universal first-record-only latch."
+    ]
+  },
+  "single_source_supported_candidate": {
+    "category": "Completed active hosted Person movement returns a vector without retaining it in the canonical record",
+    "locations": [
+      {
+        "path": "eech-campaign/crates/eech-world/src/movement.rs",
+        "line": 2266,
+        "fact": "PersonBegin dispatches begin_person(record,...) directly; PersonEnd does the same for end_person at2267."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/movement.rs",
+        "line": 3684,
+        "fact": "begin_person either stages a pending terrain-follow step or calls settle_person(&mut record.pose,...)."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/movement.rs",
+        "line": 3724,
+        "fact": "end_person consumes the pending step and calls settle_person(&mut record.pose,...)."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/movement.rs",
+        "line": 3729,
+        "fact": "settle_person calls the real eech_person_settle solver, computes Outcome.motion_vector and returns it, but receives only &mut Pose and cannot update Record.motion_vector."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/movement.rs",
+        "line": 2607,
+        "fact": "dispatch returns result without a common motion-vector retention epilogue; step only updates previous_position and rotor after dispatch."
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c",
+        "line": 1746,
+        "fact": "The compiled apply_person_pose applies attitude and position, then speed and result.motion_vector[0..2] to the real Core person."
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c",
+        "line": 1791,
+        "fact": "PersonBegin calls apply_person_pose only when !result.pending. PersonEnd at1799 calls it for the completed end."
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/person/ps_move.c",
+        "line": 345,
+        "fact": "The active EECH_CAMPAIGN_HOST_MOVEMENT branch calls these person begin/end adapters. Its raw legacy vector expressions below368 are #else and are not the relevant writer."
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/vehicle/vh_int.c",
+        "line": 423,
+        "fact": "The vehicle mobile-collision flag is true and inherited by Person, so a live hosted person can be offered to collision."
+      }
+    ],
+    "why_relevant": "A completed host-computed infantry step can leave the canonical motion vector at its bind/previous value while C applies the newly returned vector. A later ENTITY_POSE can therefore report an actual bit4 mismatch; bit16 may additionally reflect formula diagnostics. This is a concrete source inconsistency independently of which actor the current failed replay eventually identifies.",
+    "not_an_actual_actor_diagnosis": "No actor/type/history trace is available to this reviewer yet. It is not established that the four failed ordinary runs reached this particular Person boundary or that it is their only defect.",
+    "minimum_legitimate_fix_boundary": "Retain the exact vector already computed by the Host solver at each completed person step: non-pending PersonBegin and completed PersonEnd. Do not publish the pending begin placeholder vector as physical state, read/copy Core words at query time, add a fallback, suppress mismatch4 or alter the original solver/order.",
+    "earlier_prose_superseded": "Any earlier assertion that persons only retain their bind seed because the legacy ps_move vector writer is excluded is incomplete: apply_person_pose is the actual active hosted writer. The old kind-1-only observer supplied no Person coverage."
+  },
+  "trace_discrimination": {
+    "can_show": [
+      "Whether the actual mismatching record has Kind::Person and the observed entity type/alive/stage",
+      "Its raw Core-vs-held difference and bind vector, current pose/vector/state flags",
+      "Recent accepted PersonBegin/PersonEnd names plus post-dispatch held-vector/position/scalar words and global request sequence",
+      "Whether no canonical motion update appears in the bounded recent history despite a changed Core motion at observation"
+    ],
+    "cannot_alone_show": [
+      "The returned motion words of a PersonBegin/End: the ring logs retained record words only",
+      "Whether Core immediately applied that exact returned result or another raw writer changed it after application",
+      "The exact C application point or first frame/time of a divergence; a sequence counter is not a frame clock",
+      "A complete old lifecycle if the responsible request fell outside the last16 entries"
+    ],
+    "smallest_conditional_additional_fact": "If the mismatch actor/history is Person and the present trace cannot discriminate a later Core write, record the successful request Outcome.motion_vector plus pending status as raw words alongside the existing held-after entry. That distinguishes returned physical result from retained state without another store/solver or generic tracing framework. A bounded C apply marker is needed only if that still leaves an actual later-write ambiguity. Do not restart the active replay for this possibility."
+  },
+  "other_directly_relevant_boundaries_checked": [
+    "Routed missing-waypoint and stopped/engaging branches call the Host RoutedVector helper at rv_move264/302; their legacy formulas inside#else do not establish active bypasses. Stop deliberately retains old motion until the real recomputation boundary, as Core does. No actor-specific defect was inferred there.",
+    "Ground fall uses separate candidate/gravity/settle/vector/commit phases. The Host stages settle output and C applies gravity/vector at their declared points; formula16 alone is not evidence of a held-motion mismatch. No new complete late-lifecycle clearance is claimed.",
+    "A timing window exists between Host Advance retaining its result vector (movement.rs2222) and C copying result.motion_vector after the position setter (rv_hostmv.c398-405). The position setter sends dependent/special-effect notifications (vh_vec3d.c165-232). No query-reentry in that interval was established, so this is only a conditional boundary to inspect if the actual actor/history points there, not another finding or permission to reorder Core writes."
+  ],
+  "actual_replay_status": {
+    "private_trace_path": "D:/EECH-Migration-Evidence/pose-motion-diag-20261105/PRIVATE-pose-motion-mismatch.txt",
+    "present_at_final_read": false,
+    "no_actual_contents_read_or_published": true,
+    "scope": "No replay outcome/first failing actor or corrected-production clearance is established by this source note. Root owns the running process and eventual actual trace join."
+  },
+  "publication_safety": "No actor IDs, raw trajectory/pose/motion words, coordinates or retail tables are included. The private source-supported candidate is described by type and source locations only.",
+  "review_operations": "Read-only immutable Git delta and directly affected compiled writer/retention source inspection plus this safe note. No builds/tests/native launches/restarts, source edits, agents, caches/VM or external actions."
+}

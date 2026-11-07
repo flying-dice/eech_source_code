@@ -1,0 +1,282 @@
+
+running 69 tests
+test a_caller_with_an_exception_unmasked_is_refused_for_every_target_point_question_and_its_state_is_untouched ... ok
+test a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds ... FAILED
+test a_city_the_campaign_calls_not_fixed_is_refused_when_the_host_derives_it_fixed_and_never_skipped_on_the_campaigns_word ... FAILED
+test a_building_listed_under_a_city_is_decided_from_the_state_its_record_holds_and_is_named_by_its_place_in_the_citys_list ... FAILED
+test a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it ... FAILED
+test a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it ... FAILED
+test a_city_the_host_holds_no_state_for_is_refused_where_the_campaign_reads_its_position_and_box ... ok
+test a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from ... FAILED
+test a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read ... FAILED
+test a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed ... FAILED
+test a_branch_three_row_without_a_known_case_or_a_well_formed_offset_is_never_counted_matched ... ok
+test a_city_whose_state_is_absent_or_withdrawn_is_refused_where_its_fixed_facts_are_read_whatever_the_campaign_calls_it ... FAILED
+test a_fixed_target_query_hands_the_callers_floating_point_state_back_and_does_not_depend_on_it ... ok
+test a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s ... FAILED
+test a_heading_the_original_would_have_read_but_the_caller_lacks_is_a_refusal_never_a_default ... ok
+test a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing ... FAILED
+test a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box ... FAILED
+test a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first ... FAILED
+test a_malformed_fixed_state_report_is_refused_by_name_before_the_record_changes ... FAILED
+test a_city_of_the_unknown_sub_type_is_not_fixed_and_a_campaign_that_calls_it_fixed_is_refused ... FAILED
+test a_fixed_candidate_the_host_holds_no_state_for_or_withdrew_it_from_is_refused_by_name_and_never_completed_from_the_campaigns_words ... FAILED
+test a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses ... FAILED
+test a_fixed_state_report_is_held_by_the_record_of_the_placement_and_the_staged_candidate_is_decided_from_it ... FAILED
+test a_nonzero_heading_rotates_the_fixed_offset_with_the_originals_arithmetic_through_the_provider ... ok
+test a_scene_without_a_target_point_falls_back_to_its_bounding_box_centre_with_y_clamped_at_zero ... ok
+test a_non_zero_heading_rotates_and_adds_x_and_z_exactly_where_the_arithmetic_is_exact ... ok
+test a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys ... FAILED
+test a_shape_outside_the_catalogue_is_an_argument_error_and_an_inventory_store_cannot_say ... ok
+test an_instance_of_a_scene_without_a_target_point_is_the_originals_second_branch_not_a_number ... ok
+test a_target_point_query_hands_the_callers_floating_point_state_back_and_does_not_depend_on_it ... ok
+test a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement ... FAILED
+test a_record_that_states_no_collision_decides_a_skip_and_the_campaign_cannot_call_it_fixed ... ok
+test a_sub_type_the_original_has_no_row_for_is_refused_by_name_while_unknown_is_a_legitimate_statement ... FAILED
+test a_zero_heading_keeps_the_legacy_quirk_x_and_z_are_not_added_but_y_still_is ... ok
+test a_mobile_candidates_pose_is_the_hosts_canonical_record_and_the_campaigns_words_decide_nothing ... ok
+test an_instances_world_target_point_applies_the_root_pose_in_the_originals_convention ... ok
+test the_answers_do_not_move_between_asks ... ok
+test a_store_that_never_read_the_custom_files_cannot_say_what_a_slot_holds_and_a_missing_installation_does_not_load ... ok
+test an_offset_with_no_horizontal_part_never_reads_the_heading_and_only_adds_y ... ok
+test the_chain_names_the_first_target_point_sub_object_by_its_sibling_position_at_each_level ... ok
+test every_staged_question_of_a_non_mobile_candidate_names_a_live_placement_of_the_kind_its_branch_has ... FAILED
+test the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal ... FAILED
+test a_mobile_candidate_the_host_holds_no_record_of_is_refused_by_name_and_never_completed_from_the_campaigns_words ... ok
+test the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds ... FAILED
+test the_campaigns_words_of_a_fixed_candidate_decide_nothing_a_difference_from_the_record_is_a_named_refusal ... FAILED
+test the_hosts_city_box_hands_the_callers_complete_floating_point_state_back_and_refuses_an_unmasked_exception ... ok
+test the_hosts_city_box_classifies_every_word_by_its_bits_before_it_computes_and_names_what_it_cannot_build ... ok
+test the_host_lua_face_answers_local_offsets_and_instance_poses_as_plain_bit_patterns ... ok
+test the_host_lua_comparison_checks_every_recorded_offset_row_of_both_passes_and_each_branch_one_query ... ok
+test the_host_lua_face_answers_a_fixed_target_from_words_and_the_comparer_replays_branch_three_from_the_recorded_inputs ... ok
+test the_invalid_scene_is_zero_a_scene_never_read_is_refused_and_a_scene_outside_the_catalogue_is_an_argument_error ... ok
+test the_placement_chain_is_composed_from_the_topmost_sub_object_with_the_scale_so_far ... ok
+test the_invalid_shape_copies_the_position_and_a_valid_empty_slot_adds_a_zero_that_changes_a_negative_zero ... ok
+test the_hosts_city_box_is_the_originals_bit_for_bit_over_every_heading_offset_and_box_and_every_caller_rounding_mode ... ok
+test the_original_arithmetic_changes_no_control_word_rounding_or_mask_and_only_raises_sticky_flags ... ok
+test the_enumeration_is_decided_by_the_real_provider_from_the_segment_and_the_map_alone_and_a_malformed_question_is_refused_by_name ... ok
+test the_scenes_own_record_names_the_target_point_before_any_sub_objects_records ... ok
+test the_provider_answers_the_chain_the_world_position_and_a_fixed_position_and_refuses_what_it_cannot ... ok
+test the_state_follows_the_record_through_a_relink_the_two_placements_of_a_building_and_ends_with_the_last_placement ... FAILED
+test without_a_scene_record_the_search_runs_depth_first_with_each_sub_objects_own_records_before_its_children ... ok
+test the_world_position_follows_the_live_placement_the_campaign_gives_not_keyframe_zero ... ok
+test the_host_derives_the_collision_flag_of_every_declared_sub_type_and_the_campaigns_flag_cannot_stand_in_for_it ... FAILED
+test the_controls_statements_are_the_originals ... ok
+test the_provider_decides_from_the_record_at_every_boundary_of_a_mobiles_lifetime_and_refuses_only_the_released_identity ... ok
+test a_placement_of_the_fixed_family_the_host_holds_no_state_for_is_refused_when_the_campaign_says_it_is_not_fixed ... ok
+test the_originals_fixed_database_is_fifteen_constant_rows_in_the_enumerations_order_with_these_flags ... ok
+test the_provider_answers_a_scenes_local_offset_as_exact_bits_with_its_name_and_refuses_what_it_cannot ... ok
+test a_malformed_flag_word_is_a_request_error_before_any_record_lookup_whatever_the_registry_holds ... ok
+test the_fixed_database_has_no_writer_and_its_readers_are_these_files_and_columns ... ok
+
+failures:
+
+---- a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds stdout ----
+
+thread 'a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds' (83) panicked at crates/eech-world/tests/model_target_point.rs:2627:5:
+assertion `left == right` failed: the city's state: [roster.request] fact 10 of a city state report is not zero: it states nothing there
+  left: "refused"
+ right: "placed"
+
+---- a_city_the_campaign_calls_not_fixed_is_refused_when_the_host_derives_it_fixed_and_never_skipped_on_the_campaigns_word stdout ----
+
+thread 'a_city_the_campaign_calls_not_fixed_is_refused_when_the_host_derives_it_fixed_and_never_skipped_on_the_campaigns_word' (91) panicked at crates/eech-world/tests/model_target_point.rs:3423:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- a_building_listed_under_a_city_is_decided_from_the_state_its_record_holds_and_is_named_by_its_place_in_the_citys_list stdout ----
+
+thread 'a_building_listed_under_a_city_is_decided_from_the_state_its_record_holds_and_is_named_by_its_place_in_the_citys_list' (79) panicked at crates/eech-world/tests/model_target_point.rs:2060:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it stdout ----
+
+thread 'a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it' (82) panicked at crates/eech-world/tests/model_target_point.rs:2458:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it stdout ----
+
+thread 'a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it' (89) panicked at crates/eech-world/tests/model_target_point.rs:2385:5:
+assertion `left == right` failed: [roster.request] fact 10 of a city state report is not zero: it states nothing there
+  left: ("refused", "")
+ right: ("placed", "1")
+
+---- a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from stdout ----
+
+thread 'a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from' (81) panicked at crates/eech-world/tests/model_target_point.rs:3380:9:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read stdout ----
+
+thread 'a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read' (84) panicked at crates/eech-world/tests/model_target_point.rs:2627:5:
+assertion `left == right` failed: the city's state: [roster.request] fact 10 of a city state report is not zero: it states nothing there
+  left: "refused"
+ right: "placed"
+
+---- a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed stdout ----
+
+thread 'a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed' (85) panicked at crates/eech-world/tests/model_target_point.rs:2627:5:
+assertion `left == right` failed: the city's state: [roster.request] fact 10 of a city state report is not zero: it states nothing there
+  left: "refused"
+ right: "placed"
+
+---- a_city_whose_state_is_absent_or_withdrawn_is_refused_where_its_fixed_facts_are_read_whatever_the_campaign_calls_it stdout ----
+
+thread 'a_city_whose_state_is_absent_or_withdrawn_is_refused_where_its_fixed_facts_are_read_whatever_the_campaign_calls_it' (93) panicked at crates/eech-world/tests/model_target_point.rs:3463:9:
+fixed=false building=false: skip 
+
+---- a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s stdout ----
+
+thread 'a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s' (88) panicked at crates/eech-world/tests/model_target_point.rs:2575:9:
+city building: [roster.request] fact 10 of a city state report is not zero: it states nothing there
+
+---- a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing stdout ----
+
+thread 'a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing' (97) panicked at crates/eech-world/tests/model_target_point.rs:2299:9:
+city: [roster.request] fact 10 of a fixed state report is not zero: it states nothing there
+
+---- a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box stdout ----
+
+thread 'a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box' (90) panicked at crates/eech-world/tests/model_target_point.rs:2627:5:
+assertion `left == right` failed: the city's state: [roster.request] fact 10 of a city state report is not zero: it states nothing there
+  left: "refused"
+ right: "placed"
+
+---- a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first stdout ----
+
+thread 'a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first' (86) panicked at crates/eech-world/tests/model_target_point.rs:2483:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- a_malformed_fixed_state_report_is_refused_by_name_before_the_record_changes stdout ----
+
+thread 'a_malformed_fixed_state_report_is_refused_by_name_before_the_record_changes' (101) panicked at crates/eech-world/tests/model_target_point.rs:1976:9:
+names no placement: [roster.request] fact 10 of a fixed state report is not zero: it states nothing there
+
+---- a_city_of_the_unknown_sub_type_is_not_fixed_and_a_campaign_that_calls_it_fixed_is_refused stdout ----
+
+thread 'a_city_of_the_unknown_sub_type_is_not_fixed_and_a_campaign_that_calls_it_fixed_is_refused' (87) panicked at crates/eech-world/tests/model_target_point.rs:3447:5:
+buildings 
+
+---- a_fixed_candidate_the_host_holds_no_state_for_or_withdrew_it_from_is_refused_by_name_and_never_completed_from_the_campaigns_words stdout ----
+
+thread 'a_fixed_candidate_the_host_holds_no_state_for_or_withdrew_it_from_is_refused_by_name_and_never_completed_from_the_campaigns_words' (95) panicked at crates/eech-world/tests/model_target_point.rs:1909:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses stdout ----
+
+thread 'a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses' (94) panicked at crates/eech-world/tests/model_target_point.rs:1305:9:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- a_fixed_state_report_is_held_by_the_record_of_the_placement_and_the_staged_candidate_is_decided_from_it stdout ----
+
+thread 'a_fixed_state_report_is_held_by_the_record_of_the_placement_and_the_staged_candidate_is_decided_from_it' (96) panicked at crates/eech-world/tests/model_target_point.rs:1860:5:
+assertion `left == right` failed: [roster.request] fact 10 of a fixed state report is not zero: it states nothing there
+  left: ("refused", "")
+ right: ("placed", "1")
+
+---- a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys stdout ----
+
+thread 'a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys' (107) panicked at crates/eech-world/tests/model_target_point.rs:2274:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement stdout ----
+
+thread 'a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement' (100) panicked at crates/eech-world/tests/model_target_point.rs:2512:9:
+word 0: [roster.request] fact 10 of a city state report is not zero: it states nothing there
+
+---- a_sub_type_the_original_has_no_row_for_is_refused_by_name_while_unknown_is_a_legitimate_statement stdout ----
+
+thread 'a_sub_type_the_original_has_no_row_for_is_refused_by_name_while_unknown_is_a_legitimate_statement' (113) panicked at crates/eech-world/tests/model_target_point.rs:3362:5:
+[roster.request] fact 10 of a fixed state report is not zero: it states nothing there
+
+---- every_staged_question_of_a_non_mobile_candidate_names_a_live_placement_of_the_kind_its_branch_has stdout ----
+
+thread 'every_staged_question_of_a_non_mobile_candidate_names_a_live_placement_of_the_kind_its_branch_has' (119) panicked at crates/eech-world/tests/model_target_point.rs:1925:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal stdout ----
+
+thread 'the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal' (122) panicked at crates/eech-world/tests/model_target_point.rs:2416:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds stdout ----
+
+thread 'the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds' (121) panicked at crates/eech-world/tests/model_target_point.rs:2228:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- the_campaigns_words_of_a_fixed_candidate_decide_nothing_a_difference_from_the_record_is_a_named_refusal stdout ----
+
+thread 'the_campaigns_words_of_a_fixed_candidate_decide_nothing_a_difference_from_the_record_is_a_named_refusal' (123) panicked at crates/eech-world/tests/model_target_point.rs:1878:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- the_state_follows_the_record_through_a_relink_the_two_placements_of_a_building_and_ends_with_the_last_placement stdout ----
+
+thread 'the_state_follows_the_record_through_a_relink_the_two_placements_of_a_building_and_ends_with_the_last_placement' (144) panicked at crates/eech-world/tests/model_target_point.rs:2025:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "placed"
+
+---- the_host_derives_the_collision_flag_of_every_declared_sub_type_and_the_campaigns_flag_cannot_stand_in_for_it stdout ----
+
+thread 'the_host_derives_the_collision_flag_of_every_declared_sub_type_and_the_campaigns_flag_cannot_stand_in_for_it' (128) panicked at crates/eech-world/tests/model_target_point.rs:3333:9:
+assertion `left == right` failed: ENTITY_SUB_TYPE_FIXED_BRIDGE_END_SECTION: a declared sub type is a legitimate statement ([roster.request] fact 10 of a fixed state report is not zero: it states nothing there)
+  left: "refused"
+ right: "placed"
+
+
+failures:
+    a_building_listed_under_a_city_is_decided_from_the_state_its_record_holds_and_is_named_by_its_place_in_the_citys_list
+    a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from
+    a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it
+    a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds
+    a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read
+    a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed
+    a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first
+    a_city_of_the_unknown_sub_type_is_not_fixed_and_a_campaign_that_calls_it_fixed_is_refused
+    a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s
+    a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it
+    a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box
+    a_city_the_campaign_calls_not_fixed_is_refused_when_the_host_derives_it_fixed_and_never_skipped_on_the_campaigns_word
+    a_city_whose_state_is_absent_or_withdrawn_is_refused_where_its_fixed_facts_are_read_whatever_the_campaign_calls_it
+    a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses
+    a_fixed_candidate_the_host_holds_no_state_for_or_withdrew_it_from_is_refused_by_name_and_never_completed_from_the_campaigns_words
+    a_fixed_state_report_is_held_by_the_record_of_the_placement_and_the_staged_candidate_is_decided_from_it
+    a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing
+    a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement
+    a_malformed_fixed_state_report_is_refused_by_name_before_the_record_changes
+    a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys
+    a_sub_type_the_original_has_no_row_for_is_refused_by_name_while_unknown_is_a_legitimate_statement
+    every_staged_question_of_a_non_mobile_candidate_names_a_live_placement_of_the_kind_its_branch_has
+    the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds
+    the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal
+    the_campaigns_words_of_a_fixed_candidate_decide_nothing_a_difference_from_the_record_is_a_named_refusal
+    the_host_derives_the_collision_flag_of_every_declared_sub_type_and_the_campaigns_flag_cannot_stand_in_for_it
+    the_state_follows_the_record_through_a_relink_the_two_placements_of_a_building_and_ends_with_the_last_placement
+
+test result: FAILED. 42 passed; 27 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.42s
+

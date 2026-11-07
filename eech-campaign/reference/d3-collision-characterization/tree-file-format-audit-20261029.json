@@ -1,0 +1,43 @@
+{
+  "when_utc": "2026-10-29T19:10:00.827502+00:00",
+  "scope": "Read-only file/header/stride/type-count cross-check; no native run or host solver",
+  "results": [
+    {
+      "scenario": "georgia",
+      "sector_filename": "tree_pos.sec",
+      "data_filename": "tree_pos.dat",
+      "sector_file_sha256": "bb477f1925747fbbc1e4073e7c49535c77a0d7c7e8e26ae971c6ad010b40c6f5",
+      "data_file_sha256": "9aeb0bb3b6f9847367b163e2336a3bc07464acbc97aab764a7166fe9a3de684e",
+      "width": 244,
+      "height": 116,
+      "sector_file_bytes": 226440,
+      "data_file_bytes": 6785496,
+      "eight_byte_data_records": 848187,
+      "sector_count_total": 848187,
+      "nonempty_sectors": 8689,
+      "last_byte_high_bit_type1_count": 2894,
+      "last_byte_high_bit_type0_count": 845293,
+      "counts_match_native_census": true,
+      "limits": "No per-record native height/type decoding witness or native sizeof captured by this audit; trace must establish those."
+    },
+    {
+      "scenario": "lebanon",
+      "sector_filename": "TREE_POS.SEC",
+      "data_filename": "TREE_POS.DAT",
+      "sector_file_sha256": "ce534231f9e9eebd9ecca2159bbe07d1979b380697395d4019d1c1084378e3d8",
+      "data_file_sha256": "09c0d07cf83b7b659043a2d38064196262fab8c68ce0847b70171a11ab3c305f",
+      "width": 76,
+      "height": 92,
+      "sector_file_bytes": 55944,
+      "data_file_bytes": 1711640,
+      "eight_byte_data_records": 213955,
+      "sector_count_total": 213955,
+      "nonempty_sectors": 1338,
+      "last_byte_high_bit_type1_count": 371,
+      "last_byte_high_bit_type0_count": 213584,
+      "counts_match_native_census": true,
+      "limits": "No per-record native height/type decoding witness or native sizeof captured by this audit; trace must establish those."
+    }
+  ],
+  "actual_exit": 0
+}

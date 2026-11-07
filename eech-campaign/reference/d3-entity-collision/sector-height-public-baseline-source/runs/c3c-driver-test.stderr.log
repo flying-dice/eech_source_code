@@ -1,0 +1,4 @@
+wsl: Failed to translate 'R:\d3-evidence\collision-characterization-20261029'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.55s
+     Running tests/sector_height_baseline_driver.rs (/target/debug/deps/sector_height_baseline_driver-c01e04abdc669167)

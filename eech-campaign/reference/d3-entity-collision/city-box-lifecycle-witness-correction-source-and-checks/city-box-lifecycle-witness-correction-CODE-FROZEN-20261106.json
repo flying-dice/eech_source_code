@@ -1,0 +1,296 @@
+{
+ "changed_paths": [
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+  "eech-campaign/crates/eech-engine/src/lib.rs",
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+ ],
+ "corrections": {
+  "labels": "city_box_lifecycle_changed is a MIRROR-CONFORMANCE negative (one forwarded CITY_STATE word, Core mirror unchanged), not a Host geometry change; city_box_lifecycle_missing is the actual Host-retention intervention; the dedicated row is the after-BOOT, standalone fixture row (no weapon, launch, cohort or frame), not a post-launch authority row, and carries none of the BOOT-only fields",
+  "ordinary_engine_lint": "WPN_CITY_LIFECYCLE_REPORT_CAPACITY carries the weapon-fixture cfg of its only method",
+  "protocol_before_effect": "the missing mode validates the complete retaining removal positive (existing removal contract, name equal to the selected record, removed placement resolving to it, list drained) before the host-side release, and checks the release acknowledgement against the whole city contract (removed, no name, no cursor) plus no other field, or fails with nothing credited",
+  "report_grammar": "parsed on the existing mq_lines / mq_row / raw-triple helpers: exact order and keys, single spacing, domains, a miss carries none (\"-\"), a hit three words each, buildings 1 to 256, roster key, entity type; query_equal and mirror_box_equal cross-checked against the tuples they declare (raw words as text, no float conversion); the C witness names the selected city by its placement key, prints a miss as \"-\" and the box after",
+  "verdict_order": "a fault or an unrelated fatal is a failure before any UNREACHED; an unreached prerequisite with a real fault is a failure",
+  "witness_identity_and_validity": "the driver latches the selected CITY record from the first building the campaign unlists in the window (canonical record of its list, through the aliases of its relinks); consumption of the unchanged query, retaining removals, continuations, restatements and expansions are counted for THAT record only; both negative modes act only on the selected record after its BEFORE consumption, on a current joined event; window-wide lookups are telemetry; AFTER stays unavailable after a fatal"
+ },
+ "created_utc": "2026-11-06T21:40:18.353830+00:00",
+ "final_checks_on_the_frozen_bytes": [
+  {
+   "actual_exit": 0,
+   "command": "cargo fmt -p eech-world -- --check",
+   "completed_utc": "2026-11-06T21:33:14.453629+00:00",
+   "label": "w3f-fmt-world",
+   "results": [],
+   "stderr": {
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo fmt -p eech-engine-sys -- --check",
+   "completed_utc": "2026-11-06T21:33:15.793642+00:00",
+   "label": "w3f-fmt-engine-sys",
+   "results": [],
+   "stderr": {
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo fmt -p eech-engine -- --check",
+   "completed_utc": "2026-11-06T21:33:17.085929+00:00",
+   "label": "w3f-fmt-engine",
+   "results": [],
+   "stderr": {
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo clippy --locked --all-targets -p eech-engine -- -D warnings",
+   "completed_utc": "2026-11-06T21:33:22.282117+00:00",
+   "label": "w3f-clippy-engine-ordinary",
+   "results": [],
+   "stderr": {
+    "bytes": 186,
+    "sha256": "1a44052f3881f1fda8c328118a0713e7f37bf6238f6c75fe41437d1da7f266ef"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+   "completed_utc": "2026-11-06T21:33:24.986649+00:00",
+   "label": "w3f-clippy-world",
+   "results": [],
+   "stderr": {
+    "bytes": 184,
+    "sha256": "869654c1730be6dbb694962075001daccb52611596261f291e6d5f6050a09060"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo clippy --locked --all-targets -p eech-engine-sys --features weapon-fixture -- -D warnings",
+   "completed_utc": "2026-11-06T21:34:34.125519+00:00",
+   "label": "w3f-clippy-hosted",
+   "results": [],
+   "stderr": {
+    "bytes": 195,
+    "sha256": "23b828c7865ac37427efa7e8c1a8bf4cedfb315c37261edf3e140621f6218a29"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo clippy --locked --all-targets -p eech-engine-sys --features collision-fixture,weapon-fixture -- -D warnings",
+   "completed_utc": "2026-11-06T21:35:42.593180+00:00",
+   "label": "w3f-clippy-original",
+   "results": [],
+   "stderr": {
+    "bytes": 195,
+    "sha256": "fc3319118d8f6023407ff16432a3fb4174818836738d08582b86c29dc61eda24"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo clippy --locked --all-targets -p eech-dc --features weapon-fixture -- -D warnings",
+   "completed_utc": "2026-11-06T21:36:54.134330+00:00",
+   "label": "w3f-clippy-dc",
+   "results": [],
+   "stderr": {
+    "bytes": 331,
+    "sha256": "63dc61f62775c097c8b75097a4ec9d17668adfe92ef3d8c752151e4ca8186a3b"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_roster_guard",
+   "completed_utc": "2026-11-06T21:38:16.961563+00:00",
+   "label": "w3f-test-engine-sys",
+   "results": [
+    {
+     "binary": "entity_roster_guard",
+     "failed": 0,
+     "passed": 20,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 321,
+    "sha256": "971e5fdf5bb4332d82d0b8ae08418342d5d5a196b93fe92cbc4d20048c79ab39"
+   },
+   "stdout": {
+    "bytes": 2398,
+    "sha256": "7b58cddbc04ae339a9d4ae2674029de8a45c3a51b0e7dd354ec14a59c614a759"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test city_box_lifecycle",
+   "completed_utc": "2026-11-06T21:38:19.842140+00:00",
+   "label": "w3f-test-world",
+   "results": [
+    {
+     "binary": "city_box_lifecycle",
+     "failed": 0,
+     "passed": 9,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_authority",
+     "failed": 0,
+     "passed": 106,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 14589,
+    "sha256": "b97f39fc1c0b226455d47b8c61a7abbe20d7a3988482f9edd518808abcd61469"
+   },
+   "stdout": {
+    "bytes": 13474,
+    "sha256": "920ef97d33303c04ab67f89a7b1a2b91e7f201ad8647c6e716be3d571d6f2940"
+   }
+  }
+ ],
+ "identity": {
+  "branch": "codex/d3-object-tree-collision",
+  "code": "71d92cf856e1340796fb6647a7cd70bc8319907b",
+  "metadata_commit": "the commit that adds this pack (recorded in STATUS.md and the card; it cannot name itself)",
+  "metadata_commit_of_parent": "c82ab182dfa05ef541105bd5c903c646e105bad9",
+  "parent_packs_retained_literally": [
+   "city-box-lifecycle-source-and-checks (69 files)",
+   "city-box-lifecycle-correction-source-and-checks (73 files)"
+  ],
+  "parent_reviewed_source": "4ef1f42f3d85161a9c84eb3ce8625981f8654738",
+  "pr": 109,
+  "retained_changes_required": {
+   "bytes": 29657,
+   "findings": [
+    "ENV-CITY-LIFECYCLE-WITNESS-CONTRACT-1",
+    "ENV-CITY-LIFECYCLE-DEFAULT-CFG-1"
+   ],
+   "path": "R:/d3-evidence/independent-city-box-lifecycle-correction-source-4ef1-20261106.json",
+   "sha256": "c82ac4c95daa74b3225fcc0ca23984f73f155f508f22ce7d021a66631915ee7a",
+   "status": "CHANGES_REQUIRED (retained literally in this pack)"
+  }
+ },
+ "input_maps": {
+  "before_after_identical": true,
+  "file_count": 3954,
+  "fingerprint": "23504e8e198c66058b645f69fbda80dff8b0529e79d4ca71fc9b56720fe48602",
+  "sha256": "3939dc9474860cca4b06cb05262b678c41398b0f08bc3a950e735ff041ec0600"
+ },
+ "iterations": [
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+   "completed_utc": "2026-11-06T21:32:07.581877+00:00",
+   "label": "w3-auth1",
+   "results": [
+    {
+     "binary": "entity_authority",
+     "failed": 0,
+     "passed": 106,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 14466,
+    "sha256": "ea6dec6ad5c1e3cecd03085b46bdbfc41480161b2fdbc6049b79af42a154a1a5"
+   },
+   "stdout": {
+    "bytes": 12430,
+    "sha256": "d18492a56850f2b91269c166b838c1d6fe571b81a62d8ba00e4bfd03993ca804"
+   }
+  }
+ ],
+ "limits": [
+  "x86_64 Linux only; no Windows, no native, no i686",
+  "the witness C still has not executed anywhere; the scripted harness covers the driver contract through the real provider, including a coherent selected-city positive and every negative named above",
+  "the box arithmetic and the model store are not re-measured"
+ ],
+ "preserved_unchanged": [
+  "the real Core fixture path (drain, empty relink and restore, relist, unchanged query)",
+  "the release, type and drain fixes of the roster and the driver tracker",
+  "the C atomic acknowledgement validation",
+  "the four fixed_rule diagnostics and the healthy schema"
+ ],
+ "red": {
+  "driver_mutation": {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+   "completed_utc": "2026-11-06T21:32:37.792645+00:00",
+   "label": "w3-red-mutation",
+   "results": [
+    {
+     "binary": "entity_authority",
+     "failed": 5,
+     "passed": 101,
+     "status": "FAILED"
+    }
+   ],
+   "stderr": {
+    "bytes": 14736,
+    "sha256": "632047a95cd87114a5413e31b447e6dae9e597903626c83de7cd1424ed546430"
+   },
+   "stdout": {
+    "bytes": 17518,
+    "sha256": "f127004c1fb2b4e717da10754e8af363b2015bfdf6c1a9356feaeddd30033b47"
+   }
+  },
+  "how": "the ordinary Engine lint failed on the unchanged 4ef source (exit 101, the unused constant). The driver REDs are five single-aspect mutations applied together to a backed-up copy of the driver (selection gate, release acknowledgement contract, aggregate consumption, fault precedence, report cross-check) which fail exactly five tests (competing-city, bad positive and acknowledgement, fault precedence, report grammar, and the missing-mode refusal whose AFTER must stay unavailable), with the file hash verified restored. A baseline-driver RED was not possible: the new harness and report grammar do not exist at 4ef, so it would be a setup accident",
+  "ordinary_engine_clippy_on_4ef": {
+   "actual_exit": 101,
+   "command": "cargo clippy --locked --all-targets -p eech-engine -- -D warnings",
+   "completed_utc": "2026-11-06T21:26:57.219191+00:00",
+   "label": "w3-red-engine-lint",
+   "results": [],
+   "stderr": {
+    "bytes": 839,
+    "sha256": "7f55c53dcce2ce5a954b36fc0a326128f3889aeb5b0c1d0f217faa5c74af2418"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  }
+ },
+ "reused_unchanged_parent_children": "The 12 final children of 4ef1f42f3 remain parent evidence for every source this correction did not change (the roster, the C placement map, the dialogue control, the provider, the C_OPT2 runs); this correction changed only the five paths above, so only their affected checks were re-run",
+ "schema": "d3.task49.city-box-lifecycle-witness-correction.code-frozen.v1",
+ "status": "UNREVIEWED CODE_FROZEN correction: source and Linux checks only; no Windows build, no native actual (the witness was not run), no independent review of this material, no CI of this head, no SourceClearance, no acceptance"
+}

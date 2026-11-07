@@ -1,0 +1,54 @@
+{
+  "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "metadata": "07567426072fc41510ccad7e54129c0dc5696300",
+  "actual_direct_parent": "097c6a5f4c7799499cb1f1b2a0dac4d07cc1b8c0",
+  "semantic_code_baseline": "c2aa4f52b4d2c114cae89747208874c1bcd2d8b0",
+  "original_checkpoint": "R:\\d3-evidence\\query-reverse-identity-CODE-FROZEN-20261105.json",
+  "original_checkpoint_sha256": "e9c5128778d308081abc6ee2b21d3c9213841933f0ca6a9c7e6aba65781fd077",
+  "checkpoint_qualification": "product_source_parent names c2aa, which is the code baseline, NOT the actual direct parent. Actual Git parent is097 above. Original checkpoint preserved literally; no ancestry rewrite.",
+  "changed_code_paths_over_baseline": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "sha256": "e580b0e2752c28ccb440b66778bd0b4992de0651502dcdc9e9975d4b6af68d05",
+      "bytes": 127724
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "sha256": "8185d3ddb5596af13e97484c94b23997ef024449ff9876de2e77eef6e9a40851",
+      "bytes": 161263
+    },
+    {
+      "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+      "sha256": "8d647300cf4b90dc06bf3daa01486b7fb800bec9e318b1c8c31c217cd3b20347",
+      "bytes": 93706
+    }
+  ],
+  "metadata_only_delta": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json"
+  ],
+  "frozen_gate_actual_exit": 0,
+  "frozen_gate_status": [
+    "fmt 0",
+    "person-retention 0",
+    "public-drivers 0",
+    "nonweapon-helper-compile 0",
+    "strict-world 0",
+    "gate_failed_steps=0"
+  ],
+  "frozen_snapshot": "D:\\EECH-Migration-Evidence\\person-motion-3475fb93b-20261105-source",
+  "source_rows": 4136,
+  "all_scoped_raw_files_equal_committed_Git": true,
+  "before_after_source_maps_literal_equal": true,
+  "source_map_sha256": "047730a9a257c25acf000b4eefeb213a33f31c1bf4b7e7a457141545e2027c80",
+  "filtered_qualifications": [
+    "aphavoc/laa.c",
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+  ],
+  "qualification": "Five filtered hashes differ for existing Core/module inputs; ALL4136 raw files still match Git. Fresh clone does not inherit three old workingLua CRLF qualifications.",
+  "scope": "Source and frozen Linux checks only. New Windows/native/physicalA-B/full40all8/Task49/D3 remain unproved.",
+  "verified_utc": "2026-11-05T22:18:52.196926+00:00"
+}

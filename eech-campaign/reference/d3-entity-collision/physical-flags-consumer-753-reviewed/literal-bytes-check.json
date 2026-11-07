@@ -1,0 +1,21 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the external sealed files, no field normalisation",
+  "files": {
+    "independent-physical-flags-consumer-753ee-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 11970,
+      "sha256": "ce3bdb213fb90513816df7bb044681c7adc0197ee7a1c5b1cdd853e555c8be0b"
+    },
+    "physical-flags-consumer-753-Root-binding-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 11519,
+      "sha256": "cfdd1d732767a6776857ae9f73b5cdb285154247cb522ea8efbfba3da2ff21da"
+    },
+    "physical-flags-consumer-ad029-publication-Root-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 1186,
+      "sha256": "1840f47d4ed621fdacb8e7eb6400bc289e83b4b80e4ee8811a5a124f0c0b6c41"
+    }
+  },
+  "problems": []
+}

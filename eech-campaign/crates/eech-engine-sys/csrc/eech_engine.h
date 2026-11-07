@@ -469,6 +469,11 @@ int eech_engine_wpn_case_query (const char *host_id, int weapon, char *text, int
 /* The kind of a roster host id from its type field alone; reports found=0 for an unknown id. */
 int eech_engine_wpn_case_kind (const char *host_id, char *text, int capacity);
 int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity, const struct eech_engine_host *host);
+/* TEST-ONLY controlled moving entity query case: latch three finite segments about one routed vehicle (by roster host id), then ask the production entity query for them. */
+int eech_engine_wpn_moving_query_prepare (const char *host_id, char *text, int capacity);
+int eech_engine_wpn_moving_query_run (char *text, int capacity);
+/* TEST-ONLY CITY box lifecycle witness (eech_wpn_fixture.c): one real bound city drained, relinked empty, restored, relisted and queried; the report is key=value lines, an unreached prerequisite is reported, not an error. Terminal: never followed by a physical run. */
+int eech_engine_wpn_city_lifecycle (char *text, int capacity);
 /* The physical combat-resolution report (EEDCS-46, see eech_cmb_fixture.c): damage capability, collision, blast and repair hashes and counters; and the ordered event log,
    drained incrementally like the weapon log. Read-only. */
 int eech_engine_cmb_trace (char *text, int capacity);
@@ -482,6 +487,36 @@ int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char 
 /* The controlled bridge case of the ORIGINAL collapse (EEDCS-46, R5, see eech_cmb_case.c): op 0 survey of every bridge, op 1 state of the bridge at ordinal, op 2 the declared structural failure of one\n   segment of it (index, or -1 for the first by criterion), op 3 disarm the observer.  Given the same complete host as a frame. */
 int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, char *text, int capacity, const struct eech_engine_host *host);
 int eech_engine_cmb_events (char *text, int capacity, int *more);
+#endif
+
+#ifdef EECH_COLLISION_FIXTURE
+/*
+ * TEST-ONLY (feature collision-fixture, EEDCS-49): see eech_collision_fixture.c. Not part of the shipping module.
+ * One probe of the original get_line_of_sight_collision_entity and get_line_of_sight_collision_tree against the loaded world: a finite structured
+ * case set taken from the real sector lists and tree data, plus entity_cases and tree_cases seeded random cases from a private generator
+ * seeded with seed. The report is key=value text lines: the census, per-kind hit counts, exclusion and ordering counters, cache and
+ * miss-write counters, an order-dependent physical fold (float bit patterns), a separate legacy fold, and bounded raw samples. The shared terrain
+ * point record is restored byte for byte; the game's random stream and a sector-list fingerprint (entity type, flags, position and mobile motion; not city buildings or
+ * identities, so a bounded observation and not a proof of purity) are compared before and after. The three update-flag bit arrays the original moving collision clears
+ * as a side effect are copied before the probe, the original queries' effect on them is reported (col-flags), and they are written back before the final fingerprint. All six FP exceptions must be masked in the x87 control word and
+ * the SSE MXCSR (read, never written). Needs no host. A refused
+ * probe (a precondition not held, a report that does not fit) writes "col-refused reason=..." and fails as a bad argument; each of entity_cases
+ * and tree_cases is 0 to 20000.
+ */
+int eech_engine_collision_probe (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity);
+/*
+ * The optional private tree-query transcript of the probe (off by default; the probe's report is identical either way). Arming clears it and makes the next probe record every
+ * tree query it makes, with the terrain lookups the original made. Reading: kind 0 returns the state row and the facts block, kind 1 returns records [offset, offset + count),
+ * count 1 to 256; *total is the number of records held. An offset at or past the end is a successful empty page; bad arguments are refused; a text that does not fit is refused. See eech_collision_fixture.c.
+ */
+int eech_engine_collision_trace_arm (int on);
+int eech_engine_collision_trace_read (int kind, int offset, int count, char *text, int capacity, int *total);
+/*
+ * The optional CONTROLLED FOREST GEOMETRY WITNESS (EEDCS-49, test-only; off by default, and the default probe is unchanged). Arming applies to the NEXT collision probe only and is consumed by it
+ * whatever its outcome. The armed probe supplies the forest tree object a small fixture-owned collision model for the duration of that probe (a copy of the real object table plus the
+ * model, the real table untouched), runs the unchanged original queries, restores everything and appends a col-geometry-witness row that states the restoration. See eech_collision_fixture.c.
+ */
+int eech_engine_collision_geometry_arm (int on);
 #endif
 
 #ifdef EECH_ENV_FIXTURE
@@ -530,6 +565,29 @@ int eech_engine_env_play_events (char *text, int capacity, int *more);
  * and fails as a bad argument; each of points and impacts is 0 to 100000, and not both 0.
  */
 int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text, int capacity);
+#endif
+
+#ifdef EECH_SECTOR_HEIGHT_OBSERVER
+/*
+ * TEST-ONLY (feature sector-height-observer, EEDCS-49 D3): see eech_sho.c. Not part of the shipping module.
+ * The read-only report of what the sector tallest-structure word did on the real path, as `key=value` text lines. `eech_engine_sho_summary` is the counters, the table bounds and a
+ * `sho-complete` verdict; `eech_engine_sho_event` is one recorded insert, link, statement or pack event by its zero-based index; `eech_engine_sho_clearance` is one recorded
+ * fixed-wing clearance read; `eech_engine_sho_scan` is one sector's aggregate of FIRST reads. All take no host. A report that does not fit, or an index not recorded, fails as a bad argument.
+ */
+int eech_engine_sho_summary (char *text, int capacity);
+int eech_engine_sho_event (int index, char *text, int capacity);
+int eech_engine_sho_clearance (int index, char *text, int capacity);
+int eech_engine_sho_scan (int index, char *text, int capacity);
+#endif
+
+#ifdef EECH_SECTOR_HEIGHT_WITNESS
+/*
+ * TEST-ONLY (feature sector-height-witness, EEDCS-49 D3): see eech_hw_witness.c. Not part of the shipping module.
+ * The campaign's own server-session save of the live session, by the original store_session (the saved script and the saved data), under a name of 1 to 24 of A-Z a-z 0-9 _ -. The report is one `key=value` line
+ * (`sh-witness-save name= bytes= version=`). A name that exists as a saved file, a session that is not the booted campaign's server session and a bad name are bad arguments whose reason is in the report; nothing is
+ * overwritten, rotated or deleted. The matching load is the campaign's own: a later boot of the saved script.
+ */
+int eech_engine_sh_witness_save (const char *name, char *text, int capacity);
 #endif
 
 #ifdef EECH_ROUTE_FIXTURE

@@ -1,0 +1,35 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "independent-needed-consumer-api-clarification-2ab093b2c-20261107.json",
+      "bytes": 6285,
+      "sha256": "b5d70724de9111a47366285625d2c4469da4e08c533940e00d1d2323d7932d9b"
+    },
+    {
+      "path": "needed-consumer-api-2989-CI-readback-20261107.json",
+      "bytes": 14806,
+      "sha256": "277ad4d2550474f33dba3f2b5bfe199341b789d942bbe9a91fc26f8ea35eecc2"
+    },
+    {
+      "path": "needed-consumer-api-clarification-Root-binding-2ab-c9a-20261107.json",
+      "bytes": 4525,
+      "sha256": "4a42b8ab7025a2e1d08be3512465040b1234347747fa37b2792d5bb1f28d0c52"
+    },
+    {
+      "path": "needed-consumer-api-Root-binding-2c665-2989-20261107.json",
+      "bytes": 19887,
+      "sha256": "ccb336f30c250ec7387cc39d0e2a54e66ac0b3815d23d6de8304b5ef8f0f34e2"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2038,
+      "sha256": "918401dc68ca290f292447dbc84659114e2374e40210a3aa2407aca95ea94887"
+    }
+  ],
+  "scope": "Reviewed documentation disposition only; OPEN rows and all physical/final acceptance gates preserved."
+}

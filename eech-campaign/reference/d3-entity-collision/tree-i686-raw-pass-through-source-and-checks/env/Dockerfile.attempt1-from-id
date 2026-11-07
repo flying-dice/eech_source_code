@@ -1,0 +1,9 @@
+# Task-local derivative for EEDCS-49 tree raw-word pass-through: the immutable base
+# (rust 1.99.1, gcc-12, multilib, x86_64 + windows-gnu targets) plus exactly what the CI i686 job's Toolchain step adds
+# (dpkg --add-architecture i386, liblua5.1-0-dev:i386, rustup target add i686-unknown-linux-gnu).
+FROM sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51
+RUN dpkg --add-architecture i386 \
+	&& apt-get update \
+	&& apt-get install -y --no-install-recommends liblua5.1-0-dev:i386 \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& rustup target add i686-unknown-linux-gnu

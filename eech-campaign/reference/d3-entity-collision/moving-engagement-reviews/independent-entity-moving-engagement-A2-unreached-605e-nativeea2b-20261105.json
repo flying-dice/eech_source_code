@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "review_date": "2026-11-05",
+  "reviewer_role": "sole independent Codex reviewer",
+  "scope": "ONE small actual supplement only; no source/default rereview or rerun",
+  "source": {
+    "compiled_runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "snapshot": "D:/EECH-Migration-Evidence/canonical-pose-production-ea2b23481",
+    "diagnostic_source": "605e1a71a5f362e2ee779b69705727f73518fae4",
+    "diagnostic_git_blob": "fa903d02c3904143ae5c0c608acbcefe46e99d85",
+    "diagnostic_sha256": "e931ac77b1e90b199181d5455043ff80ff7679292b49c18ebfa70e784d192cce",
+    "diagnostic_bytes": 105861,
+    "literal_equals_exact_committed_Git_blob": true,
+    "native_binary_not_relabelled": true,
+    "source_review": {
+      "path": "R:/d3-evidence/independent-entity-moving-engagement-witness-source-605e-20261105.json",
+      "sha256": "67a34865d24bce1ed2401777f65fbc6866ae8928c62fa4f8fecdb3c112de91ed",
+      "scope": "Source safety remains at its identity; this report establishes only the new actual result"
+    }
+  },
+  "decision": {
+    "status": "A2_PRELAUNCH_UNREACHED_VERIFIED",
+    "findings": [],
+    "finite_A2_actual_evidence_verified": true,
+    "positive_moving_query_authority": false,
+    "positive_changed_physical_authority": false,
+    "natural_weapon_engagement_proof": false,
+    "whole_pose_authority_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "actuals": {
+    "native_exit": 1,
+    "helper_exit": 1,
+    "outer_exit": 1,
+    "completed_utc": "2026-11-05T19:56:53.069294+00:00",
+    "pre_post_full_input_compare_exits": [
+      0,
+      0
+    ],
+    "manifest_files_each": 1179,
+    "manifest_bytes_each": 102239559,
+    "full_pre_post_manifest_bytes_literal_equal": true,
+    "verified_payloads": 88,
+    "all88_current_hosted_payloads_rehashed_against_existing_build_seal": true,
+    "build_info_sha256": "b6be1aea13711802a5a7bfe47880ad7ae643c85742ac46c9f3722c08a4e2ce98",
+    "JSONL_bytes": 629,
+    "JSONL_sha256": "1a15a4a7bcf7d3e2220cb159ec525fcd7389a27220f1e4a12c6105d0a0456a7b",
+    "events": [
+      "boot",
+      "warmed_up",
+      "case_selected",
+      "witness_failure"
+    ],
+    "same_declared_parameters": {
+      "seed": 1,
+      "warmup_seconds": 30,
+      "frame_ms": 100,
+      "settle_seconds": 120
+    },
+    "warmed_frames": 301,
+    "last_frame_sources_with_vectors_requests": 6,
+    "selected_launcher": "none",
+    "selected_target": "none",
+    "selected_weapon": -1,
+    "classification": "UNREACHED before a launch: no eligible campaign engagement of a moving routed enemy in the final warmup frame",
+    "exact_failure": "UNREACHED: no campaign engagement of a moving routed enemy in the final warmup frame (6 launchers aimed a target that frame): the warmup, seed and distances are not tuned and no other target is taken",
+    "launch_events": 0,
+    "cohort_events": 0,
+    "terminal_events": 0,
+    "authority_summary_events": 0,
+    "B_or_Original_started_or_accepted": false
+  },
+  "meaning_and_limits": [
+    "Six sources aiming in the sampled frame does not establish that any engagement meets all routed/moving/weapon/final-frame eligibility predicates. The witness correctly refuses to select another target.",
+    "This is preserved failed coverage, not a native physics defect, successful capability result or positive moving query.",
+    "No seed, duration, warmup or distance search, changed baseline, loosened NeedUpdated/test criterion or rerun is justified by this result.",
+    "No full shipping result is reviewed here; the separately running frozen ea2b pack has no acceptance from partial outputs.",
+    "The previous default and ordinary-short closure stays at review8a64; neither is repeated or enlarged by this attempt."
+  ],
+  "next_bounded_case_scope": {
+    "technical_lead_plan_received": "Stop natural engagement probes; implement one opt-in test-only shared entity-query case in the existing weapon fixture using the real bound roster and established structured moving-ray recipe, then a real Host-step terrain-input change.",
+    "concrete_boundary_blocker_to_that_declared_plan_established_by_this_actual_join": false,
+    "not_source_or_native_clearance_for_unwritten_case": true,
+    "required_scope": [
+      "New case source must be reviewed and gated before execution",
+      "Use the actual get_line_of_sight_collision_entity service and actual Host Candidate/NeedUpdated/moving narrowphase; preserve effectful getter/order and input/output/lifetime safety",
+      "Do not retarget the campaign, teleport/fabricate entity pose, introduce another physical solver or claim the controlled ray is a natural weapon engagement",
+      "Controlled query-service proof and natural projectile engagement proof must remain distinct; all remaining Task49/D3 work remains required"
+    ]
+  },
+  "evidence": [
+    {
+      "path": "D:/EECH-Migration-Evidence/moving-engagement-A-literal605e-nativeea2b-20261105/controller.json",
+      "bytes": 4304,
+      "sha256": "6f7addb4fddd36146a2f99b0d945ca3852be648149fa534111d237c6e0765272"
+    },
+    {
+      "path": "R:/d3-evidence/moving-engagement-A-literal605e-nativeea2b-20261105-completion.json",
+      "bytes": 2179,
+      "sha256": "07620a13ff2a01c58aafb59cca2fdddf92d3e90a7b8485eb3d41643b49683589"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/moving-engagement-A-literal605e-nativeea2b-20261105/model.jsonl",
+      "bytes": 629,
+      "sha256": "1a15a4a7bcf7d3e2220cb159ec525fcd7389a27220f1e4a12c6105d0a0456a7b"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/moving-engagement-A-literal605e-nativeea2b-20261105/native.log",
+      "bytes": 46651,
+      "sha256": "f07d380661f4843891dd1b3b0b59dcaf991a202a79708584de2ad9b6ce24dfdd"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/moving-engagement-A-literal605e-nativeea2b-20261105/pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/moving-engagement-A-literal605e-nativeea2b-20261105/post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "R:/d3-evidence/moving-engagement-literal-605e-native-ea2b-20261105.lua",
+      "bytes": 105861,
+      "sha256": "e931ac77b1e90b199181d5455043ff80ff7679292b49c18ebfa70e784d192cce"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-ea2b-windows-20261105-completion.json",
+      "bytes": 30676,
+      "sha256": "507317c2a21f0530bf73f4a4f018e819becdef3fd0917fd43aae9db2119eabb5"
+    }
+  ],
+  "publication_safety": "No retail coordinates, vectors, physical tuples, host-ID suffixes, raw catalogues or assets are copied; only counts, outcome text, paths and hashes.",
+  "review_operations": "Read-only actual/controller/literal/input/payload join and this safe LF report write. No engine launches, source edits, builds/tests, agents, cache/VM or external operations."
+}

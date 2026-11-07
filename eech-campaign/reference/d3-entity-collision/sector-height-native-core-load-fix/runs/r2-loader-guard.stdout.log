@@ -1,0 +1,8 @@
+
+running 3 tests
+test every_byte_must_arrive_and_the_unpack_must_not_overflow_or_the_loader_stops_by_name ... ok
+test the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open ... ok
+test the_unpack_side_still_returns_its_overflow_and_the_pack_side_still_sizes_to_the_last_used_byte ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

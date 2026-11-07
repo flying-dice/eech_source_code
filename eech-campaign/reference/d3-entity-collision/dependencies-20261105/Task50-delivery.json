@@ -1,0 +1,21 @@
+{
+  "task": "EEDCS-50",
+  "pr": 110,
+  "merged": true,
+  "merge": "873a172d9d26d0f2e437aa491187ea3cc3ef6cb2",
+  "parents": [
+    "581d32a716c46eb2b6999cac82d15284edbb5141",
+    "38ec010471ebc05135ee8d7da252c28419375f7c"
+  ],
+  "actual_tree": "d0e282406f133c4a2c19e68e684a73cb9daec62f",
+  "equals_verified_prospective_tree": true,
+  "production_compiled_inputs_and_ordinary_drivers_unchanged_from_tested_bce": true,
+  "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+  "literal_final_review_blob_verified": true,
+  "exact_final_head_CI": "Task50-final-current-CI-38ec01047-20261105.json all9success",
+  "accepted40": true,
+  "all8_complete_literal_equal": true,
+  "four_final_inputs_zero": true,
+  "payloads": 83,
+  "scope": "Task50 delivered; Task52 dependency now delivered. Whole D3 and remaining Task49/hierarchy work remain open."
+}

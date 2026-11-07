@@ -1,0 +1,258 @@
+{
+  "schema": "d3.task49.fixed-rule-witness-positive-contract.code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN: TEST-ONLY correction, source and Linux checks only. No SourceClearance, no native actual, no CI of this head, no acceptance is claimed.",
+  "scope": "ONE bounded correction of the same reviewer's CHANGES_REQUIRED over 96cc958d5 (ENV-FIXED-RULE-WITNESS-POSITIVE-ACCEPTANCE-1, one P2). Only lua/entity-authority.lua and tests/entity_authority.rs changed; the sealed 681 runtime, every production root, the shipping campaign.lua, baselines and tolerances are unchanged. The earlier 681 negative stays UNREACHED (eligible 0); the 96cc material and its pack are preserved, not accepted.",
+  "producer": {
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "lane": "one lane; local tools only; no subagents/nested agents/MCP/auth/model change; no native/Windows build, fullpack, matrix, cache cleanup, CITY work or merge"
+  },
+  "identity": {
+    "code": "879b0ebde110250169513dfd9fecc4c83f3b7b01",
+    "code_parent": "18f86267ffd81c44f9abb003a16ebc0089da8421",
+    "prior_witness_code": "96cc958d5fca9fdf847cf1853020583071dedde8",
+    "meta_commit": null,
+    "runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "branch": "codex/d3-object-tree-collision",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 228139,
+        "sha256": "8cb88ddf2ab548728abbbd99e64bdf4c41258fe144cf9607e9ba6efbf1867892",
+        "git_blob": "e27c2da83ee59dda1ac614a36d0755698f302722"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "bytes": 323854,
+        "sha256": "2086eb094d70d159fba9c8c4f14b56eb90ad4aa273bc8e0258cc6d61336cb5f8",
+        "git_blob": "240a1f6ef603221b82e31f03e2925adae712d59c"
+      }
+    ],
+    "note": "meta_commit and publication are the tracked null placeholders in this repository copy; Root's external copy names the metadata commit"
+  },
+  "sealed_prior_review": {
+    "path": "R:/d3-evidence/independent-fixed-rule-witness-source-96cc-20261106.json",
+    "repo_literal_copy": "independent-fixed-rule-witness-source-96cc-20261106.json",
+    "sha256": "870453bc42a9172e3c20fd05ba3da86bd101ad31dbeecbc0229882450362e8d2",
+    "bytes": 13864,
+    "decision": "CHANGES_REQUIRED, one P2, native launch clearance false",
+    "finding": "candidate_reply_problem validates grammar and 12-or-16 words only; the mode counted a 12-word TEST eligible, restated and hid it behind the later refusal, so a malformed positive (non-finite word, scene zero, wrong name) could never be seen by the campaign's own contract"
+  },
+  "finding_disposition": {
+    "id": "ENV-FIXED-RULE-WITNESS-POSITIVE-ACCEPTANCE-1",
+    "validated_before_any_credit": "a nonzero scene; exactly twelve grammar-valid pose words, each classified as text and integer arithmetic on its exponent field (no word is loaded as a float: signaling NaN and subnormal words are neither damaged nor change the floating-point state); the scene's name",
+    "consumer_contract_source": "aphavoc/source/entity/mobile/mb_hostentity.h check_candidate_reply (count 12 or 16, a moving pose only for a mobile candidate, scene 0 refused, every word finite by (word & 0x7f800000) != 0x7f800000) and mb_hostmodel.c check_target_point_identity (the name must equal object_3d_scene_names[scene], fatal otherwise)",
+    "expected_name": "taken from what the campaign ACCEPTED: its identity check is fatal, so a reply is accepted exactly when the campaign asks its next question. In this mode only, replies of entity_candidate, object, custom_object, animation and target_point_offset (the operations whose provider reply echoes compiled_scene_name(scene), model_host.rs) that are not refusals are noted per scene and promoted at the next question. A scene with no accepted reply, or two different accepted names, has NO binding: its positive is not validated (counted, never credited, never guessed); no production API, store or independent model image is used",
+    "malformed_positive": "a reply fault (\"candidate reply: ...\") with eligible 0, changed 0, ZERO restatement and ZERO re-evaluation; the campaign then meets the original reply itself; the verdict reports a failed-first run, never UNREACHED and never a pass",
+    "unbound_scene": "UNREACHED with the count of final positives not validated; neither a pass nor a provider fault",
+    "unchanged": "same provider and unmodified actual payload, subtype-ONLY restatement under the strict placed/same-key/no-p ACK, the re-evaluation is the declared extra Host-only evaluation and not a next campaign question, the provider's real named refusal is returned to the campaign; the four fixed_rule_* fields keep names and declared meaning; default and every other mode are unchanged (name tracking is installed only for changed_fixed_rule; the harness consumer gained the campaign's finite-word check)"
+  },
+  "tests": {
+    "new": [
+      {
+        "name": "valid_final_positives_including_a_subnormal_word_and_a_negative_zero_are_credited_and_refused_by_name",
+        "on_96cc": "passed (positive control)",
+        "on_code": "passed"
+      },
+      {
+        "name": "a_final_positive_with_an_infinite_pose_word_is_never_credited_and_causes_no_restatement_and_no_re_evaluation",
+        "on_96cc": "FAILED (eligible 1, changed 1, hidden)",
+        "on_code": "passed"
+      },
+      {
+        "name": "a_final_positive_with_a_signaling_nan_pose_word_is_never_credited_and_causes_no_restatement_and_no_re_evaluation",
+        "on_96cc": "FAILED (eligible 1, changed 1, hidden)",
+        "on_code": "passed"
+      },
+      {
+        "name": "a_final_positive_for_scene_zero_is_never_credited_and_causes_no_restatement_and_no_re_evaluation",
+        "on_96cc": "FAILED (eligible 1, changed 1, hidden)",
+        "on_code": "passed"
+      },
+      {
+        "name": "a_final_positive_that_names_another_scene_is_never_credited_and_causes_no_restatement_and_no_re_evaluation",
+        "on_96cc": "FAILED (eligible 1, changed 1, hidden)",
+        "on_code": "passed"
+      },
+      {
+        "name": "a_final_positive_for_a_scene_no_accepted_reply_ever_named_is_not_validated_and_is_neither_credited_nor_restated_nor_re_evaluated",
+        "on_96cc": "FAILED (eligible 1, changed 1)",
+        "on_code": "passed"
+      }
+    ],
+    "single_fault_assertions": "each fault test asserts eligible 0, changed 0, next and cause empty, request faults 0, reply faults 1 (the unbound scene: 0 and UNREACHED), exactly ONE fixed report (no restatement), exactly six provider candidate calls (no re-evaluation, no refusal) and the failed-first verdict",
+    "harness_changes": [
+      "final_fault (inf, ninf, snan, name; subnormal is VALID) damages ONLY the final positive",
+      "final_scene (zero, unbound) gives the final question a scene of zero or one no earlier reply named",
+      "the scripted consumer refuses a non-finite pose word as the campaign does"
+    ],
+    "preserved": "the 90 existing tests pass unchanged (96 in all)"
+  },
+  "red_green": {
+    "red": "red-96cc-positive-b (on the unchanged 96cc driver bytes, tests only changed): 91 passed, 5 failed, each for the stated reason (eligible 1/changed 1/mirror cause credited over a faulty positive)",
+    "setup_accidents": "none in this correction; red-96cc-positive-a is the superseded looping formulation of the same RED",
+    "green": "positive-final-green-debug: entity_authority 96 passed, 0 failed (debug, x86_64-unknown-linux-gnu, --locked), fmt --check and scoped clippy -D warnings clean, on the committed bytes. The RED ran on the pre-layout test file (layout-only difference)"
+  },
+  "final_checks_on_named_code_commit": [
+    "positive-final-green-debug",
+    "positive-final-fmt-check",
+    "positive-final-clippy"
+  ],
+  "input_maps": {
+    "kind": "TARGETED, not the 9769-file map: the two changed paths by raw bytes, git status, and the tree ids of every production root and the shipping campaign.lua at the 681 runtime and at the working HEAD; before and after the final checks equal except label and creation time",
+    "before": {
+      "path": "maps/positive-map-before-final.json",
+      "bytes": 3414,
+      "sha256": "2708e1c8dd705c514ca1754da0e771134e4cf72558eecadd6bf86f7101bb7aa3"
+    },
+    "after": {
+      "path": "maps/positive-map-after-final.json",
+      "bytes": 3413,
+      "sha256": "42fd30276f8a04e105697972d017419376ada3f385b09d311a38f80209449f10"
+    },
+    "git_status_porcelain": [
+      " M eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      " M eech-campaign/crates/eech-world/tests/entity_authority.rs"
+    ],
+    "untracked": [],
+    "production_roots_equal_681": {
+      ".github": true,
+      "aphavoc": true,
+      "eech-campaign/.cargo": true,
+      "eech-campaign/Cargo.lock": true,
+      "eech-campaign/Cargo.toml": true,
+      "eech-campaign/crates/eech-dc": true,
+      "eech-campaign/crates/eech-engine": true,
+      "eech-campaign/crates/eech-engine-sys": true,
+      "eech-campaign/crates/eech-world/lua/campaign.lua": true,
+      "eech-campaign/crates/eech-world/src": true,
+      "modules": true
+    },
+    "lua_directory_paths_changed_681_to_code": [
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua"
+    ],
+    "paths_changed_681_to_code_outside_reference_packs": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+    ],
+    "reuse": "the 96cc pack's full 9769-file maps and the 681 source proofs are reused by identity, not reread"
+  },
+  "literal_driver": {
+    "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "git_blob": "e27c2da83ee59dda1ac614a36d0755698f302722",
+    "sha256": "8cb88ddf2ab548728abbbd99e64bdf4c41258fe144cf9607e9ba6efbf1867892",
+    "bytes": 228139,
+    "previous_96cc": {
+      "git_blob": "917bff921c48c1aeed4d7b27f268d4a2c0e9c64a",
+      "sha256": "25fe9bbf83c600a9c092cce8c5d3f0006821adcfed55a44bdce578cd1bdff959"
+    },
+    "note": "passed separately by Root (--literal-driver/--literal-source/--literal-git-blob/--literal-sha256) to the sealed 681 binary; the 88 payloads are not a build of this source"
+  },
+  "reused_scope": "Reused by sealed identity, not replayed or re-narrated: 681 source review 5fdab426..., exact 33d1 CI (nine checks), the Windows builds and native positives (ordinary short literal 80fd; healthy 190 fields exact + four declared fields; 180 B terminal), the first witness pack fixed-physical-rules-witness-source-and-checks, the original-C/math/tree/scan/profile evidence. Not run: workspace, EECH_C_OPT=2, i686, release, other eech-world binaries, natives.",
+  "blockers": {
+    "unchanged": "fixed-physical-rules-source-review-native stays OPEN (this correction needs the same reviewer, exact-head CI and Root's ONE new negative); the seven source/CI blockers stay closed only to their 5fd + exact-33d1-CI scope; REQUIRED_CITY_BOX_LIFECYCLE_RETENTION stays OPEN and is the mandatory next production after the finite flags; all ten D3 requirements remain"
+  },
+  "pending": {
+    "independent_review": "PENDING: the same reviewer over only the new Lua/test material",
+    "ci": "PENDING: no CI of this head (both i686 jobs run the new tests; only x86_64 debug ran here)",
+    "native": "PENDING: no native on 96cc or this head; Root's ONE new negative on a fresh root (fixed-rule-witness-input-20261106/preparation.json stays unused until a new source clearance)",
+    "self_clearance": "none"
+  },
+  "limitations": [
+    "The accepted-name oracle is the campaign's own acceptance of earlier replies, not a name table: a scene no accepted reply named leaves the positive unvalidated, so a native run can honestly end UNREACHED for that reason (named in the verdict).",
+    "\"Accepted\" is inferred from the campaign asking its next question after the reply; a reply the campaign refuses is fatal and ends the run.",
+    "The scripted provider tests prove the driver contract and the strict acknowledgement, not the real provider's refusal bytes or retail eligibility; a listed building is not native coverage of all fifteen sub types or of ordinary-sector placement.",
+    "Only x86_64 debug ran locally; no CI of this head."
+  ],
+  "next_action": "Same independent reviewer over ONLY the new Lua/test material; Root observes the CI of the committed head, then ONE new negative actual on a fresh root with the sealed 681 binary and this commit's Lua passed separately. REQUIRED_CITY_BOX_LIFECYCLE_RETENTION is the next production change after the finite flags.",
+  "created_utc": "2026-11-06T19:29:44.653449+00:00",
+  "checks": {
+    "red-96cc-positive-a": {
+      "role": "first formulation (one looping test): RED on the unchanged 96cc driver at its first fault (infinite word credited, restated and hidden); superseded by one test per fault",
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T19:25:17.992174+00:00",
+      "completed_utc": "2026-11-06T19:25:22.385265+00:00",
+      "receipt_sha256": "f98165ce3f1c3613593010b9d9851d1e5b01d7b4bcfccd11adf047c4bdc1efba",
+      "passed": 90,
+      "failed": 1,
+      "stdout_sha256": "82dd4452d5e551da7e88843ac0b477f31f7a649931f767f867a64bab012aabb2",
+      "stderr_sha256": "0a0ecac3406ba3c1115642ef49cf769e5fb62c5b605fbb113d25396cafd15b42"
+    },
+    "red-96cc-positive-b": {
+      "role": "THE RED on the unchanged 96cc driver: 91 passed, 5 failed (infinite/negative-infinite, signaling NaN, scene zero, wrong name, unbound scene); the valid-positive control (incl. subnormal and negative zero) passed",
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T19:25:52.457515+00:00",
+      "completed_utc": "2026-11-06T19:25:55.156034+00:00",
+      "receipt_sha256": "6c3551375fad11c378bb88e189e604bfdb6f402346539fff89d49203dc7503fa",
+      "passed": 91,
+      "failed": 5,
+      "stdout_sha256": "2ad7088cf0b2999e162151a63464b26166cbc78f13c3707616865c9f5ccc1408",
+      "stderr_sha256": "1a049c436c84f5010cfbb9602dd169276792c2ba431f9cdec2fd291f7434a122"
+    },
+    "green-positive-a": {
+      "role": "first GREEN after the driver change: 96 passed",
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:27:25.258185+00:00",
+      "completed_utc": "2026-11-06T19:27:28.936810+00:00",
+      "receipt_sha256": "eb0c742ad66de21f00567c9bdce68357cf301e5c61d2882c7c293d2fb1a870ee",
+      "passed": 96,
+      "failed": 0,
+      "stdout_sha256": "d968ed97fca45d8d3314a69ce3ba4e32bbbfd0e1b837ddf78d66cff290ac2e60",
+      "stderr_sha256": "e876c9cca963ef718f0e1c86ab777bdd4a1133ceff1946d6c42124440457a065"
+    },
+    "positive-fmt-apply": {
+      "role": "cargo fmt -p eech-world applied (layout only)",
+      "command": "cargo fmt -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:27:41.510889+00:00",
+      "completed_utc": "2026-11-06T19:27:45.949564+00:00",
+      "receipt_sha256": "ea5689ab73d9f77bfd87335d50ffc7819afd36da6311c7c5e714b554053c01c7",
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "positive-final-green-debug": {
+      "role": "FINAL on the committed bytes: entity_authority debug x86_64, 96 passed",
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:28:00.282988+00:00",
+      "completed_utc": "2026-11-06T19:28:02.978109+00:00",
+      "receipt_sha256": "46f48d5ef80a8658b52797789054abdf92715d6dda2e467b9db4b4f7eeba2aef",
+      "passed": 96,
+      "failed": 0,
+      "stdout_sha256": "ebc47707b4e0b8581058d15623840212e25823f9d846efeb01482aea27e37afb",
+      "stderr_sha256": "2a24bf877016bda350638e468d868528572d491d672ebfb8db8391ae3da2d7e2"
+    },
+    "positive-final-fmt-check": {
+      "role": "FINAL: cargo fmt -p eech-world -- --check",
+      "command": "cargo fmt -p eech-world -- --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:28:03.070825+00:00",
+      "completed_utc": "2026-11-06T19:28:06.360822+00:00",
+      "receipt_sha256": "aa37c8a4ce162f058908ab184eea67b80c85106b0df3f8c912c068a55b94266a",
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "positive-final-clippy": {
+      "role": "FINAL: scoped cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+      "command": "cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T19:28:06.459271+00:00",
+      "completed_utc": "2026-11-06T19:28:09.015293+00:00",
+      "receipt_sha256": "67f83f015d6492c19fb7fc9dcc8a83636a6454e3229cc2855d09f6a7f5aafaee",
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "869654c1730be6dbb694962075001daccb52611596261f291e6d5f6050a09060"
+    }
+  },
+  "publication": null
+}

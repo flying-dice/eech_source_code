@@ -1,0 +1,230 @@
+{
+  "source": "8c452f197449d3a08b8f7bfbad5c34ae652c22c1",
+  "scope": "Host-owned tree loader/kernel preparation ONLY; production DLL dispatch unchanged",
+  "status": "Focused validation passed; independent correction closure tracked separately",
+  "linux": {
+    "actual_invocation_exit": 0,
+    "unit_passed": 17,
+    "actual_host_lua_tests_passed": 1,
+    "format": 0,
+    "all_host_target_clippy_keep_going_warnings_denied": 0
+  },
+  "windows": {
+    "actual_build_exit": 0,
+    "manifest_entries": 8,
+    "payloads_unchanged": true,
+    "unit_passed": 17,
+    "unit_exit": 0,
+    "actual_host_lua_tests_passed": 1,
+    "lua_transport_exit": 0,
+    "native_controller_exit": 0
+  },
+  "build_info_sha256": "a7a007641cdc690924ea20e803303314519b6f20037834f3abd95f92ed4950c3",
+  "cases": [
+    {
+      "case": "georgia",
+      "expected_queries": 554,
+      "expected_lookups": 1102,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_transcript_sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc",
+      "library_actual_exit": 0,
+      "lua_actual_exit": 0,
+      "library_original_query_bits_and_lookup_order": "EXACT in default, Up, Down, Zero; caller control/status and nonzero exception flags restored",
+      "real_host_lua_replay": "All original queries exact; actual exit0; no skip",
+      "forest_geometry": "Known absent in original retail facts; native geometry branch unexercised"
+    },
+    {
+      "case": "lebanon",
+      "expected_queries": 600,
+      "expected_lookups": 1120,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "library_actual_exit": 0,
+      "lua_actual_exit": 0,
+      "library_original_query_bits_and_lookup_order": "EXACT in default, Up, Down, Zero; caller control/status and nonzero exception flags restored",
+      "real_host_lua_replay": "All original queries exact; actual exit0; no skip",
+      "forest_geometry": "Known absent in original retail facts; native geometry branch unexercised"
+    },
+    {
+      "case": "lebanon-repeat",
+      "expected_queries": 600,
+      "expected_lookups": 1120,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "library_actual_exit": 0,
+      "lua_actual_exit": 0,
+      "library_original_query_bits_and_lookup_order": "EXACT in default, Up, Down, Zero; caller control/status and nonzero exception flags restored",
+      "real_host_lua_replay": "All original queries exact; actual exit0; no skip",
+      "forest_geometry": "Known absent in original retail facts; native geometry branch unexercised"
+    }
+  ],
+  "protocol": {
+    "actual_exit": 0,
+    "cases_passed": 6,
+    "script_sha256": "fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de",
+    "scope": "Two malformed geometry lists and two stale-query continuations now refuse; valid dense/pending controls unchanged"
+  },
+  "reentrant_getters": {
+    "actual_exit": 0,
+    "cases_passed": 3,
+    "script_sha256": "2bb59f7553686b0edc9a3d253d6c7b05866effc04e8b1055aff46a193b058244",
+    "scope": "Error and malformed-return getters cannot leave nested pending query; healthy one-read getter still works"
+  },
+  "prior_review_sha256": "c5f921039fb6b6deb154a96d8c15d049fbd829996bb426a34775530ae2df2a0b",
+  "preserved_history": [
+    "0db20ab3a bit mismatch and wrong outside-endpoint assertion",
+    "d72610f85 Windows SSE-state failures and negative-zero test setup",
+    "684fb6981 getter reentry RED and initial Clippy failures",
+    "f81eb31bc later test-checker Clippy failures"
+  ],
+  "limitations": [
+    "No production tree/entity handoff, authority/refusal or shipping acceptance",
+    "Original retail forest geometry absent; model geometry loader and controlled original geometry witness remain required",
+    "Unmasked-exception entry and induced environment-operation failures not dynamically exercised",
+    "Required DCS mapping/workaround, G1/G2 production integration and remaining D3 services remain open; live DCS is M6",
+    "Full Task47 shipping still pending; no Task49 or whole D3 completion"
+  ],
+  "evidence": [
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\controller.json",
+      "bytes": 14299,
+      "sha256": "4486c7b383bdf1590d10d73d6625c3e8449ef2910dd5d7797eb1337b65118f57",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\georgia-library-replay.log",
+      "bytes": 872,
+      "sha256": "eb84aa1cf930e744c56cb210513fb60b347d35bcfd5f9e8508b3908a9149ec7a",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\georgia-lua-replay.log",
+      "bytes": 241,
+      "sha256": "643cb0e953f930135bd32f4b931ade7402221cec7df927440f2046f7c91cca32",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\georgia-post-inputs.log",
+      "bytes": 312,
+      "sha256": "9938f06d0d1e60d77a23a5c30d0e2345cadae331b0e4087ec678d8da80e5e199",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\georgia-pre-inputs.log",
+      "bytes": 312,
+      "sha256": "9938f06d0d1e60d77a23a5c30d0e2345cadae331b0e4087ec678d8da80e5e199",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\lebanon-library-replay.log",
+      "bytes": 873,
+      "sha256": "f067278839e84a6cc7b52fd041e1b1a077a23cc95e943d0777df65369d2d0e5e",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\lebanon-lua-replay.log",
+      "bytes": 242,
+      "sha256": "6b2dab1c803b969c192482d6a956988d3b94089d1b0edc386fbb7ac69ab39489",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\lebanon-post-inputs.log",
+      "bytes": 300,
+      "sha256": "530012d1f8f91ea6da4dd5f0a6abcdf881652ff51a26e594de42334ec66ce22d",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\lebanon-pre-inputs.log",
+      "bytes": 300,
+      "sha256": "530012d1f8f91ea6da4dd5f0a6abcdf881652ff51a26e594de42334ec66ce22d",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\lebanon-repeat-library-replay.log",
+      "bytes": 887,
+      "sha256": "d99dd291ed632746babffecf8a4fff7784c2eda09c867a89b2d624cc65f75d71",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\lebanon-repeat-lua-replay.log",
+      "bytes": 242,
+      "sha256": "6b2dab1c803b969c192482d6a956988d3b94089d1b0edc386fbb7ac69ab39489",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\lebanon-repeat-post-inputs.log",
+      "bytes": 307,
+      "sha256": "aede612b43ac1fe782a3a502529b96893a521ac88f919fd14bec180d618f035d",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\lebanon-repeat-pre-inputs.log",
+      "bytes": 307,
+      "sha256": "aede612b43ac1fe782a3a502529b96893a521ac88f919fd14bec180d618f035d",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\lua-transport-contracts.log",
+      "bytes": 186,
+      "sha256": "a480ffce0c5a58d1a215e92333d88aad9c602c94e4b22b3aaccb228b3308092f",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-8c452f197-native-20261029\\unit-contracts.log",
+      "bytes": 1706,
+      "sha256": "25f7cdf24353388e936bb21cb32343f34d0f1e0a53c603d984af736a99224a74",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-linux-8c452f197-20261029-completion.json",
+      "bytes": 457,
+      "sha256": "d3b4ed978e43a5ad828d866d36cf0f13332357b99d50f69f37b23c27753911a4",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-linux-8c452f197-20261029.log",
+      "bytes": 1892,
+      "sha256": "782b3f7fa411e664bfd4b55ccf2a27ee3a2dd1ebbfde39271340bf372df872f3",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-windows-8c452f197-20261029-completion.json",
+      "bytes": 454,
+      "sha256": "4f565a92d43a27e032081f93a71fa3ea57d3dffa78e890622497afe2904ab85a",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-protocol-clean-8c452f197-20261029\\controller.json",
+      "bytes": 5012,
+      "sha256": "ab8398f80381d5e27d7f3420c9094414ab5813900b309cea7288dab88dbd673b",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-reentrant-green-8c452f197-20261029\\controller.json",
+      "bytes": 2917,
+      "sha256": "b608bab3b8376d0434180a655d5d793e12979bc8761c8640063704529806c60f",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-boundary-controls-20261029.lua",
+      "bytes": 1854,
+      "sha256": "fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-reentrant-begin-control-20261029.lua",
+      "bytes": 1608,
+      "sha256": "2bb59f7553686b0edc9a3d253d6c7b05866effc04e8b1055aff46a193b058244",
+      "retained": "Private original; safe aggregate only in Git"
+    },
+    {
+      "file": "tree-host-clean-source-20261029\\eech-campaign\\target\\tree-host\\8c452f197\\BUILD-INFO.txt",
+      "bytes": 1025,
+      "sha256": "a7a007641cdc690924ea20e803303314519b6f20037834f3abd95f92ed4950c3",
+      "retained": "Private original; safe aggregate only in Git"
+    }
+  ]
+}

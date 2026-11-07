@@ -1,0 +1,814 @@
+{
+  "kind": "D3 sector-height Core-load LOADER FIX CODE_FROZEN (UNREVIEWED; product C parsgen.c saved-campaign loader; native UNRUN for this source): ENV-SECTOR-HEIGHT-NATIVE-CORE-LOAD-LIST-1 stays OPEN until the SAME review and a real native positive pair",
+  "frozen_utc": "2026-11-07T14:06:59.533066+00:00",
+  "task": "EEDCS-49",
+  "stage": "bounded diagnosis and loader correction of the required M6 Core load inside the current sector-height extraction (not a preparation batch; the count stays 2); ONE compiled product input changed (aphavoc/source/ai/parser/parsgen.c): new Windows binaries need this new source, the sealed 17f binaries are NOT reused for it",
+  "source_before": "b23c06c16a876ac1772bbe4f475f5bb40a329851",
+  "reviewed_code_commit": "9cb480fbb21e2bb5d492a056046e0bd854bc987b",
+  "native_identity_not_relabelled": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982",
+  "findings": {
+    "ENV-SECTOR-HEIGHT-NATIVE-CORE-LOAD-LIST-1": "OPEN until the SAME reviewer accepts the correction and a real native positive pair loads",
+    "ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1": "CLOSED_SOURCE by the SAME review f61dac32 (unchanged)",
+    "ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1": "OPEN until actual native proof",
+    "ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1": "OPEN until actual native proof",
+    "sector-height-host-move-open-facts": "OPEN"
+  },
+  "sealed_inputs": {
+    "independent-sector-height-reference-fix-9cb480-source-20261107.json": {
+      "sha256": "f61dac32f008b38b4795eaa0dd73357fb6bcd1fabf5f017e59874fb1cc77f81a"
+    },
+    "height-reference-Root-binding-beb-20261107.json": {
+      "sha256": "e1b5cad058845f3c6a3d3d7b7fa6a1ac8846425d1ca8a061ae76b524af2cfb64"
+    },
+    "height-reference-beb-all9-CI-readback-20261107.json": {
+      "sha256": "9858cdb809c5ab5bdd88b32f22900f4261eacf54c8d35e98cdbbec64eba63d0a"
+    }
+  },
+  "root_feedback_files_present": [
+    "Root-city-relist-ack-review-feedback-20261106.json",
+    "Root-feedback-height-native-CI-20261107.json",
+    "Root-needed-consumer-api-disposition-feedback-20261107.json",
+    "Root-sector-height-production-feedback-20261107.json",
+    "Root-sector-height-public-baseline-fix-feedback-20261107.json",
+    "Root-sector-height-public-baseline-join-fix-feedback-20261107.json",
+    "Root-sector-height-review-feedback-20261106.json"
+  ],
+  "lease": {
+    "volume": "eech-linux-d3-height-reference-9d247-20261107",
+    "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+    "image_named_never_substituted": true,
+    "containers_before": [
+      "containers_before=0"
+    ],
+    "containers_after": "containers_after=0",
+    "cache_cleanup": "none",
+    "root_lease": {
+      "file": "Root-height-reference-reader-9d247-lease-20261107.json",
+      "sha256": "5c627794b8b1e323a80a3be9de0f3a7d71f2058419d9d4126345f7746e9b178e"
+    },
+    "tooling_note": "rustfmt and clippy were installed into each EPHEMERAL container by `rustup component add`; the image is Root's explicit 9d247 lease image, measured in the runs, not claimed equal to the old producer"
+  },
+  "diagnosis": {
+    "packet": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load (committed at the first checkpoint b23c06c16)",
+    "causal_chain": "saved data correct (decode equals the save report) -> load unpack input zero (all 1748 restores stated 0) -> session force root read as entity index 0 = the sector 0 entity -> force loop asks it for a force-list successor -> en_list.c:356: the fatal is a symptom",
+    "mechanism_observed": false,
+    "candidates": "text-mode file_size () size shorter than the file (Ctrl-Z at 167), the one-element fread (size + 1), or another delivery fault now made loud"
+  },
+  "change": {
+    "parsgen.c": "FILE_TAG_SAVED_CAMPAIGN only: size from the binary handle (fseek/ftell), fread (buffer, 1, size) with every byte required, debug_fatal naming file and sizes on a short read or on an unpack_session overflow; the data still goes to the Core's own unpack (no bypass), no pack format, host contract, sector-height rule or campaign decision changes",
+    "guard": "eech-engine-sys/tests/saved_campaign_load_guard.rs pins the loader and its premises (RED on the previous loader retained)",
+    "docs": "contract section 12.6"
+  },
+  "red_green": {
+    "red_on_previous_loader": [
+      "r3-red-previous-loader-guard"
+    ],
+    "green": [
+      "the final set s1..s9"
+    ],
+    "limit": "a saved-campaign load cannot run on Linux (no retail data; the Windows C runtime behaviour is the open question): the guard is the RED/GREEN, the native positive pair is the validation"
+  },
+  "test_counts_final": {
+    "s1-fmt-check": 0,
+    "s2-clippy-workspace": 0,
+    "s3-clippy-witness-features": 0,
+    "s4-engine-sys-default": 45,
+    "s5-control-hosted": 1,
+    "s6-control-original-solver": 1,
+    "s7-witness-c-and-guards": 9,
+    "s8-engine-dc-default": 194,
+    "s9-engine-dc-witness": 195
+  },
+  "retained_development_runs": {
+    "r1-loader-guard": {
+      "actual_exit": 101,
+      "why": "test setup, not a loader defect: the guard counted `fopen (` which also matches inside `safe_fopen (`, so a loader with exactly one (safe) open counted two; the assertion was corrected to (1, 1) and r2 is green"
+    },
+    "r3-red-previous-loader-guard": {
+      "actual_exit": 101,
+      "why": "RED on the PREVIOUS loader (only parsgen.c reverted from HEAD for the run, then restored byte-identical; the guard unchanged): 2 of 3 tests fail for the right reasons: 'the size must not come from the text-mode helper' (file_size () still sizes the data) and the loader no longer contains the full-read statement (the old one-element fread of size + 1 and the ignored unpack return); the third test (the Core's own pack/unpack premises) passes on both, as it should"
+    }
+  },
+  "runs": [
+    {
+      "label": "r1-loader-guard",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --test saved_campaign_load_guard --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T13:43:28.139072+00:00",
+      "completed_utc": "2026-11-07T13:44:36.811558+00:00",
+      "tests_passed": 2,
+      "tests_failed": 1,
+      "targets": {
+        "tests/saved_campaign_load_guard.rs": 2
+      },
+      "stdout_sha256": "2707aac82a06914a489d36a4df939375e10927cbd8a5dea323bfc34c6b0c5142",
+      "stderr_sha256": "5a7e2a14f8468246fa66f6c9fb269497f6648df7304242e683f9d537fc006f2f"
+    },
+    {
+      "label": "r2-loader-guard",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --test saved_campaign_load_guard --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:44:46.900913+00:00",
+      "completed_utc": "2026-11-07T13:44:50.697558+00:00",
+      "tests_passed": 3,
+      "tests_failed": 0,
+      "targets": {
+        "tests/saved_campaign_load_guard.rs": 3
+      },
+      "stdout_sha256": "c21d93a6661c1fed0286ac26d13ec7664ad545d78458d0b834181110297ed00b",
+      "stderr_sha256": "169ebae7687e2f1ce7836b848b6c9a4f48174f501836c5b7fbf5a5d06930e6dc"
+    },
+    {
+      "label": "r3-red-previous-loader-guard",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --test saved_campaign_load_guard --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T13:45:01.725255+00:00",
+      "completed_utc": "2026-11-07T13:46:06.547059+00:00",
+      "tests_passed": 1,
+      "tests_failed": 2,
+      "targets": {
+        "tests/saved_campaign_load_guard.rs": 1
+      },
+      "stdout_sha256": "04088628a71fc0b26db54d22551c4da73836cdddbfb14b0661918d65a50dc4e7",
+      "stderr_sha256": "1b36b7c304714ae4f96745938f20944036863ebea26f84a5d6a7ea9f56961d33"
+    },
+    {
+      "label": "r4-fmt-apply",
+      "final": false,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --all",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:46:33.059422+00:00",
+      "completed_utc": "2026-11-07T13:46:38.911105+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "label": "r5-clippy-engine-sys",
+      "final": false,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:46:39.071956+00:00",
+      "completed_utc": "2026-11-07T13:47:44.602951+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "4154bceb30e9e1a8dbee977214ef93aa60277da8d428af382b495b24f836c56b"
+    },
+    {
+      "label": "s1-fmt-check",
+      "final": true,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:50:32.773842+00:00",
+      "completed_utc": "2026-11-07T13:50:38.516317+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "label": "s2-clippy-workspace",
+      "final": true,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:50:38.601067+00:00",
+      "completed_utc": "2026-11-07T13:57:19.601442+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "9ce96d71deb612819bee52940fa5b359d0bf40fd1cf9d0a9423bdcd39604fc6a"
+    },
+    {
+      "label": "s3-clippy-witness-features",
+      "final": true,
+      "command": "rustup component add clippy && cargo clippy --locked -p eech-engine-sys -p eech-engine -p eech-dc --features eech-engine-sys/sector-height-witness,eech-engine/sector-height-witness,eech-dc/sector-height-witness --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:57:19.686385+00:00",
+      "completed_utc": "2026-11-07T13:58:26.251336+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "b7967a4196876dda7950b3eae6fc2e7608dc44d31de2b3db2f9bcfb4f6867206"
+    },
+    {
+      "label": "s4-engine-sys-default",
+      "final": true,
+      "command": "cargo --version && cargo test --locked -p eech-engine-sys --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:58:26.345661+00:00",
+      "completed_utc": "2026-11-07T13:59:57.183634+00:00",
+      "tests_passed": 45,
+      "tests_failed": 0,
+      "targets": {
+        "src/lib.rs": 0,
+        "tests/entity_host_guard.rs": 5,
+        "tests/entity_pose_lifecycle_guard.rs": 4,
+        "tests/entity_roster_guard.rs": 20,
+        "tests/saved_campaign_load_guard.rs": 3,
+        "tests/sector_height_guard.rs": 7,
+        "tests/sector_height_witness_guard.rs": 4,
+        "tests/tree_host_guard.rs": 2,
+        "eech_engine_sys": 0
+      },
+      "stdout_sha256": "98d2b8147b3f97fe4aa3b65d0efb17d7dbc80e7dbb70667deef8c866e5ea1758",
+      "stderr_sha256": "506837e130e9203157ed797952e0e468e0462f87b1f6c82cd2f083b2233eea6f"
+    },
+    {
+      "label": "s5-control-hosted",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:59:57.275702+00:00",
+      "completed_utc": "2026-11-07T14:01:00.372029+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "targets": {
+        "tests/sector_height.rs": 1
+      },
+      "stdout_sha256": "cc07a2813235cfd43f9e44885ad054e26834921d362d89b4aebbff53045a0350",
+      "stderr_sha256": "38369f99dfbce6a166d3f570824b3a1bbe84e182f96ac048474d60a85acf75ab"
+    },
+    {
+      "label": "s6-control-original-solver",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check,collision-fixture --test sector_height -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T14:01:00.462113+00:00",
+      "completed_utc": "2026-11-07T14:02:06.968954+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "targets": {
+        "tests/sector_height.rs": 1
+      },
+      "stdout_sha256": "16d4d616a676fd4fd4e3ae7ab7a0ab5a0b98dff619d0260c1190cae49b03c0ad",
+      "stderr_sha256": "acd7b78be23a57f84814f46fd8884020dc47c7d22e96ff08986fda1a78b66f9d"
+    },
+    {
+      "label": "s7-witness-c-and-guards",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-witness --test sector_height_witness --test sector_height_witness_guard --test saved_campaign_load_guard --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T14:02:07.053823+00:00",
+      "completed_utc": "2026-11-07T14:03:16.049389+00:00",
+      "tests_passed": 9,
+      "tests_failed": 0,
+      "targets": {
+        "tests/saved_campaign_load_guard.rs": 3,
+        "tests/sector_height_witness.rs": 2,
+        "tests/sector_height_witness_guard.rs": 4
+      },
+      "stdout_sha256": "d4af654d7ee1514c55b4b3cdb5efa5c09f8cfd24861dcbfc25643b90c8d02cdb",
+      "stderr_sha256": "552d5b64a9f621112261276409f03153ba408783f70b90dae07678badb90b2dc"
+    },
+    {
+      "label": "s8-engine-dc-default",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine -p eech-dc --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T14:03:16.155653+00:00",
+      "completed_utc": "2026-11-07T14:04:49.085333+00:00",
+      "tests_passed": 194,
+      "tests_failed": 0,
+      "targets": {
+        "src/lib.rs": 192,
+        "tests/lua_debug_layout.rs": 2,
+        "eech_dc": 0,
+        "eech_engine": 0
+      },
+      "stdout_sha256": "4de9f87bf1e21256d9d7dba373aad054c1c0192c618199f952ba5612202aa4fd",
+      "stderr_sha256": "cfa3a9c0c9860bf899ad5d5dc6ae7055f8d0fd5c071da0cc9efffd56936d602f"
+    },
+    {
+      "label": "s9-engine-dc-witness",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine -p eech-dc --features eech-engine/sector-height-witness,eech-dc/sector-height-witness --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T14:04:49.184302+00:00",
+      "completed_utc": "2026-11-07T14:06:19.760371+00:00",
+      "tests_passed": 195,
+      "tests_failed": 0,
+      "targets": {
+        "src/lib.rs": 193,
+        "tests/lua_debug_layout.rs": 2,
+        "eech_dc": 0,
+        "eech_engine": 0
+      },
+      "stdout_sha256": "28b6b0e20e82a26740e629a361a9587f4be39c6dea2779662093731989d963e8",
+      "stderr_sha256": "927e17193ba9ba14f138d25f96204f88f40a7638c45c46a148bb012a56d21507"
+    }
+  ],
+  "guards": {
+    "generic": 0,
+    "production-cutover": 0,
+    "fix-blocker ENV-SECTOR-HEIGHT-NATIVE-CORE-LOAD-LIST-1": 0,
+    "fix-blocker ENV-SECTOR-HEIGHT-M5-ROUNDING-ORACLE-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-M6-PACK-RETRY-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-M6-SAVE-PATH-BOUND-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1": 0,
+    "fix-blocker ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1": 0,
+    "fix-blocker sector-height-host-move-open-facts": 0,
+    "deliver (expected unmet)": 1
+  },
+  "input_maps": {
+    "files": {
+      "hwcore-inputmap-PRE-20261107.json": {
+        "bytes": 2042052,
+        "sha256": "ad45cff195295db34d5bec6ce56858db6e173a268898735a2a8526daf9696592",
+        "location": "external (full per-file rows)"
+      },
+      "hwcore-inputmap-POST-20261107.json": {
+        "bytes": 2042052,
+        "sha256": "ad45cff195295db34d5bec6ce56858db6e173a268898735a2a8526daf9696592",
+        "location": "external (full per-file rows)"
+      },
+      "hwcore-extra-identity-PRE-20261107.json": {
+        "bytes": 6871,
+        "sha256": "3751cbe9468fed6ad66c94a4851b57b9af0139ba28be647306ba3de594fcb542",
+        "location": "external (full per-file rows)"
+      },
+      "hwcore-extra-identity-POST-20261107.json": {
+        "bytes": 6871,
+        "sha256": "3751cbe9468fed6ad66c94a4851b57b9af0139ba28be647306ba3de594fcb542",
+        "location": "external (full per-file rows)"
+      },
+      "hwref-inputmap-POST-20261107.json": {
+        "bytes": 2041760,
+        "sha256": "f75b2ed4b33f7504b137119aab34a5bd8fa92be92bca7ebbc0b2d6b609f9de7b",
+        "location": "external (full per-file rows)"
+      }
+    },
+    "compare_pre_post": {
+      "pre_fingerprint": "e3033fed3ff4a8574b5c6399bede7842baf086121bb8a220a2d203903e0a180a",
+      "post_fingerprint": "e3033fed3ff4a8574b5c6399bede7842baf086121bb8a220a2d203903e0a180a",
+      "file_count_pre": 3977,
+      "file_count_post": 3977,
+      "rows_only_in_pre": [],
+      "rows_only_in_post": [],
+      "rows_that_differ": [],
+      "all_rows_equal": true,
+      "head_sha": "b23c06c16a876ac1772bbe4f475f5bb40a329851",
+      "changed_from_head_count": [
+        5,
+        5
+      ],
+      "deleted_from_head": [
+        [],
+        []
+      ],
+      "raw_vs_git_filtered_disagreements": {
+        "pre": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ],
+        "post": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ]
+      },
+      "extra_identity_equal": true,
+      "extra_identity_aggregate": [
+        "ec01db30a4eaaea39abd7d16adebda4f6da658223cf35408372e77f905fcf677",
+        "ec01db30a4eaaea39abd7d16adebda4f6da658223cf35408372e77f905fcf677"
+      ]
+    },
+    "pre_utc": "2026-11-07T13:50:24Z",
+    "post_utc": "2026-11-07T14:06:33Z",
+    "post_utc_note": "recorded by `date -u` immediately before the POST capture; not reconstructed from a file time",
+    "join_vs_reference": {
+      "kind": "explicit compiled-input change join of the Core-load loader fix against the 9cb480fbb code commit (beb metadata) and the reference final POST map",
+      "code_commit": "9cb480fbb21e2bb5d492a056046e0bd854bc987b",
+      "metadata_commit": "beb57c879af20e17aaa6b6c0c8cef20eb76fb690",
+      "map_rows_changed": [
+        "aphavoc/source/ai/parser/parsgen.c"
+      ],
+      "map_rows_added": [
+        "eech-campaign/crates/eech-engine-sys/tests/saved_campaign_load_guard.rs"
+      ],
+      "map_rows_removed": [],
+      "map_rows_identical": 3975,
+      "compiled_input_rows": 3760,
+      "compiled_inputs_changed": [
+        "aphavoc/source/ai/parser/parsgen.c"
+      ],
+      "compiled_inputs_aggregate_sha256_reference": "b23f182b5a7ea3bb545de5302d31ceef4be9e88c6c3602e78e2568bcc753efa8",
+      "compiled_inputs_aggregate_sha256_now": "a0abc6d28858e7f44979df4186129b63b73d0c13809042756660b8a11c5b6832",
+      "compiled_inputs_identical": false,
+      "windows_17f_binaries_reusable_for_this_source": false,
+      "changed_in_git_since_code_commit": [
+        {
+          "path": "STATUS.md",
+          "class": "contract prose or records"
+        },
+        {
+          "path": "aphavoc/source/ai/parser/parsgen.c",
+          "class": "THE ONE COMPILED PRODUCT INPUT of this fix: the saved-campaign loader (FILE_TAG_SAVED_CAMPAIGN): binary-handle size, full read, named fatals"
+        },
+        {
+          "path": "docs/handover/ACTIVE-EXTRACTION.json",
+          "class": "contract prose or records"
+        },
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/tests/saved_campaign_load_guard.rs",
+          "class": "its source guard (a new test source, not a product input)"
+        },
+        {
+          "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+          "class": "contract prose or records"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/.gitattributes",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/README.md",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/hwcore-final-set-20261107.progress",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/hwcore-final-set-lease-after-20261107.txt",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/hwcore-final-set-lease-before-20261107.txt",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r1-loader-guard.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r1-loader-guard.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r1-loader-guard.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r2-loader-guard.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r2-loader-guard.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r2-loader-guard.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r3-red-previous-loader-guard.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r3-red-previous-loader-guard.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r3-red-previous-loader-guard.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r4-fmt-apply.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r4-fmt-apply.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r4-fmt-apply.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r5-clippy-engine-sys.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r5-clippy-engine-sys.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/r5-clippy-engine-sys.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s1-fmt-check.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s1-fmt-check.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s1-fmt-check.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s2-clippy-workspace.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s2-clippy-workspace.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s2-clippy-workspace.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s3-clippy-witness-features.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s3-clippy-witness-features.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s3-clippy-witness-features.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s4-engine-sys-default.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s4-engine-sys-default.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s4-engine-sys-default.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s5-control-hosted.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s5-control-hosted.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s5-control-hosted.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s6-control-original-solver.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s6-control-original-solver.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s6-control-original-solver.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s7-witness-c-and-guards.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s7-witness-c-and-guards.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s7-witness-c-and-guards.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s8-engine-dc-default.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s8-engine-dc-default.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s8-engine-dc-default.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s9-engine-dc-witness.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s9-engine-dc-witness.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix/runs/s9-engine-dc-witness.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load/.gitattributes",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load/README.md",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load/decode-result-20261107.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load/decode-saved-sector-section-20261107.py",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load/diagnosis.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load/manifest.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-reference-fix-reviewed/.gitattributes",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-reference-fix-reviewed/README.md",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-reference-fix-reviewed/height-reference-Root-binding-beb-20261107.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-reference-fix-reviewed/height-reference-beb-all9-CI-readback-20261107.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-reference-fix-reviewed/independent-sector-height-reference-fix-9cb480-source-20261107.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-reference-fix-reviewed/literal-bytes-check.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-reference-fix-reviewed/manifest.json",
+          "class": "retained evidence packet (not an input of any check)"
+        }
+      ],
+      "allowed_map_changes": {
+        "aphavoc/source/ai/parser/parsgen.c": "THE ONE COMPILED PRODUCT INPUT of this fix: the saved-campaign loader (FILE_TAG_SAVED_CAMPAIGN): binary-handle size, full read, named fatals",
+        "eech-campaign/crates/eech-engine-sys/tests/saved_campaign_load_guard.rs": "its source guard (a new test source, not a product input)"
+      },
+      "conclusion": "exactly ONE compiled product input changed (aphavoc/source/ai/parser/parsgen.c, the saved-campaign loader); every other compiled and linked input is raw-identical to the reference map. The sealed 17f Windows binaries are NOT reused for this source: new Windows binaries need this new source, a new immutable plan and Root-owned native runs; nothing is relabelled and nothing is claimed natively",
+      "problems": []
+    }
+  },
+  "literal_bytes": {
+    "changed_sources": {
+      "aphavoc/source/ai/parser/parsgen.c": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 89027,
+        "sha256": "ce460deeecfe9466589a47667f5f26ffada252a0dbaaeef4b989e1334a8022c9",
+        "crlf_lines": 0
+      },
+      "eech-campaign/docs/d3-sector-height-production-contract.md": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 46153,
+        "sha256": "10557618677be05fbde3aff6982db45c2694d5da5e107daa8e0537041df16d20",
+        "crlf_lines": 0
+      },
+      "eech-campaign/crates/eech-engine-sys/tests/saved_campaign_load_guard.rs": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 6322,
+        "sha256": "bb285324c0227c2f2f2341c2fec37417ceb027582d403249efc6be44650e1ed4",
+        "crlf_lines": 0
+      }
+    },
+    "lua_crlf_raw_vs_git_exceptions": [
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+    ],
+    "core_filter_only_qualifications": [
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+      "modules/system/malloc.c.h",
+      "modules/system/nedmalloc.c"
+    ],
+    "older_packets_unchanged_against_HEAD": {
+      "eech-campaign/reference/d3-entity-collision/sector-height-proof-guards-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-finite-native-ci-reviewed": true,
+      "eech-campaign/reference/d3-ci-lua-download": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-reference-fix-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load": true
+    }
+  },
+  "compiled_input_change": {
+    "changed_compiled_inputs": [
+      "aphavoc/source/ai/parser/parsgen.c"
+    ],
+    "compiled_input_rows": 3760,
+    "windows_17f_binaries_reusable": false,
+    "statement": "bound from the raw per-file maps BEFORE this freeze: exactly one compiled product input changed; every other row is raw-identical to the reference map"
+  },
+  "audit_reader_timing": "this freeze script, the join, the extra-identity script, the final-set runner, the runner, the check script, the batched map script and the comparer were FINAL before the PRE identity capture (their SHA-256 recorded at PRE and verified unchanged by this script); no reader changed after the POST capture",
+  "reused_unchanged": "the closed M5 oracle, pack retry, path bound and consumer join keep their source closures (reviews 507f49b7 and f61dac32); the save positive of Root's native run keeps its true identity (exact 17f binaries); nothing here is claimed natively",
+  "scripts": [
+    {
+      "name": "run-height-reference-direct-20261107.py",
+      "sha256": "370e4c92d35f0e56306ffb705f57b28172635df917ade53d1a0c7d060d1d0d77"
+    },
+    {
+      "name": "check-height-reference-linux-20261107.sh",
+      "sha256": "a82c4121b4e53895e89cebcfe666f97e302dffd55fbbabe185f7c8e8d46abfa1"
+    },
+    {
+      "name": "run-hwcore-final-set-20261107.sh",
+      "sha256": "a6c240ea8c9e2ceb2905ca6ac0daf2c3475592a13da09ac2f71425c792d3474a"
+    },
+    {
+      "name": "hwcore-join-20261107.py",
+      "sha256": "cd1e905c66a7a0b41e7e7a5ccd6f7de884a63000559ff8385b408ba37e3eff46"
+    },
+    {
+      "name": "hwcore-extra-identity-20261107.py",
+      "sha256": "1d701e131a2ec92d37699c297c62ae5dd47c6e0784396b25cb96b2311bcbe868"
+    },
+    {
+      "name": "freeze-hwcore-20261107.py",
+      "sha256": "dcb769812e737785b5dbd18a78984858ead0f322bd7096f4c36b64a006bb68d5"
+    },
+    {
+      "name": "sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "name": "sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "name": "publish-core-load-checkpoint-20261107.py",
+      "sha256": "961af5d7ceb8bde0a3f24fb243c2a12a9d02812b787abed25994f9a44e3cf01e"
+    },
+    {
+      "name": "patch-card-status-coreload-checkpoint1-20261107.py",
+      "sha256": "225b00adaf6a4e5c3de2422274a3a28a5768445d0ccd0da2ed99128e2e1880a7"
+    },
+    {
+      "name": "decode-saved-sector-section-20261107.py",
+      "sha256": "4bc5d14b8577c01a063acbea9ccc11e66a4c1fb5a6837632f3d3b457940e9e7b"
+    },
+    {
+      "name": "hwcore-retained-dev-runs-20261107.json",
+      "sha256": "b6d054cabdcf9b0e9e1c5c9baa8af7460d93e5070937f441c44a2415ed264d66"
+    }
+  ],
+  "not_run": [
+    "native, Windows, retail or war launch (Root's, with NEW binaries from this source)",
+    "any replay of the failed load (diagnosed from the retained actuals only)",
+    "the 179/150/221 characterisations, the 16 matrices, campaign replays",
+    "i686 or EECH_C_OPT=2 builds",
+    "agents/MCP/authentication/model change",
+    "cache, image or process deletion",
+    "merge"
+  ],
+  "limits": [
+    "the cause is not observed at the C-runtime level: the fix removes the text-mode size and the one-element fread and makes any short delivery or overflow a named fatal; only a native run of the real Core save and the real fresh Core boot of its generated script can show the load works",
+    "the guard reads text: it pins the loader's contract and its premises, it does not load a saved campaign",
+    "product C changed in the shipping path (parsgen.c, saved-campaign loader only): the M4 regression pack and native profiles for this source are Root's; the sealed 17f binaries and the 9cb native evidence keep their true identity",
+    "the faction/parser.c duplicate of the loader is not on this boot path and was not changed",
+    "fmt and clippy ran only because the components were installed into each ephemeral container of the leased image"
+  ],
+  "state": {
+    "claims": "no self-review, approval, native clearance, finding closure, whole Task49 or D3, delivery",
+    "D3-CURRENT.json": "not edited (Root owns it)"
+  },
+  "hygiene_problems_at_freeze": []
+}

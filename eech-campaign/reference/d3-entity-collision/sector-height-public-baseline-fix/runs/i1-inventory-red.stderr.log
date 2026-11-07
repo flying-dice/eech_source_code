@@ -1,0 +1,5 @@
+wsl: Failed to translate 'R:\d3-evidence\collision-characterization-20261029'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.77s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`

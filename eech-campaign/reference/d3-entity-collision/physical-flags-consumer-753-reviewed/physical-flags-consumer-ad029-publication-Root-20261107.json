@@ -1,0 +1,23 @@
+{
+  "kind": "READ_ONLY actual Git literal consumer/publication audit; no replay",
+  "utc": "2026-11-07T16:30:49.175189+00:00",
+  "HEAD": "ad0292f4fb0f90f5fabf2931fab9682c3e01b775",
+  "code": "753ee9671291e322ad12c7e82a62a9a998f60462",
+  "clean": true,
+  "pushed_upstream_exact": true,
+  "packet_counts": {
+    "physical-flags-consumer-control": 54,
+    "physical-flags-c328-reviewed": 6
+  },
+  "external_literal_copies": [
+    "D3-PHYSICAL-FLAGS-CONSUMER-CODE-FROZEN-20261107.json",
+    "Root-physical-flags-consumer-feedback-20261107-1626.json",
+    "D3-PHYSICAL-FLAGS-CONSUMER-CODE-FROZEN-20261107.json",
+    "independent-physical-flags-characterization-c328-20261107.json",
+    "physical-flags-69f-publication-Root-20261107.json",
+    "physical-flags-c328-Root-binding-20261107.json"
+  ],
+  "metadata_only_since753": true,
+  "source_binding": "physical-flags-consumer-753-Root-binding-20261107.json SHA cfdd1d732767a6776857ae9f73b5cdb285154247cb522ea8efbfba3da2ff21da",
+  "scope": "Consumer control and prose correction only; qualified postPOST publisher delta retained. Review/physical-store cutover/current shipping/all10/Task49/D3 delivery not inferred."
+}

@@ -1053,17 +1053,46 @@ fn facts_table(lua: &Lua, facts: &Facts) -> LuaResult<LuaTable> {
     Ok(table)
 }
 
-/// The provider function for a loaded map: see the module comment for the vocabulary.
-pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
-    lua.create_function(move |lua, request: LuaTable| respond(lua, &terrain, &request))
+/// The provider function for a loaded map: see the module comment for the vocabulary. `trees` is the host-owned tree service of the map (EEDCS-49, D3), when the map's
+/// installation is known; without one a tree question is refused by name, never answered as "no trees".
+pub fn provider(lua: &Lua, terrain: Rc<Terrain>, trees: Option<crate::tree_host::TreeHost>) -> LuaResult<LuaFunction> {
+    let trees = std::cell::RefCell::new(trees);
+    lua.create_function(move |lua, request: LuaTable| {
+        if let LuaValue::String(op) = request.get::<LuaValue>("op")? {
+            let op = op.to_str()?;
+            if op.starts_with("tree_") {
+                return match trees.borrow_mut().as_mut() {
+                    Some(trees) => crate::tree_host::respond(lua, trees, terrain.facts(), &op, &request),
+                    None => Err(LuaError::runtime(format!(
+                        "host.terrain: {op}: this provider was opened without an installation, so it has no tree files or forest model to answer a tree question from"
+                    ))),
+                };
+            }
+        }
+        respond(lua, &terrain, &request)
+    })
+}
+
+/// The tree service of a map opened by its terrain directory, when the directory is the installation's own (`<root>/common/maps/map<N>/terrain`, the layout of `terrain_dir_for`).
+fn tree_host_for(lua: &Lua, dir: &Path) -> Option<crate::tree_host::TreeHost> {
+    let root = dir.parent()?.parent()?.parent()?.parent()?;
+    let in_maps = dir.parent()?.parent()?.file_name()? == "maps" && dir.parent()?.parent()?.parent()?.file_name()? == "common";
+    in_maps.then(|| crate::tree_host::TreeHost::reference(root.to_path_buf(), dir.to_path_buf(), crate::model_host::ReferenceModel::from_lua(lua)))
 }
 
 /// The provider for the map of a boot, opened when the first question arrives and for the season that question carries (`winter`, from the engine:
 /// the global season the original reads when it picks its terrain files). `asserted` is the season the script expects, if it says (the optional third
 /// argument of `host.terrain_provider`): the engine's season is the truth, so a script that is wrong is refused rather than served another season's
 /// map. A later question for another season is refused too: one boot, one map, never a mix of the two seasons' files.
-fn seasonal_provider(lua: &Lua, dir: PathBuf, asserted: Option<bool>) -> LuaResult<LuaFunction> {
+fn seasonal_provider(lua: &Lua, install_root: PathBuf, dir: PathBuf, asserted: Option<bool>) -> LuaResult<LuaFunction> {
     let opened: std::cell::RefCell<Option<(bool, Rc<Terrain>)>> = std::cell::RefCell::new(None);
+    // the tree questions of the campaign (EEDCS-49, D3: tree_begin and tree_terrain) are answered by the host-owned tree service over the same map: its tree files are in this terrain
+    // directory and its forest triangles come from the installation's model store; both are read by the first tree question, not at boot
+    let trees = std::cell::RefCell::new(crate::tree_host::TreeHost::reference(
+        install_root,
+        dir.clone(),
+        crate::model_host::ReferenceModel::from_lua(lua),
+    ));
     lua.create_function(move |lua, request: LuaTable| {
         let winter = match request.get::<LuaValue>("winter")? {
             LuaValue::Boolean(winter) => winter,
@@ -1096,6 +1125,12 @@ fn seasonal_provider(lua: &Lua, dir: PathBuf, asserted: Option<bool>) -> LuaResu
                 }
             }
         };
+        if let LuaValue::String(op) = request.get::<LuaValue>("op")? {
+            let op = op.to_str()?;
+            if op.starts_with("tree_") {
+                return crate::tree_host::respond(lua, &mut trees.borrow_mut(), terrain.facts(), &op, &request);
+            }
+        }
         respond(lua, &terrain, &request)
     })
 }
@@ -1405,7 +1440,7 @@ fn install_provider(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
     host.set(
         "terrain_provider",
         lua.create_function(|lua, (install_root, map, winter): (String, String, Option<bool>)| {
-            seasonal_provider(lua, terrain_dir_for(&install_root, &map), winter)
+            seasonal_provider(lua, PathBuf::from(&install_root), terrain_dir_for(&install_root, &map), winter)
         })?,
     )
 }
@@ -1445,7 +1480,7 @@ pub fn install(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
                 }
             };
             let terrain = open_cached(Path::new(&dir), winter, map_number).map_err(|e| LuaError::runtime(format!("host.terrain_open: {e}")))?;
-            provider(lua, terrain)
+            provider(lua, terrain, tree_host_for(lua, Path::new(&dir)))
         })?,
     )?;
     install_provider(lua, host)

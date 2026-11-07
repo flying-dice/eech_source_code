@@ -1,0 +1,13 @@
+
+running 1 test
+test the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal ... FAILED
+
+failures:
+
+failures:
+    the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+
+running 1 test

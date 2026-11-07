@@ -1,0 +1,40 @@
+{
+  "label": "sector-height-FINAL-POST-CHECK-map-20261106",
+  "head": "8a525b145c8c54f2b22863c20d908ee3389759e5",
+  "branch": "codex/d3-object-tree-collision",
+  "files": 4080,
+  "missing": 0,
+  "aggregate_sha256": "c365ecb7e10dee238815e322897bdf44fa573594115372e90038f579928a8792",
+  "status_porcelain": [
+    " M eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    " M eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "?? eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+    "?? eech-campaign/crates/eech-engine-sys/tests/sector_height.rs",
+    "?? eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs",
+    "?? eech-campaign/docs/d3-sector-height-contract.md"
+  ],
+  "scope": "tracked and untracked-non-ignored files under aphavoc/, modules/ and eech-campaign/ except docs, reference, target, tools: the inputs of the cargo checks; raw working-tree bytes",
+  "taken_utc": "2026-11-07T00:24:24.066Z",
+  "changed_vs_head": {
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml": {
+      "sha256": "ff3d85cbf646ea8f7c0701991a2bd2585c6ae7ce0b93d82eac9b85bb2a16a026",
+      "bytes": 5206
+    },
+    "eech-campaign/crates/eech-engine-sys/build/main.rs": {
+      "sha256": "bb3fb1caa56d0d3d9e78831c463b1d9f2b02df2ceed7bd23895d9f9327abf2e6",
+      "bytes": 24523
+    },
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c": {
+      "sha256": "7b80c8e323dca3ef7cd797d6e8c192163db18bc4087bc8c2eb45e9a8b4e3e20f",
+      "bytes": 28381
+    },
+    "eech-campaign/crates/eech-engine-sys/tests/sector_height.rs": {
+      "sha256": "2a9afe1a72a67eb56a709236a5484e92e14219096ee46b77e5c8b3b4972dfd14",
+      "bytes": 2082
+    },
+    "eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs": {
+      "sha256": "21115adda21df87326f6457dca128246062f1cfd2f24bfc217d05a7bc155811f",
+      "bytes": 27064
+    }
+  }
+}

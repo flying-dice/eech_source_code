@@ -1,0 +1,36 @@
+{
+  "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "captured_utc": "2026-11-06T03:22:56.669592+00:00",
+  "partial_prefix_only": true,
+  "complete_pack_or_all8_acceptance": false,
+  "results": [
+    {
+      "path": "reference/run1/recording.acmi",
+      "captured_bytes": 23890104,
+      "sha256": "467da4c56d8062ac0cbfa093f6c2a9fdf7142f6a848caf265562cae70259aed4",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": "1873.59"
+    },
+    {
+      "path": "reference/run1/observations.jsonl",
+      "captured_bytes": 15028224,
+      "sha256": "4145e3b50fd29e4fd4870ff7b3bebb64f465e56959dd196919424f756612e7d4",
+      "literal_captured_prefix_equal": true
+    },
+    {
+      "path": "reference/run2/recording.acmi",
+      "captured_bytes": 23873725,
+      "sha256": "7544904a2f966a8a3bdbec880faae4d3ac1f818bb2e3ce387f5bf39edcd67933",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": "1872.59"
+    },
+    {
+      "path": "reference/run2/observations.jsonl",
+      "captured_bytes": 15028224,
+      "sha256": "4145e3b50fd29e4fd4870ff7b3bebb64f465e56959dd196919424f756612e7d4",
+      "literal_captured_prefix_equal": true
+    }
+  ],
+  "all_captured_prefixes_equal": true,
+  "scope": "Fresh capture of already-running3475pack; exact captured-length literal comparison; copied retained baseline excluded. Not full recordings/metrics/current city source/Task49/D3 acceptance."
+}

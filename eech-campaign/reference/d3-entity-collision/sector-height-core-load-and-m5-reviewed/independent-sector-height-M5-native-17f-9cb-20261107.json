@@ -1,0 +1,301 @@
+{
+  "schema": 1,
+  "kind": "Independent finite M5 guarded fixed-wing clearance actual-results review",
+  "created_utc": "2026-11-07T14:36:12.695313+00:00",
+  "source": {
+    "runtime_commit": "17f4b824b468c608ef488423b6c568382dd12798",
+    "literal_commit": "9cb480fbb21e2bb5d492a056046e0bd854bc987b",
+    "literal_sha256": "ff120f0b806af517c801aa944477ce1885fc0da0326b582a5da95826641a066c",
+    "prior_source_review": {
+      "path": "R:/d3-evidence/independent-sector-height-reference-fix-9cb480-source-20261107.json",
+      "sha256": "f61dac32f008b38b4795eaa0dd73357fb6bcd1fabf5f017e59874fb1cc77f81a"
+    },
+    "scope": "New retained actuals only; no closed source/kernel/CI review or test/build/native/checker replay. No worktree/cache/process changes or agents."
+  },
+  "decision": {
+    "status": "FINITE_M5_VERIFIED",
+    "findings": [],
+    "closed_ids": [
+      "ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1"
+    ],
+    "finite_guarded_clearance_first_window_verified": true,
+    "M6_accepted": false,
+    "whole_sector_height_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "current_full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "evidence": {
+    "root_binding": {
+      "path": "R:/d3-evidence/height-M5-native-9cb-Root-binding-20261107.json",
+      "bytes": 8716,
+      "sha256": "41bf13c4da3e45944f3a9570126c25eee17d2957033f3ecfd126580b16fe37f6"
+    },
+    "plan": {
+      "path": "R:/d3-evidence/height-witness-native-9cb-plan-20261107.json",
+      "bytes": 53296,
+      "sha256": "94407324efebe2b855feeeafde2860cfc3e3562872d0c0ff833106cd572ff286"
+    },
+    "cases": [
+      {
+        "mode": "clearance_original",
+        "receipt": "R:\\d3-evidence\\height-witness-native-9cb-clearance_original-20261107-completion.json",
+        "receipt_sha256": "c26ee62eca44eef914a37c0aae52b2db15aaedf53deceadd7bad3818a358e1ce",
+        "report": "D:\\EECH-Migration-Evidence\\height-witness-native-9cb-runs-20261107\\clearance_original\\witness.txt",
+        "report_sha256": "5f78c130b129d176d1cc0cfbacf6456d0d154ca64e56d2b9f511e08874c58491",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "helpers_all_zero": true,
+        "current_payloads": 90,
+        "profile": "original",
+        "counts": {
+          "windows": "0",
+          "windows_without_handoff": "0",
+          "scan_reads": "0",
+          "height_reads": "0",
+          "altered_windows": "0",
+          "altered_reads": "0",
+          "handoffs": "1",
+          "unbound_lookaheads": "0",
+          "frames": "2277"
+        }
+      },
+      {
+        "mode": "clearance_control",
+        "receipt": "R:\\d3-evidence\\height-witness-native-9cb-clearance_control-20261107-completion.json",
+        "receipt_sha256": "9e3a222960ebd0700b162ee441f184ca22fdc3ae26c0c5d3e4a2ff33599a8ccf",
+        "report": "D:\\EECH-Migration-Evidence\\height-witness-native-9cb-runs-20261107\\clearance_control\\witness.txt",
+        "report_sha256": "57c6bca6527214833bedb1e41d6e8a5bf3844ceeb41d2b6f086823838f8ef6a4",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "helpers_all_zero": true,
+        "current_payloads": 90,
+        "profile": "ordinary",
+        "counts": {
+          "windows": "1",
+          "windows_without_handoff": "0",
+          "scan_reads": "15619",
+          "height_reads": "15623",
+          "altered_windows": "0",
+          "altered_reads": "0",
+          "handoffs": "1",
+          "unbound_lookaheads": "0",
+          "frames": "2277"
+        }
+      },
+      {
+        "mode": "clearance_changed_word",
+        "receipt": "R:\\d3-evidence\\height-witness-native-9cb-clearance_changed_word-20261107-completion.json",
+        "receipt_sha256": "667a473ae2427cba6b9eb153e68e9aed7f5c6167e8b666817b584e108cbff366",
+        "report": "D:\\EECH-Migration-Evidence\\height-witness-native-9cb-runs-20261107\\clearance_changed_word\\witness.txt",
+        "report_sha256": "cb169bd3fbc4c059c4e23ebab887b97637b49c0257dab471947e779854c1a466",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "helpers_all_zero": true,
+        "current_payloads": 90,
+        "profile": "ordinary",
+        "counts": {
+          "windows": "1",
+          "windows_without_handoff": "0",
+          "scan_reads": "15619",
+          "height_reads": "15623",
+          "altered_windows": "1",
+          "altered_reads": "4",
+          "handoffs": "1",
+          "unbound_lookaheads": "0",
+          "frames": "2277"
+        }
+      },
+      {
+        "mode": "clearance_withheld",
+        "receipt": "R:\\d3-evidence\\height-witness-native-9cb-clearance_withheld-20261107-completion.json",
+        "receipt_sha256": "5cc649307f15e89a6d895b35eb1a82245c353209c728023a427bcc6a9ff10e2a",
+        "report": "D:\\EECH-Migration-Evidence\\height-witness-native-9cb-runs-20261107\\clearance_withheld\\witness.txt",
+        "report_sha256": "acf3277734e68514d7a21de7ec44d06c84ebddca8fbeb0d1d4935f0fb1773a3a",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "helpers_all_zero": true,
+        "current_payloads": 90,
+        "profile": "ordinary",
+        "counts": {
+          "windows": "1",
+          "windows_without_handoff": "0",
+          "scan_reads": "15613",
+          "height_reads": "15614",
+          "altered_windows": "0",
+          "altered_reads": "0",
+          "handoffs": "0",
+          "unbound_lookaheads": "0",
+          "frames": "2277"
+        },
+        "expected_refusal_marker": "entity_scan.callback",
+        "eligible_first_read_before_fault_verified": true,
+        "no_handoff_after_fault": true,
+        "intervention_qualification": "intervened is set before the fault by the reviewed literal; altered_reads/windows only count valid changed-word replies, so zero altered counters here are expected."
+      },
+      {
+        "mode": "clearance_malformed",
+        "receipt": "R:\\d3-evidence\\height-witness-native-9cb-clearance_malformed-20261107-completion.json",
+        "receipt_sha256": "1ec3dc39610b6f1ab1c82449ad24457198d5697f564ed798e7eba33d6b2a47a0",
+        "report": "D:\\EECH-Migration-Evidence\\height-witness-native-9cb-runs-20261107\\clearance_malformed\\witness.txt",
+        "report_sha256": "c7a80258bd29018abd3a419089daa904ab1516190e1d18d4bda3ef11a3eb7c64",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "helpers_all_zero": true,
+        "current_payloads": 90,
+        "profile": "ordinary",
+        "counts": {
+          "windows": "1",
+          "windows_without_handoff": "0",
+          "scan_reads": "15613",
+          "height_reads": "15614",
+          "altered_windows": "0",
+          "altered_reads": "0",
+          "handoffs": "0",
+          "unbound_lookaheads": "0",
+          "frames": "2277"
+        },
+        "expected_refusal_marker": "entity_scan.answer",
+        "eligible_first_read_before_fault_verified": true,
+        "no_handoff_after_fault": true,
+        "intervention_qualification": "intervened is set before the fault by the reviewed literal; altered_reads/windows only count valid changed-word replies, so zero altered counters here are expected."
+      },
+      {
+        "mode": "clearance_wrong_state",
+        "receipt": "R:\\d3-evidence\\height-witness-native-9cb-clearance_wrong_state-20261107-completion.json",
+        "receipt_sha256": "d2d5f3dbbdbf4a0eb0ae04859a6574abd2010f52956c4bf544e792d69b9ead65",
+        "report": "D:\\EECH-Migration-Evidence\\height-witness-native-9cb-runs-20261107\\clearance_wrong_state\\witness.txt",
+        "report_sha256": "87b294961370bad7b0006cfb387e5abe466f7da74bf2b5b891af1a88d4f7f559",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "helpers_all_zero": true,
+        "current_payloads": 90,
+        "profile": "ordinary",
+        "counts": {
+          "windows": "1",
+          "windows_without_handoff": "0",
+          "scan_reads": "15613",
+          "height_reads": "15614",
+          "altered_windows": "0",
+          "altered_reads": "0",
+          "handoffs": "0",
+          "unbound_lookaheads": "0",
+          "frames": "2277"
+        },
+        "expected_refusal_marker": "entity_scan.state",
+        "eligible_first_read_before_fault_verified": true,
+        "no_handoff_after_fault": true,
+        "intervention_qualification": "intervened is set before the fault by the reviewed literal; altered_reads/windows only count valid changed-word replies, so zero altered counters here are expected."
+      },
+      {
+        "mode": "clearance_wrong_sector",
+        "receipt": "R:\\d3-evidence\\height-witness-native-9cb-clearance_wrong_sector-20261107-completion.json",
+        "receipt_sha256": "94819d689f07fe131e995a97f9d094190fcf0afa1c531b6b461bffbc4157c3e9",
+        "report": "D:\\EECH-Migration-Evidence\\height-witness-native-9cb-runs-20261107\\clearance_wrong_sector\\witness.txt",
+        "report_sha256": "75a725328e62d24bf38f169a661999d8343e43b8beb8d1d4b9a9722c1a8b78cc",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "helpers_all_zero": true,
+        "current_payloads": 90,
+        "profile": "ordinary",
+        "counts": {
+          "windows": "1",
+          "windows_without_handoff": "0",
+          "scan_reads": "15613",
+          "height_reads": "15614",
+          "altered_windows": "0",
+          "altered_reads": "0",
+          "handoffs": "0",
+          "unbound_lookaheads": "0",
+          "frames": "2277"
+        },
+        "expected_refusal_marker": "entity_scan.sector_height",
+        "eligible_first_read_before_fault_verified": true,
+        "no_handoff_after_fault": true,
+        "intervention_qualification": "intervened is set before the fault by the reviewed literal; altered_reads/windows only count valid changed-word replies, so zero altered counters here are expected."
+      }
+    ]
+  },
+  "actual_joins": {
+    "all_seven_native_controller_helpers_zero": true,
+    "all_seven_reports_hash_bound_and_terminal_PASS": true,
+    "accepted_setup": {
+      "scenario": "lebanon_retail",
+      "seed": 1,
+      "frame_ms": 100,
+      "maximum_hours": 3,
+      "first_reached_frame": 2277,
+      "selected_hosted_window": 1
+    },
+    "original_control": {
+      "same_first_handoff": true,
+      "six_complete_fields_exact_equal": [
+        "host_id",
+        "elevation",
+        "min_height",
+        "pre_y",
+        "answered_y",
+        "phase"
+      ],
+      "original_height_questions": 0,
+      "hosted_scan_reads": 15619,
+      "hosted_total_height_reads": 15623,
+      "hosted_complete_handoffs": 1,
+      "unbound_lookaheads": 0
+    },
+    "changed_word": {
+      "same_caller_and_pre_intervention_step_sector_readcount": true,
+      "one_altered_window": true,
+      "four_valid_altered_reads": true,
+      "complete_handoffs": 1,
+      "delivered_configured_word_verified": true,
+      "minimum_exact_RTZ_expression_verified": true,
+      "actual_answered_pose_differs_from_control": true,
+      "independent_numeric_check": "Read retained IEEE words as exact rational values; the observed positive minimum is <= exact(100000 - elevation), and its immediately larger finite f32 exceeds that exact value. No native or test was run; raw values remain private."
+    },
+    "four_refusals": {
+      "all_same_frame_and_window": true,
+      "scan_prefix_each": 15613,
+      "height_reads_each": 15614,
+      "height_reads_equals_scan_reads_plus_one": true,
+      "handoffs_each": 0,
+      "unbound_lookaheads_each": 0,
+      "expected_exact_markers": {
+        "clearance_withheld": "entity_scan.callback",
+        "clearance_malformed": "entity_scan.answer",
+        "clearance_wrong_state": "entity_scan.state",
+        "clearance_wrong_sector": "entity_scan.sector_height"
+      },
+      "no_postfatal_physical_state_inferred": true
+    },
+    "inputs_payloads": {
+      "all_14_pre_post_plus_7_current_full_1179_file_manifests_literal_reference": true,
+      "retail_data_unchanged": true,
+      "each_used_profile_payloads_current": 90,
+      "profile_build_identity": "Retained17f ordinary and Original profile proof; no relabelling to newer source. Root mechanical binding supplies the full payload/input joins."
+    }
+  },
+  "correctness_clean_code_boundary_review": [
+    "The actual guarded consumer was reached at the first eligible naturally occurring caller/window within the fixed declared campaign run. The control is field-for-field paired to the Original solver. The changed reply flows through the real clearance subtraction, same-caller lookahead and movement answer; both the consumed handoff and the actual answered pose differ. This is stronger than observing a global height-read count.",
+    "Read callbacks do not carry a caller ID. Attribution is the reviewed uninterrupted read-window/trajectory relation to the same caller lookahead and move; no individual read is independently tagged with a caller. Scope is this reached handoff, not every aircraft or every height reader.",
+    "Fault intervention occurs only after the reviewed real eligible reply. Actual same-frame/window/control scan prefix, one additional eligible height read, planned fatal marker, no handoff, and PASS contract join support each single-fault refusal. Zero altered_reads/windows in these cases is expected, not evidence that no intervention occurred.",
+    "The first Root auditor used an incorrect counter expectation and failed. The retained correction is read-only and documented in Root-native-report-counter-learning-20261107.json; no source/native replay or actual exit rewriting occurred.",
+    "All seven native/controller/helper exits are actual zero. Expected engine refusal is caught and reported by the diagnostic script. No continuation, no postfatal getter/physical measurement, and no completed campaign or recording comparison is inferred for fault cases.",
+    "The review independently read the seven complete retained reports and receipts, joined their hashes, compared the complete handoff relation and exact RTZ numeric consequence, and used the immutable Root binding for full inputs/payload/profile proofs. One reviewer inline read-only calculation had a syntax typo before evaluation, then was corrected; no retained artifact, test or native execution was affected."
+  ],
+  "source_effect_reuse": {
+    "later_compiled_source": "90e9547ee5fbfb31a461a861fdaa2adac5fbafe0",
+    "later_literal_source": "3c2dee5b3d0a7e7d58899dcadedb87db9acc0ede",
+    "later_metadata": "764cfc4aa254c3efd3cb8ed77d43c83c3a3f2199",
+    "basis": "The separately sealed combined source review bddb32bde68fd90e0f31966239a49ce063445d167ff1960ae11f9c657555ff36 and Root43b33 binding identify only the saved-campaign load branch as a product C delta and the M6 load-verdict path as a diagnostic delta. Those paths are unrelated to the M5 runtime sequence reviewed here.",
+    "allowed_claim": "Retain these actuals as evidence for the unchanged M5 path with their true17f/9cb identities.",
+    "forbidden_claim": "No764 M5 run, new-source default comparison, M6 result or new binary acceptance is manufactured by this relevance join."
+  },
+  "limits_and_remaining": [
+    "Finite closure is only the first reached task-leader guarded clearance handoff/window1/frame2277 and its paired reply intervention/refusal boundaries. No actor, geometry, seed, time or window search was used; the declared maximum3h was not a full campaign completion.",
+    "No all-aircraft, natural engagement/weapon outcome, whole height service, FP-environment universe, all-record lifecycle, current-source full40/all8, Tacview, performance or delivery claim is made.",
+    "M6 real native Core save/load/second-pack and its matched refusal controls remain required. Earlier17f save/controller case error and failed all-zero load remain preserved. New90e/3c2 source clearance does not substitute for their actual validation.",
+    "All ten D3 requirements, remaining needed physical/API/DCS/hierarchy/RNG/natural services, final current-source shipping/input gates, exact CI, independent review, normal merge and final census remain open. Preparation remains2; no D4/D5 or historical TypeScript port."
+  ]
+}

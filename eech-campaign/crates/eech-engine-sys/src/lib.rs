@@ -264,6 +264,8 @@ pub const EECH_MOVEMENT_FIXED_WING_LOOKAHEAD: c_int = 45;
 pub const EECH_MOVEMENT_DEPENDENT_CARRY: c_int = 46;
 /// EEDCS-44: an infantry member with a target turns to face it; the host forms the heading and answers the attitude and the heading (`angles[0]`).
 pub const EECH_MOVEMENT_PERSON_FACE: c_int = 47;
+/// EEDCS-49: a routed vehicle's motion vector where the legacy code derived it without a step; the host derives it from its own record, retains it and answers it.
+pub const EECH_MOVEMENT_ROUTED_VECTOR: c_int = 48;
 /// The terrain samples a helicopter's guidance asks for at most (HELICOPTER_TERRAIN_AVOIDANCE_LOOKAHEAD_SAMPLE_NUMBER + 1).
 pub const EECH_HC_TERRAIN_SAMPLES: usize = 2;
 
@@ -1134,6 +1136,55 @@ pub const EECH_MODEL_TARGET_POINT_OFFSET: c_int = 11;
 pub const EECH_MODEL_TARGET_POINT_CHAIN: c_int = 12;
 pub const EECH_MODEL_TARGET_POINT_WORLD: c_int = 13;
 pub const EECH_MODEL_TARGET_POINT_FIXED: c_int = 14;
+pub const EECH_MODEL_ENTITY_COLLISION: c_int = 15;
+/// ENTITY_CANDIDATE (EEDCS-49): what the host decides about one candidate of the scan, and the states of its answer (`candidate_state`)
+pub const EECH_MODEL_ENTITY_CANDIDATE: c_int = 16;
+pub const EECH_MODEL_CANDIDATE_SKIP: c_int = 1;
+pub const EECH_MODEL_CANDIDATE_NEED_UPDATED: c_int = 2;
+pub const EECH_MODEL_CANDIDATE_NEED_NORMAL: c_int = 3;
+pub const EECH_MODEL_CANDIDATE_BUILDINGS: c_int = 4;
+pub const EECH_MODEL_CANDIDATE_TEST: c_int = 5;
+pub const EECH_MODEL_CANDIDATE_NEED_FIXED: c_int = 6;
+pub const EECH_MODEL_CANDIDATE_NEED_PLACEMENT: c_int = 7;
+/// ENTITY_SCAN (EEDCS-49): the enumeration of the scan (the sector window, traversal order, exclusions and first-hit end), and the states of its answer (`candidate_state`; the cursor is `candidate[0..2]`)
+pub const EECH_MODEL_ENTITY_SCAN: c_int = 17;
+pub const EECH_MODEL_SCAN_FIRST: c_int = 1;
+pub const EECH_MODEL_SCAN_NEXT: c_int = 2;
+pub const EECH_MODEL_SCAN_OFFER: c_int = 3;
+pub const EECH_MODEL_SCAN_DONE_NONE: c_int = 4;
+pub const EECH_MODEL_SCAN_DONE_HIT: c_int = 5;
+/// the answers to the roster's events of the sector lists (the scan question's phases 4 to 6): an entry was placed (the reply's `name` is its key), removed, or the roster was cleared
+pub const EECH_MODEL_SCAN_PLACED: c_int = 6;
+pub const EECH_MODEL_SCAN_REMOVED: c_int = 7;
+pub const EECH_MODEL_SCAN_CLEARED: c_int = 8;
+/// the answer to a city's box expansion (the scan question's phase 15): the host built the box, and `candidate_count` (6) words of `candidate` are its minimum then its maximum
+pub const EECH_MODEL_SCAN_EXPANDED: c_int = 9;
+/// the answers to the sector height read and restore (the scan question's phases 17 and 18): `candidate_count` (3) words of `candidate` are the sector's x and z as asked, then the word the host holds (the restored word as stored)
+pub const EECH_MODEL_SCAN_HEIGHT: c_int = 10;
+pub const EECH_MODEL_SCAN_RESTORED: c_int = 11;
+/// the answers to the physical flag store's questions (the scan question's phases 19 to 22): `candidate_count` (3) words of `candidate`, kept as bits: a group's eligibility, then a set or read's array, lane and raw word, or a reset's array and count; a group's answer names its key
+pub const EECH_MODEL_SCAN_FLAG_GROUP: c_int = 12;
+pub const EECH_MODEL_SCAN_FLAG_SET: c_int = 13;
+pub const EECH_MODEL_SCAN_FLAG_READ: c_int = 14;
+pub const EECH_MODEL_SCAN_FLAG_RESET: c_int = 15;
+/// ENTITY_POSE (EEDCS-49): an OBSERVATION of a mobile candidate's pose against the host's record of its identity (`depth` the stage, `kind` the entity's type, `definition` whether it is alive, `host_id` its
+/// host identity, 15 floats of `pose`); the answer's `candidate_state` is the class, `candidate_count` the kind of the host's record and `write_mask` the differences. Nothing decides from it
+pub const EECH_MODEL_ENTITY_POSE: c_int = 18;
+/// the longest host identity (without the terminator) the roster issues: the whole domain crosses, so `eech_model_request.host_id` holds it entire (CAMPAIGN_MODEL_HOST_ID_MAX)
+pub const EECH_MODEL_HOST_ID_MAX: usize = 128;
+/// the longest legacy object-report identity (without the terminator; CAMPAIGN_MODEL_OBJECT_ID_MAX): its own domain, independent of the host identity's
+pub const EECH_MODEL_OBJECT_ID_MAX: usize = 128;
+/// the longest identity place of an ENTITY_SCAN question (without the terminator): a city NAME's placement key (20 digits at most), one space and an object identity, each at its own maximum
+/// (CAMPAIGN_MODEL_SCAN_IDENTITY_MAX)
+pub const EECH_MODEL_SCAN_IDENTITY_MAX: usize = 20 + 1 + EECH_MODEL_OBJECT_ID_MAX;
+pub const EECH_MODEL_POSE_FACTS: usize = 15;
+pub const EECH_MODEL_POSE_RECORDED: c_int = 1;
+pub const EECH_MODEL_POSE_UNRECORDED: c_int = 2;
+pub const EECH_MODEL_POSE_RETIRED: c_int = 3;
+pub const EECH_MODEL_POSE_UNKNOWN: c_int = 4;
+pub const EECH_MODEL_POSE_NO_ID: c_int = 5;
+/// the floats of the narrow-phase pose a TEST answer carries (a stationary candidate's 12, a moving one's 16)
+pub const EECH_MODEL_CANDIDATE_POSE_MAX: usize = 16;
 /// the deepest sub-object chain the target-point transport carries, and the floats of the largest pose (15 + 9 * chain, rounded up)
 pub const EECH_MODEL_CHAIN_MAX: usize = 8;
 pub const EECH_MODEL_POSE_MAX: usize = 96;
@@ -1160,6 +1211,9 @@ pub struct eech_model_request {
     /// TARGET_POINT_WORLD and TARGET_POINT_FIXED: how many floats of `pose` are meaningful
     pub pose_count: c_int,
     pub pose: [f32; EECH_MODEL_POSE_MAX],
+    /// ENTITY_POSE and ENTITY_CANDIDATE: the candidate's semantic host identity (NUL-terminated; empty when the roster has none; at most `EECH_MODEL_HOST_ID_MAX` bytes). ENTITY_SCAN: the identity place of the
+    /// question (NUL-terminated; at most `EECH_MODEL_SCAN_IDENTITY_MAX` bytes)
+    pub host_id: [c_char; EECH_MODEL_SCAN_IDENTITY_MAX + 1],
 }
 
 /// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.
@@ -1193,6 +1247,12 @@ pub struct eech_model_reply {
     /// TARGET_POINT_CHAIN (FOUND): the levels of the chain and the sibling position of the first TARGET_POINT sub-object at each, topmost first
     pub chain_length: c_int,
     pub chain_offsets: [c_int; EECH_MODEL_CHAIN_MAX],
+    /// ENTITY_COLLISION: which components of the intercept point (bits 0 to 2) and face normal (bits 3 to 5) the original's arithmetic assigned; `points` holds their words
+    pub write_mask: c_int,
+    /// ENTITY_CANDIDATE: the state the host decided (EECH_MODEL_CANDIDATE_*) and, for TEST, the narrow-phase pose it derived (`candidate_count` floats of `candidate`)
+    pub candidate_state: c_int,
+    pub candidate_count: c_int,
+    pub candidate: [f32; EECH_MODEL_CANDIDATE_POSE_MAX],
 }
 
 pub type eech_model_callback =
@@ -1210,6 +1270,13 @@ pub const EECH_TERRAIN_GROUND_IMPACT: c_int = 6;
 /// The SECTOR operation (EEDCS-51): the surface enumeration of the sector that holds a position, with the original's return value and the complete scratch by value.
 pub const EECH_TERRAIN_SECTOR: c_int = 7;
 pub const EECH_TERRAIN_AMBIENT: c_int = 8;
+/// TREE_BEGIN and TREE_TERRAIN (EEDCS-49, D3): the host-owned tree segment query and the campaign's terrain answer to it; the reply states and the ends an elevation is wanted for
+pub const EECH_TERRAIN_TREE_BEGIN: c_int = 9;
+pub const EECH_TERRAIN_TREE_TERRAIN: c_int = 10;
+pub const EECH_TERRAIN_TREE_DONE: c_int = 1;
+pub const EECH_TERRAIN_TREE_NEED_TERRAIN: c_int = 2;
+pub const EECH_TERRAIN_TREE_END_OLD: c_int = 0;
+pub const EECH_TERRAIN_TREE_END_NEW: c_int = 1;
 /// The most children one AMBIENT question carries (`CAMPAIGN_TERRAIN_AMBIENT_MAX`) and the number of ambient classes (`CAMPAIGN_TERRAIN_AMBIENT_CLASSES`: sea, jungle, amb1 to amb4).
 pub const EECH_TERRAIN_AMBIENT_MAX: usize = 16;
 pub const EECH_TERRAIN_AMBIENT_CLASSES: c_int = 6;
@@ -1240,6 +1307,15 @@ pub struct eech_terrain_request {
     pub below: [f32; 3],
     /// GROUND_*: the campaign's world-map area (min_x, min_z, max_x, max_z): campaign geography, not the terrain's extents
     pub world: [f32; 4],
+    /// TREE_BEGIN: the old and new position and the caller's initial intercept point and face normal, each as the 32-bit patterns of its three floats; the two flags (0 or 1)
+    pub tree_old: [u32; 3],
+    pub tree_new: [u32; 3],
+    pub tree_point: [u32; 3],
+    pub tree_normal: [u32; 3],
+    pub tree_ignore_forest_edge_trees: c_int,
+    pub tree_skip_tree_top_test: c_int,
+    /// TREE_TERRAIN: the elevation pattern the campaign read
+    pub tree_elevation: u32,
 }
 
 #[repr(C)]
@@ -1275,6 +1351,15 @@ pub struct eech_terrain_reply {
     pub above: [f32; 3],
     pub below: [f32; 3],
     pub impact: [f32; 3],
+    /// TREE_BEGIN and TREE_TERRAIN: the state (`EECH_TERRAIN_TREE_DONE` or `EECH_TERRAIN_TREE_NEED_TERRAIN`); NEED_TERRAIN: the end (`EECH_TERRAIN_TREE_END_*`) and the patterns of x and z;
+    /// DONE: whether a tree was hit and the patterns of the final intercept point and face normal
+    pub tree_state: c_int,
+    pub tree_end: c_int,
+    pub tree_hit: c_int,
+    pub tree_x: u32,
+    pub tree_z: u32,
+    pub tree_result_point: [u32; 3],
+    pub tree_result_normal: [u32; 3],
 }
 
 pub type eech_terrain_callback = unsafe extern "C" fn(
@@ -1821,6 +1906,9 @@ extern "C" {
     pub fn eech_engine_wpn_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
     pub fn eech_engine_wpn_case_query(host_id: *const c_char, weapon: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_wpn_case_kind(host_id: *const c_char, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_wpn_moving_query_prepare(host_id: *const c_char, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_wpn_moving_query_run(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_wpn_city_lifecycle(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_wpn_case_launch(
         launcher_id: *const c_char,
         target_id: *const c_char,
@@ -1832,9 +1920,75 @@ extern "C" {
     ) -> c_int;
 }
 
+#[cfg(feature = "collision-fixture")]
+extern "C" {
+    pub fn eech_engine_collision_probe(seed: u32, entity_cases: c_int, tree_cases: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_collision_trace_arm(on: c_int) -> c_int;
+    pub fn eech_engine_collision_geometry_arm(on: c_int) -> c_int;
+    pub fn eech_engine_collision_trace_read(kind: c_int, offset: c_int, count: c_int, text: *mut c_char, capacity: c_int, total: *mut c_int) -> c_int;
+}
+
 #[cfg(feature = "ground-fixture")]
 extern "C" {
     pub fn eech_engine_ground_probe(seed: u32, points: c_int, impacts: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+/// TEST SUPPORT (feature `sector-height-observer`): the observer's recorder core (plain data) and its un-locked report functions, so that a control can drive the recorder with a known sequence
+/// and read the C report through the real converters without a booted engine. Not part of the shipping module.
+#[cfg(feature = "sector-height-observer")]
+pub mod sho_support {
+    use std::os::raw::{c_char, c_int};
+
+    extern "C" {
+        pub fn eech_sho_core_insert(ent: c_int, etype: c_int, family: c_int, sx: c_int, sz: c_int);
+        pub fn eech_sho_core_insert_mobile();
+        pub fn eech_sho_core_remove(ent: c_int, etype: c_int, family: c_int, fixed_or_city: c_int);
+        pub fn eech_sho_core_release(ent: c_int);
+        pub fn eech_sho_core_link_begin(before: u32);
+        #[allow(clippy::too_many_arguments)]
+        pub fn eech_sho_core_link_end(
+            ent: c_int,
+            etype: c_int,
+            family: c_int,
+            fixed_or_city: c_int,
+            shape_state: c_int,
+            shape: c_int,
+            pos: *const u32,
+            ymax: u32,
+            after: u32,
+            sx: c_int,
+            sz: c_int,
+        );
+        pub fn eech_sho_core_statement(ent: c_int, etype: c_int, family: c_int, sector_placed: c_int, key: *const c_char, words: *const u32, count: c_int);
+        pub fn eech_sho_core_scan_first(x_sector: c_int, z_sector: c_int, word: u32);
+        pub fn eech_sho_core_candidate_fact(word: u32);
+        pub fn eech_sho_core_clearance_leader();
+        pub fn eech_sho_core_clearance_follow();
+        pub fn eech_sho_core_clearance_tallest(sx: c_int, sz: c_int, tallest: u32, terrain: u32, after_tallest: u32);
+        pub fn eech_sho_core_clearance_final(final_word: u32);
+        pub fn eech_sho_core_session(pack: c_int, word: u32, x_sector: c_int, z_sector: c_int);
+        pub fn eech_sho_summary_run(text: *mut c_char, capacity: c_int) -> c_int;
+        pub fn eech_sho_event_run(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+        pub fn eech_sho_clearance_run(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+        pub fn eech_sho_scan_run(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+        #[cfg(feature = "sector-height-funnel-check")]
+        pub fn eech_sho_funnel_run(scenario: c_int, hook_first: c_int) -> c_int;
+        #[cfg(feature = "sector-height-funnel-check")]
+        pub fn eech_sho_funnel_text(text: *mut c_char, capacity: c_int) -> c_int;
+    }
+}
+
+#[cfg(feature = "sector-height-observer")]
+extern "C" {
+    pub fn eech_engine_sho_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_sho_event(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_sho_clearance(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_sho_scan(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+#[cfg(feature = "sector-height-witness")]
+extern "C" {
+    pub fn eech_engine_sh_witness_save(name: *const c_char, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
 #[cfg(feature = "route-fixture")]

@@ -1,0 +1,116 @@
+{
+  "schema": "d3.task49.fixed-rule-witness.raw-binding.v1",
+  "code": "96cc958d5fca9fdf847cf1853020583071dedde8",
+  "meta_parent": "33d1fc30e60477c26851204b88e9912d61726630",
+  "runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+  "maps": {
+    "before": {
+      "path": "R:/d3-evidence/fixed-rule-witness-20261106/inputmap-before-final-20261106.json",
+      "bytes": 3629422,
+      "sha256": "3d7ce217741ab1c81181a127c4b841aed3c149b0c28214b3ee836dacd14c3f5c",
+      "file_count": 9769
+    },
+    "after": {
+      "path": "R:/d3-evidence/fixed-rule-witness-20261106/inputmap-after-final-20261106.json",
+      "bytes": 3629421,
+      "sha256": "0567edfbb14b36b551e50f2f8c2c5b32b658225355a1acf1b122699134f6e7b6",
+      "file_count": 9769
+    }
+  },
+  "before_after_files_literal_equal": true,
+  "git_status_porcelain_at_both_maps": [
+    " M eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    " M eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "changed_from_head_33d1_by_raw_bytes": [
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "untracked": [],
+  "changed_runtime_681_to_code_outside_the_reviewed_i686_pose_metadata_pack": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "changed_runtime_681_to_code_note": "STATUS.md and the card are the 33d1 metadata commit (its own scope: metadata only); the two paths below them are this commit. Every C, Rust production, sys, engine, DC, Lua-outside-entity-authority, Cargo, toolchain and workflow root is tree-identical (roots).",
+  "roots_identical_to_681": {
+    "eech-campaign/crates/eech-engine-sys": {
+      "tree_or_blob_681": "00899a43872414218b03463a8d45937d2f6614a4",
+      "tree_or_blob_code": "00899a43872414218b03463a8d45937d2f6614a4",
+      "equal": true
+    },
+    "eech-campaign/crates/eech-dc": {
+      "tree_or_blob_681": "46a71de0be81f99319221c40ec4b1ecaa40fd4c7",
+      "tree_or_blob_code": "46a71de0be81f99319221c40ec4b1ecaa40fd4c7",
+      "equal": true
+    },
+    "eech-campaign/crates/eech-engine": {
+      "tree_or_blob_681": "09ed68d80ff651c0be69918015c460d4999d8292",
+      "tree_or_blob_code": "09ed68d80ff651c0be69918015c460d4999d8292",
+      "equal": true
+    },
+    "eech-campaign/crates/eech-world/src": {
+      "tree_or_blob_681": "1a4adafce920d9fdbd922815081fd6d11e354c10",
+      "tree_or_blob_code": "1a4adafce920d9fdbd922815081fd6d11e354c10",
+      "equal": true
+    },
+    "eech-campaign/Cargo.toml": {
+      "tree_or_blob_681": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "tree_or_blob_code": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "equal": true
+    },
+    "eech-campaign/Cargo.lock": {
+      "tree_or_blob_681": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "tree_or_blob_code": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "equal": true
+    },
+    "eech-campaign/.cargo": {
+      "tree_or_blob_681": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+      "tree_or_blob_code": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+      "equal": true
+    },
+    "aphavoc": {
+      "tree_or_blob_681": "19b02698c59cfd2e27c377b68dbb79ca9e3c5c49",
+      "tree_or_blob_code": "19b02698c59cfd2e27c377b68dbb79ca9e3c5c49",
+      "equal": true
+    },
+    "modules": {
+      "tree_or_blob_681": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+      "tree_or_blob_code": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+      "equal": true
+    },
+    ".github": {
+      "tree_or_blob_681": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+      "tree_or_blob_code": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+      "equal": true
+    }
+  },
+  "shipping_campaign_lua": {
+    "path": "eech-campaign/crates/eech-world/lua/campaign.lua",
+    "changed": false,
+    "lua_directory_paths_changed_681_to_code": [
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua"
+    ]
+  },
+  "literal_driver": {
+    "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "git_blob": "917bff921c48c1aeed4d7b27f268d4a2c0e9c64a",
+    "sha256": "25fe9bbf83c600a9c092cce8c5d3f0006821adcfed55a44bdce578cd1bdff959",
+    "bytes": 223560,
+    "code_commit_blob_equals": true
+  },
+  "literal_driver_at_33d1_and_681": {
+    "git_blob": "55d808c104f8f84db3f3f2d88b80743b8b3c418f",
+    "sha256": "a0cf8021022a0a077778a7ad843b2a445e08fce0f4c3e544760d9e9222d1e470",
+    "bytes": 219125,
+    "note": "the driver of the UNREACHED native attempt (Root passed it as fixed-rules-authority-681ccfe54-literal.lua) and the unchanged driver of the RED"
+  },
+  "rust_test_harness": {
+    "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "git_blob": "6e8e3571b5744bed2270cb28a939107bd4f8a604",
+    "sha256": "f9080b52085fb08e4f242aa63fa57a2f6fdcbf2dd4810801b59f606675b4f2bd",
+    "bytes": 317627
+  },
+  "native_binary": "the sealed 681 build (all three profiles, 88 payloads each) is reused UNCHANGED: a test-only Lua driver needs no rebuild and is passed separately; the 88 payloads are not a build of this source"
+}

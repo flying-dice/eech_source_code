@@ -1,0 +1,78 @@
+{
+  "schema": "d3.task49.i686-enumeration-pose.ci-snapshot.v1",
+  "repo": "flying-dice/eech_source_code",
+  "snapshot": "read-only `gh run view` / `gh api` during this lane (2026-11-06, after e442946e5 was pushed); no authentication change",
+  "head": "e442946e5589ae9b91a1522bf4b35afec490cc63",
+  "campaign_run_42261406269": {
+    "status": "completed, conclusion failure",
+    "jobs": [
+      {
+        "id": 128041986692,
+        "name": "evidence-selftest",
+        "conclusion": "success"
+      },
+      {
+        "id": 128041987103,
+        "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+        "conclusion": "success"
+      },
+      {
+        "id": 128041987167,
+        "name": "dcs-probe-tools",
+        "conclusion": "success"
+      },
+      {
+        "id": 128041987225,
+        "name": "test (x86_64-unknown-linux-gnu)",
+        "conclusion": "success"
+      },
+      {
+        "id": 128041987357,
+        "name": "test (i686-unknown-linux-gnu)",
+        "conclusion": "failure",
+        "failed_step": "Test",
+        "failure_lines": [
+          "thread 'the_host_driven_enumeration_is_the_original_scan_in_window_order_exclusions_first_hit_services_poses_and_refusals_over_many_worlds' (12755) panicked at crates/eech-world/tests/entity_candidate_host.rs:907:13:",
+          "test result: FAILED. 12 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+          "error: test failed, to rerun pass `-p eech-world --test entity_candidate_host`"
+        ]
+      },
+      {
+        "id": 128041987392,
+        "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+        "conclusion": "failure",
+        "failed_step": "Test",
+        "failure_lines": [
+          "thread 'the_host_driven_enumeration_is_the_original_scan_in_window_order_exclusions_first_hit_services_poses_and_refusals_over_many_worlds' (12766) panicked at crates/eech-world/tests/entity_candidate_host.rs:907:13:",
+          "test result: FAILED. 12 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+          "error: test failed, to rerun pass `-p eech-world --test entity_candidate_host`"
+        ]
+      },
+      {
+        "id": 128041987643,
+        "name": "windows-cross",
+        "conclusion": "success"
+      }
+    ],
+    "reading": "the tree tests pass in both i686 jobs (the eech-world lib binary ran before the failure); both stop at entity_candidate_host.rs:907 (world 1), the finding corrected here; windows-cross passes, so the d452 lua.org connection reset was transient; x86_64 default and EECH_C_OPT=2 pass. Cargo stops at the first failing binary, so a binary after entity_candidate_host in CI order is not shown by CI; the local --no-fail-fast i686 run of this lane's previous report (final-i686-workspace-default) showed no other failing test."
+  },
+  "structural_run_42261406259": {
+    "status": "completed, conclusion success",
+    "job": {
+      "id": 128041987661,
+      "name": "Slice 1a historical equivalence",
+      "conclusion": "success"
+    }
+  },
+  "private_logs_outside_git": {
+    "ci-e442-i686-default-job128041987357-decoded.log": {
+      "bytes": 184075,
+      "sha256": "b693f8961432d9c767485ebde4a197d6fbd1e49d5bd696c3b62cee3635e7ab60"
+    },
+    "ci-e442-i686-stackattr-job128041987392-decoded.log": {
+      "bytes": 184359,
+      "sha256": "fb36c80032e5df755fa83bc824d753ea94a1eb022a67906a52538f5f706fb3ef"
+    }
+  },
+  "claim_level": "reported by the GitHub API and decoded logs; not reproduced beyond the local i686 runs recorded in this pack"
+}

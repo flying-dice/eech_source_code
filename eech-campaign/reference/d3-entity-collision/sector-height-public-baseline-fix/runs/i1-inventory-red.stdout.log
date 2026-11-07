@@ -1,0 +1,20 @@
+
+running 1 test
+test every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not ... FAILED
+
+failures:
+
+---- every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not stdout ----
+
+thread 'every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not' (156) panicked at crates/eech-world/tests/host_callbacks.rs:2104:5:
+assertion `left == right` failed
+  left: (63, 2)
+ right: (62, 2)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 81 filtered out; finished in 0.12s
+

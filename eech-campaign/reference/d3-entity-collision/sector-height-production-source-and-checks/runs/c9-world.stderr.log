@@ -1,0 +1,17 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+warning: field `name` is never read
+  --> crates/eech-world/tests/sector_height_host.rs:52:5
+   |
+50 | struct Answer {
+   |        ------ field in this struct
+51 |     result: String,
+52 |     name: String,
+   |     ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `eech-world` (test "sector_height_host") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.19s
+     Running unittests src/lib.rs (/target/debug/deps/eech_world-49d864156aa003d7)
+     Running tests/sector_height_host.rs (/target/debug/deps/sector_height_host-156ce1e99169941b)

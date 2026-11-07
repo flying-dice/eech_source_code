@@ -1,0 +1,51 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the external sealed files, no field normalisation",
+  "files": {
+    "independent-sector-height-core-load-order-source-3c2dee5b3-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 13067,
+      "sha256": "bddb32bde68fd90e0f31966239a49ce063445d167ff1960ae11f9c657555ff36"
+    },
+    "height-core-load-combined-Root-binding-764-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 31406,
+      "sha256": "43b33dca4fa0fcd1af3f5fd5be84c1681cdfd3bfecf7bc632080f69682194ac9"
+    },
+    "independent-sector-height-M5-native-17f-9cb-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 16092,
+      "sha256": "81ded54e3cc9c8688da16bbba6e53f395401fdcbc214f1fb411e0b8789e87853"
+    },
+    "height-M5-native-9cb-Root-binding-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 8716,
+      "sha256": "41bf13c4da3e45944f3a9570126c25eee17d2957033f3ecfd126580b16fe37f6"
+    },
+    "height-core-load-native-windows-764-20261107-completion.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 56525,
+      "sha256": "420c562c6bf93056dd88c37003375ed346f3888aa29d2a373f40724977dae281"
+    },
+    "height-core-load-native-764-profile-20261107-completion.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 6062,
+      "sha256": "e218ba7f65a2513ea65b8da4ec099795e56094d1ed7149499500708c8a76daf0"
+    },
+    "Root-native-report-counter-learning-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 917,
+      "sha256": "aa2ec9780055c395671894e0a4abf79eaddaa9ab81b78f369f27d283e5736fb2"
+    },
+    "height-core-load-native-764-ordinary_short-20261107-completion.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 5317,
+      "sha256": "1a5e8623305fb018624f794739d6424d08f8aa4685036d947c5b66c993e04099"
+    },
+    "height-core-load-native-764-save_short-20261107-completion.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 5243,
+      "sha256": "2dcc6c1544e8c127b8af570d8c86c568ecfd9b9df54ac476c9d184155ff2fc05"
+    }
+  },
+  "problems": []
+}

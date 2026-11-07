@@ -1,0 +1,254 @@
+{
+  "kind": "independent_changed_material_source_review",
+  "sealed_utc": "2026-11-07T09:04:28.619496+00:00",
+  "reviewer": "same independent Task49 reviewer",
+  "source": {
+    "commit": "5aae2256f02ca3d79e762d71c9b79c20dc34856b",
+    "metadata_commit": "3f0376c1aaeb05a28675e24baac61b1d9a46c9ce",
+    "registration_commit": "4a228c3051c20f69f48d479f445b2d2730564b2a",
+    "production_runtime_source_reused": "0be1dd8465d9bf38da69cd3b303206cf5a64574d",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_HEAD": "3f0376c1aaeb05a28675e24baac61b1d9a46c9ce",
+    "observed_status_clean": true,
+    "changed_paths": [
+      "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_hosted_clearance.rs",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+      "eech-campaign/docs/d3-sector-height-production-contract.md",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/.gitattributes",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/D3-sector-height-PUBLIC-PROOF-PLAN-FIX-CODE-FROZEN-20261107.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/README.md",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/Root-sector-height-production-feedback-20261107.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/independent-sector-height-production-0be-source-20261107.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/inputmaps-compare.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/join-vs-0be-final-post.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/literal-bytes-check.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/manifest.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/i686-u10-hosted-i686.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/i686-u10-hosted-i686.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/i686-u10-hosted-i686.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/i686-u11-observer-legacy-i686.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/i686-u11-observer-legacy-i686.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/i686-u11-observer-legacy-i686.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n1-driver.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n1-driver.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n1-driver.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n2-red-old-driver.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n2-red-old-driver.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n2-red-old-driver.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n3-baseline-driver.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n3-baseline-driver.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n3-baseline-driver.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n4-baseline-driver.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n4-baseline-driver.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n4-baseline-driver.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n5-hosted-clearance.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n5-hosted-clearance.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n5-hosted-clearance.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n6-red-old-helper.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n6-red-old-helper.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n6-red-old-helper.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n7-fmt-apply.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n7-fmt-apply.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n7-fmt-apply.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n8-fmt-check.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n8-fmt-check.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/n8-fmt-check.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u1-fmt-check.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u1-fmt-check.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u1-fmt-check.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u2-clippy-workspace.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u2-clippy-workspace.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u2-clippy-workspace.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u3-clippy-sys-hosted.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u3-clippy-sys-hosted.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u3-clippy-sys-hosted.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u4-clippy-sys-legacy.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u4-clippy-sys-legacy.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u4-clippy-sys-legacy.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u5-world-tests.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u5-world-tests.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u5-world-tests.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u6-control-hosted.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u6-control-hosted.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u6-control-hosted.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u7-hosted-clearance.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u7-hosted-clearance.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u7-hosted-clearance.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u8-observer-control-legacy.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u8-observer-control-legacy.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u8-observer-control-legacy.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u9-observer-chain-engine.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u9-observer-chain-engine.stderr.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/runs/u9-observer-chain-engine.stdout.log",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/check-sho-windows-wrapper-ast-20261107.ps1",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/freeze-sector-height-proofplan-20261107.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch-card-register-proof-plan-finding-20261107.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch-card-status-proofplan-20261107.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch_baseline_lua.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch_baseline_tests.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch_contract.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch_driver_modes.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch_driver_tests2.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch_hosted_clearance.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch_sho.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/patch_wrapper.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/run-shp2-final-set-20261107.sh",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/sho-compare-maps-20261107.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/shp2-extra-identity-20261107.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/scripts/shp2-join-20261107.py",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/sector-height-production-1cf5-CI-readback-20261107.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/sector-height-production-Root-binding-0be-20261107.json",
+      "eech-campaign/reference/d3-entity-collision/sector-height-production-public-proof-plan-fix/sector-height-production-Root-binding-0be-v2-20261107.json",
+      "eech-campaign/tools/sector-height-baseline-windows.ps1"
+    ],
+    "code_to_metadata_delta": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ]
+  },
+  "review_scope": "Only the new public-proof-plan correction: six existing-driver height modes, hosted-scan comparator and wrapper, gated observer clearance helper/control, focused tests and current contract/provenance. Correctness, clean code and boundary safety reviewed together. Closed production arithmetic/protocol/matrices were reused at their exact unaffected scope, not repeated.",
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-sector-height-PUBLIC-PROOF-PLAN-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 28932,
+      "sha256": "93e4f6d8b39628ec8e15421b2cf73b2e7719b983c4a60dc2b0d38e4183b798c6"
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-proofplan-Root-binding-5aae-20261107.json",
+      "bytes": 8164,
+      "sha256": "6ec510ae1c6c492e8cca6308aa14f98d84f4200de17692670af408b0533aaf2f"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-sector-height-proof-plan-fix-20261107-completion.json",
+      "bytes": 1383,
+      "sha256": "80d338ca2e0ee323d28f7f24735d1abd84ed6991349539163374149e824742e9"
+    },
+    {
+      "path": "R:/d3-evidence/independent-sector-height-production-0be-source-20261107.json",
+      "bytes": 15516,
+      "sha256": "49d7739edb0855e5593bce91602eebcdedd8fb88c820677ee6695259ee9ce58c"
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-production-Root-binding-0be-v2-20261107.json",
+      "bytes": 15007,
+      "sha256": "ec7015b66db79a17f84753aad2a3324bb0c693827959704bd4ca05db113a227d"
+    }
+  ],
+  "checks": {
+    "retained_runs": 19,
+    "final_direct_children": 11,
+    "final_actual_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "final_passing_result_instances": 1246,
+    "PRE_utc": "2026-11-07T08:43:19Z",
+    "POST_utc": "2026-11-07T08:54:11Z",
+    "full_source_rows": 3971,
+    "full_PRE_POST_JSON_literal_equal": true,
+    "source_map_sha256": "5f4992f3dcf9d256674718bd9ef04d72f1aa43b106b33943b0806c2c83cb241e",
+    "changed_source_paths_raw_Git_literal": 11,
+    "packet_entries_Git_literal": 84,
+    "author_actual_exit": 0,
+    "author_result_is_error": false,
+    "author_terminal_utc": "2026-11-07T08:55:44.966991+00:00",
+    "reviewer_executed_checks": false,
+    "native_Windows_unrun": true,
+    "retained_failures": "Three old-driver tests genuinely RED; old-helper RED; n3 comparator prefix bug retained, corrected final checks separate. Earlier matrices retained only at their own source scope."
+  },
+  "provenance_qualifications": [
+    "Exactly three inherited test Lua files retain raw CRLF versus committed LF; four legacy Core filter-only identity differences have raw bytes equal to Git. No input normalization was performed.",
+    "The 13 extra PRE/POST rows are literal to each other; only 12 match the current extras. shp2-join-20261107.py was 4836 bytes SHA256 2dd277db387697d7951acb72bbae5e269d75d240f01b46972daec97795d345ae in those maps, then became 4852 bytes SHA256 ca27dda8124b17f9a390767306cfdf07f9512a5e98e5464afb96f00f63b1a5da after POST at 08:54:55 for the Cargo.toml expected-diff reader correction. The final version is separately sealed by freeze.scripts. It is a postprocessing audit reader, not a u1-u11/test/runtime source input. Old exact reader bytes were not recovered; no exact old/new diff is claimed. Direct immutable source joins and truthful qualification suffice for this provenance point; it is not a runtime-source drift finding or a reason to repeat checks.",
+    "Original 1cf5 CI is retained at its own identity. Root reported current 3f037 8 of 9 successes with x64 still active at latest supplied check; no all-current-CI pass inferred."
+  ],
+  "scoped_positive_assessment": [
+    "The new path is executable in the existing public drivers and declares the fixed accepted scenario/seed/frame/window. No new API, solver, actor/time/geometry hunt or larger campaign is required.",
+    "Height replies are checked against the phase, three raw words and sector echo before intended alteration. Candidate consumption is joined by the served placement and raw fact 12. The wrong-word intervention flips a low raw bit and demands the named sector-height refusal and observed altered-word consumption; it does not claim physical outcome change.",
+    "The hosted observer helper no longer reads the retired height member or re-queries the provider: it reports tallest=uncaptured. Its new canary checks the helper only, not guarded fixed-wing execution. Changes remain check/observer-feature gated; ordinary compiled campaign logic, production kernel/store/wire and other closed production inputs are unchanged.",
+    "Current contract correctly limits SH10/11 comparison, keeps original SH2/3/4/5 absent in hosted scope, accepts legitimate restore-after-insertion, and leaves actual guarded fixed-wing clearance and native Core server save/load required OPEN.",
+    "No new production arithmetic, RNG, order, callback reentrancy or public DLL defect was established in this changed-material pass. The two open issues are false acceptance in diagnostic consumers, not claims that a damaged native case has been executed."
+  ],
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "findings": [
+      {
+        "id": "ENV-SECTOR-HEIGHT-SCOPED-REPORT-COMPLETE-1",
+        "severity": "P2",
+        "status": "OPEN",
+        "category": "diagnostic correctness and evidence boundary",
+        "locations": [
+          "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua:64",
+          "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua:75",
+          "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua:181",
+          "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua:187"
+        ],
+        "problem": "The scoped comparison accepts parsed identity/totals/sector maps without validating accepted-report terminal completeness or the declared scan-row structure. Duplicate keys and sectors silently overwrite; missing fields are not rejected as a schema failure. Hosted scan_whole checks only scan_out_of_range and a positive reads total. Consequently a report truncated after its final scan row but before its verdict can compare EQUAL_AT_SCOPE, and duplicated/omitted row structures can be collapsed into matching maps while scan_whole remains 1. This defeats the new whole scoped-comparison gate.",
+        "minimum_correction": [
+          "Validate the accepted original report has its actual supported complete terminal verdict; reject truncation, conflicting/duplicate identity or totals and duplicate sector/index records before comparison.",
+          "For both sides validate the exact scoped row fields/domains, unique contiguous row indices, unique sector keys and declared sector count, plus scan count/word consistency needed to establish a whole scan. A malformed or incomplete scoped input must not become EQUAL_AT_SCOPE or SCAN_ONLY/scan_whole=1.",
+          "Preserve the intentionally narrower hosted scope: do not require original-link sho-complete=1 or original event/raise/session equality in the hosted report."
+        ],
+        "required_focused_controls": [
+          "Start from the coherent positive scoped comparison, then remove only the accepted terminal verdict and require non-pass.",
+          "From that positive damage only one duplicate/missing/index/count/required-word field at a time and require non-pass; include a malformed live hosted scan row or scoped scan total.",
+          "Retain EQUAL_AT_SCOPE for the valid report, DIFFERENT for valid differing words, NOT_COMPARABLE for another window and UNREACHED only for clean absent reads."
+        ],
+        "native_observed": false
+      },
+      {
+        "id": "ENV-SECTOR-HEIGHT-REFUSAL-INTERVENTION-1",
+        "severity": "P2",
+        "status": "OPEN",
+        "category": "diagnostic correctness and refusal attribution",
+        "locations": [
+          "eech-campaign/crates/eech-world/lua/entity-authority.lua:2704",
+          "eech-campaign/crates/eech-world/lua/entity-authority.lua:2705",
+          "eech-campaign/crates/eech-world/lua/entity-authority.lua:2713"
+        ],
+        "problem": "An expected-marker failure with height_altered=0 bypasses both the other-marker failure branch and the clean UNREACHED branch. The final generic alteration sum includes the configured forced-hit secondary input. After an earlier configured narrow-phase hit answer, an unrelated entity_scan.callback failure can therefore satisfy sector_height_withheld without any eligible height intervention; the same structure affects the other non-consumption height refusal modes. Expected marker plus another configured alteration does not establish the intended cause.",
+        "minimum_correction": [
+          "Require exactly the actual one eligible sector-height intervention before any height-refusal credit, independently of all secondary-input alteration counters and independently of marker equality.",
+          "Any fatal before that intervention is FAILURE, including the planned generic marker; only a clean run with no eligible read is UNREACHED. Preserve wrong_word same-entry fact-12 consumption and its exact named candidate refusal."
+        ],
+        "required_focused_controls": [
+          "Retain a coherent positive for each affected height refusal mode.",
+          "After a valid configured secondary hit but before any eligible height intervention, inject only an unrelated fatal bearing that mode's expected marker and require failure with height_altered=0, never credit or UNREACHED.",
+          "Retain clean no-eligible UNREACHED and actual-intervention wrong-marker/fault non-pass controls."
+        ],
+        "native_observed": false
+      }
+    ],
+    "prior_finding_disposition": {
+      "ENV-SECTOR-HEIGHT-PUBLIC-PROOF-PLAN-1": "PARTIALLY_ADDRESSED_REMAINS_OPEN: executable paths and scope prose added; the two diagnostic acceptance defects above prevent closure."
+    },
+    "native_launch_clearance": false,
+    "conditional_native_launch_clearance": false,
+    "physical_height_authority_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "minimum_next_scope": "One correction batch of the two Lua diagnostic acceptance groups and positive-first single-fault controls, with actual final source PRE/POST binding and affected driver/fmt/clippy checks. No unchanged production C/kernel/numeric matrix replay or known-bad native case requested. Corrected source review must precede Root frozen Windows/profile/payload/ordinary-short/scoped-baseline and finite authority/refusal runs.",
+  "limits": [
+    "M5 real guarded fixed-wing clearance and M6 native Core server save/load remain required OPEN; new driver counters or scripted raw restore do not close them.",
+    "No Windows/native physical sector-height comparison or authority outcome has run on this source.",
+    "Accepted finite original observer baseline and closed long-run Person P1/fullpack report retain their exact prior identities; neither is current candidate shipping acceptance.",
+    "All ten D3 requirements, remaining physical services/couplings, DCS/needed-consumer disposition, natural engagement, current final full40/all8/four inputs, exact current CI/review/normal merge/final census remain required. Prep2 is unchanged; no D4/D5/TypeScript work."
+  ]
+}

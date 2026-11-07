@@ -1,0 +1,31 @@
+
+running 3 tests
+test a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link ... FAILED
+test buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds ... FAILED
+test a_citys_list_name_survives_the_last_building_leaving_a_building_listed_again_and_a_second_relink ... ok
+
+failures:
+
+---- a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link stdout ----
+
+thread 'a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link' (152) panicked at crates/eech-world/tests/entity_authority.rs:6031:5:
+assertion `left == right` failed: {"altered_request":0,"box_max":"","box_min":"","buildings":-1,"city_stage_lookups_in_window":1,"completed":false,"consumed_after_selected":0,"consumed_before_selected":1,"continuation_links":2,"empty_key_changed":-1,"empty_keyed":-1,"event":"city_lifecycle_authority","expansions_selected":2,"expansions_selected_answered":1,"failure_line":"runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.refused] [roster.city_box.building_state] the record of the city child 9 holds no fixed collision state","failure_marker":"entity_scan.refused","first_fault":"scan request: a city expansion names the building 8, whose fixed state the provider never acknowledged","frames":1,"host_keyed":-1,"intervened":0,"intervention":"none","list_order_restored":-1,"mirror_box_equal":-1,"mode":"city_box_lifecycle","natural_weapon_engagement":"not_claimed_terminal_witness","profile":"hosted","query_after_hit":-1,"query_after_kind":"","query_before_hit":-1,"query_before_kind":"","query_equal":-1,"releases_in_window":0,"reply_faults":1,"report_bound":0,"request_faults":2,"restored_key_changed":-1,"restored_keyed":-1,"retained_answers":2,"row_phase":"after_boot_warmup_standalone_fixture","selected_record":"1","unreached":""}
+  left: Some(2)
+ right: Some(1)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds stdout ----
+
+thread 'buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds' (154) panicked at crates/eech-world/tests/entity_authority.rs:5986:5:
+Err("runtime error: entity-authority: the entity question or the host's reply is not the contract's (request_faults=2 reply_faults=0): scan request: a city expansion names the building 8, whose fixed state the provider never acknowledged\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"entity-authority.lua\"]:2694: in main chunk") / {"event":"boot","frame_budget":212,"frame_ms":1000,"mode":"city_box_lifecycle","profile":"hosted","seed":1,"settle":2,"warmup":1}
+{"bound":2,"elapsed":1,"entity_before":0,"event":"warmed_up","frames":1}
+{"altered_request":0,"box_max":"0x40000000,0x40000000,0x40c00000","box_min":"0xc0800000,0xc1200000,0xc0000000","buildings":2,"city_stage_lookups_in_window":2,"completed":true,"consumed_after_selected":1,"consumed_before_selected":1,"continuation_links":2,"empty_key_changed":1,"empty_keyed":1,"event":"city_lifecycle_authority","expansions_selected":2,"expansions_selected_answered":2,"failure_line":"","failure_marker":"","first_fault":"scan request: a city expansion names the building 8, whose fixed state the provider never acknowledged","frames":1,"host_keyed":1,"intervened":0,"intervention":"none","list_order_restored":1,"mirror_box_equal":1,"mode":"city_box_lifecycle","natural_weapon_engagement":"not_claimed_terminal_witness","profile":"hosted","query_after_hit":1,"query_after_kind":"ENTITY_TYPE_CITY_BUILDING","query_before_hit":1,"query_before_kind":"ENTITY_TYPE_CITY_BUILDING","query_equal":1,"releases_in_window":0,"reply_faults":0,"report_bound":1,"request_faults":2,"restored_key_changed":1,"restored_keyed":1,"retained_answers":2,"row_phase":"after_boot_warmup_standalone_fixture","selected_record":"1","unreached":""}
+
+
+
+failures:
+    a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link
+    buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.02s
+

@@ -1,0 +1,322 @@
+{
+  "schema": "d3.independent.fixed-rules-correction.source.v1",
+  "created_utc": "2026-11-06T16:05:09.781310+00:00",
+  "reviewer": "same sole independent Codex reviewer",
+  "scope": "One combined correctness/clean-code/boundary-safety and retained-check review of six new files only; closed rule/constructor/kernel/numeric/FP-vector proofs reused without replay.",
+  "source": {
+    "commit": "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453",
+    "parent": "bfce56e3c9e56352c1f2c6beb6c53d930dbee649",
+    "metadata": "870a243fba4d0e683697994617aacf60eedfd994",
+    "immutable_snapshot": "D:/EECH-Migration-Evidence/fixed-rules-corrected-4fb81c673-20261106-source",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "bytes": 470297,
+        "sha256": "7abb75cbf089da45b2959ec8a8d52d5fd0d2fa9143da858ba70d2adb40476794"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 219125,
+        "sha256": "a0cf8021022a0a077778a7ad843b2a445e08fce0f4c3e544760d9e9222d1e470"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+        "bytes": 31540,
+        "sha256": "c8b4bdfcef986e25f0e9a4fa8023cb32a9d483bb0cc31ab3dcbffd2df8cc766f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "bytes": 303452,
+        "sha256": "f9a1f2ec6c59ff3a774f370c969bf7077c56fbb10d297e0660821c981b88ab01"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+        "bytes": 184703,
+        "sha256": "045a96ca95aeae94f014bf441d8702f2fdeb585e48352bbf5a4e46a13789d79c"
+      },
+      {
+        "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+        "bytes": 98847,
+        "sha256": "49bfcde958a5ce3db05d6a6535b8ea0e7e73a921e7ccbda57740506b44a02c57"
+      }
+    ],
+    "C_kernel_FFI_header_roster_modelstore_rule_table_unchanged": true
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "findings": [
+      {
+        "id": "ENV-SCAN-PRE-SAVE-SUBNORMAL-FPU-1",
+        "severity": "P2",
+        "locations": [
+          "eech-campaign/crates/eech-world/src/entity_host.rs:439",
+          "eech-campaign/crates/eech-world/src/entity_host.rs:442",
+          "eech-campaign/crates/eech-world/src/entity_host.rs:403"
+        ],
+        "problem": "After integer raw classification, scan_step still runs floating check_scan_facts before fp_state captures the caller environment. Accepted finite subnormal coordinate words reach abs/range floating comparisons before that save. With DAZ clear those operands can set SSE denormal status; an unmasked denormal exception can trap before the intended mask refusal. The later guard saves/restores an already-modified state, so after==state cannot detect the original change. Early SNaN rejection closes the measured malformed-word case, not this valid-input path.",
+        "evidence_scope": "Source-supported residual in the new correction; no reviewer dynamic reproduction or disassembly claimed. FTZ result flushing does not make pre-save denormal comparisons harmless. Valid tiny coordinates belong to the domain; broad current GREEN checks do not prove their FP preservation.",
+        "minimum_correction": "Use classify_scan_words as the sole production validator. Remove the duplicate floating check_scan_facts call from scan_step; retain that predicate only under cfg(test) as the domain/message oracle. Capture/guard before necessary floating evaluation. Preserve existing domains/messages and unsupported-environment named refusal; no input flushing/rejection, global masking or weakened assertions.",
+        "focused_validation": "Reuse the existing x64 FP-state harness for one accepted scan with subnormal coordinate words and legal integer facts across relevant DAZ/FTZ settings including DAZ=0. Preserve raw status/control/rounding/masks and restore harness state. Join affected debug/release/lint checks and exact bytes, without a new FP programme, trap fleet, closed-kernel replay or full war."
+      }
+    ],
+    "old_ACK_P2_source_closed": true,
+    "known_DC_workspace_lint_sites_source_closed": true,
+    "measured_SNaN_refusal_path_corrected": true,
+    "whole_scan_FP_boundary_closed": false,
+    "native_actuals_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full40_all8_accepted": false,
+    "delivery_or_merge_accepted": false
+  },
+  "dispositions": [
+    {
+      "id": "ENV-FIXED-RULES-RESTATEMENT-ACK-1",
+      "status": "SOURCE_CLOSED",
+      "assessment": "Direct restatement now uses scan.fixed.reply_problem before credit: table, placed, exact current key, no cursor. Malformed ACK sets changed=-1 and a named failure which takes verdict priority over a later refusal. Current served-key/held-state/need_placement eligibility, prechange count, same-provider subtype-only restatement, unchanged next request and exact cause remain intact; no poisoned Engine API/close added.",
+      "control": "Positive real-state restatement first. Only the second real acknowledgement is damaged with p; both placed log entries remain, but change credit is-1 and the ACK error must fail without UNREACHED/success. Old Lua RED1pass/1fail; current debug/release GREEN."
+    },
+    {
+      "id": "ENV-TASK49-WORKSPACE-LINT-1",
+      "status": "CLOSED_AT_THIS_SOURCE_AND_RETAINED_GATE",
+      "assessment": "Both DC test expect_err calls become let-Err patterns returning errors on unexpected acceptance; original rejection-message assertions remain. Full-workspace all-target strict Clippy exits0 including DC. Exact new-head CI still required."
+    },
+    {
+      "id": "ENV-CI-DEBUG-SCAN-FPU-1",
+      "status": "MEASURED_SNAN_PATH_CORRECTED_WITH_NEW_RESIDUAL",
+      "assessment": "Integer classifier checks count, first nonfinite word, whole/phase/flag domains in original order, then sign-masked finite magnitude. Intended domains, signed zero, messages/error priority agree with the floating oracle in200000 generated cases plus wrong lengths. SNaN phase now refuses before floating validation, matching DEBUG/C_OPT2 GREEN. These are not universal FP-state tests; duplicate production validation leaves the new P2."
+    },
+    {
+      "id": "I686_CTOR_TEST_CFG",
+      "status": "APPROPRIATE_SOURCE_SCOPE_QUALIFICATION",
+      "assessment": "The two tests now match their existing x86_64-only assembly helper and siblings. Supported x64 assertions/corpus remain unchanged and run. Local i686 check101 contains missing Rust core/target E0463 plus missing32-bit libc headers/mlua prerequisites. No successful32-bit compile/link/test/numeric/FP/native proof."
+    }
+  ],
+  "validation": {
+    "final_named_commands": [
+      {
+        "name": "final-workspace-debug",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu --no-fail-fast",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T15:33:30.543726+00:00",
+        "completed_utc": "2026-11-06T15:34:33.574636+00:00",
+        "receipt_sha256": "1e1df7ba423ac71a2867a117f4c82b94d2d003de827dbdad5a753eadcefbfed1",
+        "result_rows": 79,
+        "passed": 1410,
+        "failed": 0,
+        "stdout_sha256": "735841f3dd026932b81f2e24b45b0fc2b5ba7f5b693aa287db6e9d302812264d",
+        "stderr_sha256": "927a713ee05ac54573cab89f5b7f296521ae6ca377779234ff8069b6e5175e1c"
+      },
+      {
+        "name": "final-clippy-workspace",
+        "command": "cargo clippy --locked --all-targets -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T15:34:33.655006+00:00",
+        "completed_utc": "2026-11-06T15:34:41.392116+00:00",
+        "receipt_sha256": "b700f766ea980ec0ba9f2333985f6d0c68883895bc47e761f434662b662f3658",
+        "result_rows": 0,
+        "passed": 0,
+        "failed": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "d0e59df73776a5e25246380f53fd4693b6fbfc5a2fb514f3de72a0149ddbfcd6"
+      },
+      {
+        "name": "final-world-release",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-world",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T15:34:41.483134+00:00",
+        "completed_utc": "2026-11-06T15:35:46.254742+00:00",
+        "receipt_sha256": "bd0b87fd7536d9f22530e560b63d451e741160fbf590f6719c01848c8b6b2639",
+        "result_rows": 55,
+        "passed": 1172,
+        "failed": 0,
+        "stdout_sha256": "27919af1da7329bbae6186ca052a92e2b5d184754313fb7e86a5e92907ba2d5c",
+        "stderr_sha256": "88ffa75753b04af60b02ea3016d746b5ca7616d330ee99a4203e3cc6d2dc5998"
+      },
+      {
+        "name": "final-copt2-workspace-debug",
+        "command": "env EECH_C_OPT=2 cargo test --locked --target x86_64-unknown-linux-gnu --no-fail-fast",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T15:37:28.180908+00:00",
+        "completed_utc": "2026-11-06T15:45:05.971971+00:00",
+        "receipt_sha256": "11b1590549f3d20450efafbe5572a3d08fa275eb7d286d3c317c59c44e3927d3",
+        "result_rows": 79,
+        "passed": 1410,
+        "failed": 0,
+        "stdout_sha256": "5f07095ce7c657dcd6aa11034522095be012d424aa13f24b5a8076b9002e97b0",
+        "stderr_sha256": "67d65699d1110ef73f2bfac53cae85bb53bb42dc5feb220b2e0f78896a8169a4"
+      },
+      {
+        "name": "final-fmt-check",
+        "command": "cargo fmt --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T15:32:25.959861+00:00",
+        "completed_utc": "2026-11-06T15:32:30.432008+00:00",
+        "receipt_sha256": "58d09a0ef604e664e3a363d20c8faff5e4754bf3b1b04ae5bef6759ebb646e2a",
+        "result_rows": 0,
+        "passed": 0,
+        "failed": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      }
+    ],
+    "passing_result_instances": 3992,
+    "failed": 0,
+    "result_rows": 213,
+    "count_qualification": "Two workspace debug commands each1410/79rows, ordinary C configuration and C_OPT2, plus releaseWorld1172/55rows. Repeated instances are not3992 distinct tests; Clippy/fmt have no result rows.",
+    "additional_retained_checks": {
+      "ack-red-bfce-lua-debug": {
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority -- a_restatement_acknowledged changing_the_physical_rule",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T15:14:06.079901+00:00",
+        "completed_utc": "2026-11-06T15:14:10.482955+00:00",
+        "receipt_sha256": "049cef84b32466513a6d32a3ddf9bb52ebb227bf522344aab3d823612b7212de",
+        "result_rows": 1,
+        "passed": 1,
+        "failed": 1,
+        "stdout_sha256": "31001ba117b179b977a88ff896f3c47ccf29e16f7c20eb3332f5122c6322459a",
+        "stderr_sha256": "0e9468a2eb1f6fa4ab8cecb901d7d33c5ab4f536990c858c62005c074728bca8"
+      },
+      "fpu-red-bfce-debug-a": {
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_roster_host",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T15:10:15.046186+00:00",
+        "completed_utc": "2026-11-06T15:10:30.012398+00:00",
+        "receipt_sha256": "99154163e94d83f678e67a75f67d52f503deb32628b5adbedb3047855ed1b67d",
+        "result_rows": 1,
+        "passed": 15,
+        "failed": 2,
+        "stdout_sha256": "e3818eccf1f48dc534639ebedcb65f86e4aef9fcf48294bc600afdf39cee17fa",
+        "stderr_sha256": "72c96d07f402065ebb1f9ed92bab20d4182583bc5307f6c2b76f93e0a1473fe3"
+      },
+      "fpu-diag-debug": {
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test zz_fpu_diag_untracked -- --nocapture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T15:11:58.342730+00:00",
+        "completed_utc": "2026-11-06T15:12:00.620557+00:00",
+        "receipt_sha256": "75a5e2c3cc6182df44ddc1c776a050bea90ee320227b93a0514a61cb9b4ffd3e",
+        "result_rows": 1,
+        "passed": 1,
+        "failed": 0,
+        "stdout_sha256": "bb6f5ae75c06f749c7f69fa24c998b0653428e2ce2b1b3eb0e85ef4f6531920e",
+        "stderr_sha256": "7ee8f4cddfb19ab74ce7997c8489588a79e9d309685b43f6c06a7f3d6f787fb5"
+      },
+      "fpu-diag-release": {
+        "command": "cargo test --release --locked --target x86_64-unknown-linux-gnu -p eech-world --test zz_fpu_diag_untracked -- --nocapture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T15:12:00.762398+00:00",
+        "completed_utc": "2026-11-06T15:12:15.310825+00:00",
+        "receipt_sha256": "2bfadf2282a4df83c5a334552b1da651c8f4c4c91d005b1c6d9d92280b570a48",
+        "result_rows": 1,
+        "passed": 1,
+        "failed": 0,
+        "stdout_sha256": "76df91ea6012ea611bf6ae59ddf2ee9ca56d542beb7c597f9fe8b7407f2a104e",
+        "stderr_sha256": "64d3a35ba5cc7b2edd92e6de40cb1e64e9387c762495ac59e07b99003a1c0424"
+      },
+      "final-i686-check": {
+        "command": "cargo check --locked --target i686-unknown-linux-gnu -p eech-world --test model_target_point",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T15:32:40.921878+00:00",
+        "completed_utc": "2026-11-06T15:32:42.571981+00:00",
+        "receipt_sha256": "cdd6a5fc316621aa7a5b28d5f19a08d52ee360c90da0deb5b3696b5700caf65e",
+        "result_rows": 0,
+        "passed": 0,
+        "failed": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ddb41c011e1403c3886611298bca218d55804a28a9e0dc37557cb95105d554d3"
+      }
+    },
+    "diagnostic_scope": "Retained DEBUG is_finite on the SNaN sample raises invalid; release does not. Integer exponent classification and from_bits are neutral. Optimizer folding is inference, not disassembly. These diagnostics do not prove accepted finite subnormal comparisons preserve state.",
+    "chronology": "Prior18b/original freezes remain literal; restored-parent RED chronology is qualified, not all-before-edit. No baseline/input/seed/frame/duration/tolerance/output change.",
+    "limits": "No new Windows/native/retail/fullpack authority. Current-head CI readback remains required; i686 prerequisite failures are not GREEN."
+  },
+  "provenance": {
+    "prior_review": {
+      "path": "R:/d3-evidence/independent-fixed-physical-rules-source-d2f5027c9-20261106.json",
+      "bytes": 29459,
+      "sha256": "18b2faf80a7bd43905e7e078d63aaabbe1312817b9537f100ccaefac851c7c10"
+    },
+    "external_freeze": {
+      "path": "R:/d3-evidence/fixed-rules-review-correction-CODE-FROZEN-20261106.json",
+      "bytes": 36249,
+      "sha256": "d960ae7daad3bb7667aeb27b7caa842cd21d78953fd63584906bdfc1df7d9451"
+    },
+    "repo_freeze": {
+      "path": "eech-campaign/reference/d3-entity-collision/fixed-physical-rules-review-correction-source-and-checks/fixed-rules-review-correction-CODE-FROZEN-20261106.json",
+      "bytes": 34495,
+      "sha256": "c926479a33c01117e208b8df69a2f265731c6e570416b96699e6ccc5b7d55aaf"
+    },
+    "strict_external_repo_join": {
+      "verified": true,
+      "exact_adjustments": [
+        "remove external publication",
+        "remove external-only review_sha256",
+        "restore identity.meta_commit to tracked null"
+      ],
+      "qualification": "Declared publication/meta-only relation omits an extra external review_sha256. Repo c926 has no such key; external value is the exact18b prior-review hash. Complete dictionaries match after exactly these three adjustments. Preserve both literals; no source normalization."
+    },
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-fixed-rules-review-correction-20261106-completion.json",
+      "bytes": 817,
+      "sha256": "590ce1c0f8faddcd13b5238179565303d53c26390043c23ac044c41a6042c327"
+    },
+    "producer_terminal": {
+      "actual_exit": 0,
+      "result_is_error": false,
+      "model": "claude-sonnet-5-5",
+      "completed_utc": "2026-11-06T15:50:43.669484+00:00"
+    },
+    "author_before_map": {
+      "path": "R:/d3-evidence/fixed-rules-correction-inputmap-before-20261106.json",
+      "bytes": 2029640,
+      "sha256": "ba4fd4fd7f7d69e0c811f0bab8283514900d9e29cb35f9cf17bee104057f9c81"
+    },
+    "author_after_map": {
+      "path": "R:/d3-evidence/fixed-rules-correction-inputmap-after-20261106.json",
+      "bytes": 2029640,
+      "sha256": "ba4fd4fd7f7d69e0c811f0bab8283514900d9e29cb35f9cf17bee104057f9c81"
+    },
+    "author_maps_literal_equal": true,
+    "author_input_count": 3953,
+    "author_raw_Git_exact": 3950,
+    "raw_qualification": "Same three inherited untouched test-Lua working CRLF/Git LF inputs; no normalization or all3953-author-raw-equal claim.",
+    "raw_binding": {
+      "path": "R:/d3-evidence/fixed-rules-correction-raw-binding-4fb81c673-20261106.json",
+      "bytes": 2733,
+      "sha256": "89157b48c13bf3d949e21ca07a28fab2a8f3b0a166fbcd28c62e6b22f7f09146"
+    },
+    "all_six_changed_raw_Git_verified": true,
+    "provider_doc_outside_map_roots_also_bound": true,
+    "Root_snapshot_receipt": {
+      "path": "R:/d3-evidence/fixed-rules-corrected-4fb81c673-snapshot-20261106.json",
+      "bytes": 3706,
+      "sha256": "9b8bcb5ed2124ad57cafff5059b898d2076c35cf005221f3ff66601cc3605386"
+    },
+    "Root_snapshot_before_map": {
+      "path": "R:/d3-evidence/fixed-rules-corrected-4fb81c673-snapshot-before-20261106.json",
+      "bytes": 2028654,
+      "sha256": "6e151a9971f6dd105bc4cccaee445c88e0c3889583095e57edc41dea24ee8bb4"
+    },
+    "Root_snapshot_all3953_raw_Git_exact": true,
+    "publication_manifest": {
+      "path": "eech-campaign/reference/d3-entity-collision/fixed-physical-rules-review-correction-source-and-checks/manifest.json",
+      "bytes": 8380,
+      "sha256": "ffdf244367cd8d9e23bf01f7da3e7d59d900dd67c5e805863a194dd28785f97b",
+      "listed_file_records_Git_verified": 51,
+      "Git_pack_files_including_manifest": 52
+    },
+    "no_Root_or_reviewer_Cargo_replay": true
+  },
+  "required_remaining": {
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION": "OPEN_REQUIRED_WHOLE_D3 and REQUIRED next CITY production before complete CITY ownership: actual empty-city relink/restore must retain/authorize Host-built box knowledge without Core being its sole surviving physical copy; cannot be skipped by sectorheight.",
+    "healthy_diagnostics": "Provider doc declares four fixed_rule_* fields in every mode, healthy included. Actual comparisons must declare them as added and keep every existing common field/complete physical terminal/default output exact.",
+    "ownership_precision": "Default shape/clutter and direct draw alignment remain outside this finite cut and need actual needed-physical/caller/DCS disposition. Calling them campaign-owned is not a D3 waiver; campaign policy and physical ownership remain distinct.",
+    "all_ten_D3_requirements_preserved": true,
+    "other_scope": "Sectorheight/hints/writers, effectful UPDATED/shared terrain, raw tree/forest/cloud RNG, needed hierarchy/devices/services, DCS mapping, natural moving integration, current final40/all8/final inputs/current CI/normal merge/final census remain open. D4/D5/TypeScript unstarted.",
+    "parent_pack": "Existing f734 original processes/roots/binaries/output untouched and separate; reported literal prefixes partial only, not current/full acceptance."
+  },
+  "next_gate": "Join small pre-save scan correction, focused valid-subnormal whole-state/domain/debug/release/lint evidence and exact source bytes before Root clears corrected Windows profiles, bound objects/payloads, established exact complete short, healthy zero-fault rule control and ONE strict changed_fixed_rule negative. No old numeric/constructor/kernel matrix replay absent new concrete changes.",
+  "review_operations": "Read-only source/Git/maps/retained logs/exits/publication assertions and this report write only. No implementation tests/build/native/campaign/cache/process/VM/source/card/canonical mutation or subagent.",
+  "publication_safety": "Source/evidence identities, counts and semantic outcomes only; no retail coordinates/geometry/actor identifiers/trajectories/physical tuples/fatal lines/recordings."
+}

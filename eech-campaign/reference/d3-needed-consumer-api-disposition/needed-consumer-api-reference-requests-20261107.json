@@ -1,0 +1,31 @@
+{
+  "kind": "Optional primary-file requests from the second and final D3 source/API disposition batch; answer is not required for the batch to freeze",
+  "source_before": "c6426dc310796795a0d8c694cb985b65b86d8e7d",
+  "rule": "Declared shapes only once fetched; fetched files do not close any OPEN row by themselves. Continue independent rows while pending. No clone of a historical implementation.",
+  "answered_by_root": [
+    {
+      "path": "packages/tslua-dcs-mission-types/src/Airbase.ts",
+      "git_blob": "d3d7dedd81babeb779c65ceab45933cc5e932139",
+      "sha256": "88cd28189fb221ed2f05b542820536bb7b1b9daf397604ec5a052854fabc675b",
+      "used_in": "D3G-09",
+      "effect": "Declares runway, parking, tower, category and point records; declares no route polylines or anchored sub-objects. D3G-09 moves from missing-declaration to PARTIAL: route and sub-object contracts stay OPEN; no analogy closure."
+    }
+  ],
+  "requests": [
+    {
+      "repository": "flying-dice/tslua-dcs",
+      "ref": "1179554fcafcef92d71313336cc09500febf8245",
+      "path": "packages/tslua-dcs-mission-types/src/exports/world.export.ts",
+      "also": "packages/tslua-dcs-mission-types/src/exports/Object.export.ts (sibling; same directory as the already-cited exports/env.export.ts)",
+      "d3_question": "Exact values/shape of world volume types and params and of Object.Category (Airbase.ts names Object.Category.BASE without declaring values), so world.searchObjects(category, volume, handler) can be named without guessing (rows D3G-01, D3G-06, D3G-07). world.ts:7-10 declares WorldVolume as {id: number, params: Record<string, unknown>} only; world.ts:285 takes category as number or number[].",
+      "closes_open_row_alone": false
+    },
+    {
+      "repository": "flying-dice/tslua-dcs",
+      "ref": "1179554fcafcef92d71313336cc09500febf8245",
+      "path": "UNKNOWN: a directory listing of packages/tslua-dcs-mission-types/src, then the file that declares Controller task/command ids and their params",
+      "d3_question": "Controller.ts:8-11 declares ControllerAction as {id: string, params: Record<string, unknown>} only. Which task ids and parameter shapes exist for attack/fire/route tasks (row D3G-08), as declared shapes.",
+      "closes_open_row_alone": false
+    }
+  ]
+}

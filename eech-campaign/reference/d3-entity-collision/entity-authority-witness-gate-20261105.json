@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T10:14:08.782Z",
+  "scope": "Direct-exit focused Linux gate of the ENTITY_COLLISION public authority witness batch (Lua, tests and docs only). Every step is a direct child whose exit was read on the next line; one combined log; excerpts after the status. Not a native, Windows or retail run; the witness has not run against a real module.",
+  "base_head": "a0805a8f7780192c9ae6b1b1cb151e02d6fd9d4d",
+  "runtime_unchanged": "no C, Rust or shipping input changed: the tracked code diff against the previous head is empty (tracked-code-diff-vs-head.txt, 0 lines) and the two witness files are the only new code-scope inputs; the compiled runtime stays f153/7ead",
+  "files": {
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
+      "git_blob": "dcf9c1eae1c7adacc5d33d7d9784a105405665c1"
+    },
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs": {
+      "git_blob": "ee8df2e3fd8becb85c59e336a6bfec77abcebfe2"
+    }
+  },
+  "steps": [
+    {
+      "step": "fmt",
+      "child_exit": 0
+    },
+    {
+      "step": "test-entity-authority",
+      "child_exit": 0
+    },
+    {
+      "step": "test-tree-authority-unchanged",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-eech-world",
+      "child_exit": 0
+    }
+  ],
+  "failed_steps": 0,
+  "test_result_rows": [
+    "test result: ok. 14 passed",
+    "test result: ok. 17 passed"
+  ],
+  "failed_or_panicked_lines": 0,
+  "gate_log": {
+    "bytes": 8911,
+    "sha256": "39c7202da8644d1ce6931b007f2aefe318754f4376524cb09e89b311c540f225"
+  },
+  "code_inputs": {
+    "rows": 2913,
+    "filtered_column_sha256_before": "6a69c0edb99becdf9e2ba2a56aa409ed6f86a6cb84a863441d1524ba28c8abd7",
+    "filtered_column_sha256_after": "6a69c0edb99becdf9e2ba2a56aa409ed6f86a6cb84a863441d1524ba28c8abd7",
+    "raw_column_sha256_before": "b4dbab12e07a3bff8d6260331c2185496886e5dedcf68d454f97e768100aa6b5",
+    "raw_column_sha256_after": "b4dbab12e07a3bff8d6260331c2185496886e5dedcf68d454f97e768100aa6b5",
+    "equal_before_after": true,
+    "meaning": "filtered = Git blob id as the clean filter would store each working file; raw = SHA-256 of the raw working bytes; three pre-existing CRLF files keep the qualification in filter-qualification-20261105.txt; no accepted file was normalised"
+  },
+  "found_and_fixed": "the first run of the driver controls found a witness defect: the cohort signature joined a missing terminal field and raised before the terminal-grammar check; fixed with tostring."
+}

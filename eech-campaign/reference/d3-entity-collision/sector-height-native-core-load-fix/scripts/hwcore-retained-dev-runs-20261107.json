@@ -1,0 +1,10 @@
+{
+  "r1-loader-guard": {
+    "actual_exit": 101,
+    "why": "test setup, not a loader defect: the guard counted `fopen (` which also matches inside `safe_fopen (`, so a loader with exactly one (safe) open counted two; the assertion was corrected to (1, 1) and r2 is green"
+  },
+  "r3-red-previous-loader-guard": {
+    "actual_exit": 101,
+    "why": "RED on the PREVIOUS loader (only parsgen.c reverted from HEAD for the run, then restored byte-identical; the guard unchanged): 2 of 3 tests fail for the right reasons: 'the size must not come from the text-mode helper' (file_size () still sizes the data) and the loader no longer contains the full-read statement (the old one-element fread of size + 1 and the ignored unpack return); the third test (the Core's own pack/unpack premises) passes on both, as it should"
+  }
+}

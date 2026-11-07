@@ -1,0 +1,221 @@
+{
+  "created_utc": "2026-11-06T21:54:50.326849+00:00",
+  "checker": "R:\\d3-evidence\\validate-city-lifecycle-authority-20261106.py",
+  "checker_sha256": "e18f2609ea317514e1d9866b0d04616b9ff9191bb1e5ac25ae0ad616e4124c2b",
+  "scope": "Read-only aggregate standalone-row validator. Full Lua report and raw query-tuple consistency rely on the reviewed driver; the row omits raw query tuples, so this is not independent reconstruction of the full report. No Core getters, native launch or whole-D3 acceptance.",
+  "actual_exit": 0,
+  "synthetic_examples_only": true,
+  "source_contract": "215a dedicated row; MISS kind none and finite box word grammar taken from reviewed Lua parser",
+  "accepted_source_derived_examples": [
+    {
+      "event": "city_lifecycle_authority",
+      "mode": "city_box_lifecycle",
+      "profile": "hosted",
+      "row_phase": "after_boot_warmup_standalone_fixture",
+      "natural_weapon_engagement": "not_claimed_terminal_witness",
+      "unreached": "",
+      "selected_record": "9",
+      "intervention": "none",
+      "altered_request": 0,
+      "completed": true,
+      "intervened": 0,
+      "failure_marker": "",
+      "failure_line": "",
+      "first_fault": "",
+      "report_bound": 1,
+      "buildings": 3,
+      "host_keyed": 1,
+      "query_before_hit": 0,
+      "query_after_hit": 0,
+      "query_before_kind": "none",
+      "query_after_kind": "none",
+      "query_equal": 1,
+      "list_order_restored": 1,
+      "mirror_box_equal": 1,
+      "empty_keyed": 1,
+      "empty_key_changed": 1,
+      "restored_keyed": 1,
+      "restored_key_changed": 1,
+      "box_min": "0x00000000,0x00000000,0x00000000",
+      "box_max": "0x3f800000,0x3f800000,0x3f800000",
+      "consumed_before_selected": 1,
+      "consumed_after_selected": 1,
+      "city_stage_lookups_in_window": 2,
+      "retained_answers": 2,
+      "continuation_links": 2,
+      "releases_in_window": 0,
+      "expansions_selected": 3,
+      "expansions_selected_answered": 3,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "frames": 300
+    },
+    {
+      "event": "city_lifecycle_authority",
+      "mode": "city_box_lifecycle_missing",
+      "profile": "hosted",
+      "row_phase": "after_boot_warmup_standalone_fixture",
+      "natural_weapon_engagement": "not_claimed_terminal_witness",
+      "unreached": "",
+      "selected_record": "9",
+      "intervention": "host_retention_release",
+      "altered_request": 0,
+      "completed": false,
+      "intervened": 1,
+      "failure_marker": "entity_scan.refused",
+      "failure_line": "[roster.link] retained record has ended",
+      "first_fault": "scan reply: result refused",
+      "report_bound": 0,
+      "buildings": -1,
+      "host_keyed": -1,
+      "query_before_hit": -1,
+      "query_after_hit": -1,
+      "query_before_kind": "",
+      "query_after_kind": "",
+      "query_equal": -1,
+      "list_order_restored": -1,
+      "mirror_box_equal": -1,
+      "empty_keyed": -1,
+      "empty_key_changed": -1,
+      "restored_keyed": -1,
+      "restored_key_changed": -1,
+      "box_min": "",
+      "box_max": "",
+      "consumed_before_selected": 1,
+      "consumed_after_selected": 0,
+      "city_stage_lookups_in_window": 2,
+      "retained_answers": 2,
+      "continuation_links": 2,
+      "releases_in_window": 0,
+      "expansions_selected": 3,
+      "expansions_selected_answered": 3,
+      "request_faults": 0,
+      "reply_faults": 1,
+      "frames": 300
+    },
+    {
+      "event": "city_lifecycle_authority",
+      "mode": "city_box_lifecycle_changed",
+      "profile": "hosted",
+      "row_phase": "after_boot_warmup_standalone_fixture",
+      "natural_weapon_engagement": "not_claimed_terminal_witness",
+      "unreached": "",
+      "selected_record": "9",
+      "intervention": "mirror_conformance_negative",
+      "altered_request": 1,
+      "completed": false,
+      "intervened": 1,
+      "failure_marker": "entity_scan.refused",
+      "failure_line": "[roster.city] built box is not the one the host holds",
+      "first_fault": "scan reply: result refused",
+      "report_bound": 0,
+      "buildings": -1,
+      "host_keyed": -1,
+      "query_before_hit": -1,
+      "query_after_hit": -1,
+      "query_before_kind": "",
+      "query_after_kind": "",
+      "query_equal": -1,
+      "list_order_restored": -1,
+      "mirror_box_equal": -1,
+      "empty_keyed": -1,
+      "empty_key_changed": -1,
+      "restored_keyed": -1,
+      "restored_key_changed": -1,
+      "box_min": "",
+      "box_max": "",
+      "consumed_before_selected": 1,
+      "consumed_after_selected": 0,
+      "city_stage_lookups_in_window": 2,
+      "retained_answers": 2,
+      "continuation_links": 2,
+      "releases_in_window": 0,
+      "expansions_selected": 3,
+      "expansions_selected_answered": 3,
+      "request_faults": 0,
+      "reply_faults": 1,
+      "frames": 300
+    }
+  ],
+  "rejected_examples": [
+    {
+      "mode": "city_box_lifecycle",
+      "changed_field": "row_phase",
+      "value": "boot"
+    },
+    {
+      "mode": "city_box_lifecycle",
+      "changed_field": "report_bound",
+      "value": 0
+    },
+    {
+      "mode": "city_box_lifecycle",
+      "changed_field": "consumed_after_selected",
+      "value": 0
+    },
+    {
+      "mode": "city_box_lifecycle",
+      "changed_field": "retained_answers",
+      "value": 1
+    },
+    {
+      "mode": "city_box_lifecycle",
+      "changed_field": "box_min",
+      "value": "garbage"
+    },
+    {
+      "mode": "city_box_lifecycle",
+      "changed_field": "box_max",
+      "value": "0x7f800000,0x00000000,0x00000000"
+    },
+    {
+      "mode": "city_box_lifecycle",
+      "changed_field": "host_keyed",
+      "value": true
+    },
+    {
+      "mode": "city_box_lifecycle_missing",
+      "changed_field": "consumed_before_selected",
+      "value": 0
+    },
+    {
+      "mode": "city_box_lifecycle_missing",
+      "changed_field": "unreached",
+      "value": "not_consumed"
+    },
+    {
+      "mode": "city_box_lifecycle_missing",
+      "changed_field": "reply_faults",
+      "value": 0
+    },
+    {
+      "mode": "city_box_lifecycle_missing",
+      "changed_field": "buildings",
+      "value": 3
+    },
+    {
+      "mode": "city_box_lifecycle_changed",
+      "changed_field": "intervention",
+      "value": "host_retention_release"
+    },
+    {
+      "mode": "city_box_lifecycle_changed",
+      "changed_field": "altered_request",
+      "value": 0
+    },
+    {
+      "mode": "city_box_lifecycle_changed",
+      "changed_field": "failure_line",
+      "value": "unrelated failure"
+    },
+    {
+      "mode": "city_box_lifecycle",
+      "changed_fields": [
+        "query_before_kind",
+        "query_after_kind"
+      ],
+      "value": "-"
+    }
+  ],
+  "native_execution": false
+}

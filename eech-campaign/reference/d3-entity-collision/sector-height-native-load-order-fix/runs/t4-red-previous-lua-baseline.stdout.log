@@ -1,0 +1,18 @@
+
+running 1 test
+test a_legitimate_baseline_population_before_the_first_restore_is_reported_honestly_and_every_saved_state_check_still_holds ... FAILED
+
+failures:
+
+---- a_legitimate_baseline_population_before_the_first_restore_is_reported_honestly_and_every_saved_state_check_still_holds stdout ----
+
+thread 'a_legitimate_baseline_population_before_the_first_restore_is_reported_honestly_and_every_saved_state_check_still_holds' (124) panicked at crates/eech-world/tests/sector_height_witness_driver.rs:1515:5:
+a legitimate baseline before the first restore was refused as a defect: Err("runtime error: sector-height-witness: FAILURE: 3 entity insertions came before the first restore: restore-before-insert is not shown\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"sector-height-witness.lua\"]:1084: in main chunk")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_legitimate_baseline_population_before_the_first_restore_is_reported_honestly_and_every_saved_state_check_still_holds
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 26 filtered out; finished in 0.02s
+

@@ -1,0 +1,11 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.65s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_engine_sys-e88554e1694ff2e2)
+     Running tests/entity_host_guard.rs (/target/t/debug/deps/entity_host_guard-bc6b7cc757d2e1fe)
+     Running tests/entity_pose_lifecycle_guard.rs (/target/t/debug/deps/entity_pose_lifecycle_guard-40e51d481b0544b8)
+     Running tests/entity_roster_guard.rs (/target/t/debug/deps/entity_roster_guard-e618acf368ef17e9)
+     Running tests/physical_flags_guard.rs (/target/t/debug/deps/physical_flags_guard-083817e3b103a38f)
+     Running tests/saved_campaign_load_guard.rs (/target/t/debug/deps/saved_campaign_load_guard-20c6f2bf094cb942)
+     Running tests/sector_height_guard.rs (/target/t/debug/deps/sector_height_guard-b41a2506a04813d4)
+     Running tests/sector_height_witness_guard.rs (/target/t/debug/deps/sector_height_witness_guard-bdf211f64d9d2adb)
+     Running tests/tree_host_guard.rs (/target/t/debug/deps/tree_host_guard-397a0052554f14c5)
+   Doc-tests eech_engine_sys

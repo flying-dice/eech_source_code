@@ -1,0 +1,21 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the external sealed files",
+  "files": {
+    "independent-sector-height-reference-fix-9cb480-source-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 11677,
+      "sha256": "f61dac32f008b38b4795eaa0dd73357fb6bcd1fabf5f017e59874fb1cc77f81a"
+    },
+    "height-reference-Root-binding-beb-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 11301,
+      "sha256": "e1b5cad058845f3c6a3d3d7b7fa6a1ac8846425d1ca8a061ae76b524af2cfb64"
+    },
+    "height-reference-beb-all9-CI-readback-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 18479,
+      "sha256": "9858cdb809c5ab5bdd88b32f22900f4261eacf54c8d35e98cdbbec64eba63d0a"
+    }
+  },
+  "problems": []
+}

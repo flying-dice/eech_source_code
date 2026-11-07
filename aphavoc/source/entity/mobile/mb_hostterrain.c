@@ -609,4 +609,28 @@ void campaign_terrain_ambient (float x, float z, int in_cockpit, float alt, floa
 	}
 }
 
+////////////////////////////////////////
+//
+// the tree segment query (EEDCS-49, D3): the dialogue is mb_hosttree.h, bound here to the real host callback and the real terrain call
+//
+////////////////////////////////////////
+
+#define CAMPAIGN_TREE_ASK(REQUEST,REPLY,WHAT) ask ((REQUEST), (REPLY), (WHAT))
+#define CAMPAIGN_TREE_ELEVATION(X,Z) get_3d_terrain_elevation ((X), (Z))
+
+#include "mb_hosttree.h"
+
+int campaign_terrain_tree_collision
+(
+	const vec3d *old_position,
+	const vec3d *new_position,
+	vec3d *intercept_point,
+	vec3d *face_normal,
+	int ignore_forest_edge_trees,
+	int skip_tree_top_test
+)
+{
+	return (campaign_tree_dialogue (old_position, new_position, intercept_point, face_normal, ignore_forest_edge_trees, skip_tree_top_test));
+}
+
 #endif // EECH_CAMPAIGN_HOST_TERRAIN

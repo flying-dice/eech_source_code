@@ -1,0 +1,10 @@
+{
+  "issued_by": "Root technical lead",
+  "reason": "The original chain completed these exact commands on the unchanged two-file source before its CODE-only commit. Repeating the matrix solely to acquire final input maps violates the persisted sequencing control. Preserve the already-running final-i686-workspace-default and all original artifacts. Block only the following NOT-YET-STARTED duplicates. This is not a pass, CI waiver or independent clearance.",
+  "labels": {
+    "final-i686-workspace-stackattr": "green3-workspace-i686-stackattr",
+    "final-x64-workspace-default": "green4-workspace-x64-default",
+    "final-x64-workspace-opt2": "green5-workspace-x64-opt2"
+  },
+  "instruction_to_implementation_lane": "Root deliberately blocked these unstarted duplicate jobs. Do not relabel, bypass or rerun them for final-map/commit bookkeeping. Preserve this receipt and the original exact-command receipts. Source-bind unchanged committed production bytes to original checks with honest working-tree/pre-map qualifications; do not retroactively claim a pre-map. The committed focused control and final maps/fmt/lint remain available. Freeze the bounded tree fix and retain the known real i686 pose mismatch as OPEN. Root will continue the same verified context for the actual pose defect, scoped checks, and the two CI --no-fail-fast flags, then ONE combined independent review. Final exact-head CI remains required. If qualification limits clearance, say so rather than repeating all completed experiments. Existing live jobs and shipping4natives remain untouched."
+}

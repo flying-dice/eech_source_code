@@ -1,0 +1,15 @@
+{
+  "created_utc": "2026-11-06T19:33:43.689617+00:00",
+  "runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+  "literal_source": "879b0ebde110250169513dfd9fecc4c83f3b7b01",
+  "metadata_commit": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+  "literal_git_blob": "e27c2da83ee59dda1ac614a36d0755698f302722",
+  "literal_sha256": "8cb88ddf2ab548728abbbd99e64bdf4c41258fe144cf9607e9ba6efbf1867892",
+  "review_path": "R:\\d3-evidence\\independent-fixed-rule-witness-positive-source-879b-20261106.json",
+  "review_sha256": "a747ed52c5601e1e9389ac4444f676e6ef4ec024303f04d43f5feb9a11979d23",
+  "root_binding_sha256": "8d42367dc84b415da95615eeeef4ae95f5458ec8315cb1f87149734542372495",
+  "production_inputs_unchanged": true,
+  "native_launch_clearance": true,
+  "findings": [],
+  "scope": "ONE fresh-root changed_fixed_rule diagnostic only; reviewed879b literal separate from sealed681 hosted binaries. No positive replay/rebuild, second-Core-question claim, native authority or wholeD3 acceptance."
+}

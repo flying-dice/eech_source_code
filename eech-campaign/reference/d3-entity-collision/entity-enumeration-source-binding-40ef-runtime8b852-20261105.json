@@ -1,0 +1,86 @@
+{
+  "recorded_utc": "2026-11-05T14:12:01.291366+00:00",
+  "runtime": "8b85230826ad1c1bea289f6d2592f31b705a03f6",
+  "metadata_head": "40ef389217194c66ca68eda09881517a52e24161",
+  "clean_pushed": true,
+  "metadata_only_delta": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/reference/d3-entity-collision/entity-enumeration-direct-gate-20261105.json"
+  ],
+  "direct_gate_steps": 16,
+  "all_actual_child_exits_zero": true,
+  "container_actual_exit": 0,
+  "test_result_rows": 65,
+  "tests_passed": 1198,
+  "gate_log_sha256": "755e95b6720506f9c3f51a8297f5ae50af1452a7d04bfd5414fe55f98e9adc01",
+  "source_input_rows": 2918,
+  "raw_filtered_maps_before_after_commit_equal": true,
+  "raw_inputs_byte_exact_to_runtime_git": 2915,
+  "raw_test_lua_line_ending_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "tested_working_bytes": 3691,
+      "tested_working_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "runtime_git_bytes": 3608,
+      "runtime_git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+      "working_CRLF_count": 83,
+      "git_unchanged_since_base_4b3": true,
+      "only_source_line_endings_differ": true,
+      "filtered_git_id_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "tested_working_bytes": 5848,
+      "tested_working_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "runtime_git_bytes": 5720,
+      "runtime_git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+      "working_CRLF_count": 128,
+      "git_unchanged_since_base_4b3": true,
+      "only_source_line_endings_differ": true,
+      "filtered_git_id_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "tested_working_bytes": 3683,
+      "tested_working_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "runtime_git_bytes": 3600,
+      "runtime_git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+      "working_CRLF_count": 83,
+      "git_unchanged_since_base_4b3": true,
+      "only_source_line_endings_differ": true,
+      "filtered_git_id_equal": true
+    }
+  ],
+  "all_2918_raw_equal_runtime_git": false,
+  "changed_runtime_paths": [
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h",
+    "aphavoc/source/entity/mobile/mb_hostscan.h",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/entity_host_guard.rs",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/build.rs",
+    "eech-campaign/crates/eech-world/csrc/entity_scan_step.c",
+    "eech-campaign/crates/eech-world/src/entity_host.rs",
+    "eech-campaign/crates/eech-world/src/model_host.rs",
+    "eech-campaign/crates/eech-world/tests/entity_candidate_host.rs",
+    "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+    "eech-campaign/docs/d3-entity-collision-provider.md"
+  ],
+  "changed_paths_raw_exact_to_runtime_git": true,
+  "filtered_hash_exceptions_with_identical_raw_git_bytes": [
+    "aphavoc/laa.c",
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h"
+  ],
+  "source_before_file_sha256": "8547d8ae8a2e333a8cb66236ddf6f25b122e1f9d4c5a9d6c07128a11fcc5642b",
+  "source_after_file_sha256": "8547d8ae8a2e333a8cb66236ddf6f25b122e1f9d4c5a9d6c07128a11fcc5642b",
+  "source_after_commit_file_sha256": "9cbc5a80da8848c14dfdb272b18de3828dd133262be26ed5a91e6b144ae30c28",
+  "scope": "Source/gate identity only. Three unchanged testLua files ran as CRLF while Git is LF, explicitly qualified separately from three Core filtered-hash exceptions; no source/output normalization, no rerun. Every changed C/Rust/test input raw-exact to runtime Git. No new Windows/retail campaign/native authority or Task49/D3 acceptance; actual Linux C controls ran, old native1ccc/d39 closure separate."
+}

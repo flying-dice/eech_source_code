@@ -1,0 +1,149 @@
+{
+  "schema": "d3.independent.changed-source-review.v1",
+  "written_utc": "2026-11-06T02:21:46.352966+00:00",
+  "review_scope": "One combined correctness, clean-code and boundary-safety review of the new real-roster withdrawal diagnostic and focused tests. Prior production roster, FP, lifecycle, C dialogue and scan reviews are reused at their own identities.",
+  "source": {
+    "commit": "505cc399caf7fab6a372fce37dca1bc27883ab73",
+    "direct_parent": "aff5ac2fa0d0fbeb60e7f3fffb16e1dc90ef9caa",
+    "metadata_commit": "c341a130756f7344c939cb87841004e5cf8b471d",
+    "compiled_runtime": "5182b526d08aefdd40ea93803188227fd74abae5",
+    "changed_executable_or_test_paths": [
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+    ],
+    "other_changed_paths": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "unchanged_tracked_entries_including_blob_and_mode": 9260,
+    "no_C_production_Rust_provider_ABI_feature_or_build_delta": true,
+    "literal": {
+      "git_blob": "d06476da1e93a445f14ac6eb16bf824810968ffc",
+      "bytes": 154214,
+      "sha256": "cf684a24935b92b10b5ee750fa19101cefc0556088d7ade367cf33b2daaef2bb"
+    },
+    "test": {
+      "git_blob": "128406200c5be240a74412647c093cd1ee95ab1a",
+      "bytes": 214504,
+      "sha256": "0eb656c6d4dbcad8b5f4509fe38d208ca9606b6f1e8ef7aa6e2bfc0c78f5322b"
+    }
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_BOUNDED_DIAGNOSTIC_NATIVE_VALIDATION",
+    "findings": [],
+    "native_launch_clearance": true,
+    "diagnostic_native_launch_clearance": true,
+    "clearance_scope": "One healthy control first, then withdrawn_backing with the exact separately bound 505 Lua literal on compiled 5182 hosted native and fresh verified roots. No binary/source relabelling. A failed healthy control must not unlock the withdrawal run.",
+    "finite_public_roster_authority_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "source_assessment": [
+    "The mode calls the actual reference provider REMOVE operation once, only after a validated real FIRST answer has returned with a nonempty served key. The initial provider call and borrow have ended before the REMOVE call; no reentrant Engine entry is added.",
+    "REMOVE changes the real authoritative roster record. It deliberately bypasses campaign-event bookkeeping, leaves Core backing lists, entity/key resolution and pose records unchanged, and returns the original FIRST answer unchanged. No fabricated refused answer, synthetic callback exception, Core mutation or query-time record seeding is used.",
+    "Only a successful removed acknowledgement increments withdrawal credit. The next observed scan operation must be ENTRY. Success requires the primary entity_scan.refused marker together with roster.key and has ended, exactly zero request faults, exactly one reply fault, and the captured first fault scan reply: result refused. An acknowledgement failure or unrelated fatal cannot satisfy the mode.",
+    "The failure verdict uses captured Lua counters and failure text. The new code adds no Engine/provider reads after Fatal or Poisoned; it does not claim postfatal buffer or engine-state inspection.",
+    "The additional counters distinguish the deliberate real-provider removal from actual campaign lifecycle events. No raw entity index or pointer is introduced, and no new physical solver, fallback, floating arithmetic or production decision is added."
+  ],
+  "focused_evidence": {
+    "checkpoint": {
+      "path": "R:/d3-evidence/sector-roster-real-withhold-CODE-FROZEN-20261106.json",
+      "bytes": 17600,
+      "sha256": "f9d13350ab37a6b5bf7d68d055774bb4c7d303f4ef0c5427069eadfbe201c5dd"
+    },
+    "author_terminal": {
+      "actual_exit": 0,
+      "result_is_error": false,
+      "completed_utc": "2026-11-06T02:14:13.137273+00:00"
+    },
+    "retained_RED": {
+      "actual_exit": 101,
+      "passed": 56,
+      "failed": 2,
+      "scope": "Earlier Lua against new tests; missing mode/report capability. Not a native Original capability control."
+    },
+    "final_format_actual_exit": 0,
+    "final_authority_tests": {
+      "actual_exit": 0,
+      "passed": 58,
+      "failed": 0
+    },
+    "direct_records_and_separate_stdout_stderr_hashes_independently_joined": true,
+    "before_after_maps": {
+      "files": 3952,
+      "literal_equal": true,
+      "sha256": "ef6ddb3105857e554d81b7dafd60222aaa4be6227e1f6110844b6db5598862a0",
+      "captured_HEAD": "aff5ac2fa0d0fbeb60e7f3fffb16e1dc90ef9caa",
+      "qualification": "Maps were captured after final edits and before the 505 commit; the two changed file bytes were separately joined to exact committed 505 blobs. Inherited raw/filter and test-Lua line-ending qualifications are preserved. This is not a claim that every working input equals Git raw bytes."
+    },
+    "test_scope": "Real registered reference provider and shared roster are exercised. Engine/candidate behavior is scripted; the positive scan fixture walks one sector and stops after its next-sector FIRST, so this is not full real-engine enumeration coverage.",
+    "positive_and_negative_controls": "Real healthy FIRST/ENTRY flow precedes the withdrawal case. The removal acknowledgement, real ended-key refusal, untouched FIRST, distinct lifecycle counts, unrelated marker rejection and failure when no ended refusal occurs are checked. An Original-profile mode restriction remains in place."
+  },
+  "compiled_runtime_prerequisites_joined": {
+    "prior_source_review": {
+      "path": "R:/d3-evidence/independent-sector-roster-driver-join-source-5182-20261106.json",
+      "bytes": 13595,
+      "sha256": "d6ab97330b44bf78bafb06ee7cc3e4f437dd19ec6b93bf3bc41685f507d72362"
+    },
+    "immutable_selected_gate_receipt": {
+      "path": "R:/d3-evidence/sector-roster-5182-frozen-gates-20261106-completion.json",
+      "bytes": 6586,
+      "sha256": "2dde247f2630b714bd3696aa74ae91aea3288c08bec6fb1be669f83bd53d452b"
+    },
+    "five_selected_direct_exits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "selected_gate_scope": "Explicit four-package fmt/check, affected World authority/roster/target-point tests, roster library tests, and Sys dialogue/roster guard. No new full feature matrix or strict gate is inferred.",
+    "clean_snapshot_maps": {
+      "files": 3952,
+      "literal_before_after_equal": true,
+      "all_scoped_raw_Git_exact": true,
+      "sha256": "4edce1ff87831c41a82fd73b63c86b89fc9bd82a7c1d9ea33f9a34b01427a67a"
+    },
+    "profile_proof": {
+      "path": "R:/d3-evidence/sector-roster-windows-profile-isolation-5182-20261106.json",
+      "bytes": 5858,
+      "sha256": "5f2f2afff78077d7c2e5800cd3a866a6a3d961bf681a2c937a869c6ead55a01c"
+    },
+    "profile_actual_object_scope": "Actual bound mb_hostplace.o and companion object members establish all five campaign_place functions in ordinary and hosted profiles and none in Original. Expected fixture feature boundaries and export exclusions are checked. Earlier main-members-only and missing-resolver checker failures are preserved; corrected proof did not rebuild or alter source.",
+    "profile_raw_audit_and_v2_binding_log_hashes_joined": true,
+    "Windows_build_receipt": {
+      "path": "R:/d3-evidence/sector-roster-5182-windows-20261106-completion.json",
+      "bytes": 45816,
+      "sha256": "1cd9548138218658e7f83932f09bb21d5e444a0d33450897291503c65fbda98c"
+    },
+    "three_build_actual_exits": [
+      0,
+      0,
+      0
+    ],
+    "current_payloads_independently_rehashed": {
+      "ordinary": 88,
+      "hosted": 88,
+      "Original": 88
+    },
+    "image_configuration_qualification": "Unavailable earlier ordinary/hosted image configurations are not inferred; the proof retains actual profile/object/feature binding.",
+    "ordinary_short_receipt": {
+      "path": "R:/d3-evidence/sector-roster-ordinary-short-comparison-5182-20261106.json",
+      "bytes": 1750,
+      "sha256": "2d1e63b91ca62ad7b1b72a40561fd9bdea807d6cd533e4ed5722ab423c72a94a"
+    },
+    "ordinary_short_scope": "Retained exact short: native/controller/input checks zero; three COMPLETE files literally equal accepted 80fd bytes, at 230871, 1553674 and 7477 bytes. Parent comparison is reused, not a new run or whole-pack acceptance."
+  },
+  "required_native_evidence_next": [
+    "Bind the exact 505 Git Lua literal separately from unchanged compiled 5182 payloads, seal payloads and full pre/post input manifests, and preserve native/helper/outer exits.",
+    "Healthy control must have reached real scan/roster queries, complete cohort and zero request/reply faults.",
+    "Withdrawal must acknowledge real removal of the just-served authoritative record, then reach the next actual ENTRY and the exact ended-key primary refusal. Establish zero request faults and only the expected refusal reply fault, with no fallback or postfatal reads. This remains unmeasured at report creation."
+  ],
+  "limitations": [
+    "No 505 campaign/native execution or public roster authority acceptance is claimed here. Previously passing scan_real/scan_none controls alone do not distinguish this new backing dependency; the planned real withdrawal supplies that missing measurement.",
+    "Original C lists, heap/key resolution, roster identity/lifetime synchronization, effectful getters, live poses, city children and other transitional backing still have required scope. Raw tree/forest/cloud loading and RNG, hierarchy, DCS mapping and natural moving/weapon integration are not waived.",
+    "Prior closed numerical, FP, scan, Candidate, TREE, stationary and Task50/52 evidence remains at its original identities; no new caller-FP or exhaustive corrupt-list proof is inferred.",
+    "The separate ordinary 3475 full pack remains outside this source pass. Partial prefix equality is not full completion, Task49 delivery or whole-D3 acceptance."
+  ],
+  "review_operations": "Read-only Git/source/evidence/hash inspection; only this safe report was written. No source changes, tests, builds, native launches, process/cache operations or nested agents."
+}

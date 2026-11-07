@@ -1,0 +1,430 @@
+{
+  "schema": 1,
+  "review_kind": "One independent combined correctness, clean-code and boundary-safety source pass for NEW CITY collision-state backing",
+  "reviewer": "/root/d3_environment_review",
+  "captured_utc": "2026-11-06T09:52:40.217173+00:00",
+  "source": {
+    "commit": "78ef839dd75d325c42acb3127d097fee400388c2",
+    "parent": "de60a051b37b1893cb435865c14c338798399656",
+    "parent_executable": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+    "metadata_commit": "0a847b8e1692d2e078ae1336598ae8898355570d",
+    "worktree": "R:\\d3-evidence\\collision-characterization-20261029",
+    "immutable_Git_blobs_reviewed": true,
+    "changed_paths": [
+      {
+        "path": "aphavoc/source/entity/fixed/city/ct_msgs.c",
+        "bytes": 10733,
+        "raw_sha256": "4586a959660dcc7c0558a6b3b7c382d07d5e5fa1c0c4f51c9dd64fd242b45819",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+        "bytes": 43524,
+        "raw_sha256": "63212280038f097641bf9a9d95b94f88dcfc09afdb81771e4e4c0939197c4866",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+        "bytes": 88359,
+        "raw_sha256": "b7af28cd0060f7c939621a7db6aee2e4e0957c63422aea7070fdd68411975c7e",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+        "bytes": 56354,
+        "raw_sha256": "0d744524b9e406f1f554cdf947a2d1c5e6a2bec38289921f3bb7531949ffbac6",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+        "bytes": 14421,
+        "raw_sha256": "96bad27212f2c30690812ba33e0860867721d6def844415d66fa0ebaa1d3291f",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplace.c",
+        "bytes": 6056,
+        "raw_sha256": "5b656b0ed4cb7469c8d781a7fa40ab822491c192c049fba09819f953b9700cb9",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplace.h",
+        "bytes": 4124,
+        "raw_sha256": "97c36385a088c249941e0f1525abe85c3f43b67e1aa781528a9f5ad4b82177f6",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+        "bytes": 32708,
+        "raw_sha256": "ac3f163ae7d3d731b17669bcb1dc40f3a27fdb71606c587cacd255e39feb7e54",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+        "bytes": 173989,
+        "raw_sha256": "fac399a1fad80d05736bf7021d7b1536b975b453c0cfeb8c8cb5facfdb4d1623",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+        "bytes": 54501,
+        "raw_sha256": "aca8e07216325f2a24f574014c4b735671c99e9732aefcfdaeecc886db31c459",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 195037,
+        "raw_sha256": "95623d9074937df42ab950602195eef9e05ca621c3a517c797ec313a0528c637",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "bytes": 152260,
+        "raw_sha256": "8acdacecd24886a1deef572db98879462d4a565cab145e8024fbaf188f6e087f",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/roster.rs",
+        "bytes": 61642,
+        "raw_sha256": "cdd424249527275f9d2bc18bf36d768de95076751aa8fb5fb3fccf13340de73a",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "bytes": 273336,
+        "raw_sha256": "14d8229ca58add83bb57caf6ce5aeb5f4fa7d330a18d84f78b02c5d59ef7e80f",
+        "literal_Git_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+        "bytes": 134178,
+        "raw_sha256": "6c792f00ea5ff82a9f2de3ab660f3b62025e5b8355ea125e2521388d50f0e487",
+        "literal_Git_binding_verified": true
+      }
+    ],
+    "metadata_only_paths": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/reference/d3-entity-collision/city-own-state-source-and-checks/README.md",
+      "eech-campaign/reference/d3-entity-collision/city-own-state-source-and-checks/city-own-state-CODE-FROZEN-20261106.json",
+      "eech-campaign/reference/d3-entity-collision/city-own-state-source-and-checks/city-own-state-raw-source-binding-78ef839dd-20261106.json",
+      "eech-campaign/reference/d3-entity-collision/city-own-state-source-and-checks/manifest.json"
+    ],
+    "main_observed_clean_at_metadata": true,
+    "source_only_no_Windows_or_native_actuals": true
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "findings": [],
+    "source_clear": true,
+    "native_launch_clearance": true,
+    "native_launch_clearance_is_conditional": true,
+    "finite_public_CITY_state_backing_closed": false,
+    "physical_CITY_box_construction_moved": false,
+    "all_CITY_physical_predicates_host_owned": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "source_assessment": {
+    "record_and_writer_contract": "CityState is nine raw words in the existing placement Record.fixed variant, not a second pose/model/roster store. Creation initializes position and the valid inverted box before insertion; insertion states the complete record after placement/link declaration. The existing same-sector fixed-position setter re-states it, a cross-sector setter writes before re-insertion, and the one new ct_msgs call states it only after the last box expansion and assertions. No query-time state adoption or fallback was added.",
+    "lifecycle": "The existing record persists across a CITY sector relink while children keep it alive; LINK precedes re-statement at the new key. Empty removal ends that record; fresh insertion has no state until stated. Withdrawal leaves placement, child list and object identity intact; a subsequent valid lifecycle statement restores the property. The new enum variant is handled by existing state merging and family separation. Same-sector and relink behavior, withdrawal/re-statement, empty/with-children and reset have focused controls. These are source/controlled proofs, not observed retail lifetime coverage.",
+    "writer_census_limits": "ct_creat.c supplies the initial sentinel and attributes; ct_vec3d.c registers box getters only; the CITY pack/unpack hooks are empty; the actual box expansion is ct_msgs.c. Generic fixed setters remain active and are included rather than dismissed by entity-name inference. Text guards support this current-source census, not a universal proof that future aliases or new writers are impossible.",
+    "consumer_order": "The unchanged offer first permits the tallest/sector skip and NeedFixed, then reads the fixed flag and actual CITY classification, asks the host list FIRST, and reads position/min/max only with a first building. New fixed_join invokes city_join only at that reached stage. Missing/withdrawn state is a named refusal there; no new state prerequisite was added to earlier skips or a city with no first building. Model bounds/radius lookup remains deferred as before.",
+    "canonical_state_and_mirrors": "The actual placement entity type governs whether a CITY can hold CityState; other supported families and ordinary building children cannot be stated as cities. At the reached city stage, the three position and six box words are compared bit-for-bit in original read order, including signed zero; only the held record words are passed to the unchanged candidate kernel. No fixed-family or Movers state is silently substituted.",
+    "raw_domains_and_atomicity": "CITY_STATE phase14 uses the existing16-word ENTITY_SCAN transport: words0..8 are position/min/max, word11 phase, all other words zero. Key grammar is checked. Position uses integer classification/truncation bounds and box words require finite exponents; the original inverted sentinel is accepted without imposing a new min<=max rule. Validation and type checks precede record mutation; try_borrow/try_borrow_mut produce named refusal rather than RefCell re-entry panic. Reply validation checks placed, the same roster key and zero cursor before the C caller continues.",
+    "C_buffer_identity_and_FP_RNG": "C copies three pointer-getter vectors with memcpy into a nine-word temporary, then into a zeroed request; no raw pointer/index crosses the wire and no additional semantic/legacy identity is allocated. Phase14 fits the unchanged transport. The added state path contains integer classification/bit copies, no added RNG or physical float arithmetic. Existing heading/box math, original partial-write behavior and kernel operations are unchanged. No new all-boot/full-FP measurement is inferred from compilation or from reused numerical evidence.",
+    "profiles": "The ct_msgs notification uses mb_hostplace.h, whose no-host branch compiles the report away; the real placement adapter remains guarded by EECH_CAMPAIGN_HOST_ENTITY. Explicit Original/collision-fixture and shipping profile behavior must be confirmed on new build artifacts; old f734 objects/binaries cannot stand in for changed C."
+  },
+  "remaining_required_physical_coupling": [
+    {
+      "scope": "CITY box construction/aggregation",
+      "source": "aphavoc/source/entity/fixed/city/ct_msgs.c:114",
+      "facts": "The actual Core function still queries the building model bounds, reads heading, computes a transformation matrix and rotates endpoints (through139), reads building position and computes offsets from city centre (145..161), and expands min/max (167..179). The only new operation is the report after those writes at189. Canonical backing is moved; this physical construction/model-data consumer is NOT moved and remains REQUIRED D3 work."
+    },
+    {
+      "scope": "CITY collision-fixed flag and classification inputs",
+      "source": "aphavoc/source/entity/fixed/fx_int.c:254",
+      "facts": "INT_TYPE_COLLISION_TEST_FIXED still comes from fixed_database[raw->sub_type] at257 via the inherited getter dispatch. The offer still supplies fixed/mobile/type predicates and has-buildings through its staged current callers; the CITY record here holds only position and box. This report does not claim all CITY physical flags/predicates host-owned."
+    },
+    {
+      "scope": "Other required coupling",
+      "facts": "Shared UPDATED/terrain/tallest and spatial-height inputs, raw tree/forest/cloud data and RNG, identity/lifetime/synchronization, hierarchy/subobjects/viewpoints/devices and other needed services, needed DCS calls/workarounds and natural moving-weapon integration remain REQUIRED. No required scope is deferred away or waived."
+    }
+  ],
+  "diagnostic_assessment": {
+    "mode": "withdrawn_city_state",
+    "strict_CURRENT_join": "Only a well-formed question whose key equals the entry actually served, at the reached CITY position/box stage and over a report the real provider acknowledged, credits city_state_joined or withdraws state. Wrong served key is a request fault and is not credited/mutated even when the provider can answer the other live key.",
+    "real_property_withdrawal": "After a successful eligible real lookup and before returning that SAME reply unchanged, the host sends the same provider ONE real withdrawal of only the record state and requires removed. Placement, child list, Core entity and object identity are not removed; no fabricated answer, Core write or double delegation is used.",
+    "continuation": "Unlike NeedPlacement, a CITY-stage answer does not guarantee a same-city continuation. The control waits for the NEXT actual question of that key that reaches the CITY state stage, then requires the real provider refusal: entity_candidate.refused plus candidate.city/withdrew, request0/reply1 and the anchored first-fault class. Questions of buildings or the CITY early stage do not satisfy it.",
+    "UNREACHED_and_failures": "A clean lack of an eligible lookup or a clean lack of the second same-CITY-stage question is UNREACHED, not success. Request/reply faults and unrelated fatal markers before eligibility remain failures. A later valid question may be observed under the existing whole-trace policy, but nonzero request faults still prevent a passing refusal. The whole poisoned branch uses retained observations, with physical counters unknown rather than new engine queries.",
+    "actual_gate": "Root must first obtain one healthy current run with boot-or-armed CITY report evidence, current joined CITY-stage consumption and no faults. Its armed report count may legitimately be zero. The negative requires a reached second same-CITY-stage question and real named refusal; if absent, retain UNREACHED with no actor/time/geometry hunting or criterion relaxation.",
+    "coverage_limits": "C controls exercise actual shared placement-map/adapter headers with scripted entities. Driver controls use a scripted engine, real roster reports and separately pinned provider refusal text; this is not native retail execution. No public authority or new ordinary recording comparison has yet occurred for78ef."
+  },
+  "evidence": {
+    "final_checkpoint": {
+      "path": "R:\\d3-evidence\\city-collision-state-CODE-FROZEN-20261106.json",
+      "bytes": 64136,
+      "sha256": "b42e271263473bd8e4723b74d02faf73097358e0ea0f3c27f5eade9714827605"
+    },
+    "retained_original_repo_checkpoint": {
+      "path": "eech-campaign/reference/d3-entity-collision/city-own-state-source-and-checks/city-own-state-CODE-FROZEN-20261106.json",
+      "bytes": 63537,
+      "sha256": "cc6ed8d96e0a036e137ba8c941bf5393a7decc90b7f6a1a04e9c8a16894601c7",
+      "literal_Git_blob_verified_at_metadata": true
+    },
+    "checkpoint_qualification": "The final external64,136-byte b42e record names metadata0a847 and publication/copy fields. The earlier63,537-byte cc6e repository record is unchanged and cannot name the commit that stores it. Common executable/test/source facts agree; these identities are not relabelled.",
+    "producer_completion": {
+      "path": "R:\\d3-evidence\\claude-d3-city-collision-state-20261106-completion.json",
+      "bytes": 1113,
+      "sha256": "3e343c8e463a1005b71f615b11b90db107b57358c901a5d269bb9e2275861280"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_actual_model": "claude-sonnet-5-5",
+    "producer_completed_utc": "2026-11-06T09:45:34.812346+00:00",
+    "direct_checks": [
+      {
+        "label": "city-final-fmt",
+        "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+        "actual_exit": 0,
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-fmt.json",
+          "bytes": 928,
+          "sha256": "50f85761971f8f0b391bcebb548761e92eb03c2405bf96a65152688412085177"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-fmt.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-fmt.stderr.log",
+          "bytes": 42,
+          "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+        },
+        "test_rows": []
+      },
+      {
+        "label": "city-final-world",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+        "actual_exit": 0,
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-world.json",
+          "bytes": 1179,
+          "sha256": "b9b44c7730eb71281d9731f355d7511426ac35525231483194eaf7184d68b491"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-world.stdout.log",
+          "bytes": 56173,
+          "sha256": "9684ed68d3c4019ffebf8a06e369997040ebc6a5dbafc141d03b2d0ac6b20678"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-world.stderr.log",
+          "bytes": 13473,
+          "sha256": "1c63891adc4b7e890c286a4cfc3dfbcfb03fd15df04354c6ee7201cb631cf8dd"
+        },
+        "test_rows": [
+          {
+            "binary": "src/lib.rs",
+            "verdict": "ok",
+            "passed": 366,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "ok",
+            "passed": 74,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_candidate_host.rs",
+            "verdict": "ok",
+            "passed": 13,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_pose_host.rs",
+            "verdict": "ok",
+            "passed": 5,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_roster_host.rs",
+            "verdict": "ok",
+            "passed": 17,
+            "failed": 0
+          },
+          {
+            "binary": "tests/model_target_point.rs",
+            "verdict": "ok",
+            "passed": 52,
+            "failed": 0
+          }
+        ]
+      },
+      {
+        "label": "city-final-engine",
+        "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+        "actual_exit": 0,
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-engine.json",
+          "bytes": 1234,
+          "sha256": "d3393f2d0816a4eae755037e0f51a25a065d8e748d7e2264444047930bc59e1a"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-engine.stdout.log",
+          "bytes": 3109,
+          "sha256": "5d0a12258484ec4b12deb53b514df9171d826385eb2baec88e7bf92539fd01ee"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-engine.stderr.log",
+          "bytes": 597,
+          "sha256": "5cbc87705610209fc937568e81f9026f9824da952724e7ad121c87d44c08f3a2"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_dialogue.rs",
+            "verdict": "ok",
+            "passed": 1,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_host_guard.rs",
+            "verdict": "ok",
+            "passed": 5,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_pose_lifecycle_guard.rs",
+            "verdict": "ok",
+            "passed": 4,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_roster_guard.rs",
+            "verdict": "ok",
+            "passed": 13,
+            "failed": 0
+          }
+        ]
+      },
+      {
+        "label": "city-final-check",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+        "actual_exit": 0,
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-check.json",
+          "bytes": 970,
+          "sha256": "93709de190426d6a696eda864e145d2f693cef7464aa6402361e5f9d3a92a474"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-check.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-final-check.stderr.log",
+          "bytes": 391,
+          "sha256": "dc932f5893a5404fd42cb8acf99a6e8d00d41f9d4aa758dc37e8266c77e3f7ee"
+        },
+        "test_rows": []
+      }
+    ],
+    "World_passed": 527,
+    "World_failed": 0,
+    "World_result_rows": 6,
+    "Sys_passed": 23,
+    "Sys_failed": 0,
+    "Sys_result_rows": 4,
+    "C_dialogue_expectations": 618,
+    "test_totals_are_current_scoped_not_full_feature_matrix": true,
+    "final_maps": {
+      "before": {
+        "path": "R:\\d3-evidence\\city-collision-input-map-before-20261106.json",
+        "bytes": 2028815,
+        "sha256": "308d62c3146e674fddb79ba1a1b9558c1d2e93e42f79ee59806e25057a78500f"
+      },
+      "after": {
+        "path": "R:\\d3-evidence\\city-collision-input-map-after-20261106.json",
+        "bytes": 2028815,
+        "sha256": "308d62c3146e674fddb79ba1a1b9558c1d2e93e42f79ee59806e25057a78500f"
+      },
+      "literal_equal": true,
+      "files": 3952,
+      "all15_changed_paths_raw_size_SHA256_equal_Git_verified": true,
+      "raw_Git_equal_count_per_complete_binding": 3949,
+      "raw_Git_differences": "Exactly three inherited unchanged tree-geometry test-Lua workingCRLF/GitLF inputs, retained with size/SHA qualifications. Four additional legacy header/allocator filter-identity differences keep the same raw Git bytes; seven raw/filter qualifications must not be called seven raw differences.",
+      "no_normalization_or_replay": true
+    },
+    "raw_binding": {
+      "path": "R:\\d3-evidence\\city-collision-raw-source-binding-78ef839dd-20261106.json",
+      "bytes": 2245,
+      "sha256": "24865fd553e5a80983d1183abbffd580164cdbdc540d8f9f1c0659b2629b0f58"
+    },
+    "genuine_release_RED": [
+      {
+        "label": "city-red-world-release",
+        "actual_exit": 101,
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-world-release.json",
+          "bytes": 1011,
+          "sha256": "26c6d9af3abe3edf62ab98d13f025f7a09e309b700dbf62861cb17d0ec56c00a"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "FAILED",
+            "passed": 68,
+            "failed": 6
+          },
+          {
+            "binary": "tests/model_target_point.rs",
+            "verdict": "FAILED",
+            "passed": 44,
+            "failed": 8
+          }
+        ]
+      },
+      {
+        "label": "city-red-engine-release",
+        "actual_exit": 101,
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-engine-release.json",
+          "bytes": 1117,
+          "sha256": "c04a7738cfe1f0a0d702cda1e31739472ae7730a4c22da4b805f8375eaa494b8"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_dialogue.rs",
+            "verdict": "FAILED",
+            "passed": 0,
+            "failed": 1
+          },
+          {
+            "binary": "tests/entity_roster_guard.rs",
+            "verdict": "FAILED",
+            "passed": 11,
+            "failed": 2
+          }
+        ]
+      }
+    ]
+  },
+  "preserved_evidence_qualifications": [
+    "The two DEBUG roster FP-flag failures were recorded against unchanged source, not renamed a CITY regression. Final and behavioral RED checks use the retained release/locked configuration; intermediate failing driver/guard attempts remain literal history.",
+    "Phase14 becoming a valid operation requires the existing out-of-domain control to use15; the old CITY follow-on test now states CITY state before querying it. These are explicit contract updates, not relaxed collision, mirror, reply-fault or refusal criteria.",
+    "Unchanged kernel, transport, numerical/FP and prior finite actual proofs are reused at their own identities. New changed C requires its own exact Windows profile builds and new native short/authority facts. No fresh strict-lint/full feature matrix, Windows, retail native or complete long-pack result is claimed by these four direct checks.",
+    "Source guard counts/text are not physical runtime measurements or complete dormancy/mapping evidence. Metadata and raw input bindings are separate from production authority."
+  ],
+  "conditional_native_validation_prerequisites": [
+    "Root binds a fresh immutable exact78ef snapshot with repository-local longpaths before checkout, clean full status and byte-level source map; preserve the author three-Lua raw qualifications separately from the clean snapshot identity. No old binary relabel.",
+    "Build the required new ordinary/hosted/explicit Original profiles and bind actual Cargo features, bound COFF members, report-wrapper inclusion/exclusion, PE exports and sealed payload/script identities. The new ct_msgs/mb_hostplace/mb_hostmodel C files have no new retail/Windows proof yet.",
+    "Run the unchanged retained ordinary short with all three COMPLETE files compared literally, full pre/post input checks and payload/source seals, then ONE healthy current CITY-state case before the conditional real withdrawal.",
+    "Use the exact current Git-bound Lua; require current-key/stage joins, named second-city-stage refusal and no postfatal engine reads. Missing continuation is finite UNREACHED and must not trigger actor/time/geometry search.",
+    "Prepared root tool/reference were based on f734 but their actual bytes match78ef: input-manifest.py SHA c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13; Lebanon reference SHA62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1. Root still owns consumption markers, fresh input checks and all runtime operations.",
+    "Keep the current immutable f734 full40 pack untouched. It does not validate changed78ef C; complete current shipping/CI/final census/review/normal delivery remain separate requirements."
+  ],
+  "independent_review_operations": "Read-only Git/source/evidence audit and this single safe report write. No agents, builds, tests, native launches, cache/VM/process actions, shared source/card/canonical changes or external publication.",
+  "publication_safety": "Counts, hashes, source locations and private paths only. No retail coordinates, geometry/physical tuples, cohort signatures, raw actor/host-ID suffixes, pointers, allocation indices, assets/binaries or raw failure lines."
+}

@@ -1,0 +1,54 @@
+{
+  "when_utc": "2026-10-29T18:42:50.449304+00:00",
+  "original_source": "d5ca5ee5bb1f784318ce9c76903169cb97bbe362",
+  "corrected_source": "5416adb3b0ede34d8592ffed317e6dab5048b796",
+  "scope": "All original boot-report values, physical/legacy folds, samples and common counters; new diagnostics separate. No valid d5 moving oracle or Tacview equality claimed.",
+  "results": [
+    {
+      "scenario": "georgia",
+      "original_rows": 199,
+      "corrected_rows": 205,
+      "all_old_values_identical": true,
+      "new_diagnostic_row_counts": {
+        "col-census-class": 2,
+        "col-flags": 2,
+        "col-fp": 2
+      },
+      "original_raw_sha256": "7eb8191f907f6d053a7ee307aef22c9e76afdb1c78876a7e66838e4bf5145235",
+      "corrected_raw_sha256": "8fdc6e71b25b4c3d9a6cab649e6c208f15060420babb2b4960513cb72114bbc3",
+      "differences": [],
+      "valid": true
+    },
+    {
+      "scenario": "lebanon",
+      "original_rows": 199,
+      "corrected_rows": 205,
+      "all_old_values_identical": true,
+      "new_diagnostic_row_counts": {
+        "col-census-class": 2,
+        "col-flags": 2,
+        "col-fp": 2
+      },
+      "original_raw_sha256": "35a2cdd2fe29910ec22e4dcaa5d5ed9ecb491ac61b46ac5eefe2af421bd9cdc9",
+      "corrected_raw_sha256": "3c1b7f522a4e22a8405d84fe5a36d64032569809bfa3d5ee597f3287dc1fd252",
+      "differences": [],
+      "valid": true
+    },
+    {
+      "scenario": "lebanon-repeat",
+      "original_rows": 199,
+      "corrected_rows": 205,
+      "all_old_values_identical": true,
+      "new_diagnostic_row_counts": {
+        "col-census-class": 2,
+        "col-flags": 2,
+        "col-fp": 2
+      },
+      "original_raw_sha256": "35a2cdd2fe29910ec22e4dcaa5d5ed9ecb491ac61b46ac5eefe2af421bd9cdc9",
+      "corrected_raw_sha256": "3c1b7f522a4e22a8405d84fe5a36d64032569809bfa3d5ee597f3287dc1fd252",
+      "differences": [],
+      "valid": true
+    }
+  ],
+  "actual_exit": 0
+}

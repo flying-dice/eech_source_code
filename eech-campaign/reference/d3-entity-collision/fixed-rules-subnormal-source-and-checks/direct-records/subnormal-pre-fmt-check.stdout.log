@@ -1,0 +1,29 @@
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_roster_host.rs:474:
+                     // not supported by the kernel: the existing named refusal, and nothing of the caller's state is touched
+                     for refused in [&begin, &entry] {
+                         assert_eq!(result(refused), "refused", "{context}");
+-                        assert!(reason(refused).contains("every floating-point exception masked"), "{context}: {}", reason(refused));
++                        assert!(
++                            reason(refused).contains("every floating-point exception masked"),
++                            "{context}: {}",
++                            reason(refused)
++                        );
+                     }
+                 } else {
+-                    assert_eq!((result(&begin), name(&begin)), ("first".to_string(), key.clone()), "{context}: {:?}", begin.get::<Option<String>>("reason"));
++                    assert_eq!(
++                        (result(&begin), name(&begin)),
++                        ("first".to_string(), key.clone()),
++                        "{context}: {:?}",
++                        begin.get::<Option<String>>("reason")
++                    );
+                     assert_eq!(result(&entry), "offer", "{context}: {:?}", entry.get::<Option<String>>("reason"));
+                 }
+-                assert_eq!(after, before, "{context}: the caller's whole state after a valid scan with subnormal coordinates");
++                assert_eq!(
++                    after, before,
++                    "{context}: the caller's whole state after a valid scan with subnormal coordinates"
++                );
+             }
+         }
+     }

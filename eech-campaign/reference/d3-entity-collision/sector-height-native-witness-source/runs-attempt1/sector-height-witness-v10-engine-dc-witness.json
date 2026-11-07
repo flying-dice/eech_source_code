@@ -1,0 +1,22 @@
+{
+  "controller_pid": 21068,
+  "state": "terminal",
+  "started_utc": "2026-11-07T11:33:01.508452+00:00",
+  "command": "cargo test --locked -p eech-engine -p eech-dc --features eech-engine/sector-height-witness,eech-dc/sector-height-witness --no-fail-fast",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-height-witness-linux-20261107.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked -p eech-engine -p eech-dc --features eech-engine/sector-height-witness,eech-dc/sector-height-witness --no-fail-fast"
+  ],
+  "scope": "Working-tree check in the sole leased volume eech-linux-d3-height-witnesses-20261107, image sha256:810e0121... named, never substituted.",
+  "pid": 15440,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T11:34:17.007208+00:00"
+}

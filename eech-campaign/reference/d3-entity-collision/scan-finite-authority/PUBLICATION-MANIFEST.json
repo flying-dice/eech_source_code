@@ -1,0 +1,35 @@
+{
+  "scope": "Exact committed bytes; no runtime normalization",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 30,
+      "sha256": "93aacecaa993509cce94958a3a85bfc06b3cb21a747bab51b8021652a3acb878"
+    },
+    {
+      "path": "entity-scan-builds-and-payloads-8b8523082-20261105.json",
+      "bytes": 3445,
+      "sha256": "de675abcc3eb818ee0ba6a9fc243eaa2d4b1bae95e79ebadb306075f3837e322"
+    },
+    {
+      "path": "entity-scan-ordinary-short-comparison-8b8523082-20261105.json",
+      "bytes": 2289,
+      "sha256": "a205224d9725de999c0479b7b71d4f5ae16d0abcc1fd178fd03ef26bd6e6043d"
+    },
+    {
+      "path": "independent-entity-scan-public-authority-ff608-native8b852-20261105.json",
+      "bytes": 36152,
+      "sha256": "5cab070d2bd2b574aca46d8389e8f7327f1b3d1ac989c9b9243c10fb75e2880b"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4447,
+      "sha256": "8803a53b81914caea4bc6e1b0e1458c4986a1fe8a25c14469f97b4ecb6536dc0"
+    },
+    {
+      "path": "scan-finite-authority-summary.json",
+      "bytes": 17781,
+      "sha256": "656c9e556f72f99009ccaba4687d36d7e12256bfa5a42ec0b38a5c9b8daa1a7f"
+    }
+  ]
+}

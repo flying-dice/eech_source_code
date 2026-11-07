@@ -1,0 +1,35 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "height-reference-beb-all9-CI-readback-20261107.json",
+      "bytes": 18479,
+      "sha256": "9858cdb809c5ab5bdd88b32f22900f4261eacf54c8d35e98cdbbec64eba63d0a"
+    },
+    {
+      "path": "height-reference-Root-binding-beb-20261107.json",
+      "bytes": 11301,
+      "sha256": "e1b5cad058845f3c6a3d3d7b7fa6a1ac8846425d1ca8a061ae76b524af2cfb64"
+    },
+    {
+      "path": "independent-sector-height-reference-fix-9cb480-source-20261107.json",
+      "bytes": 11677,
+      "sha256": "f61dac32f008b38b4795eaa0dd73357fb6bcd1fabf5f017e59874fb1cc77f81a"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "bytes": 827,
+      "sha256": "e1ec02039c140c50a6d3b975e3994794f92b4e4139fe000cf4ca89fe8700bdaa"
+    },
+    {
+      "path": "README.md",
+      "bytes": 694,
+      "sha256": "8cec439079ff922056e50c348a4701626480f8bfd80cac2de89fa9fbc9423ab4"
+    }
+  ],
+  "scope": "Literal copies of the SAME source review of the consumer-reference correction, Root's binding of the exact beb head and the exact beb CI read-back; not a native result or acceptance."
+}

@@ -1,0 +1,31 @@
+{
+  "correction_source": "c2aa4f52b4d2c114cae89747208874c1bcd2d8b0",
+  "diagnostic_source": "bd6e9c5794c26fc7e3fadbbcbcd31ae292b8d0ce",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 62,
+      "sha256": "9464b301a283a4eb3e9d7857adc11aee7074bf311ae6da26117d3458bad5be13"
+    },
+    {
+      "path": "diagnostic-actual-review.json",
+      "bytes": 9227,
+      "sha256": "9f0399d179dbeb35bc48867f1cc521dd985f284dedfa3a37660632b6f7c501db"
+    },
+    {
+      "path": "diagnostic-source-review.json",
+      "bytes": 13363,
+      "sha256": "b2ef7882caac936c22972347221d83ed62fd3e29becc0fe2d4dc16add1152bb7"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1929,
+      "sha256": "7a71e82ffc91fc35c1c7af46d206d4bae38b3d3e859f3cc322e95d938e8647b4"
+    },
+    {
+      "path": "safe-facts.json",
+      "bytes": 6550,
+      "sha256": "b34eacfbe47838a899d9d03de44b582df64c15ed3ba7c504177e0a9589bb47dd"
+    }
+  ]
+}

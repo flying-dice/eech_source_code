@@ -1,0 +1,6 @@
+wsl: Failed to translate 'R:\d3-evidence'
+error: unexpected argument 'malformed_link_acknowledgement' found
+
+Usage: cargo test [OPTIONS] [TESTNAME] [-- [ARGS]...]
+
+For more information, try '--help'.

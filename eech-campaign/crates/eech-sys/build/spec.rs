@@ -563,7 +563,10 @@ pub fn project_h() -> Vec<Spec> {
 
 fn extracted_c() -> Vec<Spec> {
     vec![
-        Raw("#include \"project.h\"\n\n#define DEBUG_MODULE 0\n\n#define LANDING_DEBUG 0\n".into()),
+        // mb_hostplace.h is the hook header en_list.c includes beside project.h: its report of every sector and city-list write
+        // (campaign_place_insert and the others) is in the extracted insert/delete bodies. This build defines no EECH_CAMPAIGN_HOST_ENTITY,
+        // so the header compiles every report away: the original, no-host list semantics.
+        Raw("#include \"project.h\"\n\n#include \"entity/mobile/mb_hostplace.h\"\n\n#define DEBUG_MODULE 0\n\n#define LANDING_DEBUG 0\n".into()),
         Define {
             name: "DELTA_TIME_HISTORY_SIZE",
             file: "modules/system/time.c",

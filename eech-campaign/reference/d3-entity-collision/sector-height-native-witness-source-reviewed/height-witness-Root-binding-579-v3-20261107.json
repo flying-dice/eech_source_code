@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "created_utc": "2026-11-07T11:43:28.476902+00:00",
+  "head": "579427c555bdb07ca8f8eb9dacc8c76afb3f3286",
+  "clean": true,
+  "Root_reader_created_after_tests_not_a_test_input": true,
+  "freeze_sha256": "5b6cbb38df8106b61059c3ca296a9f9e5fea7c8473a1d12c6f9b460e6110b485",
+  "claude_completion_sha256": "9318149ae5613ed2d9ab98cd61adb9f34ae1eb3a7d2510eb9f6cd395c90ac66c",
+  "all_3976_pre_post_current_raw_equal": true,
+  "actual_git_blobs_checked": 3976,
+  "lua_raw_crlf_git_lf_qualified": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "four_core_filter_only_files_raw_git_literal": [
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+  ],
+  "extra_files_PRE_POST_equal_count": 17,
+  "extra_files_current_literal_count": 16,
+  "post_POST_reader_drifts": [
+    {
+      "path": "R:/d3-evidence/freeze-hw-witnesses-20261107.py",
+      "pre_post_bytes": 21298,
+      "pre_post_sha256": "0f02f842ec40615da4134adad34633cdccc8c86fb90475ce140979812af6bdd3",
+      "current_bytes": 21620,
+      "current_sha256": "47e382c7abd3d09fe6c0587ceb95049b62ab74152d7c826c3190b8fd2bd34bae",
+      "qualification": "Publisher-reader changed afterPOST; no-reader-changed prose is false. Not compiled/test-input drift. Current reader is freeze.scripts/Git-packet literal; source review must disposition disclosure. Initial Root assertion retained."
+    }
+  ],
+  "changed_source_files_all_git_literal": 18,
+  "packet_manifest_entries_all_current_and_git_literal": 150,
+  "ten_final_check_receipts_actual_exit_zero": true,
+  "total_runs_including_retained_failures": 32,
+  "final_runs_count": 10,
+  "final_test_instances": 664,
+  "limits": "Read-only input/Git binding of NEW feature-gated witness source6e413/metadata579. C/Rust/Lua/build sources changed; no Native or Windows result exists for this source. All10finalchecks0 at stable3976PREPOST, firstfailedattempt preserved. M5plan observes actual guardedbranch in accepted3h window and mayUNREACHED; M6realCoreSaveLoad entry unrun. SAMEreview/conditionalfreshWindows/profile/native gates required; bothM5M6/all10/currentfull40/Task49/D3/delivery OPEN."
+}

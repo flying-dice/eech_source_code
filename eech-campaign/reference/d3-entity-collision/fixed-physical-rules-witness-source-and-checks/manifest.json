@@ -1,0 +1,143 @@
+{
+  "schema": "d3.task49.fixed-rule-witness.pack-manifest.v1",
+  "listed_files": 34,
+  "files_including_manifest": 35,
+  "files": {
+    ".gitattributes": {
+      "size": 124,
+      "sha256": "7f7644bc8d960a176a5e50c98ab85a8e28a82472b3622eaaa8ed7cb7a5da3c25"
+    },
+    "direct-records/fixed-rule-witness-final-clippy.json": {
+      "size": 831,
+      "sha256": "2c34ffe43753bf24d65ee50bbbb18c7232f8009801e97e5269c999af0b41a431"
+    },
+    "direct-records/fixed-rule-witness-final-clippy.stderr.log": {
+      "size": 184,
+      "sha256": "77304459043d01d99a1083d1b15ee5dcb5d4af79a2f99bf39dc7b587bf58ed5a"
+    },
+    "direct-records/fixed-rule-witness-final-clippy.stdout.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/fixed-rule-witness-final-fmt-check.json": {
+      "size": 772,
+      "sha256": "ea3134f865f25c87dcfd61ff26cc5e3488d5c2604ee79cb2babbfc59848832dc"
+    },
+    "direct-records/fixed-rule-witness-final-fmt-check.stderr.log": {
+      "size": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "direct-records/fixed-rule-witness-final-fmt-check.stdout.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/fixed-rule-witness-final-green-debug.json": {
+      "size": 885,
+      "sha256": "a082f3a482c267841263dcad9cfc4784b00578364a444571f1fb391082dcb9bf"
+    },
+    "direct-records/fixed-rule-witness-final-green-debug.stderr.log": {
+      "size": 13873,
+      "sha256": "98f84dbb31521f4c43230a2e7a896fcb03554778e354506fc0167bb52002ad95"
+    },
+    "direct-records/fixed-rule-witness-final-green-debug.stdout.log": {
+      "size": 10689,
+      "sha256": "26482171a05a95f85cf6368e887a9524d47776ace15d30d56a5f886ae18153ac"
+    },
+    "direct-records/fixed-rule-witness-fmt-apply.json": {
+      "size": 750,
+      "sha256": "31c4ca4eb645171ed375075cc80873c36d28b36240c088a6cc4cf17de7a6eee3"
+    },
+    "direct-records/fixed-rule-witness-fmt-apply.stderr.log": {
+      "size": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "direct-records/fixed-rule-witness-fmt-apply.stdout.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/fixed-rule-witness-fmt-prelim.json": {
+      "size": 772,
+      "sha256": "8cea3903bbdd822eb92b0016d16806f1e03583353e6ad96a32b72ced071862cb"
+    },
+    "direct-records/fixed-rule-witness-fmt-prelim.stderr.log": {
+      "size": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "direct-records/fixed-rule-witness-fmt-prelim.stdout.log": {
+      "size": 7731,
+      "sha256": "38d19306f7d031568c930abffc5349a4411b501eb123045a941af6ca490b5b54"
+    },
+    "direct-records/fixed-rule-witness-green-a.json": {
+      "size": 886,
+      "sha256": "7248a77cd84c54f5c0f6293f2f08ca70efe954dc21779e78889bccb8fa8a523e"
+    },
+    "direct-records/fixed-rule-witness-green-a.stderr.log": {
+      "size": 13873,
+      "sha256": "b38f79bcf6a35e129f042c6d3964d81c76ebc73ce7e9a39c025cbd9d88497abb"
+    },
+    "direct-records/fixed-rule-witness-green-a.stdout.log": {
+      "size": 10689,
+      "sha256": "be933d0cf10c377e3771bbe08da541fba7fbe37c08d644c267ae5703ea5b7f25"
+    },
+    "direct-records/fixed-rule-witness-red-33d1-listed-b.json": {
+      "size": 886,
+      "sha256": "4749a5c4debb0aa42659a47243fad7ad42e2ea5a3b650bd7f6aeba2cdbca4281"
+    },
+    "direct-records/fixed-rule-witness-red-33d1-listed-b.stderr.log": {
+      "size": 13760,
+      "sha256": "3ceb13b36dc995516983099686da1137f4ac0a743e4fd90df6df8d1922077764"
+    },
+    "direct-records/fixed-rule-witness-red-33d1-listed-b.stdout.log": {
+      "size": 21768,
+      "sha256": "dfc38107c02e454231264ac42d4dab55fa50cade1513c8511587b52b33f2a9df"
+    },
+    "direct-records/fixed-rule-witness-red-33d1-listed-c.json": {
+      "size": 887,
+      "sha256": "ae18d47af387eea68b5c5ddcff0deed6563d34efa0f02a9b89b9eed3a6d5afe8"
+    },
+    "direct-records/fixed-rule-witness-red-33d1-listed-c.stderr.log": {
+      "size": 13849,
+      "sha256": "7335e1944b78cf26263437be40685637455ab6f9a10a33c75201aa7445ea2c27"
+    },
+    "direct-records/fixed-rule-witness-red-33d1-listed-c.stdout.log": {
+      "size": 21923,
+      "sha256": "98a14bf33a6954ce4b226be7a310dbe413191d2e9bc264b7aac921a0dbbaf792"
+    },
+    "direct-records/fixed-rule-witness-red-33d1-listed.json": {
+      "size": 888,
+      "sha256": "17d9bd383cd2ab6967a51c4f98951c55f7a2aecb681fcbdba910a1dae64a5c7f"
+    },
+    "direct-records/fixed-rule-witness-red-33d1-listed.stderr.log": {
+      "size": 13760,
+      "sha256": "e88705b740d09e5a3bf686c17494ff54094af1c5c60d2315c12b0c4b5a47b693"
+    },
+    "direct-records/fixed-rule-witness-red-33d1-listed.stdout.log": {
+      "size": 22812,
+      "sha256": "cb6d55fdfb904426fa13d4320c63471c0f5f80739f404e1feb7a42a7bc988ee3"
+    },
+    "env/inputmap.py": {
+      "size": 3274,
+      "sha256": "a4847340de285f35c5254d09fced134a3d48381b719605be0584025887116ab8"
+    },
+    "env/run-fixed-rule-witness-direct-20261106.py": {
+      "size": 3294,
+      "sha256": "3a0b2c370a9386cfbc3329599f0119add2e1c40f95e867ea73b59a984eb7faab"
+    },
+    "fixed-physical-rules-witness-CODE-FROZEN-20261106.json": {
+      "size": 21344,
+      "sha256": "32c36b6fca79ffcb0efac8f64fb43ebe1ba48e28ab7faf1a4efdd0ba9eb88632"
+    },
+    "fixed-physical-rules-witness-raw-binding-96cc958d5-20261106.json": {
+      "size": 5170,
+      "sha256": "5a84b03f91d6101f4ae02d850c3330523de8cc9343a511ecc9925ccf952a0cbc"
+    },
+    "independent-fixed-rules-combined-source-681ccfe54-20261106.json": {
+      "size": 34302,
+      "sha256": "5fdab426ca4f6b0b90ef5c747c5d7cb684c9ae9e6eb2b87710c3884e81849e92"
+    },
+    "README.md": {
+      "size": 10506,
+      "sha256": "45a1c3599df0b9467d01df3ff0985a117023e68dc0d514d842093df26f91a1ae"
+    }
+  }
+}

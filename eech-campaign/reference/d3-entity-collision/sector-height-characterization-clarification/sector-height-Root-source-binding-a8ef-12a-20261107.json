@@ -1,0 +1,46 @@
+{
+  "created_utc": "2026-11-07T00:35:35.085774+00:00",
+  "code": "a8ef0ce662df0528dcae414287ffe45b2847cd8f",
+  "metadata": "12a2235567c9c30a13b0813dface15822ad9aab5",
+  "final_rows": 4080,
+  "final_PRE2_POST_rows_literal_equal": true,
+  "all_three_aggregates_reproduced": true,
+  "PRE1_reconstructed_not_original_capture": true,
+  "PRE1_only_delta_to_final": [
+    "eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs"
+  ],
+  "final_raw_Git_mismatches": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "map_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "Git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+      "map_bytes": 3691,
+      "Git_bytes": 3608
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "map_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "Git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+      "map_bytes": 5848,
+      "Git_bytes": 5720
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "map_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "Git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+      "map_bytes": 3683,
+      "Git_bytes": 3600
+    }
+  ],
+  "listed_pack_files": 81,
+  "literal_pack_files_including_manifest": 82,
+  "pack_mismatches": [],
+  "metadata_only_changed_paths": 84,
+  "all_production_aphavoc_modules_trees_unchanged": true,
+  "producer_actual_exit": 0,
+  "producer_result_is_error": false,
+  "producer_completion_sha256": "2b5420f95aa4ae8d2aa61667a50b8558b03e560f9eaafae71f3a087fc42563b5",
+  "durable_row_and_constructor_copies": "D:\\EECH-Migration-Evidence\\sector-height-source-binding-a8ef0ce66-20261107",
+  "map_constructor_sha256": "deb82b3721665a9048e883f719cf4c19ca2ad84653eac20c2047b0cdf883ad78",
+  "scope": "Root read-only raw/Git/map/metadata/producer binding. PRE1 reconstructed from final rows plus recorded old guard digest, aggregate independently matches; old guard raw content/bytecount not independently recaptured. Actual C target inputs unchanged across guard-only delta remains subject to SAME source review. No native/physicalauthority/wholeD3 acceptance."
+}

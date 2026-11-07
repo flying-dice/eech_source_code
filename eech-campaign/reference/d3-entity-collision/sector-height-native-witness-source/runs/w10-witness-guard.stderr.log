@@ -1,0 +1,3 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.60s
+     Running tests/sector_height_witness_guard.rs (/target/t/debug/deps/sector_height_witness_guard-90af384a0654f562)

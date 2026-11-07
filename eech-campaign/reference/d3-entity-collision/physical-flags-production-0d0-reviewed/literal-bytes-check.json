@@ -1,0 +1,26 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the external sealed files, no field normalisation",
+  "files": {
+    "independent-physical-flags-production-0d0-source-20261107-v2.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 14688,
+      "sha256": "0269234c4559916934dba5b2bfbc4661696bf4f517c6abe6e7a607b3eb1c6587"
+    },
+    "independent-physical-flags-production-0d0-source-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 14277,
+      "sha256": "829f196e5d2ec89afc311d312af938914b06702a1a10f770ff945c53f0b619d5"
+    },
+    "physical-flags-production-0d0-Root-binding-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 23815,
+      "sha256": "5e85f0baf0c64ec0f3aa5588e0363a4f890f4c6e70f8b557fc9239121757091a"
+    },
+    "physical-flags-production-c126-publication-Root-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 720,
+      "sha256": "8f580428d3ebd355b2d4c05c5331b4f858fe04d7e2202fe64b6282720568c00a"
+    }
+  },
+  "problems": []
+}

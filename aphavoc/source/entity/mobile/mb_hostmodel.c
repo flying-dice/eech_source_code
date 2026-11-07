@@ -10,12 +10,18 @@
 #include "project.h"
 
 #include <math.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "mb_hostmodel.h"
 
 static campaign_model_host current_host;
 static int host_installed;
+
+int campaign_model_host_installed (void)
+{
+	return (host_installed);
+}
 
 void campaign_model_set_host (const campaign_model_host *host)
 {
@@ -61,6 +67,29 @@ struct campaign_model_counters
 	long target_offset;
 	/* TARGET_POINT_CHAIN, _WORLD and _FIXED questions asked of the host (EEDCS-52); read by the target-point query diagnostic */
 	long target_chain, target_world, target_fixed;
+	/* ENTITY_COLLISION questions asked of the host (EEDCS-49) and the hits and misses the native code ACCEPTED */
+	long entity_collision, entity_hit, entity_miss;
+	/* ENTITY_CANDIDATE questions asked of the host (EEDCS-49) and the states the native code ACCEPTED: skip, UPDATED asked, terrain normal asked, buildings, narrow phase required */
+	long entity_scan, scan_first, scan_next, scan_offer, scan_done;
+	/* the roster's events of the sector lists (the same question, phases 4 to 6): entities placed, removed and the boots that cleared the roster. Not counted among the scan's own states above */
+	long roster_placed, roster_removed, roster_cleared;
+	/* the city events (the same question, phases 7 to 12): buildings listed and unlisted, the first and next entries the host served, the placements linked and the placements named */
+	long city_placed, city_removed, city_first, city_next, city_linked, city_named;
+	/* the FIXED_STATE reports (the same question, phase 13): fixed collision states stated to the host's records of their placements */
+	long fixed_stated;
+	/* the CITY_STATE reports (the same question, phase 14): the positions and bounding boxes of cities stated to the host's records of their placements */
+	long city_stated;
+	/* the CITY_EXPAND questions (the same question, phase 15): the boxes of cities the host built for a building's link */
+	long city_expanded;
+	/* the city releases (the same question, phase 16): city entities that ended while the host held a record for them */
+	long city_released;
+	/* ENTITY_POSE observations asked of the host (EEDCS-49), and the classes it answered: recorded, unrecorded, retired, unknown, no identity */
+	long entity_pose, pose_recorded, pose_unrecorded, pose_retired, pose_unknown, pose_no_id;
+	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
+	/* the SECTOR HEIGHT reads and restores (the same question, phases 17 and 18): the sector words the host answered and the saved words it stored */
+	long sector_height_read, sector_height_restored;
+	/* the PHYSICAL FLAG STORE (the same question, phases 19 to 22): the groups the host opened (one per word group the campaign used), the sets, the destructive reads and the resets the host answered */
+	long flag_groups, flag_sets, flag_reads, flag_resets;
 };
 
 struct campaign_model_counters campaign_model_counts;
@@ -1832,6 +1861,443 @@ void campaign_model_route_primary_start (int index, int starts)
 	{
 		debug_fatal ("host model: [model-provider:route.start] no start node of the route of scene %d kind %d is on a green line face", route_current->scene, route_current->kind);
 	}
+}
+
+// One collision candidate against the segment (mb_hostmodel.h, ENTITY_COLLISION; EEDCS-49, D3). The campaign has already decided that the candidate is collidable, moving or
+// stationary, within the broad-phase radius test, and has derived its live pose; the host does the physical work. The dialogue is mb_hostentity.h, bound here to the real host
+// callback and the real scene tables: the caller's intercept point and normal are outputs, never read and never sent, and only the components the original assigned are written back.
+#define CAMPAIGN_ENTITY_REQUIRE_SCENE(SCENE) require_scene ((SCENE), FALSE, "an entity collision test")
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+#define CAMPAIGN_ENTITY_ASK(REQUEST,REPLY) do { campaign_model_counts.entity_collision++; ask ((REQUEST), (REPLY), "entity collision"); } while (0)
+#else
+#define CAMPAIGN_ENTITY_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity collision")
+#endif
+
+#define CAMPAIGN_ENTITY_IDENTITY(REPLY,SCENE) check_target_point_identity ((REPLY), (SCENE), "entity_collision")
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+#define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) do { campaign_model_counts.entity_candidate++; ask ((REQUEST), (REPLY), "entity candidate"); } while (0)
+#else
+#define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity candidate")
+#endif
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+#define CAMPAIGN_ENTITY_SCAN_ASK(REQUEST,REPLY) do { campaign_model_counts.entity_scan++; ask ((REQUEST), (REPLY), "entity scan"); } while (0)
+#else
+#define CAMPAIGN_ENTITY_SCAN_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity scan")
+#endif
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+#define CAMPAIGN_ENTITY_POSE_ASK(REQUEST,REPLY) do { campaign_model_counts.entity_pose++; ask ((REQUEST), (REPLY), "entity pose"); } while (0)
+#else
+#define CAMPAIGN_ENTITY_POSE_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity pose")
+#endif
+
+// the candidate's own identity label: a bad scene-name echo of an ENTITY_CANDIDATE reply is not an entity_collision refusal
+#define CAMPAIGN_ENTITY_CANDIDATE_IDENTITY(REPLY,SCENE) check_target_point_identity ((REPLY), (SCENE), "entity_candidate")
+
+#include "mb_hostentity.h"
+
+int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal)
+{
+	int
+		hit;
+
+	hit = campaign_entity_collision_exchange (scene, segment_old, segment_new, candidate, candidate_count, point, normal);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	if (hit)
+	{
+		campaign_model_counts.entity_hit++;
+	}
+	else
+	{
+		campaign_model_counts.entity_miss++;
+	}
+#endif
+
+	return (hit);
+}
+
+// ENTITY_POSE (mb_hostmodel.h; EEDCS-49, D3, fifth slice): an observation of a mobile candidate's pose against the host's record of its identity. The dialogue is mb_hostentity.h; nothing decides from it.
+int campaign_model_entity_pose (int stage, int entity_type, int alive, const char *host_id, const float *words)
+{
+	int
+		state;
+
+	state = campaign_entity_pose_exchange (stage, entity_type, alive, host_id, words);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (state)
+	{
+		case CAMPAIGN_MODEL_POSE_RECORDED:
+		{
+			campaign_model_counts.pose_recorded++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_POSE_UNRECORDED:
+		{
+			campaign_model_counts.pose_unrecorded++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_POSE_RETIRED:
+		{
+			campaign_model_counts.pose_retired++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_POSE_UNKNOWN:
+		{
+			campaign_model_counts.pose_unknown++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_POSE_NO_ID:
+		{
+			campaign_model_counts.pose_no_id++;
+
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+#endif
+
+	return (state);
+}
+
+// ENTITY_SCAN (mb_hostmodel.h; EEDCS-49, D3, fourth slice): the host's cursor over the sector lists of ITS roster. The dialogue is mb_hostentity.h.
+int campaign_model_entity_scan (const float *facts, const char *entry_key, float *cursor, char *key)
+{
+	int
+		state;
+
+	state = campaign_entity_scan_exchange (facts, entry_key, cursor, key);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (state)
+	{
+		case CAMPAIGN_MODEL_SCAN_FIRST:
+		{
+			campaign_model_counts.scan_first++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_SCAN_NEXT:
+		{
+			campaign_model_counts.scan_next++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_SCAN_OFFER:
+		{
+			campaign_model_counts.scan_offer++;
+
+			break;
+		}
+		default:
+		{
+			campaign_model_counts.scan_done++;
+
+			break;
+		}
+	}
+#endif
+
+	return (state);
+}
+
+// ENTITY_SCAN, the roster's events (mb_hostmodel.h; EEDCS-49, D3, sixth slice): the campaign tells the host that an entity was inserted into a sector's list, is leaving it, or that a boot starts. The dialogue is
+// mb_hostentity.h; the host decides the sector and the order and answers the key it issued.
+void campaign_model_entity_roster (int phase, int entity_type, float side, const float *position, const char *identity, char *key)
+{
+	campaign_entity_roster_exchange (phase, entity_type, side, position, identity, key);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (phase)
+	{
+		case CAMPAIGN_SCAN_PHASE_INSERT:
+		{
+			campaign_model_counts.roster_placed++;
+
+			break;
+		}
+		case CAMPAIGN_SCAN_PHASE_REMOVE:
+		{
+			campaign_model_counts.roster_removed++;
+
+			break;
+		}
+		default:
+		{
+			campaign_model_counts.roster_cleared++;
+
+			break;
+		}
+	}
+#endif
+}
+
+// ENTITY_SCAN, the city events (mb_hostmodel.h; EEDCS-49, D3, seventh slice). The dialogue is mb_hostentity.h; the host holds the city lists, the records and their object identities.
+void campaign_model_entity_city (int phase, int entity_type, const char *identity, char *key)
+{
+	campaign_entity_city_exchange (phase, entity_type, identity, key);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (phase)
+	{
+		case CAMPAIGN_SCAN_PHASE_CHILD_INSERT: { campaign_model_counts.city_placed++; break; }
+		case CAMPAIGN_SCAN_PHASE_CHILD_REMOVE: { campaign_model_counts.city_removed++; break; }
+		case CAMPAIGN_SCAN_PHASE_CHILD_FIRST: { campaign_model_counts.city_first++; break; }
+		case CAMPAIGN_SCAN_PHASE_CHILD_NEXT: { campaign_model_counts.city_next++; break; }
+		case CAMPAIGN_SCAN_PHASE_LINK: { campaign_model_counts.city_linked++; break; }
+		case CAMPAIGN_SCAN_PHASE_CITY_RELEASE: { campaign_model_counts.city_released++; break; }
+		default: { campaign_model_counts.city_named++; break; }
+	}
+#endif
+}
+
+// ENTITY_SCAN, the FIXED_STATE report (mb_hostmodel.h; Task49): the campaign states the collision state of a fixed-family placement to the host's record of it. The dialogue is mb_hostentity.h.
+void campaign_model_entity_fixed (int entity_type, const char *key, const float *state)
+{
+	campaign_entity_fixed_exchange (entity_type, key, state);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.fixed_stated++;
+#endif
+}
+
+// ENTITY_SCAN, the CITY_STATE report (mb_hostmodel.h; Task49): the campaign states the position and bounding box of a city placement to the host's record of it. The dialogue is mb_hostentity.h.
+void campaign_model_entity_city_state (const char *key, const float *state)
+{
+	campaign_entity_city_state_exchange (key, state);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.city_stated++;
+#endif
+}
+
+// ENTITY_SCAN, the CITY_EXPAND question (mb_hostmodel.h; Task49): a building's link expanded its city's bounding box; the host builds the box from the records it holds and answers it. The dialogue is mb_hostentity.h.
+void campaign_model_entity_city_expand (const char *city, const char *building, float *box)
+{
+	campaign_entity_city_expand_exchange (city, building, box);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.city_expanded++;
+#endif
+}
+
+// ENTITY_SCAN, the sector's HIGH-WATER HEIGHT read (mb_hostmodel.h; Task49): the word the host holds for a sector. The dialogue is mb_hostentity.h.
+void campaign_model_sector_height (int x_sector, int z_sector, float *word)
+{
+	campaign_entity_sector_height_exchange (CAMPAIGN_SCAN_PHASE_SECTOR_HEIGHT, x_sector, z_sector, NULL, word);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.sector_height_read++;
+#endif
+}
+
+// ENTITY_SCAN, the session RESTORE of a sector's height (mb_hostmodel.h; Task49): the saved word is stated to the host, which holds exactly these bits. The dialogue is mb_hostentity.h.
+void campaign_model_sector_height_restore (int x_sector, int z_sector, const float *word)
+{
+	float
+		stored;
+
+	campaign_entity_sector_height_exchange (CAMPAIGN_SCAN_PHASE_SECTOR_RESTORE, x_sector, z_sector, word, &stored);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.sector_height_restored++;
+#endif
+}
+
+// ENTITY_SCAN, the PHYSICAL FLAG STORE (mb_hostmodel.h; Task49): the host owns the three per-entity UPDATED / MOVED / ROTATED words and their set, destructive read and reset. The dialogue is mb_hostentity.h; what is here is the
+// campaign's PRIVATE binding of its heap to the host's groups, and nothing else:
+//   - the group of an entity is its heap slot's high bits (slot >> 5, the original's 32-bit word) and its lane the five low bits (slot & 31, its bit in that word); neither the slot, nor the group, nor any index is ever sent;
+//   - the table below holds, per group, only the opaque key the HOST issued for it (the empty text until the group is first used). It is identity, not a flag: no bit, mask or word of the store is kept here, and nothing
+//     answers from it;
+//   - a group lies inside the original's reset extent when its word index is below the number of words the original's quarter-memset clears (memset counts BYTES, so that is a quarter of the words: slots 0 to 131071); the
+//     campaign states that fact once, when it opens the group, and the host's reset clears the groups that have it;
+//   - the table is process lifetime and is NOT cleared by a campaign boot or a roster reset (a new roster identity must not clear the bits of a slot that is reused, as the original's static arrays are not); it is only as valid
+//     as the ONE persistent host binding (one SharedRoster and FlagStore for the process: the engine boots once per process and the reference host installs one store) that issued its keys. A REPLACEMENT store is UNSUPPORTED and UNPROVED: it restarts
+//     its fN numbering, so an old key may coincidentally exist in it and name another group; no fresh-store refusal is promised and none is claimed as a lifetime proof.
+#define CAMPAIGN_FLAG_GROUPS (MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8))
+#define CAMPAIGN_FLAG_RESET_GROUPS ((MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)) / sizeof (unsigned int))
+
+static char
+	(*flag_key_of_group) [CAMPAIGN_ROSTER_KEY_MAX + 1] = NULL;
+
+static const char *flag_group_key (int slot)
+{
+	int
+		group;
+
+	if ((slot < 0) || (slot >= MAX_NUM_ENTITIES))
+	{
+		debug_fatal ("host model: [model-provider:flag.slot] the entity heap slot %d is not a slot of a heap of %d", slot, MAX_NUM_ENTITIES);
+	}
+
+	group = slot >> 5;
+
+	if (flag_key_of_group == NULL)
+	{
+		flag_key_of_group = calloc (CAMPAIGN_FLAG_GROUPS, sizeof (*flag_key_of_group));
+
+		if (flag_key_of_group == NULL)
+		{
+			debug_fatal ("host model: [model-provider:flag.table] the table of the host's flag group keys could not be allocated");
+		}
+	}
+
+	if (flag_key_of_group [group][0] == 0)
+	{
+		char
+			staged [CAMPAIGN_ROSTER_KEY_MAX + 1];
+
+		int
+			other;
+
+		// the host's answer is STAGED, not written into the group's entry: FLAG_GROUP opens a NEW group, so a key that is already bound to another group of this table names a word that group owns, and taking it would alias two independent
+		// original words (and possibly a reset-eligible one with an ineligible one) onto one host word (ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1). The refusal comes BEFORE the commit: the entry stays empty, no set or read is ever made through the key,
+		// and every existing binding is untouched. Identity only: no bit, mask or word is kept here. (A callback's own physical effects cannot be undone by this check.)
+		campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, ((unsigned int) group < CAMPAIGN_FLAG_RESET_GROUPS), staged, NULL);
+
+		for (other = 0; other < (int) CAMPAIGN_FLAG_GROUPS; other++)
+		{
+			if ((other != group) && (flag_key_of_group [other][0] != 0) && (strcmp (flag_key_of_group [other], staged) == 0))
+			{
+				debug_fatal ("host model: [model-provider:flag.key] the host issued the key \"%.40s\" for a new flag group, which is already bound to another flag group", staged);
+			}
+		}
+
+		memcpy (flag_key_of_group [group], staged, strlen (staged) + 1);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+		campaign_model_counts.flag_groups++;
+#endif
+	}
+
+	return flag_key_of_group [group];
+}
+
+#if defined(EECH_PHYSICAL_FLAGS_CHECK) || defined(EECH_PHYSICAL_FLAGS_CONSUMER_CHECK) || defined(EECH_PHYSICAL_FLAGS_COLLISION_CHECK)
+
+// TEST-ONLY (features physical-flags-check, physical-flags-consumer-check and physical-flags-collision-check; never in the shipping build): the real-C controls start every scenario from a fresh host binding, which means a fresh store in the host and no key
+// of the previous one here, and they ask which key the campaign holds for a slot's group in order to ask the host (not the campaign) what the group's words are. Neither answers a flag: the table still holds identity only.
+const char *campaign_model_flag_key_for_test (int slot)
+{
+	if ((flag_key_of_group == NULL) || (slot < 0) || (slot >= MAX_NUM_ENTITIES) || (flag_key_of_group [slot >> 5][0] == 0))
+	{
+		return NULL;
+	}
+
+	return flag_key_of_group [slot >> 5];
+}
+
+void campaign_model_flag_forget_keys_for_test (void)
+{
+	if (flag_key_of_group != NULL)
+	{
+		memset (flag_key_of_group, 0, CAMPAIGN_FLAG_GROUPS * sizeof (*flag_key_of_group));
+	}
+}
+
+#endif
+
+void campaign_model_flag_set (int array, int slot)
+{
+	campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_SET, array, slot & 31, flag_group_key (slot), FALSE, NULL, NULL);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.flag_sets++;
+#endif
+}
+
+int campaign_model_flag_read (int array, int slot)
+{
+	uint32_t
+		raw;
+
+	campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_READ, array, slot & 31, flag_group_key (slot), FALSE, NULL, &raw);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.flag_reads++;
+#endif
+
+	// the raw word of the original's getter, not a boolean: the entity's own mask, INT_MIN for lane 31
+	return (int) raw;
+}
+
+void campaign_model_flag_reset (int array)
+{
+	campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_RESET, array, 0, NULL, FALSE, NULL, NULL);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.flag_resets++;
+#endif
+}
+
+// ENTITY_CANDIDATE (mb_hostmodel.h; EEDCS-49, D3, third slice): what the host decides about one candidate of the scan. The dialogue is mb_hostentity.h; the facts are read by the caller.
+int campaign_model_entity_candidate (int scene, const float *facts, const char *host_id, float *pose, int *pose_count)
+{
+	int
+		state;
+
+	state = campaign_entity_candidate_exchange (scene, facts, host_id, pose, pose_count);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (state)
+	{
+		case CAMPAIGN_MODEL_CANDIDATE_SKIP:
+		{
+			campaign_model_counts.candidate_skip++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED:
+		{
+			campaign_model_counts.candidate_updated++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL:
+		{
+			campaign_model_counts.candidate_normal++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_BUILDINGS:
+		{
+			campaign_model_counts.candidate_buildings++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED:
+		{
+			campaign_model_counts.candidate_fixed++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT:
+		{
+			campaign_model_counts.candidate_placement++;
+
+			break;
+		}
+		default:
+		{
+			campaign_model_counts.candidate_test++;
+
+			break;
+		}
+	}
+#endif
+
+	return (state);
 }
 
 #ifdef EECH_MODEL_HOST_FIXTURE

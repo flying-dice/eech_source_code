@@ -1,0 +1,28 @@
+{
+  "repository": "flying-dice/tslua-dcs",
+  "commit": "1179554fcafcef92d71313336cc09500febf8245",
+  "scope": "Author-maintained pinned declarations, not exhaustive DCS API absence or actual native behavior. Reference only, no TypeScript implementation.",
+  "files": [
+    {
+      "file": "world.ts",
+      "git_blob": "903e0759ce5cce27295e09fb214d773475b65514",
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/world.ts",
+      "bytes": 10096,
+      "sha256": "1b795da9386a879e31ff6f0bb8c062e02ae0928a29604df5290c5dfa7b0f231b"
+    },
+    {
+      "file": "Object.ts",
+      "git_blob": "3e4863261901fba73af2fda1b31f47ee034bd16d",
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/Object.ts",
+      "bytes": 3982,
+      "sha256": "3dfb8e733f653cf771d0233739504219ba39f0f6fbb60e1593f4b582650b4036"
+    },
+    {
+      "file": "Unit.ts",
+      "git_blob": "98bd6a7f0a57b6039481a3d91e773cf355332987",
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/Unit.ts",
+      "bytes": 18472,
+      "sha256": "67cb202ec657c890c2924ace0cd31b2e05b7abaaa1fd0388178a9b9e7c416854"
+    }
+  ]
+}

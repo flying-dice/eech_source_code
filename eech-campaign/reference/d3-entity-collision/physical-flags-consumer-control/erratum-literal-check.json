@@ -1,0 +1,51 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the working bytes of the erratum files and the unchanged receipt, manifest and retained reader bytes",
+  "files": {
+    "Root-physical-flags-consumer-feedback-20261107-1626.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1894,
+      "sha256": "4faab6d5959fedc5a42fc086acc4791c1ad9eceafe5759ea112e754c327e3205"
+    },
+    "erratum-freeze-reader.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 9024,
+      "sha256": "bfc8cde944ff11a6049953ba0fc3acee730b5fbd7cdd129857c92e937392fe97"
+    },
+    "erratum-README.md": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 864,
+      "sha256": "a4194232742ab45606614150903d7f92a6d9b83f39d62ad720c48a9cbd427a17"
+    },
+    "preflight-receipts.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2150,
+      "sha256": "0d9507609722219a3e63e652590150b4ef81dc7b4516b9864e6974636186c6ac"
+    },
+    "D3-PHYSICAL-FLAGS-CONSUMER-CODE-FROZEN-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 33216,
+      "sha256": "4a2a522a8af77e1181b5065df4934028d0124dc8a5c80423cb06cd66154cb871"
+    },
+    "manifest.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 8176,
+      "sha256": "3f31ece58cf44ff21d490437daac6bce7cbf76b8af9816f27b05d13952e272ea"
+    },
+    "scripts/preflight-receipts-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2203,
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+    },
+    "scripts/freeze-hwcons-20261107.PRE-version.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 26074,
+      "sha256": "20d6cf2935f0052973618ddb783d5abfd7bc4947205b787d79b0558eca952d16"
+    },
+    "scripts/hwcons-freeze-attempt1-20261107.stderr.txt": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 520,
+      "sha256": "8e295d7b320a0825c4998fb2ac89d99dfea2eaf5b27e4aeb5a9e411023a35472"
+    }
+  },
+  "problems": []
+}

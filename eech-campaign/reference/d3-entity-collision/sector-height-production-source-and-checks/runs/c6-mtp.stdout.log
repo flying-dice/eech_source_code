@@ -1,0 +1,322 @@
+
+running 109 tests
+test a_boot_stop_at_the_expected_generic_marker_with_nothing_withdrawn_is_a_failure_and_never_unreached ... ok
+test a_boot_that_asks_no_city_expansion_is_unreached_for_the_boot_phase_negative_and_never_a_pass ... ok
+test a_building_of_the_other_city_is_never_eligible_and_no_state_is_withdrawn_for_it ... ok
+test a_changed_continuing_statement_is_a_mirror_conformance_negative_refused_by_the_host_that_holds_the_built_box ... ok
+test a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link ... FAILED
+test a_citys_sector_relink_states_the_new_placement_and_the_old_key_is_no_longer_a_held_one ... ok
+test a_city_expansion_reply_of_six_exact_patterns_is_credited_with_a_signed_zero_and_a_subnormal ... ok
+test a_city_released_with_a_building_listed_drains_without_a_fault_and_is_never_continued ... ok
+test a_city_name_carries_an_object_identity_of_its_whole_domain_beside_its_key_and_nothing_beyond_it ... ok
+test a_final_positive_for_a_scene_no_accepted_reply_ever_named_is_not_validated_and_is_neither_credited_nor_restated_nor_re_evaluated ... ok
+test a_city_expansion_question_that_is_not_the_contracts_is_a_request_fault_and_is_never_followed_by_a_withdrawal ... ok
+test a_final_positive_for_scene_zero_is_never_credited_and_causes_no_restatement_and_no_re_evaluation ... ok
+test a_citys_list_name_survives_the_last_building_leaving_a_building_listed_again_and_a_second_relink ... ok
+test a_coherent_selected_city_lifecycle_is_credited_only_with_its_own_consumption_before_and_after ... ok
+test a_final_positive_that_names_another_scene_is_never_credited_and_causes_no_restatement_and_no_re_evaluation ... ok
+test a_complete_c_shaped_report_with_a_maximum_whitespace_and_utf8_identity_and_a_building_hit_is_accepted_and_reported_exactly ... ok
+test a_city_traversal_served_by_the_real_provider_is_a_healthy_control_with_the_city_events_counted_apart ... ok
+test a_city_expansion_reply_that_is_not_exactly_six_patterns_is_a_reply_fault_though_it_has_the_length_of_one ... ok
+test a_final_positive_with_a_signaling_nan_pose_word_is_never_credited_and_causes_no_restatement_and_no_re_evaluation ... ok
+test a_healthy_control_counts_the_city_state_reports_apart_and_the_city_stage_that_needs_the_state_is_an_eligible_lookup ... ok
+test a_fault_or_a_fatal_is_a_failure_before_any_unreached_classification ... ok
+test a_city_expansion_reply_that_is_not_the_contracts_is_a_reply_fault_of_the_healthy_boot ... ok
+test a_citys_sector_relink_with_its_buildings_listed_keeps_the_list_name_and_the_traversal_and_the_withdrawal_still_work ... ok
+test a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one ... FAILED
+test a_healthy_control_counts_the_fixed_state_reports_apart_and_every_staged_question_of_a_non_mobile_candidate_names_the_placement ... FAILED
+test a_final_positive_with_an_infinite_pose_word_is_never_credited_and_causes_no_restatement_and_no_re_evaluation ... ok
+test a_forced_miss_is_an_accepted_partial_write_miss_and_no_hit_may_reach_the_weapon_step ... ok
+test a_relinked_city_is_still_not_the_city_of_a_building_listed_under_another ... ok
+test a_listed_buildings_final_placement_question_is_re_evaluated_over_its_restated_sub_type_and_the_providers_mirror_refusal_is_handed_back ... ok
+test a_removal_that_names_the_record_the_host_keeps_for_a_citys_box_is_no_fault ... ok
+test a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_and_no_credit ... ok
+test a_restatement_acknowledged_with_a_cursor_beside_placed_and_the_same_key_is_never_credited_as_a_change ... FAILED
+test a_real_hit_is_checked_against_the_weapon_steps_own_hit_count ... ok
+test a_released_city_drains_after_the_launch_without_a_fault_and_is_never_continued ... ok
+test a_healthy_control_sees_real_entity_questions_checks_their_shape_and_joins_the_fixture_counters ... ok
+test a_forced_hit_is_a_valid_complete_answer_at_the_requests_old_end_and_must_reach_the_weapon_steps_hit_count ... ok
+test a_lift_is_credited_only_by_the_targets_real_terrain_bearing_step_inside_the_query_frame ... ok
+test a_listed_building_that_never_reaches_the_final_pose_or_a_run_that_failed_first_is_never_a_pass_of_the_changed_rule ... ok
+test a_competing_live_city_or_an_aggregate_count_never_credits_or_triggers_the_selected_records_witness ... ok
+test a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_a_city_lookup_nor_withdrawn ... ok
+test a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_an_eligible_lookup_nor_withdrawn ... FAILED
+test a_standing_key_that_fails_the_request_join_is_a_request_fault_and_is_never_altered_or_credited_as_a_scan_refusal ... ok
+test buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds ... FAILED
+test changing_the_physical_rule_of_a_served_placement_makes_the_next_unmodified_question_refused_by_the_mirror_difference ... FAILED
+test a_restatement_not_acknowledged_under_the_fixed_report_contract_at_a_listed_buildings_final_question_is_never_credited_and_the_payload_is_never_re_evaluated ... ok
+test each_single_fault_of_the_fixed_state_grammar_is_counted_at_its_question_and_is_never_a_pass ... FAILED
+test each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is_never_a_pass ... FAILED
+test a_traversal_that_never_asks_for_the_next_building_is_unreached_and_a_question_that_does_not_join_is_never_withdrawn_before ... ok
+test a_query_frame_step_without_a_valid_demand_or_no_step_at_all_is_unreached_and_never_credited ... ok
+test a_terrain_lift_changes_only_the_targets_own_routed_step_after_the_launch_and_needs_a_later_question_about_it ... ok
+test a_run_whose_actual_entity_caller_or_narrow_phase_was_not_reached_is_unreached_never_authority ... ok
+test a_refusal_counts_only_at_the_anchored_engine_stop_with_the_exact_marker_and_nothing_is_asked_afterwards ... ok
+test every_other_operation_and_every_question_before_the_launch_is_the_hosts_own_answer_unchanged_in_every_mode ... ok
+test a_clean_unreached_report_is_unreached_and_every_malformed_or_contradictory_report_is_a_failure ... ok
+test an_incomplete_empty_or_inconsistent_cohort_is_a_failure_and_never_a_pass ... ok
+test an_earlier_mover_without_a_finite_positive_demand_is_passed_over_untouched ... ok
+test the_armed_weapon_step_is_given_the_configured_view_and_everything_else_reaches_the_host_unchanged ... ok
+test the_candidate_modes_close_the_evidence_with_a_checked_close_and_a_failing_close_is_never_hidden ... ok
+test no_eligible_actor_is_a_named_prelaunch_unreached_with_finite_counts_and_a_terrain_less_ordinary_step_stays_valid ... ok
+test the_cities_made_at_boot_ask_the_host_for_each_boxes_and_the_driver_counts_checks_and_alters_nothing ... ok
+test a_withheld_or_malformed_candidate_answer_counts_only_at_the_anchored_engine_stop_with_its_exact_candidate_marker_and_nothing_is_asked_afterwards ... ok
+test only_roster_events_is_unreached_never_a_scan_and_a_roster_event_in_the_original_profile_is_not_the_original ... ok
+test a_query_case_that_cannot_be_prepared_or_covered_is_an_exact_unreached_and_never_a_pass ... ok
+test the_host_releasing_the_selected_retained_record_is_refused_by_name_at_the_campaigns_continuation ... ok
+test a_withheld_or_malformed_pose_answer_counts_only_at_the_anchored_engine_stop_with_its_exact_pose_marker_and_nothing_is_asked_afterwards ... ok
+test the_controlled_query_latches_three_segments_about_the_first_moving_routed_vehicle_runs_one_frame_and_asks_the_same_segments ... ok
+test real_protocol_traffic_with_roster_events_and_standing_keys_is_a_healthy_control_and_the_events_are_not_credited_as_query_scans ... ok
+test a_withheld_or_malformed_scan_answer_counts_only_at_the_anchored_engine_stop_with_its_exact_scan_marker_and_nothing_is_asked_afterwards ... ok
+test the_current_pair_of_a_relinked_or_an_empty_relinked_city_is_eligible_and_the_withdrawal_is_credited ... ok
+test the_case_is_the_nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon ... ok
+test the_controlled_query_runs_the_same_case_under_the_original_profile_and_reports_outputs_only ... ok
+test the_host_side_movement_modes_run_under_the_original_profile_and_the_refusal_modes_still_do_not ... ok
+test the_natural_control_counts_the_actual_scan_questions_by_phase_and_requires_the_whole_chain_with_nothing_altered ... ok
+test no_actor_with_a_positive_demand_is_a_named_prelaunch_unreached_in_every_speed_mode_and_profile ... ok
+test the_empty_enumeration_variant_changes_the_cohort_by_preventing_every_candidate_question_narrow_phase_question_and_hit_with_the_same_configured_secondary_input ... ok
+test the_natural_control_counts_the_actual_candidate_questions_and_classifies_the_real_answers_with_nothing_altered ... ok
+test the_host_side_record_modes_refuse_by_exact_name_and_nothing_is_asked_afterwards ... ok
+test the_lifted_query_is_service_evidence_only_with_a_post_lift_offer_and_a_changed_physical_result_and_may_skip_the_narrow_phase ... ok
+test each_single_fault_of_the_city_grammar_is_counted_at_its_question_and_is_never_a_pass ... ok
+test the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_candidate_question_and_the_expected_red_names_both_counts ... ok
+test the_scan_modes_close_the_evidence_with_a_checked_close_and_a_failing_close_is_never_hidden ... ok
+test the_paired_control_reaches_the_actual_narrow_phase_with_the_configured_hit_and_the_cohort_physically_hits ... ok
+test the_paired_scan_control_reaches_the_candidate_dialogue_and_the_narrow_phase_with_the_configured_hit_and_the_cohort_physically_hits ... ok
+test the_words_helper_is_the_same_text_as_the_tree_witnesss ... ok
+test the_pose_observation_follows_the_scan_the_empty_enumeration_prevents_it_and_the_original_profile_asks_none ... ok
+test the_query_target_is_the_first_moving_vehicle_whose_final_warmup_step_carried_the_lift_input_and_an_earlier_one_without_it_is_passed_over_unaltered ... ok
+test the_original_profile_receives_the_same_changed_demand_and_asks_the_host_nothing ... ok
+test the_natural_control_counts_the_pose_observations_by_stage_and_class_and_keeps_the_histogram_with_nothing_altered ... ok
+test the_real_provider_serves_the_scan_and_withdrawing_the_served_backing_by_its_real_remove_makes_the_next_entry_refused_by_name ... ok
+test withdrawing_a_buildings_state_before_its_citys_box_is_built_makes_the_same_question_refused_by_name_and_stops_the_boot ... ok
+test setup_output_and_arguments_fail_closed_and_the_first_error_is_never_hidden ... ok
+test the_speed_control_selects_the_first_moving_vehicle_that_carried_a_positive_demand_and_changes_nothing ... ok
+test the_original_profile_is_a_capability_red_only_when_the_actual_entity_caller_ran_and_otherwise_unreached ... ok
+test the_zero_demand_b_delegates_one_copy_that_differs_only_in_desired_velocity_and_is_credited_by_a_different_physical_result ... ok
+test withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_the_same_candidate_refused_by_name ... FAILED
+test valid_final_positives_including_a_subnormal_word_and_a_negative_zero_are_credited_and_refused_by_name ... ok
+test the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_scan_candidate_or_narrow_phase_question_and_a_missing_api_is_unreached ... ok
+test the_moving_case_is_the_campaigns_own_engagement_of_a_routed_enemy_the_host_actually_stepped_and_its_questions_are_counted_by_identity ... ok
+test the_skip_variant_changes_the_cohort_by_preventing_every_narrow_phase_question_and_hit_with_the_same_configured_secondary_input ... ok
+test each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_question_and_is_never_a_pass ... ok
+test withdrawing_the_served_building_by_the_hosts_real_remove_makes_the_next_building_question_refused_by_name ... ok
+test the_zero_demand_b_may_skip_the_narrow_phase_but_never_the_offer_and_an_unchanged_result_is_rejected ... ok
+test zero_candidate_questions_is_unreached_even_when_the_narrow_phase_was_asked_and_a_malformed_request_or_real_reply_is_a_failure ... ok
+test withdrawing_the_city_state_of_a_served_placement_makes_the_next_question_that_reads_it_refused_by_name ... ok
+test zero_pose_questions_is_unreached_and_a_malformed_pose_request_or_real_reply_is_counted_and_never_credited ... ok
+test the_request_is_the_corrected_shape_and_a_malformed_request_or_real_reply_is_a_failure ... ok
+test the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_are_classified_together ... ok
+test zero_scan_questions_is_unreached_and_a_malformed_scan_request_or_real_reply_is_counted_and_never_credited ... ok
+test every_single_fault_in_a_prepare_or_run_report_stops_the_witness_and_a_complete_report_does_not ... ok
+
+failures:
+
+---- a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link stdout ----
+
+thread 'a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link' (319) panicked at crates/eech-world/tests/entity_authority.rs:1580:28:
+no city_lifecycle_authority row: 
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one stdout ----
+
+thread 'a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one' (350) panicked at crates/eech-world/tests/entity_authority.rs:1580:28:
+no city_lifecycle_authority row: 
+
+---- a_healthy_control_counts_the_fixed_state_reports_apart_and_every_staged_question_of_a_non_mobile_candidate_names_the_placement stdout ----
+
+thread 'a_healthy_control_counts_the_fixed_state_reports_apart_and_every_staged_question_of_a_non_mobile_candidate_names_the_placement' (345) panicked at crates/eech-world/tests/entity_authority.rs:4798:5:
+Err("runtime error: entity-authority: mode scan_real failed in the engine at [model-provider:entity_scan.callback]: runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"entity-authority.lua\"]:2759: in main chunk")
+{"event":"boot","frame_budget":212,"frame_ms":1000,"mode":"scan_real","profile":"hosted","seed":1,"settle":2,"warmup":1}
+{"bound":2,"elapsed":1,"entity_before":0,"event":"warmed_up","frames":1}
+{"distance":141.42135623731,"event":"case_selected","launcher":"eech-world:1","pairs_considered":2,"selection":"nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon","target":"eech-world:2","weapon":7}
+{"births":1,"event":"case_launch","launcher":"eech-world:1","ok":true,"target":"eech-world:2","text":"wpn-case-launch launcher=helicopter weapon=7 target_link_before=0 target_link=1 count_before=3 count_after=2 births=1 creates=1 restored=1","weapon":7}
+{"event":"cohort","members":"5","size":1}
+{"altered":0,"answered_hit":0,"answered_miss":0,"attribution":"global_to_the_war_no_per_weapon_identity","candidate_after":0,"candidate_altered":0,"candidate_answered_skip":0,"candidate_before":0,"candidate_buildings":0,"candidate_keyed":0,"candidate_mobile":0,"candidate_mobile_named":0,"candidate_mobile_unnamed":0,"candidate_need_fixed":0,"candidate_need_normal":0,"candidate_need_placement":0,"candidate_need_updated":0,"candidate_scene0":0,"candidate_skip":0,"candidate_test":0,"candidate_unkeyed":0,"case_weapons_ended":0,"case_weapons_pending":-1,"city_after":0,"city_before":0,"city_child_first":0,"city_child_insert":0,"city_child_next":0,"city_child_remove":0,"city_expand_after":0,"city_expand_answered":0,"city_expand_before":0,"city_expand_total":0,"city_link":0,"city_name":0,"city_next":0,"city_next_joined":0,"city_placed":0,"city_removed":0,"city_served":0,"city_state_after":0,"city_state_before":0,"city_state_held_lifetime":0,"city_state_joined":0,"city_state_stated":0,"city_state_total":0,"city_state_withdrawn":0,"city_state_withdrawn_cause":"","city_state_withdrawn_next":"","city_withdrawn":0,"city_withdrawn_cause":"","city_withdrawn_next":"","cohort_signature":"","cohort_size":1,"completed":false,"contact_any_hits_delta":-1,"contact_any_tests_delta":-1,"duplicate_terminals":0,"elapsed":1,"entity_after":0,"entity_before":0,"event":"authority","expected_marker":"","failure_line":"runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes","failure_marker":"entity_scan.callback","first_fault":"","fixed_after":1,"fixed_before":0,"fixed_held_lifetime":0,"fixed_joined":0,"fixed_rule_changed":0,"fixed_rule_changed_cause":"","fixed_rule_changed_next":"","fixed_rule_eligible":0,"fixed_stated":0,"fixed_total":0,"fixed_withdrawn":0,"fixed_withdrawn_cause":"","fixed_withdrawn_next":"","fixture_api":false,"foreign_terminals":0,"frame_budget":212,"frames":1,"incomplete":false,"later_births":0,"lift_answered_y":0,"lift_baseline_elevation":0,"lift_constant":500,"lift_elevation":0,"lift_frame":-1,"lift_refused":0,"lifted":0,"miss_coverage":"","mode":"scan_real","moving":0,"other_ops_after":2,"other_ops_before":2,"pose_after":0,"pose_altered":0,"pose_before":0,"pose_fact_aircraft_motion_differs":0,"pose_fact_attitude_compared":0,"pose_fact_attitude_differs":0,"pose_fact_dead":0,"pose_fact_dead_recorded":0,"pose_fact_formula_differs":0,"pose_fact_formula_equal":0,"pose_fact_motion_held":0,"pose_fact_motion_held_differs":0,"pose_fact_motion_not_held":0,"pose_fact_no_id":0,"pose_fact_observations":0,"pose_fact_offers":0,"pose_fact_position_differs":0,"pose_fact_recorded":0,"pose_fact_recorded_by_kind":"","pose_fact_retired":0,"pose_fact_unknown":0,"pose_fact_unrecorded":0,"pose_fact_vehicle_formula_differs":0,"pose_fact_vehicle_formula_equal":0,"pose_histogram":"","pose_named":0,"pose_no_id":0,"pose_pre_histogram":"","pose_pre_named":0,"pose_pre_no_id":0,"pose_pre_recorded":0,"pose_pre_retired":0,"pose_pre_stage_offer":0,"pose_pre_stage_placement":0,"pose_pre_total":0,"pose_pre_unknown":0,"pose_pre_unrecorded":0,"pose_recorded":0,"pose_retired":0,"pose_stage_offer":0,"pose_stage_placement":0,"pose_unknown":0,"pose_unrecorded":0,"precision_high_delta":-1,"profile":"hosted","real_hit":0,"real_mask_56":0,"real_mask_63":0,"real_mask_other":0,"real_miss":0,"record_displaced":0,"record_withdrawn":0,"reply_faults":0,"request_faults":0,"roster_after":2,"roster_before":0,"roster_cleared":1,"roster_insert":1,"roster_placed":1,"roster_remove":0,"roster_removed":0,"roster_reset":1,"roster_withdrawn":0,"roster_withdrawn_cause":"","roster_withdrawn_next_phase":"","scan_after":0,"scan_altered":0,"scan_answered_done_none":0,"scan_before":0,"scan_done_hit":0,"scan_done_none":0,"scan_excluded":0,"scan_first":0,"scan_next":0,"scan_offer":0,"scan_phase_begin":0,"scan_phase_end":0,"scan_phase_entry":0,"scan_phase_resolved":0,"secondary_input":"entity_collision_answered_hit_mask_63_at_the_request_old_end_whenever_asked_in_both_paired_modes_configured_not_natural","sector_height_answered":0,"sector_height_total":0,"sector_restore_answered":0,"sector_restore_total":0,"stationary":0,"target":"eech-world:2","target_after_lift":0,"target_after_lift_test":0,"target_buildings":0,"target_need_fixed":0,"target_need_normal":0,"target_need_placement":0,"target_need_updated":0,"target_questions":0,"target_skip":0,"target_test":0,"view_already_set":0,"view_answers_seen":1,"view_applied":1,"view_input":"configured_view_weapon_true_on_armed_weapon_steps","view_steps_seen":2}
+
+
+---- a_restatement_acknowledged_with_a_cursor_beside_placed_and_the_same_key_is_never_credited_as_a_change stdout ----
+
+thread 'a_restatement_acknowledged_with_a_cursor_beside_placed_and_the_same_key_is_never_credited_as_a_change' (358) panicked at crates/eech-world/tests/entity_authority.rs:4992:5:
+Err("runtime error: entity-authority: mode changed_fixed_rule stopped at [model-provider:entity_scan.callback], not at [model-provider:entity_candidate.refused], before any eligible lookup had its rule changed: runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"entity-authority.lua\"]:2759: in main chunk")
+{"event":"boot","frame_budget":212,"frame_ms":1000,"mode":"changed_fixed_rule","profile":"hosted","seed":1,"settle":2,"warmup":1}
+{"bound":2,"elapsed":1,"entity_before":0,"event":"warmed_up","frames":1}
+{"distance":141.42135623731,"event":"case_selected","launcher":"eech-world:1","pairs_considered":2,"selection":"nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon","target":"eech-world:2","weapon":7}
+{"births":1,"event":"case_launch","launcher":"eech-world:1","ok":true,"target":"eech-world:2","text":"wpn-case-launch launcher=helicopter weapon=7 target_link_before=0 target_link=1 count_before=3 count_after=2 births=1 creates=1 restored=1","weapon":7}
+{"event":"cohort","members":"5","size":1}
+{"altered":0,"answered_hit":0,"answered_miss":0,"attribution":"global_to_the_war_no_per_weapon_identity","candidate_after":0,"candidate_altered":0,"candidate_answered_skip":0,"candidate_before":0,"candidate_buildings":0,"candidate_keyed":0,"candidate_mobile":0,"candidate_mobile_named":0,"candidate_mobile_unnamed":0,"candidate_need_fixed":0,"candidate_need_normal":0,"candidate_need_placement":0,"candidate_need_updated":0,"candidate_scene0":0,"candidate_skip":0,"candidate_test":0,"candidate_unkeyed":0,"case_weapons_ended":0,"case_weapons_pending":-1,"city_after":0,"city_before":0,"city_child_first":0,"city_child_insert":0,"city_child_next":0,"city_child_remove":0,"city_expand_after":0,"city_expand_answered":0,"city_expand_before":0,"city_expand_total":0,"city_link":0,"city_name":0,"city_next":0,"city_next_joined":0,"city_placed":0,"city_removed":0,"city_served":0,"city_state_after":0,"city_state_before":0,"city_state_held_lifetime":0,"city_state_joined":0,"city_state_stated":0,"city_state_total":0,"city_state_withdrawn":0,"city_state_withdrawn_cause":"","city_state_withdrawn_next":"","city_withdrawn":0,"city_withdrawn_cause":"","city_withdrawn_next":"","cohort_signature":"","cohort_size":1,"completed":false,"contact_any_hits_delta":-1,"contact_any_tests_delta":-1,"duplicate_terminals":0,"elapsed":1,"entity_after":0,"entity_before":0,"event":"authority","expected_marker":"entity_candidate.refused","failure_line":"runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes","failure_marker":"entity_scan.callback","first_fault":"","fixed_after":1,"fixed_before":0,"fixed_held_lifetime":0,"fixed_joined":0,"fixed_rule_changed":0,"fixed_rule_changed_cause":"","fixed_rule_changed_next":"","fixed_rule_eligible":0,"fixed_stated":0,"fixed_total":0,"fixed_withdrawn":0,"fixed_withdrawn_cause":"","fixed_withdrawn_next":"","fixture_api":false,"foreign_terminals":0,"frame_budget":212,"frames":1,"incomplete":false,"later_births":0,"lift_answered_y":0,"lift_baseline_elevation":0,"lift_constant":500,"lift_elevation":0,"lift_frame":-1,"lift_refused":0,"lifted":0,"miss_coverage":"","mode":"changed_fixed_rule","moving":0,"other_ops_after":2,"other_ops_before":2,"pose_after":0,"pose_altered":0,"pose_before":0,"pose_fact_aircraft_motion_differs":0,"pose_fact_attitude_compared":0,"pose_fact_attitude_differs":0,"pose_fact_dead":0,"pose_fact_dead_recorded":0,"pose_fact_formula_differs":0,"pose_fact_formula_equal":0,"pose_fact_motion_held":0,"pose_fact_motion_held_differs":0,"pose_fact_motion_not_held":0,"pose_fact_no_id":0,"pose_fact_observations":0,"pose_fact_offers":0,"pose_fact_position_differs":0,"pose_fact_recorded":0,"pose_fact_recorded_by_kind":"","pose_fact_retired":0,"pose_fact_unknown":0,"pose_fact_unrecorded":0,"pose_fact_vehicle_formula_differs":0,"pose_fact_vehicle_formula_equal":0,"pose_histogram":"","pose_named":0,"pose_no_id":0,"pose_pre_histogram":"","pose_pre_named":0,"pose_pre_no_id":0,"pose_pre_recorded":0,"pose_pre_retired":0,"pose_pre_stage_offer":0,"pose_pre_stage_placement":0,"pose_pre_total":0,"pose_pre_unknown":0,"pose_pre_unrecorded":0,"pose_recorded":0,"pose_retired":0,"pose_stage_offer":0,"pose_stage_placement":0,"pose_unknown":0,"pose_unrecorded":0,"precision_high_delta":-1,"profile":"hosted","real_hit":0,"real_mask_56":0,"real_mask_63":0,"real_mask_other":0,"real_miss":0,"record_displaced":0,"record_withdrawn":0,"reply_faults":0,"request_faults":0,"roster_after":2,"roster_before":0,"roster_cleared":1,"roster_insert":1,"roster_placed":1,"roster_remove":0,"roster_removed":0,"roster_reset":1,"roster_withdrawn":0,"roster_withdrawn_cause":"","roster_withdrawn_next_phase":"","scan_after":0,"scan_altered":0,"scan_answered_done_none":0,"scan_before":0,"scan_done_hit":0,"scan_done_none":0,"scan_excluded":0,"scan_first":0,"scan_next":0,"scan_offer":0,"scan_phase_begin":0,"scan_phase_end":0,"scan_phase_entry":0,"scan_phase_resolved":0,"secondary_input":"","sector_height_answered":0,"sector_height_total":0,"sector_restore_answered":0,"sector_restore_total":0,"stationary":0,"target":"eech-world:2","target_after_lift":0,"target_after_lift_test":0,"target_buildings":0,"target_need_fixed":0,"target_need_normal":0,"target_need_placement":0,"target_need_updated":0,"target_questions":0,"target_skip":0,"target_test":0,"view_already_set":0,"view_answers_seen":1,"view_applied":1,"view_input":"configured_view_weapon_true_on_armed_weapon_steps","view_steps_seen":2}
+
+
+---- a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_an_eligible_lookup_nor_withdrawn stdout ----
+
+thread 'a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_an_eligible_lookup_nor_withdrawn' (368) panicked at crates/eech-world/tests/entity_authority.rs:5338:5:
+assertion `left == right` failed: both placements were stated and nothing was removed
+  left: []
+ right: [("0x41500000", "placed", "1", "1"), ("0x41500000", "placed", "2", "2")]
+
+---- buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds stdout ----
+
+thread 'buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds' (371) panicked at crates/eech-world/tests/entity_authority.rs:6002:5:
+Err("runtime error: runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes\nstack traceback:\n\t[C]: in function 'inner'\n\t[string \"eech model request check\"]:20: in function 'model'\n\t[string \"scripted collaborators\"]:187: in function 'reference'\n\t[string \"entity-authority.lua\"]:1358: in function <[string \"entity-authority.lua\"]:1295>\n\t(tail call): in function <(tail call):-1>\n\t[C]: in function 'pcall'\n\t[string \"scripted collaborators\"]:426: in function 'ask_model'\n\t[string \"scripted collaborators\"]:702: in function 'building_report'\n\t[string \"scripted collaborators\"]:734: in function 'building_in_sector'\n\t[string \"scripted collaborators\"]:828: in function 'boot_city_box'\n\t[string \"scripted collaborators\"]:1260: in function 'boot'\n\t[string \"entity-authority.lua\"]:2033: in function <[string \"entity-authority.lua\"]:1993>\n\t[C]: in function 'xpcall'\n\t[string \"entity-authority.lua\"]:2752: in main chunk\n\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"entity-authority.lua\"]:2756: in main chunk") / 
+
+---- changing_the_physical_rule_of_a_served_placement_makes_the_next_unmodified_question_refused_by_the_mirror_difference stdout ----
+
+thread 'changing_the_physical_rule_of_a_served_placement_makes_the_next_unmodified_question_refused_by_the_mirror_difference' (372) panicked at crates/eech-world/tests/entity_authority.rs:4923:5:
+Err("runtime error: entity-authority: mode changed_fixed_rule stopped at [model-provider:entity_scan.callback], not at [model-provider:entity_candidate.refused], before any eligible lookup had its rule changed: runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"entity-authority.lua\"]:2759: in main chunk")
+{"event":"boot","frame_budget":212,"frame_ms":1000,"mode":"changed_fixed_rule","profile":"hosted","seed":1,"settle":2,"warmup":1}
+{"bound":2,"elapsed":1,"entity_before":0,"event":"warmed_up","frames":1}
+{"distance":141.42135623731,"event":"case_selected","launcher":"eech-world:1","pairs_considered":2,"selection":"nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon","target":"eech-world:2","weapon":7}
+{"births":1,"event":"case_launch","launcher":"eech-world:1","ok":true,"target":"eech-world:2","text":"wpn-case-launch launcher=helicopter weapon=7 target_link_before=0 target_link=1 count_before=3 count_after=2 births=1 creates=1 restored=1","weapon":7}
+{"event":"cohort","members":"5","size":1}
+{"altered":0,"answered_hit":0,"answered_miss":0,"attribution":"global_to_the_war_no_per_weapon_identity","candidate_after":0,"candidate_altered":0,"candidate_answered_skip":0,"candidate_before":0,"candidate_buildings":0,"candidate_keyed":0,"candidate_mobile":0,"candidate_mobile_named":0,"candidate_mobile_unnamed":0,"candidate_need_fixed":0,"candidate_need_normal":0,"candidate_need_placement":0,"candidate_need_updated":0,"candidate_scene0":0,"candidate_skip":0,"candidate_test":0,"candidate_unkeyed":0,"case_weapons_ended":0,"case_weapons_pending":-1,"city_after":0,"city_before":0,"city_child_first":0,"city_child_insert":0,"city_child_next":0,"city_child_remove":0,"city_expand_after":0,"city_expand_answered":0,"city_expand_before":0,"city_expand_total":0,"city_link":0,"city_name":0,"city_next":0,"city_next_joined":0,"city_placed":0,"city_removed":0,"city_served":0,"city_state_after":0,"city_state_before":0,"city_state_held_lifetime":0,"city_state_joined":0,"city_state_stated":0,"city_state_total":0,"city_state_withdrawn":0,"city_state_withdrawn_cause":"","city_state_withdrawn_next":"","city_withdrawn":0,"city_withdrawn_cause":"","city_withdrawn_next":"","cohort_signature":"","cohort_size":1,"completed":false,"contact_any_hits_delta":-1,"contact_any_tests_delta":-1,"duplicate_terminals":0,"elapsed":1,"entity_after":0,"entity_before":0,"event":"authority","expected_marker":"entity_candidate.refused","failure_line":"runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes","failure_marker":"entity_scan.callback","first_fault":"","fixed_after":1,"fixed_before":0,"fixed_held_lifetime":0,"fixed_joined":0,"fixed_rule_changed":0,"fixed_rule_changed_cause":"","fixed_rule_changed_next":"","fixed_rule_eligible":0,"fixed_stated":0,"fixed_total":0,"fixed_withdrawn":0,"fixed_withdrawn_cause":"","fixed_withdrawn_next":"","fixture_api":false,"foreign_terminals":0,"frame_budget":212,"frames":1,"incomplete":false,"later_births":0,"lift_answered_y":0,"lift_baseline_elevation":0,"lift_constant":500,"lift_elevation":0,"lift_frame":-1,"lift_refused":0,"lifted":0,"miss_coverage":"","mode":"changed_fixed_rule","moving":0,"other_ops_after":2,"other_ops_before":2,"pose_after":0,"pose_altered":0,"pose_before":0,"pose_fact_aircraft_motion_differs":0,"pose_fact_attitude_compared":0,"pose_fact_attitude_differs":0,"pose_fact_dead":0,"pose_fact_dead_recorded":0,"pose_fact_formula_differs":0,"pose_fact_formula_equal":0,"pose_fact_motion_held":0,"pose_fact_motion_held_differs":0,"pose_fact_motion_not_held":0,"pose_fact_no_id":0,"pose_fact_observations":0,"pose_fact_offers":0,"pose_fact_position_differs":0,"pose_fact_recorded":0,"pose_fact_recorded_by_kind":"","pose_fact_retired":0,"pose_fact_unknown":0,"pose_fact_unrecorded":0,"pose_fact_vehicle_formula_differs":0,"pose_fact_vehicle_formula_equal":0,"pose_histogram":"","pose_named":0,"pose_no_id":0,"pose_pre_histogram":"","pose_pre_named":0,"pose_pre_no_id":0,"pose_pre_recorded":0,"pose_pre_retired":0,"pose_pre_stage_offer":0,"pose_pre_stage_placement":0,"pose_pre_total":0,"pose_pre_unknown":0,"pose_pre_unrecorded":0,"pose_recorded":0,"pose_retired":0,"pose_stage_offer":0,"pose_stage_placement":0,"pose_unknown":0,"pose_unrecorded":0,"precision_high_delta":-1,"profile":"hosted","real_hit":0,"real_mask_56":0,"real_mask_63":0,"real_mask_other":0,"real_miss":0,"record_displaced":0,"record_withdrawn":0,"reply_faults":0,"request_faults":0,"roster_after":2,"roster_before":0,"roster_cleared":1,"roster_insert":1,"roster_placed":1,"roster_remove":0,"roster_removed":0,"roster_reset":1,"roster_withdrawn":0,"roster_withdrawn_cause":"","roster_withdrawn_next_phase":"","scan_after":0,"scan_altered":0,"scan_answered_done_none":0,"scan_before":0,"scan_done_hit":0,"scan_done_none":0,"scan_excluded":0,"scan_first":0,"scan_next":0,"scan_offer":0,"scan_phase_begin":0,"scan_phase_end":0,"scan_phase_entry":0,"scan_phase_resolved":0,"secondary_input":"","sector_height_answered":0,"sector_height_total":0,"sector_restore_answered":0,"sector_restore_total":0,"stationary":0,"target":"eech-world:2","target_after_lift":0,"target_after_lift_test":0,"target_buildings":0,"target_need_fixed":0,"target_need_normal":0,"target_need_placement":0,"target_need_updated":0,"target_questions":0,"target_skip":0,"target_test":0,"view_already_set":0,"view_answers_seen":1,"view_applied":1,"view_input":"configured_view_weapon_true_on_armed_weapon_steps","view_steps_seen":2}
+
+
+---- each_single_fault_of_the_fixed_state_grammar_is_counted_at_its_question_and_is_never_a_pass stdout ----
+
+thread 'each_single_fault_of_the_fixed_state_grammar_is_counted_at_its_question_and_is_never_a_pass' (375) panicked at crates/eech-world/tests/entity_authority.rs:5366:5:
+{"altered":0,"answered_hit":0,"answered_miss":0,"attribution":"global_to_the_war_no_per_weapon_identity","candidate_after":0,"candidate_altered":0,"candidate_answered_skip":0,"candidate_before":0,"candidate_buildings":0,"candidate_keyed":0,"candidate_mobile":0,"candidate_mobile_named":0,"candidate_mobile_unnamed":0,"candidate_need_fixed":0,"candidate_need_normal":0,"candidate_need_placement":0,"candidate_need_updated":0,"candidate_scene0":0,"candidate_skip":0,"candidate_test":0,"candidate_unkeyed":0,"case_weapons_ended":0,"case_weapons_pending":-1,"city_after":0,"city_before":0,"city_child_first":0,"city_child_insert":0,"city_child_next":0,"city_child_remove":0,"city_expand_after":0,"city_expand_answered":0,"city_expand_before":0,"city_expand_total":0,"city_link":0,"city_name":0,"city_next":0,"city_next_joined":0,"city_placed":0,"city_removed":0,"city_served":0,"city_state_after":0,"city_state_before":0,"city_state_held_lifetime":0,"city_state_joined":0,"city_state_stated":0,"city_state_total":0,"city_state_withdrawn":0,"city_state_withdrawn_cause":"","city_state_withdrawn_next":"","city_withdrawn":0,"city_withdrawn_cause":"","city_withdrawn_next":"","cohort_signature":"","cohort_size":1,"completed":false,"contact_any_hits_delta":-1,"contact_any_tests_delta":-1,"duplicate_terminals":0,"elapsed":1,"entity_after":0,"entity_before":0,"event":"authority","expected_marker":"","failure_line":"runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes","failure_marker":"entity_scan.callback","first_fault":"","fixed_after":1,"fixed_before":0,"fixed_held_lifetime":0,"fixed_joined":0,"fixed_rule_changed":0,"fixed_rule_changed_cause":"","fixed_rule_changed_next":"","fixed_rule_eligible":0,"fixed_stated":0,"fixed_total":0,"fixed_withdrawn":0,"fixed_withdrawn_cause":"","fixed_withdrawn_next":"","fixture_api":false,"foreign_terminals":0,"frame_budget":212,"frames":1,"incomplete":false,"later_births":0,"lift_answered_y":0,"lift_baseline_elevation":0,"lift_constant":500,"lift_elevation":0,"lift_frame":-1,"lift_refused":0,"lifted":0,"miss_coverage":"","mode":"scan_real","moving":0,"other_ops_after":2,"other_ops_before":2,"pose_after":0,"pose_altered":0,"pose_before":0,"pose_fact_aircraft_motion_differs":0,"pose_fact_attitude_compared":0,"pose_fact_attitude_differs":0,"pose_fact_dead":0,"pose_fact_dead_recorded":0,"pose_fact_formula_differs":0,"pose_fact_formula_equal":0,"pose_fact_motion_held":0,"pose_fact_motion_held_differs":0,"pose_fact_motion_not_held":0,"pose_fact_no_id":0,"pose_fact_observations":0,"pose_fact_offers":0,"pose_fact_position_differs":0,"pose_fact_recorded":0,"pose_fact_recorded_by_kind":"","pose_fact_retired":0,"pose_fact_unknown":0,"pose_fact_unrecorded":0,"pose_fact_vehicle_formula_differs":0,"pose_fact_vehicle_formula_equal":0,"pose_histogram":"","pose_named":0,"pose_no_id":0,"pose_pre_histogram":"","pose_pre_named":0,"pose_pre_no_id":0,"pose_pre_recorded":0,"pose_pre_retired":0,"pose_pre_stage_offer":0,"pose_pre_stage_placement":0,"pose_pre_total":0,"pose_pre_unknown":0,"pose_pre_unrecorded":0,"pose_recorded":0,"pose_retired":0,"pose_stage_offer":0,"pose_stage_placement":0,"pose_unknown":0,"pose_unrecorded":0,"precision_high_delta":-1,"profile":"hosted","real_hit":0,"real_mask_56":0,"real_mask_63":0,"real_mask_other":0,"real_miss":0,"record_displaced":0,"record_withdrawn":0,"reply_faults":0,"request_faults":0,"roster_after":2,"roster_before":0,"roster_cleared":1,"roster_insert":1,"roster_placed":1,"roster_remove":0,"roster_removed":0,"roster_reset":1,"roster_withdrawn":0,"roster_withdrawn_cause":"","roster_withdrawn_next_phase":"","scan_after":0,"scan_altered":0,"scan_answered_done_none":0,"scan_before":0,"scan_done_hit":0,"scan_done_none":0,"scan_excluded":0,"scan_first":0,"scan_next":0,"scan_offer":0,"scan_phase_begin":0,"scan_phase_end":0,"scan_phase_entry":0,"scan_phase_resolved":0,"secondary_input":"entity_collision_answered_hit_mask_63_at_the_request_old_end_whenever_asked_in_both_paired_modes_configured_not_natural","sector_height_answered":0,"sector_height_total":0,"sector_restore_answered":0,"sector_restore_total":0,"stationary":0,"target":"eech-world:2","target_after_lift":0,"target_after_lift_test":0,"target_buildings":0,"target_need_fixed":0,"target_need_normal":0,"target_need_placement":0,"target_need_updated":0,"target_questions":0,"target_skip":0,"target_test":0,"view_already_set":0,"view_answers_seen":1,"view_applied":1,"view_input":"configured_view_weapon_true_on_armed_weapon_steps","view_steps_seen":2}
+
+---- each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is_never_a_pass stdout ----
+
+thread 'each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is_never_a_pass' (374) panicked at crates/eech-world/tests/entity_authority.rs:5621:9:
+stray_fact: {"altered":0,"answered_hit":0,"answered_miss":0,"attribution":"global_to_the_war_no_per_weapon_identity","candidate_after":0,"candidate_altered":0,"candidate_answered_skip":0,"candidate_before":0,"candidate_buildings":0,"candidate_keyed":0,"candidate_mobile":0,"candidate_mobile_named":0,"candidate_mobile_unnamed":0,"candidate_need_fixed":0,"candidate_need_normal":0,"candidate_need_placement":0,"candidate_need_updated":0,"candidate_scene0":0,"candidate_skip":0,"candidate_test":0,"candidate_unkeyed":0,"case_weapons_ended":0,"case_weapons_pending":-1,"city_after":0,"city_before":0,"city_child_first":0,"city_child_insert":0,"city_child_next":0,"city_child_remove":0,"city_expand_after":0,"city_expand_answered":0,"city_expand_before":0,"city_expand_total":0,"city_link":0,"city_name":0,"city_next":0,"city_next_joined":0,"city_placed":0,"city_removed":0,"city_served":0,"city_state_after":1,"city_state_before":0,"city_state_held_lifetime":0,"city_state_joined":0,"city_state_stated":0,"city_state_total":0,"city_state_withdrawn":0,"city_state_withdrawn_cause":"","city_state_withdrawn_next":"","city_withdrawn":0,"city_withdrawn_cause":"","city_withdrawn_next":"","cohort_signature":"","cohort_size":1,"completed":false,"contact_any_hits_delta":-1,"contact_any_tests_delta":-1,"duplicate_terminals":0,"elapsed":1,"entity_after":0,"entity_before":0,"event":"authority","expected_marker":"","failure_line":"runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes","failure_marker":"entity_scan.callback","first_fault":"","fixed_after":0,"fixed_before":0,"fixed_held_lifetime":0,"fixed_joined":0,"fixed_rule_changed":0,"fixed_rule_changed_cause":"","fixed_rule_changed_next":"","fixed_rule_eligible":0,"fixed_stated":0,"fixed_total":0,"fixed_withdrawn":0,"fixed_withdrawn_cause":"","fixed_withdrawn_next":"","fixture_api":false,"foreign_terminals":0,"frame_budget":212,"frames":1,"incomplete":false,"later_births":0,"lift_answered_y":0,"lift_baseline_elevation":0,"lift_constant":500,"lift_elevation":0,"lift_frame":-1,"lift_refused":0,"lifted":0,"miss_coverage":"","mode":"scan_real","moving":0,"other_ops_after":2,"other_ops_before":2,"pose_after":0,"pose_altered":0,"pose_before":0,"pose_fact_aircraft_motion_differs":0,"pose_fact_attitude_compared":0,"pose_fact_attitude_differs":0,"pose_fact_dead":0,"pose_fact_dead_recorded":0,"pose_fact_formula_differs":0,"pose_fact_formula_equal":0,"pose_fact_motion_held":0,"pose_fact_motion_held_differs":0,"pose_fact_motion_not_held":0,"pose_fact_no_id":0,"pose_fact_observations":0,"pose_fact_offers":0,"pose_fact_position_differs":0,"pose_fact_recorded":0,"pose_fact_recorded_by_kind":"","pose_fact_retired":0,"pose_fact_unknown":0,"pose_fact_unrecorded":0,"pose_fact_vehicle_formula_differs":0,"pose_fact_vehicle_formula_equal":0,"pose_histogram":"","pose_named":0,"pose_no_id":0,"pose_pre_histogram":"","pose_pre_named":0,"pose_pre_no_id":0,"pose_pre_recorded":0,"pose_pre_retired":0,"pose_pre_stage_offer":0,"pose_pre_stage_placement":0,"pose_pre_total":0,"pose_pre_unknown":0,"pose_pre_unrecorded":0,"pose_recorded":0,"pose_retired":0,"pose_stage_offer":0,"pose_stage_placement":0,"pose_unknown":0,"pose_unrecorded":0,"precision_high_delta":-1,"profile":"hosted","real_hit":0,"real_mask_56":0,"real_mask_63":0,"real_mask_other":0,"real_miss":0,"record_displaced":0,"record_withdrawn":0,"reply_faults":0,"request_faults":0,"roster_after":2,"roster_before":0,"roster_cleared":1,"roster_insert":1,"roster_placed":1,"roster_remove":0,"roster_removed":0,"roster_reset":1,"roster_withdrawn":0,"roster_withdrawn_cause":"","roster_withdrawn_next_phase":"","scan_after":0,"scan_altered":0,"scan_answered_done_none":0,"scan_before":0,"scan_done_hit":0,"scan_done_none":0,"scan_excluded":0,"scan_first":0,"scan_next":0,"scan_offer":0,"scan_phase_begin":0,"scan_phase_end":0,"scan_phase_entry":0,"scan_phase_resolved":0,"secondary_input":"entity_collision_answered_hit_mask_63_at_the_request_old_end_whenever_asked_in_both_paired_modes_configured_not_natural","sector_height_answered":0,"sector_height_total":0,"sector_restore_answered":0,"sector_restore_total":0,"stationary":0,"target":"eech-world:2","target_after_lift":0,"target_after_lift_test":0,"target_buildings":0,"target_need_fixed":0,"target_need_normal":0,"target_need_placement":0,"target_need_updated":0,"target_questions":0,"target_skip":0,"target_test":0,"view_already_set":0,"view_answers_seen":1,"view_applied":1,"view_input":"configured_view_weapon_true_on_armed_weapon_steps","view_steps_seen":2}
+
+---- withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_the_same_candidate_refused_by_name stdout ----
+
+thread 'withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_the_same_candidate_refused_by_name' (420) panicked at crates/eech-world/tests/entity_authority.rs:4831:5:
+Err("runtime error: entity-authority: mode withdrawn_fixed_state stopped at [model-provider:entity_scan.callback], not at [model-provider:entity_candidate.refused], before any eligible lookup was withdrawn from: runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"entity-authority.lua\"]:2759: in main chunk")
+{"event":"boot","frame_budget":212,"frame_ms":1000,"mode":"withdrawn_fixed_state","profile":"hosted","seed":1,"settle":2,"warmup":1}
+{"bound":2,"elapsed":1,"entity_before":0,"event":"warmed_up","frames":1}
+{"distance":141.42135623731,"event":"case_selected","launcher":"eech-world:1","pairs_considered":2,"selection":"nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon","target":"eech-world:2","weapon":7}
+{"births":1,"event":"case_launch","launcher":"eech-world:1","ok":true,"target":"eech-world:2","text":"wpn-case-launch launcher=helicopter weapon=7 target_link_before=0 target_link=1 count_before=3 count_after=2 births=1 creates=1 restored=1","weapon":7}
+{"event":"cohort","members":"5","size":1}
+{"altered":0,"answered_hit":0,"answered_miss":0,"attribution":"global_to_the_war_no_per_weapon_identity","candidate_after":0,"candidate_altered":0,"candidate_answered_skip":0,"candidate_before":0,"candidate_buildings":0,"candidate_keyed":0,"candidate_mobile":0,"candidate_mobile_named":0,"candidate_mobile_unnamed":0,"candidate_need_fixed":0,"candidate_need_normal":0,"candidate_need_placement":0,"candidate_need_updated":0,"candidate_scene0":0,"candidate_skip":0,"candidate_test":0,"candidate_unkeyed":0,"case_weapons_ended":0,"case_weapons_pending":-1,"city_after":0,"city_before":0,"city_child_first":0,"city_child_insert":0,"city_child_next":0,"city_child_remove":0,"city_expand_after":0,"city_expand_answered":0,"city_expand_before":0,"city_expand_total":0,"city_link":0,"city_name":0,"city_next":0,"city_next_joined":0,"city_placed":0,"city_removed":0,"city_served":0,"city_state_after":0,"city_state_before":0,"city_state_held_lifetime":0,"city_state_joined":0,"city_state_stated":0,"city_state_total":0,"city_state_withdrawn":0,"city_state_withdrawn_cause":"","city_state_withdrawn_next":"","city_withdrawn":0,"city_withdrawn_cause":"","city_withdrawn_next":"","cohort_signature":"","cohort_size":1,"completed":false,"contact_any_hits_delta":-1,"contact_any_tests_delta":-1,"duplicate_terminals":0,"elapsed":1,"entity_after":0,"entity_before":0,"event":"authority","expected_marker":"entity_candidate.refused","failure_line":"runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: model store refused: incompatible 3dobjdb.bin: no scenes","failure_marker":"entity_scan.callback","first_fault":"","fixed_after":1,"fixed_before":0,"fixed_held_lifetime":0,"fixed_joined":0,"fixed_rule_changed":0,"fixed_rule_changed_cause":"","fixed_rule_changed_next":"","fixed_rule_eligible":0,"fixed_stated":0,"fixed_total":0,"fixed_withdrawn":0,"fixed_withdrawn_cause":"","fixed_withdrawn_next":"","fixture_api":false,"foreign_terminals":0,"frame_budget":212,"frames":1,"incomplete":false,"later_births":0,"lift_answered_y":0,"lift_baseline_elevation":0,"lift_constant":500,"lift_elevation":0,"lift_frame":-1,"lift_refused":0,"lifted":0,"miss_coverage":"","mode":"withdrawn_fixed_state","moving":0,"other_ops_after":2,"other_ops_before":2,"pose_after":0,"pose_altered":0,"pose_before":0,"pose_fact_aircraft_motion_differs":0,"pose_fact_attitude_compared":0,"pose_fact_attitude_differs":0,"pose_fact_dead":0,"pose_fact_dead_recorded":0,"pose_fact_formula_differs":0,"pose_fact_formula_equal":0,"pose_fact_motion_held":0,"pose_fact_motion_held_differs":0,"pose_fact_motion_not_held":0,"pose_fact_no_id":0,"pose_fact_observations":0,"pose_fact_offers":0,"pose_fact_position_differs":0,"pose_fact_recorded":0,"pose_fact_recorded_by_kind":"","pose_fact_retired":0,"pose_fact_unknown":0,"pose_fact_unrecorded":0,"pose_fact_vehicle_formula_differs":0,"pose_fact_vehicle_formula_equal":0,"pose_histogram":"","pose_named":0,"pose_no_id":0,"pose_pre_histogram":"","pose_pre_named":0,"pose_pre_no_id":0,"pose_pre_recorded":0,"pose_pre_retired":0,"pose_pre_stage_offer":0,"pose_pre_stage_placement":0,"pose_pre_total":0,"pose_pre_unknown":0,"pose_pre_unrecorded":0,"pose_recorded":0,"pose_retired":0,"pose_stage_offer":0,"pose_stage_placement":0,"pose_unknown":0,"pose_unrecorded":0,"precision_high_delta":-1,"profile":"hosted","real_hit":0,"real_mask_56":0,"real_mask_63":0,"real_mask_other":0,"real_miss":0,"record_displaced":0,"record_withdrawn":0,"reply_faults":0,"request_faults":0,"roster_after":2,"roster_before":0,"roster_cleared":1,"roster_insert":1,"roster_placed":1,"roster_remove":0,"roster_removed":0,"roster_reset":1,"roster_withdrawn":0,"roster_withdrawn_cause":"","roster_withdrawn_next_phase":"","scan_after":0,"scan_altered":0,"scan_answered_done_none":0,"scan_before":0,"scan_done_hit":0,"scan_done_none":0,"scan_excluded":0,"scan_first":0,"scan_next":0,"scan_offer":0,"scan_phase_begin":0,"scan_phase_end":0,"scan_phase_entry":0,"scan_phase_resolved":0,"secondary_input":"","sector_height_answered":0,"sector_height_total":0,"sector_restore_answered":0,"sector_restore_total":0,"stationary":0,"target":"eech-world:2","target_after_lift":0,"target_after_lift_test":0,"target_buildings":0,"target_need_fixed":0,"target_need_normal":0,"target_need_placement":0,"target_need_updated":0,"target_questions":0,"target_skip":0,"target_test":0,"view_already_set":0,"view_answers_seen":1,"view_applied":1,"view_input":"configured_view_weapon_true_on_armed_weapon_steps","view_steps_seen":2}
+
+
+
+failures:
+    a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link
+    a_healthy_control_counts_the_fixed_state_reports_apart_and_every_staged_question_of_a_non_mobile_candidate_names_the_placement
+    a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one
+    a_restatement_acknowledged_with_a_cursor_beside_placed_and_the_same_key_is_never_credited_as_a_change
+    a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_an_eligible_lookup_nor_withdrawn
+    buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds
+    changing_the_physical_rule_of_a_served_placement_makes_the_next_unmodified_question_refused_by_the_mirror_difference
+    each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is_never_a_pass
+    each_single_fault_of_the_fixed_state_grammar_is_counted_at_its_question_and_is_never_a_pass
+    withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_the_same_candidate_refused_by_name
+
+test result: FAILED. 99 passed; 10 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.56s
+
+
+running 69 tests
+test a_caller_with_an_exception_unmasked_is_refused_for_every_target_point_question_and_its_state_is_untouched ... ok
+test a_branch_three_row_without_a_known_case_or_a_well_formed_offset_is_never_counted_matched ... ok
+test a_city_the_host_holds_no_state_for_is_refused_where_the_campaign_reads_its_position_and_box ... ok
+test a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds ... ok
+test a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first ... FAILED
+test a_city_the_campaign_calls_not_fixed_is_refused_when_the_host_derives_it_fixed_and_never_skipped_on_the_campaigns_word ... ok
+test a_fixed_target_query_hands_the_callers_floating_point_state_back_and_does_not_depend_on_it ... ok
+test a_city_of_the_unknown_sub_type_is_not_fixed_and_a_campaign_that_calls_it_fixed_is_refused ... ok
+test a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box ... ok
+test a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it ... ok
+test a_heading_the_original_would_have_read_but_the_caller_lacks_is_a_refusal_never_a_default ... ok
+test a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it ... ok
+test a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses ... FAILED
+test a_city_whose_state_is_absent_or_withdrawn_is_refused_where_its_fixed_facts_are_read_whatever_the_campaign_calls_it ... ok
+test a_fixed_state_report_is_held_by_the_record_of_the_placement_and_the_staged_candidate_is_decided_from_it ... ok
+test a_building_listed_under_a_city_is_decided_from_the_state_its_record_holds_and_is_named_by_its_place_in_the_citys_list ... ok
+test a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed ... ok
+test a_non_zero_heading_rotates_and_adds_x_and_z_exactly_where_the_arithmetic_is_exact ... ok
+test a_fixed_candidate_the_host_holds_no_state_for_or_withdrew_it_from_is_refused_by_name_and_never_completed_from_the_campaigns_words ... ok
+test a_nonzero_heading_rotates_the_fixed_offset_with_the_originals_arithmetic_through_the_provider ... ok
+test a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read ... ok
+test a_scene_without_a_target_point_falls_back_to_its_bounding_box_centre_with_y_clamped_at_zero ... ok
+test a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from ... ok
+test a_placement_of_the_fixed_family_the_host_holds_no_state_for_is_refused_when_the_campaign_says_it_is_not_fixed ... FAILED
+test a_shape_outside_the_catalogue_is_an_argument_error_and_an_inventory_store_cannot_say ... ok
+test a_target_point_query_hands_the_callers_floating_point_state_back_and_does_not_depend_on_it ... ok
+test a_mobile_candidates_pose_is_the_hosts_canonical_record_and_the_campaigns_words_decide_nothing ... ok
+test a_store_that_never_read_the_custom_files_cannot_say_what_a_slot_holds_and_a_missing_installation_does_not_load ... ok
+test a_record_that_states_no_collision_decides_a_skip_and_the_campaign_cannot_call_it_fixed ... ok
+test a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s ... ok
+test a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement ... FAILED
+test a_zero_heading_keeps_the_legacy_quirk_x_and_z_are_not_added_but_y_still_is ... ok
+test an_instances_world_target_point_applies_the_root_pose_in_the_originals_convention ... ok
+test an_instance_of_a_scene_without_a_target_point_is_the_originals_second_branch_not_a_number ... ok
+test the_answers_do_not_move_between_asks ... ok
+test an_offset_with_no_horizontal_part_never_reads_the_heading_and_only_adds_y ... ok
+test the_chain_names_the_first_target_point_sub_object_by_its_sibling_position_at_each_level ... ok
+test a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing ... ok
+test a_mobile_candidate_the_host_holds_no_record_of_is_refused_by_name_and_never_completed_from_the_campaigns_words ... ok
+test a_sub_type_the_original_has_no_row_for_is_refused_by_name_while_unknown_is_a_legitimate_statement ... ok
+test the_host_lua_face_answers_a_fixed_target_from_words_and_the_comparer_replays_branch_three_from_the_recorded_inputs ... ok
+test a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys ... ok
+test the_host_lua_comparison_checks_every_recorded_offset_row_of_both_passes_and_each_branch_one_query ... ok
+test the_controls_statements_are_the_originals ... ok
+test the_hosts_city_box_classifies_every_word_by_its_bits_before_it_computes_and_names_what_it_cannot_build ... ok
+test the_host_lua_face_answers_local_offsets_and_instance_poses_as_plain_bit_patterns ... ok
+test the_hosts_city_box_hands_the_callers_complete_floating_point_state_back_and_refuses_an_unmasked_exception ... ok
+test the_invalid_scene_is_zero_a_scene_never_read_is_refused_and_a_scene_outside_the_catalogue_is_an_argument_error ... ok
+test the_invalid_shape_copies_the_position_and_a_valid_empty_slot_adds_a_zero_that_changes_a_negative_zero ... ok
+test the_enumeration_is_decided_by_the_real_provider_from_the_segment_and_the_map_alone_and_a_malformed_question_is_refused_by_name ... ok
+test the_original_arithmetic_changes_no_control_word_rounding_or_mask_and_only_raises_sticky_flags ... ok
+test the_placement_chain_is_composed_from_the_topmost_sub_object_with_the_scale_so_far ... ok
+test the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal ... ok
+test the_hosts_city_box_is_the_originals_bit_for_bit_over_every_heading_offset_and_box_and_every_caller_rounding_mode ... ok
+test the_scenes_own_record_names_the_target_point_before_any_sub_objects_records ... ok
+test the_world_position_follows_the_live_placement_the_campaign_gives_not_keyframe_zero ... ok
+test the_provider_answers_the_chain_the_world_position_and_a_fixed_position_and_refuses_what_it_cannot ... ok
+test the_campaigns_words_of_a_fixed_candidate_decide_nothing_a_difference_from_the_record_is_a_named_refusal ... ok
+test without_a_scene_record_the_search_runs_depth_first_with_each_sub_objects_own_records_before_its_children ... ok
+test the_originals_fixed_database_is_fifteen_constant_rows_in_the_enumerations_order_with_these_flags ... ok
+test the_provider_decides_from_the_record_at_every_boundary_of_a_mobiles_lifetime_and_refuses_only_the_released_identity ... ok
+test the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds ... ok
+test every_staged_question_of_a_non_mobile_candidate_names_a_live_placement_of_the_kind_its_branch_has ... ok
+test a_malformed_fixed_state_report_is_refused_by_name_before_the_record_changes ... ok
+test the_state_follows_the_record_through_a_relink_the_two_placements_of_a_building_and_ends_with_the_last_placement ... ok
+test the_provider_answers_a_scenes_local_offset_as_exact_bits_with_its_name_and_refuses_what_it_cannot ... ok
+test a_malformed_flag_word_is_a_request_error_before_any_record_lookup_whatever_the_registry_holds ... ok
+test the_host_derives_the_collision_flag_of_every_declared_sub_type_and_the_campaigns_flag_cannot_stand_in_for_it ... ok
+test the_fixed_database_has_no_writer_and_its_readers_are_these_files_and_columns ... ok
+
+failures:
+
+---- a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first stdout ----
+
+thread 'a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first' (434) panicked at crates/eech-world/tests/model_target_point.rs:2505:5:
+assertion `left == right` failed: the sector skip comes before any fact of the city
+  left: "refused"
+ right: "skip"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses stdout ----
+
+thread 'a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses' (442) panicked at crates/eech-world/tests/model_target_point.rs:1327:5:
+assertion `left == right` failed
+  left: ("refused", "[candidate.sector_height] the campaign offers 0xc3fa0000 as the tallest structure of sector (0, 0), but the host holds 0x3f800000: the word is the host's and the campaign only passes it on")
+ right: ("skip", "")
+
+---- a_placement_of_the_fixed_family_the_host_holds_no_state_for_is_refused_when_the_campaign_says_it_is_not_fixed stdout ----
+
+thread 'a_placement_of_the_fixed_family_the_host_holds_no_state_for_is_refused_when_the_campaign_says_it_is_not_fixed' (456) panicked at crates/eech-world/tests/model_target_point.rs:2214:9:
+assertion `left == right` failed: city building: the early skip is the original's
+  left: "refused"
+ right: "skip"
+
+---- a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement stdout ----
+
+thread 'a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement' (448) panicked at crates/eech-world/tests/model_target_point.rs:2529:9:
+assertion `left == right` failed: fact 9
+  left: "placed"
+ right: "refused"
+
+
+failures:
+    a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first
+    a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses
+    a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement
+    a_placement_of_the_fixed_family_the_host_holds_no_state_for_is_refused_when_the_campaign_says_it_is_not_fixed
+
+test result: FAILED. 65 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.00s
+

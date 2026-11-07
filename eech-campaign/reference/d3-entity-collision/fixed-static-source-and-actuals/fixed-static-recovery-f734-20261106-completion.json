@@ -1,0 +1,56 @@
+{
+  "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+  "controller_pid": 5700,
+  "started_utc": "2026-11-06T08:38:42.035563+00:00",
+  "state": "terminal",
+  "stages": [
+    {
+      "mode": "control",
+      "root": "D:\\EECH-Migration-Evidence\\fixed-static-recovery-roots-f734-20261106\\healthy",
+      "output": "D:\\EECH-Migration-Evidence\\fixed-static-healthy-recovery-f734fdfc0-20261106",
+      "started_utc": "2026-11-06T08:38:42.818620+00:00",
+      "state": "terminal",
+      "pid": 15116,
+      "argv_sha256": "36f93ffc3f5125ce4df6e45567e3603c457b37ec52d3588c4a7e2c7a7be2dfc9",
+      "actual_helper_exit": 0,
+      "completed_utc": "2026-11-06T08:41:07.155510+00:00",
+      "safe_facts": {
+        "completed": true,
+        "failure_marker": "",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "view_applied": 25,
+        "fixed_stated": 0,
+        "fixed_joined": 1224,
+        "fixed_withdrawn": 0,
+        "fixed_withdrawn_next": "",
+        "fixed_withdrawn_cause": "",
+        "candidate_keyed": 70040,
+        "candidate_unkeyed": 0,
+        "candidate_need_placement": 279,
+        "stationary": 279,
+        "moving": 0,
+        "scan_altered": 0,
+        "candidate_altered": 0,
+        "altered": 0,
+        "contact_any_tests_delta": 6,
+        "contact_any_hits_delta": 0,
+        "precision_high_delta": 6,
+        "case_weapons_pending": 0
+      },
+      "actual_exit": 0,
+      "actual_native_exit": 0,
+      "payloads_verified": 88,
+      "pre_post_input_exits": [
+        0,
+        0
+      ]
+    }
+  ],
+  "interruption_audit": "fixed-static-interruption-audit-20261106.json",
+  "scope": "Only fixed/static finite actuals; no wholeTask49/D3/full40 acceptance. Old interrupted outputs and unknown exits preserved.",
+  "actual_exit": 1,
+  "native_negative_started": false,
+  "status": "UNREACHED_HEALTHY_FIXED_PREREQUISITE",
+  "completed_utc": "2026-11-06T08:41:07.171220+00:00"
+}

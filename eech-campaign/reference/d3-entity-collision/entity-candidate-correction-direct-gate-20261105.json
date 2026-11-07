@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05",
+  "scope": "Direct-exit Linux gate of the correction of the independent source review CHANGES_REQUIRED of 42054567a (ENV-ENTITY-CANDIDATE-PRECONDITION-1 and ENV-ENTITY-CANDIDATE-REPLY-1): staged candidate facts, lazy radius, the offer moved into the shared header mb_hostoffer.h, the pointer classifier and the candidate identity label. Not a native, Windows or retail run.",
+  "base_head": "42054567a95c1efe91004ec492a339c20dff4ec8",
+  "source_commit": "fb3163f283ded50fce320c7640b5282b3a68e3bc",
+  "literal_source_review": {
+    "file": "independent-entity-candidate-source-42054567a-runtime2d-20261105.json",
+    "sha256": "1a64667bf072a63a21a56f80225b8cc1da2d0a3026b7983e5e07baa21fcc3302",
+    "line_endings": "LF, byte for byte"
+  },
+  "steps": [
+    {
+      "step": "fmt",
+      "child_exit": 0
+    },
+    {
+      "step": "tests-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "test-model-walk",
+      "child_exit": 0
+    },
+    {
+      "step": "test-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "test-entity-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "build-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-host-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-and-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon-and-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-entity-dialogue",
+      "child_exit": 0
+    }
+  ],
+  "failed_steps": 0,
+  "test_result_rows": 65,
+  "tests_passed": 1183,
+  "tests_failed": 0,
+  "gate_log": {
+    "bytes": 273681,
+    "sha256": "e34df2947fb405412eb13e9578dc91c6ed5aad37aa0d5c34b306e324684f322d"
+  },
+  "red_before_correction": [
+    {
+      "log": "r1-red-store.log",
+      "check": "model_target_point, real provider and ModelStore: a direct city building (scene 0) was refused \"scene 0 is not a scene a candidate can have\" instead of skipped",
+      "child_exit": 101
+    },
+    {
+      "log": "r2-red-dialogue.log",
+      "check": "the real shared C exchange: a direct city building with scene 0 stopped at scene.index instead of reaching its skip",
+      "child_exit": 101
+    }
+  ],
+  "mutation_controls": {
+    "summary": [
+      "radius-before-skip apply=0 child_exit=101 restored_equal=yes",
+      "fixed-facts-never-asked apply=0 child_exit=101 restored_equal=yes",
+      "eager-fixed-read apply=0 child_exit=101 restored_equal=yes",
+      "eager-attitude-read apply=0 child_exit=101 restored_equal=yes",
+      "candidate-identity-label apply=0 child_exit=101 restored_equal=yes"
+    ],
+    "summary_sha256": "2ac501f94d9ba43dc1a72489a26479e0fa97e5407ce95df2173e84454293f681",
+    "meaning": "five mutants (radius before the skip, fixed facts never asked, an eager fixed-flag read, an eager attitude read, the candidate identity bound to the narrow phase label) each failed their check with exit 101 and each file was restored byte for byte. The pointer classifier is a source contract no x86-64 run distinguishes from the by-value one: guarded by text, not claimed as a measurement."
+  },
+  "checks": {
+    "entity_dialogue": "216 expectations: the real exchange and the real offer (mb_hostoffer.h) over scripted entities that log every getter in order",
+    "entity_candidate_host": "10 tests, including a differential over 400 worlds x 6 segments with a few entities that have no usable scene",
+    "model_target_point": "the same staged cases through the real provider and a real ModelStore",
+    "entity_host_guard": "5 tests including the identity labels and the pointer classifier"
+  },
+  "failed_gates_retained": [
+    {
+      "dir": "gate-1-failed-test-clippy-then_some",
+      "what": "clippy-four-crates exit 101: one unnecessary_lazy_evaluations lint in the new differential test; all other steps 0; fixed with then_some"
+    }
+  ],
+  "code_inputs": {
+    "rows": 2916,
+    "filtered_column_sha256_before_gate": "506f748ba2b2276520ef7e7470cb42bbc885bb6a60923335dd2e94e97931adb3",
+    "filtered_column_sha256_after_commit": "506f748ba2b2276520ef7e7470cb42bbc885bb6a60923335dd2e94e97931adb3",
+    "raw_column_sha256_before_gate": "72c2bd43fcacc46715e06c236bb58db2cf77afe53e4abe3f7612e93bb298369c",
+    "raw_column_sha256_after_commit": "72c2bd43fcacc46715e06c236bb58db2cf77afe53e4abe3f7612e93bb298369c",
+    "equal": true,
+    "meaning": "filtered = Git blob id as the clean filter would store each working file; raw = SHA-256 of the raw working bytes; three pre-existing CRLF files keep the qualification in filter-qualification-20261105.txt; no accepted file was normalised"
+  }
+}

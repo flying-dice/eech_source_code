@@ -1,0 +1,45 @@
+{
+  "source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+  "actual_exit": 0,
+  "changed_World_objects_bound": true,
+  "libraries": [
+    {
+      "manifest_and_rlib": "/target/x86_64-pc-windows-gnu/release/.fingerprint/eech-world-512ee69bec1409e7/lib-eech_world.json /target/x86_64-pc-windows-gnu/release/deps/libeech_world-512ee69bec1409e7.rlib",
+      "rlib_sha256": "ef53013cda55994aa26b1f3675f7fb8b2b8f846cd3d1605894aa02ca53ca33cd",
+      "members": [
+        {
+          "member": "faea18488176a15d-tree_step.o",
+          "sha256": "b87073c82a59cba3347c20c0955c50140f2256ee558291e9a7223fb2b3bde9e1",
+          "machine": "AMD64 COFF",
+          "defined_symbols": [
+            "eech_tree_begin",
+            "eech_tree_clear_exception_flags",
+            "eech_tree_environment_restore",
+            "eech_tree_environment_save",
+            "eech_tree_environment_size",
+            "eech_tree_exception_flags",
+            "eech_tree_fp_state",
+            "eech_tree_query_size",
+            "eech_tree_raise_exception_flags",
+            "eech_tree_record_size",
+            "eech_tree_rounding",
+            "eech_tree_scene_size",
+            "eech_tree_sector_size",
+            "eech_tree_set_rounding",
+            "eech_tree_terrain"
+          ]
+        },
+        {
+          "member": "faea18488176a15d-entity_candidate_step.o",
+          "sha256": "9d324b19d18f1425e13efee32430690e7c8cf15fb0ba9041e70a05180e5cc7d1",
+          "machine": "AMD64 COFF",
+          "defined_symbols": [
+            "eech_entity_candidate"
+          ]
+        }
+      ]
+    }
+  ],
+  "log_sha256": "44a95d7b04a8a89efd96dc74627d419807ea192a65a9e9244a1571180d268288",
+  "scope": "Actual C objects selected from built World rlib, including tree raw-copy and candidate precision code. Read-only audit reader is not a producer-image identity claim; not native/complete regression acceptance."
+}

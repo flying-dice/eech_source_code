@@ -1,0 +1,7 @@
+In file included from /src/eech-core-ts/c-reference/eech_harness_env.h:21,
+                 from /gen/green/project.h:6,
+                 from /gen/green/eech_extracted.c:3:
+/usr/include/math.h:27:10: fatal error: bits/libc-header-start.h: No such file or directory
+   27 | #include <bits/libc-header-start.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.

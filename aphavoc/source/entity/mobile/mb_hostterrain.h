@@ -48,6 +48,21 @@
  *   GROUND_IMPACT  the above endpoint (x, y, z), the below endpoint (`below`), the world area and the shared record's hint.  The reply is the above and below endpoints after
  *          the original's correction, the impact point, and the complete record the final read left; the surface type of that record is what the campaign maps to a class.
  *
+ * Two more operations carry the physical TREE segment query (EEDCS-49, D3; en_cllsn.c get_line_of_sight_collision_tree).  The host owns the tree data (its own tree_pos.sec and
+ * tree_pos.dat), the forest tree's collision triangles, the sector scan, the early exits, the two tie rules and the segment/triangle and segment/quad arithmetic; the DLL keeps no
+ * tree record, scan or intersection behind the query.  What stays the campaign's: the caller's buffers (the initial intercept point and normal words the caller passed, and what it
+ * is left holding), the debug visualisation line, and the TERRAIN ELEVATION the host asks for, which the campaign answers from the same host terrain through the same call, in the same
+ * order, and with the same shared-record side effect as the original (get_3d_terrain_elevation).  The exchange is a short dialogue on this callback, with at most one query open:
+ *
+ *   TREE_BEGIN    the old and new position, the caller's initial intercept point and face normal, and the two flags.  Every float travels as its 32-bit PATTERN (`tree_*` words):
+ *                 the caller's own buffers may hold anything (signed zero, a NaN), and a miss leaves them as the original left them, so no value is ever converted.  The reply is
+ *                 DONE (hit, the final point and normal words) or NEED_TERRAIN (which end, x and z).
+ *   TREE_TERRAIN  the campaign's answer to NEED_TERRAIN: the elevation pattern.  The reply is again DONE or NEED_TERRAIN.
+ *
+ * A host asks for none, the old end only, the new end only (a segment that enters the map) or the old end and then the new end, each end at most once and only when it is inside the map.  A reply is checked completely before the caller's buffers are written, and a
+ * missing provider, a refusal, a malformed reply or a third lookup stops the engine at the tree boundary: the campaign has NO tree solver to fall back to.  Equivalent absence (a map with no
+ * tree files, or no forest triangles) is the host's to state and is an answer, not a refusal.
+ *
  * A ground reply is checked completely before any caller buffer or the shared record is written: a malformed reply stops the engine at the ground boundary and leaves
  * both untouched.
  *
@@ -63,6 +78,7 @@
 #define MB_HOSTTERRAIN_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #define CAMPAIGN_TERRAIN_ERROR_MAX 512
 
@@ -82,7 +98,22 @@ enum campaign_terrain_op
 	CAMPAIGN_TERRAIN_GROUND_BELOW,
 	CAMPAIGN_TERRAIN_GROUND_IMPACT,
 	CAMPAIGN_TERRAIN_SECTOR,
-	CAMPAIGN_TERRAIN_AMBIENT
+	CAMPAIGN_TERRAIN_AMBIENT,
+	CAMPAIGN_TERRAIN_TREE_BEGIN,
+	CAMPAIGN_TERRAIN_TREE_TERRAIN
+};
+
+/* TREE reply states and ends */
+enum campaign_terrain_tree_state
+{
+	CAMPAIGN_TERRAIN_TREE_DONE = 1,
+	CAMPAIGN_TERRAIN_TREE_NEED_TERRAIN
+};
+
+enum campaign_terrain_tree_end
+{
+	CAMPAIGN_TERRAIN_TREE_END_OLD = 0,
+	CAMPAIGN_TERRAIN_TREE_END_NEW
 };
 
 /* AMBIENT: the most children one question carries, and the classes of the six terrain ambient sound children */
@@ -119,6 +150,11 @@ typedef struct campaign_terrain_request
 	float below[3];
 	/* GROUND_*: the campaign's world-map area (min_x, min_z, max_x, max_z): campaign geography the host compares against, not the terrain's extents */
 	float world[4];
+	/* TREE_BEGIN: the old and new position and the caller's initial intercept point and face normal, each as the three 32-bit patterns x, y, z of its floats; the two flags (0 or 1) */
+	uint32_t tree_old[3], tree_new[3], tree_point[3], tree_normal[3];
+	int tree_ignore_forest_edge_trees, tree_skip_tree_top_test;
+	/* TREE_TERRAIN: the elevation pattern the campaign read at the point it was asked about */
+	uint32_t tree_elevation;
 } campaign_terrain_request;
 
 typedef struct campaign_terrain_reply
@@ -147,6 +183,11 @@ typedef struct campaign_terrain_reply
 	int answer, queried;
 	/* GROUND_IMPACT: the endpoints after the original's correction and the impact point; the record above is the one the final read left */
 	float above[3], below[3], impact[3];
+	/* TREE_BEGIN and TREE_TERRAIN: the state (campaign_terrain_tree_state); NEED_TERRAIN: the end the elevation is wanted for and the patterns of x and z; DONE: whether a tree was hit and
+	   the patterns of the final intercept point and face normal, as the original leaves them (the caller's own on a miss, or what a failed attempt partly overwrote) */
+	int tree_state, tree_end, tree_hit;
+	uint32_t tree_x, tree_z;
+	uint32_t tree_result_point[3], tree_result_normal[3];
 } campaign_terrain_reply;
 
 typedef int (*campaign_terrain_fn)
@@ -184,5 +225,22 @@ int campaign_terrain_types_in_sector (float x, float z);
    `amplitude`.  A missing provider, a refusal, a malformed answer or a position the host cannot answer stops the engine with an error that names the terrain provider; nothing is solved from the
    campaign's own sectors. */
 void campaign_terrain_ambient (float x, float z, int in_cockpit, float alt, float delta, int count, const int *classes, const float *previous, float *amplitude);
+
+struct VEC3D;
+
+/* The TREE operations (called by get_line_of_sight_collision_tree in the headless campaign module): the host decides whether the segment from `old_position` to `new_position` meets a forest tree and
+   where, asking the campaign for the terrain elevation it needs, one at a time, from the campaign's own (host-backed) terrain.  `intercept_point` and `face_normal` are the caller's buffers:
+   their initial words are sent and the host's final words are written back, only after the whole answer is checked.  The flags are the original's `ignore_forest_edge_trees` and
+   `skip_tree_top_test`.  Returns the hit, as the original does.  A missing provider, a refusal, a malformed reply, a lookup beyond the two the original makes, or a query started inside another stops the
+   engine with an error that names the terrain provider; nothing is solved from the campaign's own tree data. */
+int campaign_terrain_tree_collision
+(
+	const struct VEC3D *old_position,
+	const struct VEC3D *new_position,
+	struct VEC3D *intercept_point,
+	struct VEC3D *face_normal,
+	int ignore_forest_edge_trees,
+	int skip_tree_top_test
+);
 
 #endif

@@ -1,0 +1,18 @@
+{
+ "repo": "R:/d3-evidence/collision-characterization-20261029",
+ "head_rev": "e442946e5589ae9b91a1522bf4b35afec490cc63",
+ "head_sha": "e442946e5589ae9b91a1522bf4b35afec490cc63",
+ "file_count": 3953,
+ "changed_from_head_count": 5,
+ "deleted_from_head": [],
+ "files_whose_raw_bytes_and_git_filtered_identity_disagree_with_the_committed_blob": [
+  "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+  "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+  "modules/system/malloc.c.h",
+  "modules/system/nedmalloc.c"
+ ],
+ "fingerprint_of_raw_sha256_map": "5b93a9ce3c60d0b515088d76ecb3b2bcaf67813b4100d753285e7170cd19dbb4"
+}

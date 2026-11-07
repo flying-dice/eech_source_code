@@ -1,0 +1,7 @@
+
+running 2 tests
+test trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold ... ok
+test tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 367 filtered out; finished in 0.00s
+

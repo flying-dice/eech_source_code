@@ -1,0 +1,170 @@
+Diff in /src/eech-campaign/crates/eech-dc/src/module.rs:3626:
+         #[cfg(feature = "sector-height-observer")]
+         methods.add_method("sector_height_summary", |_, this, ()| this.engine.sector_height_summary().map_err(lua_error));
+         #[cfg(feature = "sector-height-observer")]
+-        methods.add_method("sector_height_event", |_, this, index: i32| this.engine.sector_height_event(index).map_err(lua_error));
++        methods.add_method("sector_height_event", |_, this, index: i32| {
++            this.engine.sector_height_event(index).map_err(lua_error)
++        });
+         #[cfg(feature = "sector-height-observer")]
+-        methods.add_method("sector_height_clearance", |_, this, index: i32| this.engine.sector_height_clearance(index).map_err(lua_error));
++        methods.add_method("sector_height_clearance", |_, this, index: i32| {
++            this.engine.sector_height_clearance(index).map_err(lua_error)
++        });
+         #[cfg(feature = "sector-height-observer")]
+-        methods.add_method("sector_height_scan", |_, this, index: i32| this.engine.sector_height_scan(index).map_err(lua_error));
++        methods.add_method("sector_height_scan", |_, this, index: i32| {
++            this.engine.sector_height_scan(index).map_err(lua_error)
++        });
+         // TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): what the ORIGINAL airfield route parser read and produced during the campaign load; not part of the shipping module.
+         #[cfg(feature = "route-fixture")]
+         methods.add_method("route_summary", |_, this, ()| this.engine.route_summary().map_err(lua_error));
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs:20:
+ 
+ fn field(line: &str, key: &str) -> String {
+     let prefix = format!("{key}=");
+-    line.split_whitespace().find_map(|w| w.strip_prefix(prefix.as_str())).unwrap_or_else(|| panic!("no {key} in {line}")).to_string()
++    line.split_whitespace()
++        .find_map(|w| w.strip_prefix(prefix.as_str()))
++        .unwrap_or_else(|| panic!("no {key} in {line}"))
++        .to_string()
+ }
+ 
+ fn word(line: &str, key: &str) -> u32 {
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs:72:
+         }
+     }
+     assert!(seen_links > 0 && seen_links <= links, "{seen_links} link events of {links} links");
+-    assert!(!packed.is_empty() && !unpacked.is_empty(), "the control packed {} and unpacked {} words", packed.len(), unpacked.len());
++    assert!(
++        !packed.is_empty() && !unpacked.is_empty(),
++        "the control packed {} and unpacked {} words",
++        packed.len(),
++        unpacked.len()
++    );
+     // the control saves every pattern it restores: each restored raw word is one that was packed
+     for w in &unpacked {
+         assert!(packed.contains(w), "a restored word {w:#010x} was never packed");
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs:79:
+     }
+-    println!("sector height observer: {links} links, {seen_links} link events, {} packed, {} unpacked, {checks} control expectations", packed.len(), unpacked.len());
++    println!(
++        "sector height observer: {links} links, {seen_links} link events, {} packed, {} unpacked, {checks} control expectations",
++        packed.len(),
++        unpacked.len()
++    );
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:24:
+ }
+ 
+ fn healthy() -> Case {
+-    Case { summary: SUMMARY_WHOLE.to_string(), second_seq: 5, observer: true, args: "root = 'x', scenario = 'georgia', hours = '0.0005', out = '@OUT@'" }
++    Case {
++        summary: SUMMARY_WHOLE.to_string(),
++        second_seq: 5,
++        observer: true,
++        args: "root = 'x', scenario = 'georgia', hours = '0.0005', out = '@OUT@'",
++    }
+ }
+ 
+ fn run(case: &Case) -> (Result<(), String>, Option<String>, Vec<String>) {
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:31:
+     static SERIAL: AtomicUsize = AtomicUsize::new(0);
+-    let out = std::env::temp_dir().join(format!("sector-height-baseline-{}-{}.txt", std::process::id(), SERIAL.fetch_add(1, Ordering::Relaxed)));
++    let out = std::env::temp_dir().join(format!(
++        "sector-height-baseline-{}-{}.txt",
++        std::process::id(),
++        SERIAL.fetch_add(1, Ordering::Relaxed)
++    ));
+     let _ = std::fs::remove_file(&out);
+     let out_path = out.to_string_lossy().replace('\\', "/");
+     let lua = unsafe { Lua::unsafe_new() };
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:92:
+     result.expect("a whole observation completes");
+     let written = written.expect("the observation file exists");
+     let lines: Vec<&str> = written.lines().collect();
+-    assert!(lines[0].starts_with("sho-baseline schema=1 scenario=georgia seed=1 frame_ms=100 hours=0.0005 frames=18 "), "{}", lines[0]);
++    assert!(
++        lines[0].starts_with("sho-baseline schema=1 scenario=georgia seed=1 frame_ms=100 hours=0.0005 frames=18 "),
++        "{}",
++        lines[0]
++    );
+     assert!(lines.contains(&"sho-complete value=1"));
+     let at = |prefix: &str| lines.iter().position(|l| l.starts_with(prefix)).unwrap_or_else(|| panic!("no {prefix} line"));
+-    assert!(at("sho-summary") < at("sho-event") && at("sho-event i=1") < at("sho-clearance i=0") && at("sho-clearance i=0") < at("sho-scan i=0") && at("sho-scan i=0") < at("sho-verdict"), "{written}");
++    assert!(
++        at("sho-summary") < at("sho-event")
++            && at("sho-event i=1") < at("sho-clearance i=0")
++            && at("sho-clearance i=0") < at("sho-scan i=0")
++            && at("sho-scan i=0") < at("sho-verdict"),
++        "{written}"
++    );
+     assert_eq!(lines.last().copied(), Some("sho-verdict whole=1 events=2 clearances=1 sectors=1"));
+-    assert_eq!(log.iter().take(3).map(String::as_str).collect::<Vec<_>>(), ["prepare", "select", "boot"], "{log:?}");
++    assert_eq!(
++        log.iter().take(3).map(String::as_str).collect::<Vec<_>>(),
++        ["prepare", "select", "boot"],
++        "{log:?}"
++    );
+ }
+ 
+ #[test]
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:104:
+ fn an_observation_that_is_not_whole_is_refused_after_the_file_is_closed() {
+-    let (result, written, _) = run(&Case { summary: SUMMARY_WHOLE.replace("sho-complete value=1", "sho-complete value=0"), ..healthy() });
++    let (result, written, _) = run(&Case {
++        summary: SUMMARY_WHOLE.replace("sho-complete value=1", "sho-complete value=0"),
++        ..healthy()
++    });
+     assert!(result.expect_err("an incomplete observation must fail").contains("not whole"));
+     let written = written.expect("the partial record is kept, closed");
+     assert!(written.contains("sho-complete value=0") && !written.contains("sho-verdict"), "{written}");
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:117:
+ #[test]
+ fn a_module_built_without_the_observer_is_refused() {
+     let (result, _, _) = run(&Case { observer: false, ..healthy() });
+-    assert!(result.expect_err("a module without the observer must fail").contains("without feature eech-dc/sector-height-observer"));
++    assert!(result
++        .expect_err("a module without the observer must fail")
++        .contains("without feature eech-dc/sector-height-observer"));
+ }
+ 
+ #[test]
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:124:
+ fn the_arguments_are_checked_before_any_side_effect() {
+-    let (result, written, log) = run(&Case { args: "root = 'x', scenario = 'georgia'", ..healthy() });
++    let (result, written, log) = run(&Case {
++        args: "root = 'x', scenario = 'georgia'",
++        ..healthy()
++    });
+     assert!(result.expect_err("a missing out must fail").contains("out=<observation file>"));
+     assert!(written.is_none() && log.is_empty(), "no side effect before the arguments are accepted: {log:?}");
+-    let (result, _, log) = run(&Case { args: "root = 'x', scenario = 'nowhere', out = '@OUT@'", ..healthy() });
++    let (result, _, log) = run(&Case {
++        args: "root = 'x', scenario = 'nowhere', out = '@OUT@'",
++        ..healthy()
++    });
+     assert!(result.expect_err("an unknown scenario must fail").contains("scenario="));
+     assert!(log.is_empty(), "{log:?}");
+ }
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:133:
+ #[test]
+ fn the_driver_grammar_is_the_emitters() {
+     // every key the driver reads from the summary is written by the observer's C emitter under the same line name
+-    for needle in ["sho-tables", "events_used=", "sho-clearance", "stored=", "sho-scan", "sectors=", "sho-complete value=%d", "sho-event i=%d seq=%llu", "sho-clearance i=%d seq=%llu", "sho-scan i=%d sx="] {
++    for needle in [
++        "sho-tables",
++        "events_used=",
++        "sho-clearance",
++        "stored=",
++        "sho-scan",
++        "sectors=",
++        "sho-complete value=%d",
++        "sho-event i=%d seq=%llu",
++        "sho-clearance i=%d seq=%llu",
++        "sho-scan i=%d sx=",
++    ] {
+         assert!(EMITTER.contains(needle), "the emitter does not write {needle}");
+     }
+ }

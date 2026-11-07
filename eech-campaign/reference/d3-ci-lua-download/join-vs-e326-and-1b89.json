@@ -1,0 +1,54 @@
+{
+  "kind": "explicit input join: this batch against the e326 final POST map and the frozen 1b89 native source",
+  "old_map": {
+    "path": "R:\\d3-evidence\\sector-height-proofguards-inputmap-POST-20261107.json",
+    "fingerprint": "b917be35298b085b3833e8822463f88e143c18b8b073671e22cbeb85052157ee",
+    "rows": 3971
+  },
+  "new_map": {
+    "path": "R:\\d3-evidence\\ci-lua-inputmap-POST-20261107.json",
+    "fingerprint": "b917be35298b085b3833e8822463f88e143c18b8b073671e22cbeb85052157ee",
+    "rows": 3971
+  },
+  "map_rows_changed": 0,
+  "map_rows_added": 0,
+  "map_rows_removed": 0,
+  "changed_paths_against_1b89": [
+    {
+      "path": ".github/workflows/eech-campaign.yml",
+      "class": "the workflow: the Lua step's download and the one added selftest step (ci3-workflow-static)"
+    },
+    {
+      "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "class": "prose (one lesson)"
+    },
+    {
+      "path": "docs/handover/ACTIVE-EXTRACTION.json",
+      "class": "the card (finding registered; the CURRENT checkpoint)"
+    },
+    {
+      "path": "eech-campaign/tools/fetch-pinned-archive-selftest.sh",
+      "class": "the new selftest of the helper"
+    },
+    {
+      "path": "eech-campaign/tools/fetch-pinned-archive.sh",
+      "class": "the new helper"
+    }
+  ],
+  "packet_files_against_1b89": 41,
+  "e326_to_1b89_paths": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/docs/d3-sector-height-production-contract.md",
+    "eech-campaign/reference/d3-entity-collision/sector-height-proof-guards-reviewed/.gitattributes",
+    "eech-campaign/reference/d3-entity-collision/sector-height-proof-guards-reviewed/README.md",
+    "eech-campaign/reference/d3-entity-collision/sector-height-proof-guards-reviewed/audit-output-dual-identity.json",
+    "eech-campaign/reference/d3-entity-collision/sector-height-proof-guards-reviewed/independent-sector-height-proofguards-e326-source-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/sector-height-proof-guards-reviewed/manifest.json",
+    "eech-campaign/reference/d3-entity-collision/sector-height-proof-guards-reviewed/sector-height-proofguards-Root-binding-e326-20261107.json"
+  ],
+  "e326_to_1b89_compiled_input_paths": [],
+  "dockerfile_cargo_unchanged_against_1b89": true,
+  "conclusion": "no compiled, tested or linked input changed: the accepted 0be 16/49 and the e326 affected runs, and Root's native 1b89 evidence (ordinary and observer shorts, hosted scan), keep their true identity and are reused unchanged; only the CI download step, a helper with its selftest, prose and records changed",
+  "problems": []
+}

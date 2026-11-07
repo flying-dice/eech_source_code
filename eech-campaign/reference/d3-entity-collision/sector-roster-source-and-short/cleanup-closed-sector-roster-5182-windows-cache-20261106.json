@@ -1,0 +1,12 @@
+{
+  "volume": "eech-win-sector-roster-5182b526d-20261106",
+  "actual_exit": 0,
+  "all_containers_using_volume_before_removal": "",
+  "three_profiles_rehashed_payloads_each": 88,
+  "retained_proof": "D:\\EECH-Migration-Evidence\\sector-roster-profile-artifacts-5182-20261106\\preservation.json",
+  "retained_proof_sha256": "56ad574af4d19806ee6ff31bc122085eb085f743892963c8c1fe6d73f2019294",
+  "retained_objects": 12,
+  "retained_files": 30,
+  "scope": "Removed only the closed dedicated build cache. Source, binaries, native roots/outputs and original3475fullpack untouched; fullRLIB not retained, selected boundCOFF retained.",
+  "completed_utc": "2026-11-06T02:32:12.461209+00:00"
+}

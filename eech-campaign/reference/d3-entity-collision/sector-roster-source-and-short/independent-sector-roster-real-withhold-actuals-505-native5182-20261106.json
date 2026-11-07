@@ -1,0 +1,219 @@
+{
+  "schema": "d3.independent.finite-native-actual-review.v1",
+  "written_utc": "2026-11-06T02:30:48.891426+00:00",
+  "scope": "One combined new-actual correctness, clean-code/boundary and provenance review of healthy control plus real authoritative-sector-roster withdrawal. Closed source and selected gate/profile proofs are reused; no new source sweep or campaign run was performed.",
+  "source": {
+    "compiled_runtime": "5182b526d08aefdd40ea93803188227fd74abae5",
+    "diagnostic_commit": "505cc399caf7fab6a372fce37dca1bc27883ab73",
+    "diagnostic_git_blob": "d06476da1e93a445f14ac6eb16bf824810968ffc",
+    "diagnostic_bytes": 154214,
+    "diagnostic_sha256": "cf684a24935b92b10b5ee750fa19101cefc0556088d7ade367cf33b2daaef2bb",
+    "source_clearance": {
+      "path": "R:/d3-evidence/independent-sector-roster-real-withhold-source-505-native5182-20261106.json",
+      "bytes": 10120,
+      "sha256": "91a755cf4cda60cb31de117a6844c757b1cfb1e7318d991f346156206c5e4940"
+    },
+    "binary_and_diagnostic_identities_separate": true
+  },
+  "decision": {
+    "status": "FINITE_HOST_SECTOR_ROSTER_DEPENDENCY_VERIFIED",
+    "findings": [],
+    "actual_healthy_verified": true,
+    "actual_real_roster_withdrawal_verified": true,
+    "finite_host_sector_roster_dependency_closed": true,
+    "finite_public_roster_authority_closed": true,
+    "finite_closure_definition": "The measured hosted scan uses the real host roster: healthy execution remains coherent, and removing the actual just-served record while retaining Core backing causes the next ENTRY to refuse that ended key before any candidate offer or narrowphase. Closure is limited to this dependency and fail-closed boundary.",
+    "whole_physical_backing_accepted": false,
+    "natural_moving_weapon_integration_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "actuals": {
+    "healthy": {
+      "completion": {
+        "path": "R:/d3-evidence/sector-roster-healthy-505-native5182-20261106-completion.json",
+        "bytes": 2976,
+        "sha256": "67c80ad689a646015949a80bafeee7836806e2771a57bd49bb869384098f9a5d"
+      },
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/sector-roster-healthy-505-native5182-20261106/controller.json",
+        "bytes": 4261,
+        "sha256": "6a69320b6ad9d62492c53e203500e0a3ca8a5af36591acf367924ce7356e28b6"
+      },
+      "private_report": {
+        "path": "D:/EECH-Migration-Evidence/sector-roster-healthy-505-native5182-20261106/model.jsonl",
+        "bytes": 4639,
+        "sha256": "459d363ef2ccefc27048028a3dbbb089fc428b1aa442be80414f161b04e3c048"
+      },
+      "private_native_log": {
+        "path": "D:/EECH-Migration-Evidence/sector-roster-healthy-505-native5182-20261106/native.log",
+        "bytes": 42502,
+        "sha256": "b9fe8387d10535cbe5d665c6792883d5f1a47cca435189a24639d58e558d13ad"
+      },
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_check_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 88,
+      "safe_actual_facts": {
+        "completed": true,
+        "scan_after": 70375,
+        "candidate_after": 70470,
+        "entity_after": 279,
+        "scan_offer": 35107,
+        "scan_altered": 0,
+        "altered": 0,
+        "candidate_altered": 0,
+        "view_applied": 25,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "failure_marker": "",
+        "roster_insert": 63,
+        "roster_remove": 2,
+        "roster_reset": 0,
+        "roster_placed": 63,
+        "roster_removed": 2,
+        "roster_cleared": 0,
+        "roster_withdrawn": 0,
+        "roster_withdrawn_next_phase": "",
+        "roster_withdrawn_cause": "",
+        "contact_any_tests_delta": 6,
+        "contact_any_hits_delta": 0,
+        "precision_high_delta": 6,
+        "cohort_size": 1,
+        "case_weapons_pending": 0
+      }
+    },
+    "roster_withdrawal": {
+      "completion": {
+        "path": "R:/d3-evidence/sector-roster-roster-withdrawal-505-native5182-20261106-completion.json",
+        "bytes": 3069,
+        "sha256": "f567f5ef4a6bb038201f8ec906a89f442575ca902fcc3238c5f43e1786f8f9e8"
+      },
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/sector-roster-roster-withdrawal-505-native5182-20261106/controller.json",
+        "bytes": 4335,
+        "sha256": "1bc2581c229aa7893e1dd1a657f89342d671ce5202da7068c290a156dcd4afc6"
+      },
+      "private_report": {
+        "path": "D:/EECH-Migration-Evidence/sector-roster-roster-withdrawal-505-native5182-20261106/model.jsonl",
+        "bytes": 4512,
+        "sha256": "50ae4149e75bdd67ddf23ad9497c3ce95c9c27f98d0cbe839fcd344475ca2104"
+      },
+      "private_native_log": {
+        "path": "D:/EECH-Migration-Evidence/sector-roster-roster-withdrawal-505-native5182-20261106/native.log",
+        "bytes": 45099,
+        "sha256": "dc0535e2b3f40aaa765ee76f8fab44b0dc6f7d8db09f1e3037d83e2e22eb0f13"
+      },
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_check_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 88,
+      "safe_actual_facts": {
+        "completed": false,
+        "scan_after": 2,
+        "candidate_after": 0,
+        "entity_after": 0,
+        "scan_offer": 0,
+        "scan_altered": 0,
+        "altered": 0,
+        "candidate_altered": 0,
+        "view_applied": 1,
+        "request_faults": 0,
+        "reply_faults": 1,
+        "failure_marker": "entity_scan.refused",
+        "roster_insert": 2,
+        "roster_remove": 0,
+        "roster_reset": 0,
+        "roster_placed": 2,
+        "roster_removed": 0,
+        "roster_cleared": 0,
+        "roster_withdrawn": 1,
+        "roster_withdrawn_next_phase": "phase_entry",
+        "roster_withdrawn_cause": "roster_key_ended",
+        "contact_any_tests_delta": -1,
+        "contact_any_hits_delta": -1,
+        "precision_high_delta": -1,
+        "cohort_size": 1,
+        "case_weapons_pending": -1
+      }
+    }
+  },
+  "independent_actual_joins": [
+    "Joined outer direct helper exit, helper controller exit, and individual native stage exit: all zero in both cases. Pre/post input stages each returned zero; the actual native argv selected the correct mode and exact separately bound 505 literal on the unchanged compiled 5182 hosted executable.",
+    "Rehashed the literal and all 88 hosted payloads against the existing build seal; joined BUILD-INFO hash and compiled source. No generic override or fabricated refused answer substitutes for the real-provider REMOVE operation.",
+    "All four complete input manifest files are 209622 bytes and literally identical across cases and stages; each describes all 1179 inputs. SHA256 62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1. No input exclusions, output normalization or baseline changes were introduced.",
+    "Healthy raw seven-row report joins selection, launch and the single completed cohort. Request/reply faults, incomplete and duplicate/foreign terminals are zero. The one cohort terminates with six steps; this remains a global configured-VIEW observation, not unique-query attribution to that weapon.",
+    "Withdrawal raw six-row report joins selection and real launch, then one actual real-FIRST acknowledgement followed by the next ENTRY refusal. Withdrawal credit is one, next phase is phase_entry and captured cause is roster_key_ended. The first captured EECH fatal line is anchored at entity_scan.refused and includes roster.key plus has ended; raw identity-bearing text stays private.",
+    "Exactly two scan questions are observed in withdrawal: BEGIN/FIRST then ENTRY/refused. Request faults are zero; the only reply fault is scan reply: result refused. Offer, Candidate, narrowphase and altered-answer counts are zero. Thus no stale Core-backed continuation or fallback is observed after the ended-record refusal.",
+    "Two normal campaign placement events and zero normal removal events remain distinct from the explicit one-record provider withdrawal. No synthetic Core event or list mutation is credited.",
+    "Withdrawal is an expected caught fatal control: native/helper/outer zero verifies the refusal, not healthy campaign completion. completed is false; there is no terminal row. The three physical engine counters and pending count remain -1 after the fatal. They are unread, not measured zeros; no postfatal engine-state inference is made."
+  ],
+  "healthy_physical_comparison": {
+    "safe_receipt": {
+      "path": "R:/d3-evidence/sector-roster-healthy-physical-comparison-505-native5182-20261106.json",
+      "bytes": 977,
+      "sha256": "2d697da18d3945ac8899001f9ce937498a1a761c73c0bf3f4042bc1ebd0c5221"
+    },
+    "prior_compiled_runtime": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "new_shared_authority_fields_independently_compared": 139,
+    "changed_shared_fields": [],
+    "single_complete_terminal_line_including_endings_literal_equal": true,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+    "physical_cohort_signature_equal_verified_privately": true,
+    "qualification": "Comparison reads retained raw reports; no earlier campaign is rerun or relabelled. New lifecycle and grammar telemetry is separate from the 139 shared fields. The complete files need not be equal."
+  },
+  "source_and_runtime_binding": {
+    "final_frozen_binding": {
+      "path": "R:/d3-evidence/sector-roster-final-frozen-binding-5182-20261106.json",
+      "bytes": 989,
+      "sha256": "282a3f99a8e80ce795ec834491ac141db39d94d15bf646cfa8b0b8983d72a12b"
+    },
+    "frozen_map_files": 3952,
+    "before_selected_checks_after_selected_checks_after_native_maps_literal_equal_verified": true,
+    "map_bytes": 2028077,
+    "map_sha256": "4edce1ff87831c41a82fd73b63c86b89fc9bd82a7c1d9ea33f9a34b01427a67a",
+    "clean_snapshot_raw_Git_qualification": "Root clean-snapshot proof reports all 3952 raw inputs equal compiled Git with no raw-versus-Git exceptions. The new postnative map was independently compared byte-for-byte with the retained precheck map. Working-tree line-ending qualifications in earlier author maps are not relabelled as clean-snapshot qualifications.",
+    "profile_proof_reused": {
+      "path": "R:/d3-evidence/sector-roster-windows-profile-isolation-5182-20261106.json",
+      "bytes": 5858,
+      "sha256": "5f2f2afff78077d7c2e5800cd3a866a6a3d961bf681a2c937a869c6ead55a01c"
+    },
+    "selected_gate_and_build_reuse": "Prior source91a7 joins five selected frozen checks, three Windows profiles and corrected actual mb_hostplace.o binding. No repeated C, FP, kernel, strict or full feature matrix is claimed in this actual pass.",
+    "ordinary_short_reused": {
+      "path": "R:/d3-evidence/sector-roster-ordinary-short-comparison-5182-20261106.json",
+      "bytes": 1750,
+      "sha256": "2d1e63b91ca62ad7b1b72a40561fd9bdea807d6cd533e4ed5722ab423c72a94a"
+    },
+    "ordinary_short_scope": "Native/controller and full input checks zero; all three COMPLETE files literally equal accepted80fd at 230871,1553674,7477 bytes. Single wall-time observation is not a benchmark or full-war acceptance."
+  },
+  "safe_projection": {
+    "receipt": {
+      "path": "R:/d3-evidence/sector-roster-safe-actual-facts-505-native5182-20261106.json",
+      "bytes": 3588,
+      "sha256": "677a0c5c8636d682fef95e1fdaa56d59db03d64d096a9176b9c1aeaedc64c5d0"
+    },
+    "joined_to_private_underlying_products": true,
+    "historical_review_pending_flag": "The projection intentionally retains its capture-time independent-review-pending flag. This later report supplies the independent verdict; the historical receipt was not edited."
+  },
+  "limits_and_next_required_work": [
+    "This is one healthy cohort and one deliberate real-record withdrawal. It proves reached host-roster dependence and a named refusal boundary, not exhaustive creation, unpack/restore, retirement, corrupt backing-list or long-run lifecycle coverage.",
+    "Core backing heap/key resolution, identity/lifetime synchronization, static or live pose/shape facts, effectful getters, shared UPDATED/terrain records and city-child traversal remain transitional required scope; this report does not claim physical backing or every required consumer has left Core.",
+    "Raw tree/forest/cloud loading and RNG, hierarchy and remaining consumers, DCS provenance/mapping and natural moving-weapon integration remain required. Prior closed numerical/FP/scan/Candidate/TREE/Task50/52 evidence stays at its own identities; no new full caller-FP measurement is inferred.",
+    "The separate ordinary3475 full40/all8 pack is outside this report. Partial-prefix equality is not completion or Task49/D3 delivery. Remaining full delivery/dependency gates and all ten whole-D3 requirements are unchanged."
+  ],
+  "review_operations": "Read-only retained actuals, receipt/log/source identity and hash joins; only this safe LF JSON was written. No edits to candidate, builds, tests, native launches, process/cache changes, external tracking writes or agents."
+}

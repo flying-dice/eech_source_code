@@ -1,0 +1,178 @@
+{
+  "schema": "d3.independent.changed-source-review.v1",
+  "written_utc": "2026-11-06T06:31:02.766593+00:00",
+  "scope": "Same sole reviewer; one combined correctness, clean-code, boundary-safety and provenance join of ONLY the two95a10 finding groups and their five-file correction. Unchanged C writers, collision kernels, FP, city/sector/moving and earlier native proofs are reused at their own identities.",
+  "source": {
+    "commit": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+    "direct_parent": "fe46ab3ce84d3a427b8f99493ca9d87796adb310",
+    "executable_baseline": "95a10f8820349a9a0243035975d616b1d8447b0a",
+    "metadata_commit": "558d096043ff387a42b737bb9500df3d7b654085",
+    "metadata_delta_only": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "changed_runtime_and_test_paths": [
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/roster.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs"
+    ],
+    "changed_path_count": 5,
+    "no_C_ABI_build_or_Engine_code_delta": true,
+    "checkpoint": {
+      "path": "R:/d3-evidence/fixed-static-corrections-CODE-FROZEN-20261106.json",
+      "bytes": 33667,
+      "sha256": "dc415f577aaa1ef0f598ce4c7025b538bc7fe330a4a7a7d6669b6074278c3a19"
+    },
+    "terminal_receipt": {
+      "path": "R:/d3-evidence/claude-d3-fixed-static-corrections-20261106-completion.json",
+      "bytes": 926,
+      "sha256": "d07cec8cd94da942397c43a9f1bc1d7f45aff4c641b310a400fc8104126b2d4b"
+    },
+    "actual_author_exit": 0,
+    "author_result_is_error": false,
+    "author_completed_utc": "2026-11-06T06:27:33.364697+00:00"
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "source_clear": true,
+    "findings": [],
+    "native_launch_clearance": true,
+    "native_launch_clearance_is_conditional": true,
+    "clearance_scope": "Root fresh exact immutable f734 snapshot and selected source/integration binding, then appropriate fresh Windows ordinary/hosted/Original profiles with actual object/feature/export separation and payload seals. Ordinary exact short and ONE healthy actual canonical fixed lookup precede the planned real fixed-state withdrawal on fresh verified roots. This is not native authority or full shipping acceptance.",
+    "fixed_static_native_actuals_verified": false,
+    "finite_public_fixed_backing_closed": false,
+    "whole_physical_backing_accepted": false,
+    "natural_moving_weapon_integration_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "closed_findings": [
+    {
+      "id": "ENV-FIXED-CANONICAL-FAMILY-AUTHORITY-1",
+      "status": "SOURCE_CLOSED",
+      "correction": "fixed_join now retains the actual placement entity type and derives fixed-family/CITY/building classification from that bound type. A genuine fixed-family placement requires its canonical state when the original fixed facts are reached, including when the Core fixed mirror isfalse. A Core CITY/building discriminator cannot bypass a nonmatching placement family. Phase13 set_fixed rejects a non-family placement before changing its record, so it cannot become a competing static-property owner for Movers or other unsupported families.",
+      "ordering": "The early tallest/sector skip and need_fixed request still precede a requirement for unreached fixed state. Genuine CITY keeps its declared position/box follow-on path; genuine non-fixed weapon/effect/mobile-family nonmobile offers with no fixed state can retain their legitimate skip. Direct building and deferred model lookup behavior are retained. Held state words, not Core mirrors, decide moved properties.",
+      "binding": "The integer family constants are verified against the actual C ENTITY_TYPES enumeration and the existing C reporter family. They are private legacy type bindings, not an invented DCS identity mapping.",
+      "focused_validation": "Positive real CITY/non-family and early-skip controls coexist with all eight fixed-family missing-state/Corefalse cases, contradictory CITY/building mirrors, and refused unsupported reports with record state unchanged. Existing physical result/pose oracles remain exact; obsolete synthetic type tags in affected fixtures were replaced with actual family tags rather than relaxing predicates."
+    },
+    {
+      "id": "ENV-FIXED-WITHDRAW-CURRENT-JOIN-1",
+      "status": "SOURCE_CLOSED",
+      "correction": "candidate_question retains joined_now for THIS parsed nonmobile question. Both eligible fixed_joined credit and real fixed-state withdrawal require it, so an otherwise answerable but wrong served key is not mutated or credited. The same real provider delegates the candidate once; no request/reply substitution or Core write is introduced.",
+      "failure_domain": "For this new mode, request/reply faults or an unrelated fatal before any withdrawal are failures, not UNREACHED. A clean run with no eligible lookup remains UNREACHED. A matching primary without any credited withdrawal cannot pass. Later valid questions remain separately eligible under the established qualified policy; final refusal success still requires whole-trace request0/reply1.",
+      "focused_validation": "A second live held record proves that a wrong current served key could be answered by the real provider yet receives no withdrawal or eligible credit. Fixed report logs contain only the two real initial statements. Positive withdrawal, no-prerequisite, request/reply fault and unrelated-fatal controls preserve exact marker/counter/no-postfatal conditions."
+    }
+  ],
+  "actual_affected_validation": {
+    "accepted_final_chain": "fsfix2 only",
+    "final_three_commands": [
+      {
+        "label": "fsfix2-final-fmt-check",
+        "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-fsfix2-final-fmt-check.json",
+          "bytes": 929,
+          "sha256": "bfcce741a0d53b357264a4d10e1dff3e91eb264af4e7aae9df1905df37cb16d5"
+        },
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "fsfix2-final-check",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-fsfix2-final-check.json",
+          "bytes": 971,
+          "sha256": "8563cda42414b450c76a46b72ad377c4d1add0ddf0729276ace2bbbb5da57feb"
+        },
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "2962cec1a277428580e87df323ddf3bf1938f1d77f3aa6ed7a7eca14520322b4"
+      },
+      {
+        "label": "fsfix2-final-world",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-fsfix2-final-world.json",
+          "bytes": 1179,
+          "sha256": "0dd66bb686fc2fb75f75b7c15e2c9a4f0013a5345b6064156b81acad0176e73a"
+        },
+        "stdout_sha256": "4c790bb812a6bbf036ce52c53f3017c3028782d6838a73ae1ecbb6a9eba5ca7b",
+        "stderr_sha256": "a2be0abb279638849f992a0e071b90214d558763063dc2faa03e98aec67c8972"
+      }
+    ],
+    "actual_direct_exits_and_separate_stream_hashes_independently_joined": true,
+    "command_exits": [
+      0,
+      0,
+      0
+    ],
+    "mechanical_current_World_result_rows": 6,
+    "current_World_passed": 512,
+    "current_World_failed": 0,
+    "breakdown": {
+      "World_library": 363,
+      "entity_authority": 69,
+      "entity_candidate_host": 13,
+      "entity_pose_host": 5,
+      "entity_roster_host": 17,
+      "model_target_point": 45
+    },
+    "scope": "Affected formatting/four-package compile and the six World/library result targets. No fresh C/Engine/strict/feature/full-package matrix, Windows build or native campaign is inferred.",
+    "genuine95_RED": {
+      "actual_exit": 101,
+      "driver_passed": 67,
+      "driver_failed": 2,
+      "provider_passed": 42,
+      "provider_failed": 3,
+      "scope": "New tests on unchanged95 production bodies show the actual-family and current-join/failure-classification gaps. This is behavioral preproduction evidence, not an old DLL or native capability run."
+    },
+    "historical_fsfix_first_chain": "Superseded by the final fsfix2 chain and its own stable maps. It is retained literally, not relabelled final."
+  },
+  "unaffected_evidence_reuse_qualification": {
+    "source_identity": "95a10f8820349a9a0243035975d616b1d8447b0a",
+    "scoped_reuse": "Only unchanged C dialogue/guards21 tests and Engine callback13 tests, plus reviewed C-writer/kernel/FP source evidence, are reused at95 identity with exact source-byte support. They are not added to512 as a newly executed combined total.",
+    "checkpoint_grouping_correction": "unaffected_checks_reused_exact_identity.records also contains old95 fmt/check and World-containing rows. Those World rows are historical/superseded for the changed World source, not independently unaffected. New World evidence is fsfix2/512 only. The frozen checkpoint is preserved; this report supplies the qualification.",
+    "no_source_sweep_or_test_repeat_by_reviewer": true
+  },
+  "input_and_commit_binding": {
+    "final_before_after_maps_literal_equal_independently_verified": true,
+    "file_count": 3952,
+    "map_bytes_each": 2029075,
+    "map_sha256": "5bdaf4c7373ac9ccaec7f97cc6db691770ce56449f95199062a7d64171eda362",
+    "capture_HEAD": "fe46ab3ce84d3a427b8f99493ca9d87796adb310",
+    "order": "Final corrections and formatting, BEFORE map, fsfix2 three read-only checks, AFTER map, then exact f734 source commit and metadata commit.",
+    "direct_raw_binding": {
+      "path": "R:/d3-evidence/fixed-static-corrections-raw-source-binding-f734-20261106.json",
+      "bytes": 2545,
+      "sha256": "706c8904acc92bb102044112ef8bbd8e30068c7051b149e0f7c7e19a79dd09b8"
+    },
+    "method": "Independent SHA256 and size comparison of the five changed map entries against actual f734 Git blob bytes; all five equal. The binding independently compares all3952 raw entries:3949 equal and three unchanged test-Lua CRLF/Git-LF differences.",
+    "filtered_hashes_not_used_as_raw_equality": true,
+    "qualification": "The mapper git_blob_of_raw_bytes is a filtered --stdin-paths hash and is not literal-byte proof. Four inherited legacy header/allocator filter-only qualifications retain actual raw Git bytes and are separate from the three raw-different Lua fixtures. No normalization or evidence rewrite was used.",
+    "metadata_scope_verified": "f734 to558d changes onlySTATUS/card. The parentfe46 differences over95 were metadata only, not additional new executable changes.",
+    "Root_frozen_snapshot": "Root reports a fresh no-hardlinks/no-alternates f734 snapshot with3952raw-Git-equal inputs at D:/EECH-Migration-Evidence/fixed-static-corrected-f734-20261106-source. Snapshot preparation is not a build or native result."
+  },
+  "prior_source_report": {
+    "path": "R:/d3-evidence/independent-fixed-static-backing-source-95a10-20261106.json",
+    "bytes": 22415,
+    "sha256": "190e42868d7b38cec143b5b49b7f09d040a09ee5741b28c8e22702fe4c4a6b43"
+  },
+  "required_runtime_gates": [
+    "Bind the fresh final snapshot, selected checks, new appropriate Windows profiles and their actual object/feature/export boundaries, all payloads and exact packaged/diagnostic Lua. Do not reuse or relabel old3475/5182/76fb binaries as f734.",
+    "Use the retained exact ordinary short settings; compare all three COMPLETE outputs literally, including line endings. Measure wall time as one observation, not a benchmark. Root owns later whole-Task49 shipping, not a new war per helper.",
+    "ONE healthy actual must reach a real canonical fixed-state lookup with zero request/reply faults before the negative. Require the actually served/joined placement and preserve global-versus-per-query attribution limits.",
+    "The distinguishing control must withdraw only the real canonical fixed state at the admitted lookup, acknowledge removal and delegate the same candidate continuation once. Require the genuine named missing/withdrawn-state refusal, no Core fallback/query repair, exact request0/reply1, unchanged Core placement, and unread postfatal counters. Absent eligibility is honest UNREACHED; no actor/time/geometry search is authorized by this source clearance."
+  ],
+  "remaining_scope": [
+    "This closes the two source finding groups, not actual fixed/static authority. Canonical lifecycle state and the same placement record remain the intended owner; no claim of physical success before new actuals is made.",
+    "CITY position/bounds, shared UPDATED/terrain and tallest supporting facts, remaining coupled readers/writers, heap/roster/identity/live-pose synchronization, raw tree/forest/cloud data and RNG, hierarchy/required consumers and DCS mapping remain required. All ten D3 requirements and natural moving-weapon integration remain open.",
+    "Whole physical backing, full40/all8, Task49 dependency/CI/delivery and wholeD3 acceptance remain false. Closed prior city/roster/moving/kernel/FP/Task50/52 proofs keep their original identities. Separate ordinary3475 fullpack is untouched and not accepted on partial prefixes."
+  ],
+  "review_operations": "Read-only exact changed Git blobs and affected receipt/log/map/raw-byte joins. Only this safe LF JSON was written; no candidate edits, tests/builds/native/process/cache/VM/auth/external changes or agents."
+}

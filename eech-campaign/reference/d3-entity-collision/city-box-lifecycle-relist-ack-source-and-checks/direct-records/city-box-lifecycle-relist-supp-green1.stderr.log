@@ -1,0 +1,5 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.96s
+     Running tests/entity_authority.rs (/target/x86_64-unknown-linux-gnu/debug/deps/entity_authority-030347ae93e84589)
+error: test failed, to rerun pass `-p eech-world --test entity_authority`

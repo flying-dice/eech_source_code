@@ -1,0 +1,182 @@
+{
+  "schema": 1,
+  "kind": "Independent combined source/check review of new physical-flags characterization only",
+  "created_utc": "2026-11-07T16:03:35.285008+00:00",
+  "source": {
+    "commit": "c328d8bfbbdeb9ff6f5e17d38a72dadef1097f18",
+    "metadata_commit": "69f400522aa90598641e59ff932b0ed1d725fb9c",
+    "source_parent": "8c9e9b938838d52a5c98cc304e70206d357fabad",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "clean_and_pushed_at_join": true,
+    "inputs": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+        "bytes": 7218,
+        "sha256": "7d620cf14f2603277b8ecd8b69eb2bb213687120162517ec8886f06325c36a47"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "bytes": 26619,
+        "sha256": "d8e5b09eeda5bb9672212177486b5acab95f495944c5ae133e6d5cb9b298c1c3"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+        "bytes": 18387,
+        "sha256": "0eabb4342c58eadffc85cca181335890f51c440a4ef73feb60a42d8321ebfe86"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags.rs",
+        "bytes": 2063,
+        "sha256": "2934997ab2785fdc0b84502e8efe2ffb9cd7dace5be7901f625a0d1256dc889f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+        "bytes": 10507,
+        "sha256": "3db615749936481b05ebd64459dc043eb9d6b6dce37480f4e9bcbd3b47bd64c6"
+      },
+      {
+        "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+        "bytes": 11364,
+        "sha256": "d405fa669f3373673a1fa24c35be4d03fdaa66797b6530a1985209ec4f26cd79"
+      }
+    ],
+    "method": "Immutable Git source and retained check/evidence readers. No tests, builds, native/campaign/cache execution, process changes, tracked edits or subagents."
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED_PROSE_ONLY",
+    "findings": [
+      {
+        "id": "ENV-PHYSICAL-FLAGS-HIGH-INDEX-PERSISTENCE-1",
+        "severity": "P2",
+        "classification": "Incorrect characterization contract; no new production defect",
+        "title": "High-index bits survive the reset but are not permanent",
+        "evidence": [
+          {
+            "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+            "lines": [
+              16,
+              17,
+              34,
+              35
+            ],
+            "fact": "The contract says a set UPDATED bit above the quarter-reset extent stays true for process life/permanently after its first update."
+          },
+          {
+            "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+            "lines": [
+              21,
+              22,
+              378,
+              383
+            ],
+            "fact": "The new header/reset-group commentary repeats lifetime persistence; the actual case only shows two resets and a read of that same bit."
+          },
+          {
+            "path": "aphavoc/source/entity/mobile/mb_int.c",
+            "lines": [
+              391,
+              395,
+              398,
+              400,
+              402
+            ],
+            "fact": "All indices use the same word &= mask getter. Reading another entity in that word clears the first bit, including words outside the quarter-reset extent."
+          }
+        ],
+        "impact": "A future owner could incorrectly treat high-index UPDATED as immutable true or assume the supply descriptor must see its mask on every later iteration. The characterized cross-entity destructive read remains applicable above the reset boundary.",
+        "minimum_correction": "Replace permanence claims by survival of the reset and persistence only until a destructive neighbour read or another actual overwrite. Qualify the supply-descriptor explanation accordingly. Preserve the original &= behavior and recorded test results; no production repair, bool normalization or replay is required for a prose/comment correction."
+      }
+    ],
+    "new_executable_correction_required": false,
+    "measured_199_expectations_verified": true,
+    "contract_documentation_clearance": false,
+    "native_launch_clearance": false,
+    "physical_flags_production_cutover_clearance": false,
+    "immediate_consumer_gate_met": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "current_full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-PHYSICAL-FLAGS-CHARACTERIZATION-CODE-FROZEN-20261107.json",
+      "bytes": 32336,
+      "sha256": "442ab9d47cddcec742ff58632551d46d5ef43cdfff1e02eaa024263abe07a90a"
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-c328-Root-binding-20261107.json",
+      "bytes": 9905,
+      "sha256": "cea5f62ddb28c18b22a14764bfd3191b836e3deaa318cb33e7574a37b82716e9"
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-69f-publication-Root-20261107.json",
+      "bytes": 3110,
+      "sha256": "af03a55a91acce4adb6885a4677209184815054968694678fb7ef882e06e76ca"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-physical-flags-characterize-20261107-completion.json",
+      "bytes": 1369,
+      "sha256": "57b4dad7478f58bbe394e9ec53e9b60a56ebb56ef1b1aab2c2aa224c849a2ce3"
+    }
+  ],
+  "verified_scope": {
+    "feature_isolation": "physical-flags-check is opt-in; the Rust physical_flags test requires it. Build wiring adds only EECH_PHYSICAL_FLAGS_CHECK. The entire new C translation unit, including includes/storage/function, is inside that guard. No original product body, hook, physical solver, public DLL entry or host service is changed.",
+    "real_collaborators": "The control uses the actual engine entity struct, default/mobile int dispatch, actual get/set macros, actual flag arrays and actual update_client_server_entities. It supplies a hand-made calloc entity pool and empty update record, with locked_frame_rate for one iteration; it does not rewrite getter/reset results.",
+    "measured": "199 expectations: representative mask offsets including bit31, destructive neighbour reads, repeated own-bit reads, separate array/word behavior, retyping one slot, and quarter-reset boundary samples/two resets with Tacview off. Family dispatch is directly sampled for helicopter/fixedwing/routed and defaultOBJECT; other installed families are source-derived.",
+    "unmeasured": "No real immediate-consumer body, nonempty update-list ordering, actual heap allocation/release cycle, Tacview reset path, setterFALSE, retail campaign, Windows/native, i686 or engine-C O2 was run. Original signed bit31 shift/unsigned-to-int behavior is a measured accepted compiler-profile observation, not a portable strict-C guarantee.",
+    "restoration": "Normal-path source saves/restores the complete int/list dispatch tables it initializes, all three arrays, entities/update pointers, update_succ and locked_frame_rate, and releases its temporary records. The only early pool-allocation failure precedes global mutation. This is a dedicated single-test-process fixture, not a reentrant public service or an allocator-failure program; no general FP-state preservation measurement is claimed.",
+    "census": "The new guard is explicitly a lexical, comment-stripped census of aphavoc .c/.h INT_TYPE uses, not exhaustive preprocessor/runtime coverage. Direct original array references inspected are mb_int and up_update; existing gated collision-fixture references remain test-only. Raw setter dispatch also exists, alongside local setter dispatch; no client/server setter is installed for these three flag types.",
+    "domain_precision": "Contract19 should name both ac_int.c:853/1225 and vh_int.c:748/1101 for MOBILE_MOVING. It is a distinct aircraft-and-vehicle field, not this shared flag word. This is a minor wording completion to include in the same prose correction, not an additional executable defect.",
+    "supply_descriptor": "The raw-mask-to-checked_bool mismatch is source-supported: gd_supply_arrival directly assigns the getter integer while Engine checked_bool accepts0/1. Actual reachability is unconfirmed; neither permanent high-index truth nor observed native failure is inferred. Do not normalize or repair it in this characterization."
+  },
+  "checks_and_identity": {
+    "PRE_utc": "2026-11-07T15:52:33Z",
+    "POST_utc": "2026-11-07T15:56:48Z",
+    "full_rows": 3980,
+    "literal_PRE_POST_sha256": "ffbec14c722d9a80293d587e3fedcc8778478d9482bb9d8c09ce73653ad9c05a",
+    "all_current_rows_joined_to_actual_Git_with_explicit_three_inherited_Lua_CRLF_qualifications": true,
+    "extras_PRE_POST_current_equal": 22,
+    "final_direct_children": 5,
+    "all_actual_exit_zero": true,
+    "default_tests": {
+      "instances": 48,
+      "result_rows": 10
+    },
+    "feature_control_and_guard": {
+      "instances": 4,
+      "result_rows": 2,
+      "C_expectations": 199
+    },
+    "chronology": "All five final checks lie inside the recorded PRE/POST interval. Earlier p1 compile101 and p2/p3 control101 remain development failures, not pre-move capability REDs. Characterization correctly needs no invented RED on unchanged production code.",
+    "terminal": {
+      "actual_exit": 0,
+      "result_is_error": false,
+      "completed_utc": "2026-11-07T16:00:47.772668+00:00",
+      "model": "claude-sonnet-5-5"
+    },
+    "packet": "Rootpublicationaf03 verifies55 actual Git/current manifest entries, including51 original and4 erratum-related entries; source remainsc328 and metadata69f has no production move.",
+    "immutable_label_erratum": {
+      "path": "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/erratum-freeze-labels.json",
+      "sha256": "50774a20d5c7a2a46bc56716ce1a67691aba92d3f791fc19f8efd550d62024b6",
+      "accepted_qualification": "Frozen lease.volume and native_identity_not_relabelled are stale labels. Actual unchanged helper/direct receipts bind the fresh physical-flags9d247 volume and exact9d247 image. No flags native ran; protected shipping runtime is764, not1b89. Original freeze/readers/receipts were retained; no replay to change labels."
+    }
+  },
+  "smallest_required_next_consumer_control": {
+    "status": "Required pre-cutover work remains OPEN, not a defect introduced by this batch.",
+    "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_msgs.c:396..518 through message_responses[FIXED_WING][CHECK_MOBILE_REACHED_GUIDE] installed at549",
+    "source_supported_conditions": [
+      "Use the real message response and its actual collaborating getters/guide criterion/vector access, not a duplicate response/helper or new host ABI. Receiver airborne, sender realGUIDE and commsSERVER are required.",
+      "Radius criterion must be valid, distance>radius, and distance-velocity<=radius so neither early return bypasses the raw UPDATED read at455. Bind the actual motion, position, guide position and delta-time sources.",
+      "The actual vector helper bounds projection to the finite segment: vector.c:477 and489 return FLT_MAX outside it. A focused hand-made guide/trajectory can distinguish the real previous-position versus future-position branches and resulting TRUE/FALSE, without campaign actor/time/window searching or solver replacement.",
+      "Keep weapon-vector criterion off for this bounded deterministic branch so the subsequent frand1 path is not entered; preserve real caller policy otherwise. Establish a complete positive before changing one input and observe both raw flag side effects and actual consumer return.",
+      "Include unset/set mask offsets and destructive neighbour-read order, with correct raw masks rather than boolean normalization; preserve reset extent/index-reuse observations. Scope the first consumer control honestly and keep other needed collision/supply/Tacview consumers in whole-D3 scope."
+    ],
+    "not_authorized": "No production ownership/layout/ABI/store decision, physical cutover, supply descriptor semantic fix, native launch or wholeflag acceptance is selected by this report."
+  },
+  "remaining_limits": [
+    "ENV-PHYSICAL-FLAGS-RAWWORD-CONTRACT-1 stays OPEN and blocks its production move until real immediate-consumer evidence and the eventual complete raw-store boundary are reviewed. The census and199 expectations do not close that gate.",
+    "Root764 full40/all8 remains active and untouched; partial prefix equality is not full acceptance. Prior finite M5/M6/P1 closures retain their own source identities and are not re-reviewed here.",
+    "All ten D3 requirements, remaining physical/API/DCS/hierarchy/RNG/natural services, wholeheight, final current shipping/input gates, exact current CI, independent review/normal merge/final census/Task49/D3 delivery remain required. Preparation remains2; no D4/D5 or historical TypeScript port."
+  ]
+}

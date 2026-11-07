@@ -1,0 +1,9 @@
+# Physical-flags consumer batch 753ee9671: the SAME review ce3bdb21 and Root's bindings (literal records)
+
+Task EEDCS-49 (D3), 7 November 2026 (UTC). Exact bytes of sealed records (`* -text`); aggregate records only, no raw retail data, actor, sector or pose tuple.
+
+- **The SAME review `FINITE_CHARACTERIZATION_ACCEPTED`** (no findings): `ENV-PHYSICAL-FLAGS-HIGH-INDEX-PERSISTENCE-1` is closed; the original 199 expectations and the first real guide-consumer 56 expectations are accepted AS FINITE BEHAVIOUR. The raw-word/first-consumer CHARACTERISATION precondition of `ENV-PHYSICAL-FLAGS-RAWWORD-CONTRACT-1` is satisfied (Root's disposition closes that characterisation prerequisite only). The review does NOT accept host flag authority, all consumers, native, a generic cutover, whole height, Task49 or D3, and its `next_finite_production_responsibility` is the physical ownership boundary of the complete UPDATED/MOVED/ROTATED store (set, destructive raw read, reset), Core keeping scheduling and decisions, under its own immutable changed-source review.
+- **Root's source binding and the ad029 publication record**: 3982 maps and 23 PRE/POST extras, 22 current plus the sole publisher delta (freeze reader 20d6 -> ac5, preserved with its PRE version, failed attempt, erratum and pre-flight); five final direct children exit 0 (49 default tests, 6 combined tests, 199 + 56 C expectations).
+- **Qualifications kept**: the controls restore the listed globals, which is NOT a measurement of whole FPU-state preservation (real geometry executes); the review's consumer scope is the first guide body only: no native, host-authority or other-body closure; the zero guide position read from the fixed-wing receiver is preserved, not repaired.
+
+Not a review of any later change, an approval or an acceptance of whole height, Task49 or D3.

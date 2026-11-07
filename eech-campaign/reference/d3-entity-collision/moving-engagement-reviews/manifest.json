@@ -1,0 +1,26 @@
+{
+  "purpose": "safe literal independent reports about the natural moving engagement witness (605e1a71a on compiled ea2b2348); no raw model log, retail data or cohort word",
+  "source_of_copies": "R:/d3-evidence (byte for byte)",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 62,
+      "sha256": "9464b301a283a4eb3e9d7857adc11aee7074bf311ae6da26117d3458bad5be13"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1231,
+      "sha256": "834534b3d09c1b45975dad1955c56d082e5fac9607e93e75d3f9d30be3fc3f0f"
+    },
+    {
+      "path": "independent-entity-moving-engagement-A2-unreached-605e-nativeea2b-20261105.json",
+      "bytes": 7033,
+      "sha256": "49aa8075d2954afac3832218945a2c05cf09f811d800d801ebdc9483b8720104"
+    },
+    {
+      "path": "independent-entity-moving-engagement-witness-source-605e-20261105.json",
+      "bytes": 13713,
+      "sha256": "67a34865d24bce1ed2401777f65fbc6866ae8928c62fa4f8fecdb3c112de91ed"
+    }
+  ]
+}

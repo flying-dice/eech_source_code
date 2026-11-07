@@ -1,0 +1,64 @@
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:6002:
+         "{row}"
+     );
+     assert_eq!(
+-        (row["report_bound"].as_i64().unwrap(), row["query_equal"].as_i64().unwrap(), row["mirror_box_equal"].as_i64().unwrap()),
++        (
++            row["report_bound"].as_i64().unwrap(),
++            row["query_equal"].as_i64().unwrap(),
++            row["mirror_box_equal"].as_i64().unwrap()
++        ),
+         (1, 1, 1),
+         "{row}"
+     );
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:6014:
+     assert!(driven.result.is_ok(), "{:?} / {}", driven.result, driven.rows);
+     let row = lifecycle_row(&driven);
+     assert_eq!(
+-        (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap(), row["expansions_selected_answered"].as_i64().unwrap()),
++        (
++            row["request_faults"].as_i64().unwrap(),
++            row["reply_faults"].as_i64().unwrap(),
++            row["expansions_selected_answered"].as_i64().unwrap()
++        ),
+         (0, 0, 2),
+         "{row}"
+     );
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:6023:
+ #[test]
+ fn a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link() {
+     // the buildings are listed again in reverse order: index 2 first, coherently; index 1 last, with NO LINK between its new city-list key and its sector placement (the sector key is stated, but nothing says the two are one entity)
+-    let driven = drive(
+-        &healthy(&format!("{LIFECYCLE_SECTORS}, relist_no_link = 1")),
+-        &[("mode", "city_box_lifecycle")],
+-    );
++    let driven = drive(&healthy(&format!("{LIFECYCLE_SECTORS}, relist_no_link = 1")), &[("mode", "city_box_lifecycle")]);
+     let row = lifecycle_row(&driven);
+     assert_eq!(row["request_faults"].as_i64(), Some(1), "{row}");
+     assert!(
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:6033:
+-        row["first_fault"].as_str().unwrap().starts_with("scan request: a city expansion names the building ")
+-            && row["first_fault"].as_str().unwrap().contains("whose fixed state the provider never acknowledged"),
++        row["first_fault"]
++            .as_str()
++            .unwrap()
++            .starts_with("scan request: a city expansion names the building ")
++            && row["first_fault"]
++                .as_str()
++                .unwrap()
++                .contains("whose fixed state the provider never acknowledged"),
+         "{row}"
+     );
+     // the real host holds NO state for that new key (its record is a fresh one) and refuses the expansion by name, the same fact the driver's validator saw first
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:6043:
+     );
+     // the other building's coherent LINK and expansion are its own: one answered, the faulted one is not, and the lifecycle is not completed
+     assert_eq!(
+-        (row["expansions_selected"].as_i64().unwrap(), row["expansions_selected_answered"].as_i64().unwrap()),
++        (
++            row["expansions_selected"].as_i64().unwrap(),
++            row["expansions_selected_answered"].as_i64().unwrap()
++        ),
+         (2, 1),
+         "{row}"
+     );

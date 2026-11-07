@@ -1,0 +1,113 @@
+{
+  "controller_pid": 16980,
+  "state": "terminal",
+  "started_utc": "2026-11-07T14:42:03.463860+00:00",
+  "source": "764cfc4aa254c3efd3cb8ed77d43c83c3a3f2199",
+  "profile": "save",
+  "case": "save_short",
+  "root": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-roots-20261107\\save_short",
+  "output": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\save_short",
+  "plan_sha256": "555e42b79cbb8b284bdc3bd1d70cb62b825d5c0b3ded689aa9768ad07d51aadf",
+  "controller_sha256": "2f2e09b567af59d405a1db089b1934ffd987d299e30f9c4efbcc125758637608",
+  "stages": [
+    {
+      "stage": "pre-inputs",
+      "pid": 23988,
+      "birth_utc": "2026-11-07T14:42:04.281177+00:00",
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-I",
+        "-B",
+        "-X",
+        "utf8",
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-20261107-source\\eech-campaign\\tools\\input-manifest.py",
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-roots-20261107\\save_short",
+        "--compare",
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-20261107-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\save_short\\pre-inputs.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-07T14:42:04.289918+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-07T14:42:08.455973+00:00"
+    },
+    {
+      "stage": "native",
+      "pid": 7932,
+      "birth_utc": "2026-11-07T14:42:08.632026+00:00",
+      "argv": [
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-20261107-source\\eech-campaign\\target\\sector-height-witness\\764\\eech-world.exe",
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-20261107-source\\eech-campaign\\target\\sector-height-witness\\764\\lua\\campaign.lua",
+        "root=D:/EECH-Migration-Evidence/height-core-load-native-764-roots-20261107/save_short",
+        "scenario=lebanon_retail",
+        "out=D:/EECH-Migration-Evidence/height-core-load-native-764-runs-20261107/save_short/model.jsonl",
+        "metrics=D:/EECH-Migration-Evidence/height-core-load-native-764-runs-20261107/save_short/metrics.json",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "record=1",
+        "record_every=10",
+        "observe_every=1",
+        "observe_supply=1",
+        "acmi=D:/EECH-Migration-Evidence/height-core-load-native-764-runs-20261107/save_short/recording.acmi",
+        "observe=D:/EECH-Migration-Evidence/height-core-load-native-764-runs-20261107/save_short/observations.jsonl"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-07T14:42:08.639144+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-07T14:42:23.720416+00:00"
+    },
+    {
+      "stage": "post-inputs",
+      "pid": 13588,
+      "birth_utc": "2026-11-07T14:42:23.723003+00:00",
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-I",
+        "-B",
+        "-X",
+        "utf8",
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-20261107-source\\eech-campaign\\tools\\input-manifest.py",
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-roots-20261107\\save_short",
+        "--compare",
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-20261107-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\save_short\\post-inputs.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-07T14:42:23.732276+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-07T14:42:24.787422+00:00"
+    }
+  ],
+  "scope": "Established35frame/3.5s complete3files compare80fd, hours0.001/frame100/seed1 unchanged. Notfull40/all8/M6/height/Task49/D3.",
+  "actual_native_exit": 0,
+  "files": [
+    {
+      "file": "recording.acmi",
+      "bytes": 230871,
+      "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "complete_literal_equal": true
+    },
+    {
+      "file": "observations.jsonl",
+      "bytes": 1553674,
+      "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "complete_literal_equal": true
+    },
+    {
+      "file": "metrics.json",
+      "bytes": 7477,
+      "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "complete_literal_equal": true
+    }
+  ],
+  "all_three_complete_literal_equal": true,
+  "verified_payloads": 90,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T14:42:24.940571+00:00"
+}

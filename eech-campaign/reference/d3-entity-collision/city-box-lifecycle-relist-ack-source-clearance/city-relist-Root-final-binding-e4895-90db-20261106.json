@@ -1,0 +1,35 @@
+{
+  "created_utc": "2026-11-06T23:23:46.257010+00:00",
+  "source": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+  "initial_code": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+  "metadata_commit": "90dbf29e034f09b66ae2b8ba070cd1aacbd6ce79",
+  "initial_metadata": "7f483ab52965cecc99032f5e6ad36798aaa52e86",
+  "final_maps": [
+    {
+      "revision": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+      "pre": "R:\\d3-evidence\\city-relist-ack-20261106\\final-pre-check-inputmap.json",
+      "post": "R:\\d3-evidence\\city-relist-ack-20261106\\final-post-check-inputmap.json",
+      "sha256": "2ff50b41584a0a439f39215422e2c04828451283825554811435082a58e23980",
+      "file_count": 3954,
+      "literal_identical": true
+    },
+    {
+      "revision": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+      "pre": "R:\\d3-evidence\\city-relist-ack-supp-20261106\\final-pre-check-inputmap.json",
+      "post": "R:\\d3-evidence\\city-relist-ack-supp-20261106\\final-post-check-inputmap.json",
+      "sha256": "84f3364dc0dbccbf0ccc0c0053ba13844f251de6d875153779d84b472547d383",
+      "file_count": 3954,
+      "literal_identical": true
+    }
+  ],
+  "all_three_changed_raw_inputs_equal_their_own_Git_revision": true,
+  "literal_Git_files_including_manifest": 92,
+  "listed_files": 91,
+  "metadata_only_mutated_paths": 38,
+  "final_external_freeze_sha256": "5c9b91c14e99d8a345e575920d1a0771d305d96466211343fc20b0664e235881",
+  "initial_evidence_qualification": "Initialeb386/7f483 retained inGit; final92-file pack updates and extends initial59-file pack. Do NOT call that one pack tree unchanged. C+Lua identical between initial and supplement; latter changes testharness only.",
+  "producer_actual_exit": 0,
+  "producer_result_is_error": false,
+  "scope": "Final exact source/map/metadata/actualproducer binding only; SourceClear and newliteral/native authority/delivery still require SAMEreview/actual.",
+  "native_launch_clearance": false
+}

@@ -1,0 +1,124 @@
+{
+  "native_source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+  "diagnostic_source": "eb2b2eb6781fefce7e6b76abdbbd4d947010a7f7",
+  "healthy_control_reused": true,
+  "matrix_controller_actual_exit": 0,
+  "authority_cases_total": 11,
+  "authority_full_input_checks": 22,
+  "short_full_input_checks": 2,
+  "payloads_per_case": 87,
+  "runs": [
+    {
+      "name": "new_only",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "expected_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "name": "forced_hit",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "expected_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "name": "withheld_tree",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "expected_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "PASS_NAMED_ENGINE_REFUSAL"
+    },
+    {
+      "name": "bad_tree_state",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "expected_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "PASS_NAMED_ENGINE_REFUSAL"
+    },
+    {
+      "name": "bad_tree_word",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "expected_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "PASS_NAMED_ENGINE_REFUSAL"
+    },
+    {
+      "name": "done_not_boolean",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "expected_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "PASS_NAMED_ENGINE_REFUSAL"
+    },
+    {
+      "name": "new_then_old",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "expected_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "PASS_NAMED_ENGINE_REFUSAL"
+    },
+    {
+      "name": "old_twice",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "expected_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "PASS_NAMED_ENGINE_REFUSAL"
+    },
+    {
+      "name": "third_lookup",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "expected_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "PASS_NAMED_ENGINE_REFUSAL"
+    },
+    {
+      "name": "original-control",
+      "actual_native_exit": 1,
+      "actual_controller_exit": 1,
+      "expected_exit": 1,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verdict": "EXPECTED_REAL_ORIGINAL_CAPABILITY_RED; physical terminals equal healthy"
+    }
+  ],
+  "source_review_and_actual_closure_sha256": "7ad1a698f7996012eda90584661aca717c6b34bf4817f48e2837f6c595fc1dca",
+  "scope": "Finite TREE query-handoff/authority only. Explicit configured view input, global armed-window attribution,2priorUNREACHED retained, no new directTREEcallerFP measurement, wholeTask49/D3/delivery stillOPEN."
+}

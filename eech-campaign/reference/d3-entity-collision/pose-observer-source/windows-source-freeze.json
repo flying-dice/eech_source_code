@@ -1,0 +1,12 @@
+{
+  "source": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+  "metadata_before_freeze": "369560540ad21fb32eef23029fec8d97c4c015ac",
+  "snapshot": "D:\\EECH-Migration-Evidence\\pose-observer-production-1f9a939bc",
+  "created_utc": "2026-11-05T16:47:53.036560+00:00",
+  "actual_exit": 0,
+  "clean_detached": true,
+  "no_hardlinks": true,
+  "no_alternates": true,
+  "longpaths_set_before_checkout": true,
+  "scope": "Immutable clean source snapshot only; no build/native/source-clearance claim. Post-gate source-binding7a8a qualifies3unchanged testLua WORKCRLF/GitLF separatelyfrom3Corefilteredexceptions; no Linux pre-gate map claimed. Windows source cleanimmutable fromGit."
+}

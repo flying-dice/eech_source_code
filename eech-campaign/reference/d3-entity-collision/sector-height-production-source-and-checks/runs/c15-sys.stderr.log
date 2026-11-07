@@ -1,0 +1,13 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.75s
+     Running unittests src/lib.rs (/target/debug/deps/eech_engine_sys-55378b902cb74f5a)
+     Running tests/entity_host_guard.rs (/target/debug/deps/entity_host_guard-6171ce0081b9caa0)
+     Running tests/entity_pose_lifecycle_guard.rs (/target/debug/deps/entity_pose_lifecycle_guard-444fbaf1ebef11d1)
+     Running tests/entity_roster_guard.rs (/target/debug/deps/entity_roster_guard-e4bad0033f461d77)
+     Running tests/sector_height_guard.rs (/target/debug/deps/sector_height_guard-9cd654a8a0ff229f)
+error: test failed, to rerun pass `-p eech-engine-sys --test sector_height_guard`
+     Running tests/tree_host_guard.rs (/target/debug/deps/tree_host_guard-fa8ec233b74fc7a2)
+   Doc-tests eech_engine_sys
+error: 1 target failed:
+    `-p eech-engine-sys --test sector_height_guard`

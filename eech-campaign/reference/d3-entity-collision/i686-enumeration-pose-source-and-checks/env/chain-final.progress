@@ -1,0 +1,7 @@
+map-before exit=0
+pose-final-i686-default exit=0
+pose-final-i686-stackattr exit=0
+pose-final-x64-default exit=0
+pose-final-fmt-check exit=0
+pose-final-clippy exit=0
+map-after exit=0

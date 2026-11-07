@@ -1,0 +1,28 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 08s
+     Running tests/entity_dialogue.rs (/target/t/debug/deps/entity_dialogue-dc41e024300f0deb)
+
+thread 'the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal' (4108) panicked at crates/eech-engine-sys/tests/entity_dialogue.rs:23:5:
+assertion `left == right` failed: the dialogue disagreed with its expectations:
+FAIL line 4535: stopped && flag_asks == 1 && strstr (fatal_text, "not a flag key") != NULL && CACHE_SLOT_UNWRITTEN () && CACHE_INTACT ()
+FAIL line 4535: stopped && flag_asks == 1 && strstr (fatal_text, "not a flag key") != NULL && CACHE_SLOT_UNWRITTEN () && CACHE_INTACT ()
+FAIL line 4535: stopped && flag_asks == 1 && strstr (fatal_text, "not a flag key") != NULL && CACHE_SLOT_UNWRITTEN () && CACHE_INTACT ()
+FAIL line 4535: stopped && flag_asks == 1 && strstr (fatal_text, "not a flag key") != NULL && CACHE_SLOT_UNWRITTEN () && CACHE_INTACT ()
+FAIL line 4535: stopped && flag_asks == 1 && strstr (fatal_text, "not a flag key") != NULL && CACHE_SLOT_UNWRITTEN () && CACHE_INTACT ()
+FAIL line 4552: stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.key]") != NULL
+FAIL line 4554: stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.key]") != NULL
+
+  left: 7
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-engine-sys --test entity_dialogue`
+     Running tests/physical_flags_identity.rs (/target/t/debug/deps/physical_flags_identity-c8a674a708b6d220)
+eech: debug_fatal: host model: [flag.key.malformed] "f11111111111111111111" is not a flag group key: `f` and a decimal number without a leading zero, at most 20 bytes
+eech: debug_fatal: host model: [flag.key.malformed] "f11111111111111111111" is not a flag group key: `f` and a decimal number without a leading zero, at most 20 bytes
+error: test failed, to rerun pass `-p eech-engine-sys --test physical_flags_identity`
+
+Caused by:
+  process didn't exit successfully: `/target/t/debug/deps/physical_flags_identity-c8a674a708b6d220 --nocapture` (signal: 6, SIGABRT: process abort signal)
+error: 2 targets failed:
+    `-p eech-engine-sys --test entity_dialogue`
+    `-p eech-engine-sys --test physical_flags_identity`

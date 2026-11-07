@@ -1,0 +1,9 @@
+
+running 4 tests
+test the_feature_is_defined_empty_never_default_and_its_macro_is_set_only_for_it ... ok
+test the_witness_translation_unit_preprocesses_to_nothing_without_its_feature_and_calls_only_store_session ... ok
+test the_lua_method_and_the_engine_wrapper_exist_only_behind_the_feature ... ok
+test the_engine_entry_and_its_declaration_exist_only_inside_the_feature_block ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+

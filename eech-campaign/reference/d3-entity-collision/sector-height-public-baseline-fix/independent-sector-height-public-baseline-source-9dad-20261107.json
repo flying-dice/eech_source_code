@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-07T04:35:49.271533+00:00",
+  "review_kind": "One independent combined source, evidence, orchestration and boundary review of the new test-only public sector-height baseline observer",
+  "source": {
+    "commit": "9dad1b635b55de79a73386f70180ae22acf11d7a",
+    "parent": "d23882dc28225744a953f3e9335eca4bd7ae05fa",
+    "metadata_commit": "ba3ad01c3fbbaddbb0ec6725f211b933019ad3a5",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "head_and_clean_status_observed": true,
+    "changed_source_paths": 18,
+    "metadata_only_paths": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ]
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "findings": [
+      "ENV-SECTOR-HEIGHT-OBSERVER-JOIN-1",
+      "ENV-SECTOR-HEIGHT-OBSERVER-COMPLETE-1",
+      "ENV-SECTOR-HEIGHT-BASELINE-RUN-1"
+    ],
+    "physical_sector_height_cutover_accepted": false,
+    "native_baseline_verified": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-SECTOR-HEIGHT-OBSERVER-JOIN-1",
+      "severity": "P2",
+      "title": "The report cannot establish the named same-record facts and conflates unobserved CITY shape with invalid shape",
+      "evidence": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c:39-56 event layout;141-174 INSERT;192-286 LINK;287-341 statements",
+        "eech_sho.c:198,224-230 shape validity is initialized false and only read for fixed-flagged senders;384-395 candidate fact keeps only offer/nonzero counts",
+        "eech-campaign/docs/d3-sector-height-public-baseline-plan.md M1-M4"
+      ],
+      "problem": "INSERT and LINK omit any stable record identity while fixed/CITY statements alone carry their key. A global sequence and family/sector cannot unambiguously join repeated same-family records to the corresponding statement, so M1/M2 same-record order and conformance cannot be established. A CITY with fixed=false is counted city_invalid although its shape was never read. Candidate fact12 is reduced to zero/nonzero, so exact raw FIRST-to-candidate word transport is not evidenced.",
+      "minimum_correction": "Add a bounded private observer identity/relationship that joins actual INSERT, LINK and statement records without eagerly allocating/changing production semantic IDs. Distinguish shape unobserved from observed-invalid; observe the actual CITY shape only at a source-supported safe stage, or explicitly leave that domain UNREACHED/unproved. Retain the actual fact12 raw word with an adequate sector/read relationship, or narrow its credit to reachability and keep exact transport open. Preserve staged getter prerequisites and do not substitute a fabricated name or guessed shape.",
+      "focused_controls": "Two same-family records in the same sector with interleaved statements must remain distinguishable; non-fixed CITY cannot receive observed-invalid credit without a shape read; distinct nonzero FIRST/fact12 words cannot be collapsed into equal-word credit."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-OBSERVER-COMPLETE-1",
+      "severity": "P2",
+      "title": "The pack/unpack sample cap is omitted from the completeness verdict",
+      "evidence": [
+        "eech_sho.c:35 SHO_PACK_EVENTS=64",
+        "eech_sho.c:483-501 increments total pack/unpack counts but stores only their first64 events",
+        "eech_sho.c:539-542 whole() does not include pack/unpack sample truncation"
+      ],
+      "problem": "A 65th pack or unpack is silently omitted while sho-complete can remain1. This contradicts whole-record/no-silent-truncation claims and cannot support complete saved/restored-word evidence.",
+      "minimum_correction": "Expose stored and omitted counts and make truncation fail the whole-record contract, or explicitly define sampled M6 evidence whose verdict never credits complete word coverage. Keep total and stored counts distinct. No unbounded allocation is required.",
+      "focused_controls": "Exercise64 and65 pack/unpack events: the extra event must be visibly omitted/incomplete, with no whole-observation false positive."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-BASELINE-RUN-1",
+      "severity": "P2",
+      "title": "The proposed runner kills live jobs and defaults to unnecessary long observations",
+      "evidence": [
+        "eech-campaign/tools/sector-height-baseline-windows.ps1:10 one-hour default;29-32 timeout invokes process.Kill()",
+        "eech-campaign/reference/d3-entity-collision/sector-height-public-baseline-source/README.md matched plan step3 prescribes one-hour observations for each retail scenario"
+      ],
+      "problem": "A wall-clock timeout is not process failure and does not authorize terminating a valid native run. Two one-hour campaign observations are also an unjustified default for this finite observer baseline; the requested first baseline must use an established finite short/boot window and retain unreached domains honestly.",
+      "minimum_correction": "Remove automatic native termination on timeout. Preserve PID/birth/argv and running/unknown state plus durable receipts for later observation. Use the established finite short/boot configuration first; any larger run must have a specific unresolved fact and explicit bounded plan before launch, never be selected by reach outcome. Do not change seeds, geometry, actors or accepted comparison identities to force coverage.",
+      "focused_controls": "A timeout path must preserve the live process and cannot write success/completion. The documented default must be finite and cases absent in it remain UNREACHED."
+    }
+  ],
+  "source_assessment": {
+    "feature_isolation": "Cargo feature forwarding, C macro/force-include and staged patch application are gated by sector-height-observer. Sys declarations, Engine wrappers and Lua methods are similarly gated. Production aphavoc/modules source bytes are unedited; observer-off behavior is source-isolated, subject to actual frozen Windows object/profile proof.",
+    "public_path": "The script uses real require(eech_dc), dc.boot and engine:frame with ordinary providers. SH1 hooks real en_list sector insertion; SH2/3 surround the original sc_msgs high-water calculation; SH8/9 precede real host statements; SH10/11 observe hosted FIRST and candidate construction. This is a valid public baseline design direction, not yet a measured funnel result.",
+    "noninterference": "Recorder word copies use memcpy to integer storage and integer bookkeeping. No explicit FP arithmetic, RNG, clocks, entity writes or host model callback is added by recorder hooks. Additional getters exist; get_object_3d_bounding_box is a direct database-address return at modules/3d/3dobjvis.c:845-849. Shape/position reads remain gated by fixed and valid shape. The source claims must still distinguish added getter reads from the original statement itself, and must not invent a shape observation when that gate was false.",
+    "FP_limit": "Taking addresses of terrain_elevation/min_height and inserting calls in fw_move may change spills/code generation. The plan correctly disclaims assumed result-neutrality. Original C has not been moved or arithmetically rewritten; no exhaustive FP-environment, signalling-NaN, x87 or i686 observer proof is claimed. The exact Windows observer ordinary-short comparison is a required actual gate, not a substitute for claimed universal neutrality.",
+    "converters_and_buffers": "Public C report entries validate state, pointer/capacity and index; formatting detects output overflow. Engine uses bounded zeroed buffers and checks status before converting NUL-terminated output. Lua exposure is gated. No new callback/reentrant RefCell or provider dialogue was introduced. Recorder tables are process-private and documented one-boot-per-process.",
+    "scope": "Core still owns the high-water calculation, session words and consumer inputs. No host-owned physical scalar or physical cutover exists in this batch."
+  },
+  "evidence_assessment": {
+    "freeze": {
+      "path": "R:/d3-evidence/D3-sector-height-public-baseline-CODE-FROZEN-20261107.json",
+      "bytes": 15693,
+      "sha256": "06b4f3ee945e45288329d6149bdc37c9044ce86a0b44ea044435c6285b0177d1"
+    },
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-sector-height-public-baseline-20261107-completion.json",
+      "bytes": 1413,
+      "sha256": "24ec370232362d165b37817ad85d31e6e64fca0e1898fdafd397fcd9af1c559c"
+    },
+    "Root_binding": {
+      "path": "R:/d3-evidence/sector-height-public-baseline-Root-source-binding-9dad-20261107.json",
+      "bytes": 12579,
+      "sha256": "e95685e70e030af34686e175bcc1b864cecc40b8f9804f9e2c066e3eca8b9f61"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_completed_utc": "2026-11-07T04:29:37.175555+00:00",
+    "raw_and_publication_join": "Root binds all18 changed source files and51 packet entries literally to Git, with only STATUS/card differing code-to-metadata. The external freeze is15693B SHA06b4f3ee945e45288329d6149bdc37c9044ce86a0b44ea044435c6285b0177d1.",
+    "check_scope": "Retained final e1-e4/f1-f4 commands all report direct exit0. The paired recorder control retains179 real-C expectations, hooked/unhooked, with52 links/51 recorded links and17 pack/17 unpack events. Source guards and six scripted Lua-driver controls pass. These controls do not run en_list/roster/host statements/hosted FIRST/candidate/clearance public paths; those hooks are compiled, not positively exercised here.",
+    "retained_failures": "c3 compile101, c3b test101 and d1 fmt1 remain failures at their recorded stages, followed by their actual corrected checks. No native/Windows/retail outcome exists.",
+    "input_chronology_qualification": "No author full PRE/POST check-time input maps were supplied. Root current-only3962-file post-terminal map is not retrospective check-time source proof. Its three inherited unchanged Lua CRLF raw differences and seven filtered-identity qualifications remain explicit. The next affected correction checks must capture actual final PRE/POST maps; no unchanged broad matrix replay is requested."
+  },
+  "prerequisites_after_source_correction": [
+    "One bounded changed-material follow-up with actual affected recorder/driver checks and correctly timed final input maps, retaining all old failures and packet bytes.",
+    "Fresh exact clean frozen Windows ordinary and observer builds with separate owned caches; bind actual feature/profile objects/private exports, BUILD-INFO and complete sealed payloads. No Original profile or broad matrix is required solely by this observer.",
+    "Observer ordinary short must match all three complete accepted short files literally, with input checks and actual process exits preserved. Any difference is an observer finding; never normalize accepted bytes.",
+    "One reviewed finite public baseline on an unused verified retail root, explicit fixed short/boot args, complete report/overflow checks and no live-process timeout kill. Record actual per-domain reach; absence remains UNREACHED. Report contains private identities/words and must remain outside public safe projections.",
+    "Only assess baseline evidence after actual completion. No production move or additional long campaign follows automatically from a source clearance."
+  ],
+  "preserved_limits": [
+    "Closed179/033 numeric/source characterization, API disposition and P1 fullpack4de are reused only at their own identities; no closed proof was rerun or reopened.",
+    "Preparation remains2of2; this is the first required extraction substage, not an optional preparation.",
+    "All ten D3 requirements, remaining physical/API/hierarchy/RNG/services/natural moving work and final current40/all8/fourinputs/CI/review/normal merge/final census remain required. No Task49/D3/delivery acceptance or D4/D5/TypeScript work is implied."
+  ],
+  "reviewer_actions": "Immutable Git/blob and retained evidence reads only; no Cargo, native, campaign, checker or test replay; no tracked source/card/canonical/cache mutations; only this external LF JSON artifact was created."
+}

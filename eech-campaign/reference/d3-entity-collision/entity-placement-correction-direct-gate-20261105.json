@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05",
+  "scope": "NARROW validation by the lead's scope decision: one shared C predicate (check_candidate_reply, NEED_PLACEMENT) and its existing C control. Run: formatting, the real shared C offer/dialogue control, the source guard, a weapon-fixture build and strict clippy of eech-engine-sys. NOT the 16-step feature matrix: the parent fb3163f28 matrix (16 steps all 0, 1183 tests, 65 result rows) is PARENT evidence only and is not new-head results. Rust, the kernel, the model provider, features and the closed narrow phase and TREE are unchanged in this commit (changed paths below).",
+  "base_head": "6db5f5306f0d2c881f16623c9924c14262f7acba",
+  "parent_runtime": "fb3163f283ded50fce320c7640b5282b3a68e3bc",
+  "source_commit": "1ccc9e2ed86206a28b591fdfab1d4ca0192a6200",
+  "literal_followup_review": {
+    "file": "independent-entity-candidate-correction-source-6db5-runtimefb316-20261105.json",
+    "sha256": "e525d88189e1fa3e8bd0ebc211af73f944bee644e017c7f1451a4091a453340d",
+    "line_endings": "LF, byte for byte"
+  },
+  "changed_paths": [
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+    "eech-campaign/docs/d3-entity-collision-provider.md"
+  ],
+  "red_against_parent": {
+    "log": "red/dialogue.log",
+    "child_exit": 101,
+    "sha256": "e838ca77c066f789781e4e29e192b01deb1e410c1c962bc8a620bb18fff83b75",
+    "meaning": "the three coherent placement positives passed; every malformed role was wrongly accepted (six exchange-level refusals and five offer-level cases failed). The offer-level unflagged case passes on the parent only by accident (a later zero state), so the exchange-level unflagged case is its genuine control."
+  },
+  "final_direct_steps": {
+    "dir": "final",
+    "steps": {
+      "fmt_check": 0,
+      "dialogue (entity-dialogue-check, count threshold 245)": 0,
+      "entity_host_guard (5 tests)": 0,
+      "build weapon-fixture": 0,
+      "clippy eech-engine-sys --all-targets -D warnings": 0,
+      "clippy eech-engine-sys --features entity-dialogue-check --all-targets -D warnings": 0
+    },
+    "log_sha256": "1f634925664fba2cff2db3c9d3d80da505d0193140db122c861e3edce1a85d61"
+  },
+  "mutation_controls": {
+    "summary": [
+      "no-scene-requirement apply=0 runner_exit=0",
+      "direct-building-role-accepted apply=0 runner_exit=0",
+      "city-child-needs-fixed-facts apply=0 runner_exit=0",
+      "restored_equal=yes"
+    ],
+    "summary_sha256": "43f6e137225c5e4e97aff54a2e6e85cb1c981d7158f5f29db4d8fc8a83f05132",
+    "meaning": "three mutants of the predicate (no scene requirement, a direct building accepted by role, a building under a city required to have its fixed facts) each failed the control (dialogue=101 in each log) and the header was restored byte for byte. The first run of a different mutant (city accepted) SURVIVED because a city always has scene 0, which the scene rule already refuses; the control gained a direct city building given a scene, which discriminates the role, and that mutant was replaced (the first summary is retained as mutants-summary-first-city-accepted-survived.txt)."
+  },
+  "new_test_coverage": "exchange level: positives for a mobile candidate, a building under a city (fixed facts not given) and an ordinary fixed candidate; refusals for a city, a direct city building (scene 0 and with a scene), an entity neither mobile nor fixed, an ordinary fixed candidate, a mobile candidate and a building under a city each without a scene. Offer level (the real offer over scripted entities, exact getter log): city MFCBPX, direct building MFCG, unflagged MF, scene-less fixed MFCGSP, scene-less mobile MSPV, scene-less building under a city SP: each stopped at entity_candidate.state with no heading, align flag or attitude read and no narrow phase.",
+  "code_inputs": {
+    "rows": 2916,
+    "filtered_column_sha256_before": "5e83a41e4410ede3ea91a40a782755ed3aa7af3b0205ce5fb0d67098892bbbdc",
+    "filtered_column_sha256_after_commit": "5e83a41e4410ede3ea91a40a782755ed3aa7af3b0205ce5fb0d67098892bbbdc",
+    "raw_column_sha256_before": "02a3a58c142c1f535722411797a118b51df5b78890bc447eb3761b0eca5c9232",
+    "raw_column_sha256_after_commit": "02a3a58c142c1f535722411797a118b51df5b78890bc447eb3761b0eca5c9232",
+    "equal": true,
+    "meaning": "filtered = Git blob id as the clean filter would store each working file; raw = SHA-256 of the raw working bytes; three pre-existing CRLF files keep the documented qualification; no accepted file was normalised"
+  }
+}

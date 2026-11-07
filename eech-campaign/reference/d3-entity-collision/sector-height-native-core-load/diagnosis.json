@@ -1,0 +1,88 @@
+{
+  "kind": "bounded diagnosis of ENV-SECTOR-HEIGHT-NATIVE-CORE-LOAD-LIST-1 (fresh Core boot of the real generated saved script fatal at en_list.c:356); aggregates only, no retail data",
+  "task": "EEDCS-49",
+  "findings_open": [
+    "ENV-SECTOR-HEIGHT-NATIVE-CORE-LOAD-LIST-1"
+  ],
+  "actual_inputs": {
+    "plan": "R:/d3-evidence/height-witness-native-9cb-plan-20261107.json",
+    "save_receipt_exit": 0,
+    "load_receipt_native_exit": 1,
+    "runs": "D:/EECH-Migration-Evidence/height-witness-native-9cb-runs-20261107/{save,load} (outside Git)",
+    "saved_data_sha256": "ff0fa7b04ea46190de638a72807e12a526744a60f2978ac696824014afb37862",
+    "saved_script_sha256": "ca41e2cb207a2aef2005c929c2f6013c17db6d7cc96374c6492bde2c5885c833",
+    "session_version": 272
+  },
+  "facts": [
+    {
+      "id": "F1",
+      "fact": "the saved data is self-consistent: decoding its sector section with the generic bit routines (reproduced from en_pack.c) yields 1748 sector words, 1027 non-zero, EQUAL IN ORDER to the save report's 1748 packed words; pack and unpack of the sector section are symmetric (sc_pack.c) and the session/force sections read in the order they are packed (en_sessn.c)",
+      "source": "decode-result.json joins.decoded_words_equal_save_report_in_order=true"
+    },
+    {
+      "id": "F2",
+      "fact": "the real load stated ZERO for all 1748 sectors although 1027 saved words are non-zero (restored_words_all_zero=true, 1027 mismatches, including the three seeded NaN/infinite/negative histories): the unpack input was zero where the file holds data, i.e. zero from before the first sector word (file byte 7116) or earlier; mb_hostentity.h memcmp-checks that the host stored exactly the stated bits, so the driver recorded what the engine really stated",
+      "source": "decode-result.json joins + load witness restore rows"
+    },
+    {
+      "id": "F3",
+      "fact": "the fatal is a SYMPTOM: unpack_local_session_data reads the session's force-list root as a 20-bit signed entity index (ENTITY_INDEX_DONT_CARE = -1, index 0 = entities[0] = the sector 0 entity); an all-zero stream reads index 0, so unpack_session's force loop (en_sessn.c) asks get_local_entity_child_succ (sector 0, LIST_TYPE_FORCE) and default_get_entity_child_succ stops at en_list.c:356 'Invalid list type (entity type = ENTITY_TYPE_SECTOR, index = 0, list type = LIST_TYPE_FORCE)'. The list machinery and the entity-index lifecycle are correct for a correct stream",
+      "source": "en_sessn.c unpack_session, ss_pack.c unpack_local_session_data, en_heap.h get_local_entity_safe_ptr, en_list.c:356"
+    },
+    {
+      "id": "F4",
+      "fact": "the loader ignores every signal that the data did not arrive: parsgen.c FILE_TAG_SAVED_CAMPAIGN sizes the buffer with file_size (), which opens the BINARY file a second time in TEXT mode, reads it with fread (buffer, size + 1, 1, f) (a short read returns 0 elements and is not checked) and discards unpack_session's overflow return; unpack_unsigned_data/unpack_signed_data return 0 forever once the buffer size is exceeded. The saved data holds 1593 Ctrl-Z (0x1A) bytes, the first at offset 167, 48 bytes after the side RLE ends (bit 954) and long before the first sector word (byte 7116), and 14 CRLF pairs: a text-mode size or EOF decision of the C runtime would cut the unpack off right there. en_pack.c itself records that saved campaigns do not load with builds that are not Watcom's (JB 030311 'Gotcha', pack_bit/unpack_bit generic C versions)",
+      "source": "parsgen.c ~2253-2310, modules/system/files.c file_size, en_pack.c unpack_*_data"
+    }
+  ],
+  "cause": "the Core unpack was fed an input that is zero beyond an early point of the file (F2) and the legacy loader neither detects nor reports that (F4); the list fatal is the first place the zeros become observable (F3). The exact C-runtime mechanism (the text-mode file_size () size, the one-element fread, or another) is NOT yet observed: no native replay was made for context",
+  "ranked_candidates": [
+    "file_size () text-mode size shorter than the file (Ctrl-Z at byte 167), the unpack overflowing into zeros while the version int and the first RLE bytes were valid",
+    "fread (buffer, size + 1, 1, f) delivering only part of the data on the Windows C runtime (a partial element is indeterminate)",
+    "anything else that makes the unpack buffer differ from the file: now observable because the loader will state the sizes"
+  ],
+  "intended_fix": "aphavoc/source/ai/parser/parsgen.c, FILE_TAG_SAVED_CAMPAIGN only: size the data from the binary handle that was opened for it (fseek/ftell on it), read it with fread (buffer, 1, size, f) and require every byte, and make an unpack_session overflow a debug_fatal naming the file and sizes. pack_session sizes the data to the last partly used byte (close_pack_buffer), so a correct unpack never overflows. No campaign decision, pack format, host contract or sector-height rule changes; the host still receives only the words the Core unpack reads",
+  "what_it_does_not_establish": [
+    "that the text-mode size or the one-element fread IS the mechanism: the fix removes both candidates and turns any other cause into a named fatal; only a native run of the real positive pair can show the load works",
+    "any native result, M6 acceptance or negative-load credit; a Linux check cannot reproduce the Windows C runtime's text-mode and partial-element behaviour",
+    "that the legacy faction/parser.c saved-data loader (not on this boot path) needs the same change"
+  ],
+  "decode_result": {
+    "kind": "read-only decode of the sector section of the saved data against the save and load reports (aggregates only)",
+    "saved_data": {
+      "bytes": 300873,
+      "sha256": "ff0fa7b04ea46190de638a72807e12a526744a60f2978ac696824014afb37862",
+      "version_int": 272,
+      "ctrl_z_bytes": 1593,
+      "crlf_pairs": 14,
+      "first_ctrl_z_offset": 167
+    },
+    "decoded": {
+      "rle_runs": 52,
+      "rle_sector_total": 1748,
+      "rle_end_bit": 954,
+      "fog_values": 3496,
+      "fog_nonzero": 1920,
+      "fog_end_bit": 56890,
+      "sector_section_end_bit": 130306,
+      "sector_section_end_byte_after_version": 16288.25,
+      "first_sector_word_byte_offset_in_file": 7116,
+      "words": 1748,
+      "words_nonzero": 1027
+    },
+    "save_report": {
+      "word_rows": 1748,
+      "words_nonzero": 1027
+    },
+    "load_report": {
+      "restore_rows": 1748,
+      "restored_words_nonzero": 0,
+      "restored_words_all_zero": true
+    },
+    "joins": {
+      "decoded_words_equal_save_report_in_order": true,
+      "restored_words_equal_save_report_in_order": false,
+      "sectors_whose_restored_word_differs_from_the_saved_word": 1027
+    }
+  }
+}

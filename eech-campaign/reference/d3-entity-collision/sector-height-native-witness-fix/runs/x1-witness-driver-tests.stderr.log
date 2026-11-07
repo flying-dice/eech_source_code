@@ -1,0 +1,6 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.84s
+     Running tests/sector_height_witness_driver.rs (/target/t/debug/deps/sector_height_witness_driver-0d83e91d9418adf2)
+error: test failed, to rerun pass `-p eech-world --test sector_height_witness_driver`
+error: 1 target failed:
+    `-p eech-world --test sector_height_witness_driver`

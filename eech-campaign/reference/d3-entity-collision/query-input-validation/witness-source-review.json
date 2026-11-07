@@ -1,0 +1,169 @@
+{
+  "schema": "independent-narrow-source-review/v1",
+  "reviewed_utc": "2026-11-05T23:17:53.527957+00:00",
+  "source": {
+    "literal_commit": "0d76fd2d62967d8c85bd91bc724b14c6ebb594bb",
+    "metadata_commit": "ab99171844e58ccb112ae5427bddb3eebc745bca",
+    "actual_direct_parent": "0cf2e16a41a03e3bdb42e77adf3f789e3e1c12d2",
+    "compiled_runtime_commit": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "git_blob": "2835e9461559cd7395198cd55959ff27a92a422d",
+        "sha256": "3b4a0320bb903629dd81c8fe888017913e7d284e36ceff5d9bb26760a65c5656"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "git_blob": "7ec63d269265faa9fc72482c464d1f151bcdef73",
+        "sha256": "06d254b0ef11c191d7e9cd88869bb580ec4b7f536699dc981f54e5f35c83f9d5"
+      }
+    ],
+    "literal": {
+      "path": "R:/d3-evidence/query-lift-input-0d76fd2d6-literal.lua",
+      "bytes": 131079,
+      "sha256": "3b4a0320bb903629dd81c8fe888017913e7d284e36ceff5d9bb26760a65c5656"
+    },
+    "literal_git_blob": "2835e9461559cd7395198cd55959ff27a92a422d",
+    "runtime_not_relabelled": true
+  },
+  "scope": "Only the new Lua witness eligibility/provenance and its existing Rust driver guards, plus exact compatibility/test binding. Previously closed production/source/numeric/other authority reviews remain at their own identities.",
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_ONE_NEW_MATCHED_CONTROL_SET",
+    "findings": [],
+    "diagnostic_native_launch_clearance": true,
+    "native_launch_clearance": true,
+    "allowed_compiled_runtime": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "allowed_literal_source": "0d76fd2d62967d8c85bd91bc724b14c6ebb594bb",
+    "clearance_conditions": [
+      "Use the separately Git-byte-bound opt-in literal on the sealed compiled3475 hosted/Original profiles. Do not relabel the binaries or active ordinary full pack as source0d76.",
+      "Run ONE new matched A first at the unchanged fixed configuration. Only an actually positive A can unlock B and the planned matching Original control.",
+      "Join B and Original to the actual new A source, selected target, exact prepared rays, configuration, complete inputs and diagnostic identity. B must use that completed A signature.",
+      "If no actor is eligible, retain precise prelaunch UNREACHED. No candidate/seed/time/distance search or tuning, synthetic terrain, pose fabrication or weakened A/B criteria."
+    ],
+    "source_finding_ENV_MOVING_QUERY_LIFT_PREREQUISITE_1_closed": true,
+    "actual_eligible_target_existence_proved": false,
+    "actual_B_positive_proved": false,
+    "finite_controlled_moving_authority_closed": false,
+    "natural_weapon_engagement_proved": false,
+    "full_pack_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "changed_source_assessment": [
+    {
+      "area": "Callback observation and ordinary None semantics",
+      "result": "Before one unchanged delegation, the wrapper records only terrain/map-ceiling type-presence booleans and integer window counts. It performs no new warmup floating arithmetic, does not mutate the input table, add terrain, repeat a callback or change the underlying move answer. The existing lift alone copies a real input in its declared window. Terrain-less ordinary movement remains valid."
+    },
+    {
+      "area": "Deterministic matched selection",
+      "result": "All query modes/profiles share the same fixed warmup and identity order. The existing recent routed-motion criterion is unchanged; eligibility additionally requires the final warmup callback actually carried numeric terrain elevation and map ceiling. Earlier ineligible movers are counted and passed over without alteration. Type presence does not establish the future step or numerical lift acceptance."
+    },
+    {
+      "area": "Window and actual credit",
+      "result": "The target-only window counters cover the one actual intervening frame, then close before the three queries. They report target step, move and terrain-bearing-move counts. Lift credit still requires the existing real watched move, terrain table and successful numeric ceiling guard; counters do not fabricate a lift or post-lift offer. A remains strict NeedUpdated/test/moving16; B remains real lift, target offer/coherence and changed physical result."
+    },
+    {
+      "area": "Old inference preserved",
+      "result": "The old zero lifted/refused counters did not identify which prerequisite failed. This change does not retroactively claim missing terrain or any actor/guide cause in that run. New final-warmup eligibility is not a promise that the next real callback remains eligible."
+    },
+    {
+      "area": "New positives and faults",
+      "result": "The same real Lua driver is exercised with scripted Engine/Host collaborators: positive-first eligible ordering; earlier terrain-less mover passed over in control/lift/Original; absent terrain unchanged and one delegation; all-ineligible named prelaunch UNREACHED; no-moving old reason; ordinary terrain-less movement still valid; warmup-eligible but window-ineligible zero-lift provenance; real in-window lift credited. These are driver tests, not actual C movement or retail authority."
+    }
+  ],
+  "binding_and_actual_checks": {
+    "compatibility_receipt": {
+      "path": "R:/d3-evidence/query-lift-input-compiled-compatibility-0d76-native3475-20261105.json",
+      "bytes": 1897,
+      "sha256": "410c5d2953933d019b5f8b97091b4852a81b5e8536496de16e99b72cbe20ad43"
+    },
+    "checkpoint": {
+      "path": "R:/d3-evidence/query-lift-input-CODE-FROZEN-20261105.json",
+      "bytes": 12988,
+      "sha256": "409cfa15f518b0925cb7638ed12e7a8dd19a9db355e9472c1bafb38bb4ad068a"
+    },
+    "raw_changed_hash_before": {
+      "path": "R:/d3-evidence/qli-hash-before-checks-20261105.txt",
+      "bytes": 247,
+      "sha256": "f6b79ef2336ad8128b8f7110291efe3e4a2951a94cc74e967f7f64e97df9d3ee"
+    },
+    "raw_changed_hash_after": {
+      "path": "R:/d3-evidence/qli-hash-after-checks-20261105.txt",
+      "bytes": 247,
+      "sha256": "f6b79ef2336ad8128b8f7110291efe3e4a2951a94cc74e967f7f64e97df9d3ee"
+    },
+    "aggregate_digest_before": {
+      "path": "R:/d3-evidence/qli-map-before-checks-20261105.txt",
+      "bytes": 68,
+      "sha256": "c649580097f8cbae29f1e1cb6e3200a18b8d2735dbc99cc52ecccd8e5ced8af3"
+    },
+    "aggregate_digest_after": {
+      "path": "R:/d3-evidence/qli-map-after-checks-20261105.txt",
+      "bytes": 68,
+      "sha256": "c649580097f8cbae29f1e1cb6e3200a18b8d2735dbc99cc52ecccd8e5ced8af3"
+    },
+    "changed_hash_files_literal_equal": true,
+    "individual_changed_Git_raw_hashes_independently_verified": true,
+    "aggregate_digest_lines_literal_equal": true,
+    "aggregate_map_qualification": "Each retained scope-map file is a single aggregate digest line. No independently retained complete per-file map or row count is claimed.",
+    "Git_scope_diff_independently_verified": [
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+    ],
+    "no_C_production_Rust_build_or_ABI_delta": true,
+    "metadata_delta": "STATUS.md and active extraction card only. Safe reference additions between compiled3475 and literal0d76 are not runtime inputs.",
+    "final_real_Lua_log": {
+      "path": "R:/d3-evidence/qli-test-final-20261105.log",
+      "bytes": 8757,
+      "sha256": "f7b98f17b6b1a8ad7d532f8333e03ccffe4298fd9a12fd9226b97d2dcf36608c"
+    },
+    "final_real_Lua_tests": {
+      "passed": 46,
+      "failed": 0
+    },
+    "old_Lua_RED_log": {
+      "path": "R:/d3-evidence/qli-test-red-oldlua-20261105.log",
+      "bytes": 8509,
+      "sha256": "5a2cc7c7889f56238506ed0304dc14ea9725e75a6fcc8b54046f2c77937b1ab4"
+    },
+    "old_Lua_RED": {
+      "passed": 43,
+      "failed": 3,
+      "reported_child_exit": 101
+    },
+    "fmt_final_log": {
+      "path": "R:/d3-evidence/qli-fmt-final-20261105.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "reported_fmt_exit": 0,
+    "actual_author_terminal_exit": 0,
+    "exit_qualification": "Root compatibility receipt binds the direct author exits; log results and exact changed hashes are independently joined. An empty fmt log alone is not used as exit proof."
+  },
+  "preserved_failures": {
+    "initial_upvalue_failure": {
+      "path": "R:/d3-evidence/qli-test-20261105.log",
+      "bytes": 28362,
+      "sha256": "1d1e1c3b4a8295928af6ebc9f8d3464e5c9db92831b8717c3a7c4b5f2738baf0"
+    },
+    "initial_format_failure": {
+      "path": "R:/d3-evidence/qli-fmt-check-20261105.log",
+      "bytes": 5675,
+      "sha256": "424f05b33c0043b53703e57708ff0413b4b1dcd54b7c5bcc79c457f3d4afc962"
+    },
+    "prior_actual_review": {
+      "path": "R:/d3-evidence/independent-person-motion-first-query-actuals-3475-20261105.json",
+      "bytes": 16968,
+      "sha256": "d2a1cb73aab0a5facef46fbc4657ba7a9a6855d529652355ca4aa7b0f8950b4f"
+    },
+    "qualification": "The previous Lua exceeded the upvalue limit during development; final tests pass after folding state into the existing table. Initial failures and old B UNREACHED remain literal, not relabelled."
+  },
+  "remaining_limits": [
+    "A new eligibility predicate may select a different target from old3475 A. Therefore the old completed A signature does not substitute for the new matched A.",
+    "Eligible real input existence, actual B window eligibility, physical effect, Original parity and natural weapon integration are unproved by these stand-in tests.",
+    "No C/Windows rebuild or broad matrix is required by this Lua/test-only compatibility join. No such build is claimed.",
+    "The unchanged compiled3475 ordinary full pack is protected and untouched; no partial/full shipping acceptance is inferred.",
+    "All remaining required physical backing, roster, live pose/writers, hierarchy/loaders/forest/cloud/devices, DCS mappings and whole Task49/D3 obligations remain open."
+  ],
+  "publication_safety": "No retail coordinates, vectors, physical tuples, actor IDs, identity suffixes, signatures, raw model catalogues or binaries are included."
+}

@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "state": "CODE_FROZEN_UNREVIEWED_TEST_LINT_ONLY",
+  "written_utc": "2026-11-05",
+  "branch": "codex/d3-object-tree-collision",
+  "parent": "41447a67e8817bbfa6f92a46baf13beaa548868a",
+  "source_commit": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "scope": "one test-only expression in the cfg(test) differential corpus of entity_host.rs (next() % 2 == 0 -> next().is_multiple_of(2)); generator call order, corpus and assertions unchanged; no production Rust, no C, no allow/suppression; plus Root's already-qualified provider prose kept as-is",
+  "changed_paths": [
+    {
+      "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "raw_sha256_old": "0a1729a132e5cfb634fed2ea29fc78f2b19896f442abcf0f3c42c225f2a222a4",
+      "raw_sha256_new": "56bf4d9be72d27954fb028db3afad51eeb7fecb97cbad78b51c96b417b493618",
+      "git_blob_old": "6fe5810813e8f3f5d5484d63be42e0f399f276b1",
+      "git_blob_new": "77aa5762696d374a9979ee138054378e2bfc933d"
+    },
+    {
+      "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+      "raw_sha256_old": "1e256827bc702e6912dba23b056f58dd61957362d4476769288c3490f807f180",
+      "raw_sha256_new": "7f797ebda409435728dae7c02ecb49c88bc7117d04bea1ada405663fa71028fe",
+      "git_blob_old": "624f2931c4f2e6269e643c0742db082f97ca1859",
+      "git_blob_new": "1fb080c7d402ac25f1454ef4aa76ee9a1bb6efba",
+      "note": "Root's SAME-reviewer hosted aircraft caller qualification, preserved as dirty and committed unchanged; not new implementation"
+    }
+  ],
+  "actual_exits": {
+    "rustfmt --check (only entity_host.rs, ephemeral pinned image sha256:4a5618cb..., --network none, read-only copy mount, no target/cache volume)": 0,
+    "migration-progress.py --action fix-blocker --blocker ENV-ENTITY-POSE-FLAG-VALIDATION-1": 0
+  },
+  "not_run": "no cargo build/check/test/clippy, no Windows/native, no agents, no review, no full matrix; the Linux volume eech-linux-d3-collision-driver-5416adb3b-20261029 was not touched; no STATUS/card/evidence rewrite",
+  "review": "ENV-ENTITY-POSE-FLAG-VALIDATION-1 and ENV-ENTITY-POSE-DOMAIN-1 are not closed by this lane",
+  "next_gate": "Root: final clippy/test retry and source rejoin"
+}

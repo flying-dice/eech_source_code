@@ -1,0 +1,190 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+error: linking with `cc` failed: exit status: 1
+  |
+  = note:  "cc" "-m64" "/target/t/debug/deps/rustcjYgE9E/symbols.o" "<91 object files omitted>" "-Wl,--as-needed" "-Wl,-Bstatic" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libtest-*,libgetopts-*,librustc_std_workspace_std-*}.rlib" "/target/t/debug/deps/{libeech_world-b27d5a0059d5d207,libserde_json-d12431ff82245dfd,libitoa-b101c554dc96d6c2,libzmij-017fa04e9bfbd0ce,libmlua-c6fb1fc3060e2305,libserde_value-0e0bbe2f994ef165,libordered_float-bedded0a11c90498,liberased_serde-c8ccf76192419b75,libtypeid-d23d6c44b1099d58,libeither-e0798e91e70f9392,librustc_hash-8e05c43c65198e13,libparking_lot-cfc998e7a36c51eb,libparking_lot_core-855511e2265bea09,liblibc-9aa02241a4ece1e5,libcfg_if-0fbeb365b695d2ff,libsmallvec-0bdff46320ecb430,liblock_api-d9f2137027a4748a,libscopeguard-72077e85bdc77ec2,libmlua_sys-a72419d6e08a51d5,libnum_traits-986d23b2a8089b43,libbstr-e77b2d31ad0b6677,libmemchr-2974315c36bbf455,libserde-731b01fb3c2fd3ff,libserde_core-620e41238864dea4,libeech_engine_sys-098a607b04857929}.rlib" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libstd-*,libpanic_unwind-*,libobject-*,libmemchr-*,libaddr2line-*,libgimli-*,libcfg_if-*,librustc_demangle-*,libstd_detect-*,libhashbrown-*,librustc_std_workspace_alloc-*,libminiz_oxide-*,libadler2-*,libunwind-*,liblibc-*,librustc_std_workspace_core-*,liballoc-*,libcore-*,libcompiler_builtins-*}.rlib" "-Wl,-Bdynamic" "-lm" "-lpthread" "-lgcc_s" "-lutil" "-lrt" "-lpthread" "-lm" "-ldl" "-lc" "-L" "/target/t/debug/deps/rustcjYgE9E/raw-dylibs" "-B<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld" "-fuse-ld=lld" "-Wl,--eh-frame-hdr" "-Wl,-z,noexecstack" "-L" "/target/t/debug/build/eech-engine-sys-83861784e87dfb4a/out" "-L" "/target/t/debug/build/eech-world-f98de30e09ecd556/out" "-L" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib" "-o" "/target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08" "-Wl,--gc-sections" "-pie" "-Wl,-z,relro,-z,now" "-nodefaultlibs"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: rust-lld: error: undefined symbol: lua_pushvalue
+          >>> referenced by lua.rs:346 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:346)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.0zlysef9ebjfx3aa7dkzy2c5w.1llkygz.rcgu.o:(<mlua::state::raw::RawLua>::push_error_traceback)
+          >>> referenced by lua.rs:346 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:346)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.0zlysef9ebjfx3aa7dkzy2c5w.1llkygz.rcgu.o:(<mlua::state::raw::RawLua>::push_ref)
+          >>> referenced by lua.rs:346 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:346)
+          >>>               eech_world-b27d5a0059d5d207.dh0m110zwoqj7xge12dzl65ac.0dnixgf.rcgu.o:(<mlua::state::raw::RawLua>::push_error_traceback) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 36 more times
+          
+          rust-lld: error: undefined symbol: lua_xmove
+          >>> referenced by lua.rs:347 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:347)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.0zlysef9ebjfx3aa7dkzy2c5w.1llkygz.rcgu.o:(<mlua::state::raw::RawLua>::push_error_traceback)
+          >>> referenced by lua.rs:347 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:347)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.0zlysef9ebjfx3aa7dkzy2c5w.1llkygz.rcgu.o:(<mlua::state::raw::RawLua>::push_ref)
+          >>> referenced by lua.rs:347 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:347)
+          >>>               eech_world-b27d5a0059d5d207.dh0m110zwoqj7xge12dzl65ac.0dnixgf.rcgu.o:(<mlua::state::raw::RawLua>::push_error_traceback) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 12 more times
+          
+          rust-lld: error: undefined symbol: lua_getmetatable
+          >>> referenced by mod.rs:301 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/mod.rs:301)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.1n45cuuch09qatxhfpy4e4dmh.1llkygz.rcgu.o:(<mlua::table::Table>::has_metatable)
+          >>> referenced by mod.rs:301 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/mod.rs:301)
+          >>>               eech_world-b27d5a0059d5d207.2uvvsj6ppedoetsfluaiy5ce3.0dnixgf.rcgu.o:(<mlua::table::Table>::has_metatable) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by mod.rs:301 (src/util/mod.rs:301)
+          >>>               mlua-c6fb1fc3060e2305.mlua.81e5bd38dcd06809-cgu.06.rcgu.o:(mlua::util::userdata::get_internal_userdata::<mlua::util::error::WrappedFailure>) in archive /target/t/debug/deps/libmlua-c6fb1fc3060e2305.rlib
+          >>> referenced 2 more times
+          
+          rust-lld: error: undefined symbol: lua_topointer
+          >>> referenced by mod.rs:304 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/mod.rs:304)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.1n45cuuch09qatxhfpy4e4dmh.1llkygz.rcgu.o:(<mlua::table::Table>::has_metatable)
+          >>> referenced by mod.rs:304 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/mod.rs:304)
+          >>>               eech_world-b27d5a0059d5d207.2uvvsj6ppedoetsfluaiy5ce3.0dnixgf.rcgu.o:(<mlua::table::Table>::has_metatable) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by extra.rs:133 (src/state/extra.rs:133)
+          >>>               mlua-c6fb1fc3060e2305.mlua.81e5bd38dcd06809-cgu.10.rcgu.o:(<mlua::state::extra::ExtraData>::init) in archive /target/t/debug/deps/libmlua-c6fb1fc3060e2305.rlib
+          >>> referenced 13 more times
+          
+          rust-lld: error: undefined symbol: lua_settop
+          >>> referenced by lua.rs:253 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:253)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.1n45cuuch09qatxhfpy4e4dmh.1llkygz.rcgu.o:(<mlua::table::Table>::has_metatable)
+          >>> referenced by lua.rs:253 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:253)
+          >>>               eech_world-b27d5a0059d5d207.2uvvsj6ppedoetsfluaiy5ce3.0dnixgf.rcgu.o:(<mlua::table::Table>::has_metatable) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by lua.rs:253 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:253)
+          >>>               eech_world-b27d5a0059d5d207.58g4encucjarr71juop04rzj2.0dnixgf.rcgu.o:(<mlua::table::Table>::raw_set::<&str, &str>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 82 more times
+          
+          rust-lld: error: undefined symbol: lua_pushinteger
+          >>> referenced by conversion.rs:825 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:825)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.35f7eyd3463g10qn5gwp9dypu.1llkygz.rcgu.o:(<i32 as mlua::traits::IntoLua>::push_into_stack)
+          >>> referenced by conversion.rs:825 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:825)
+          >>>               eech_world-b27d5a0059d5d207.12e1ofvjilausm2h8mxxu2zo0.0dnixgf.rcgu.o:(<u8 as mlua::traits::IntoLua>::push_into_stack) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by conversion.rs:825 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:825)
+          >>>               eech_world-b27d5a0059d5d207.12e1ofvjilausm2h8mxxu2zo0.0dnixgf.rcgu.o:(<u16 as mlua::traits::IntoLua>::push_into_stack) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 6 more times
+          
+          rust-lld: error: undefined symbol: lua_pushnumber
+          >>> referenced by conversion.rs:826 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:826)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.35f7eyd3463g10qn5gwp9dypu.1llkygz.rcgu.o:(<i32 as mlua::traits::IntoLua>::push_into_stack)
+          >>> referenced by conversion.rs:826 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:826)
+          >>>               eech_world-b27d5a0059d5d207.12e1ofvjilausm2h8mxxu2zo0.0dnixgf.rcgu.o:(<u8 as mlua::traits::IntoLua>::push_into_stack) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by conversion.rs:826 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:826)
+          >>>               eech_world-b27d5a0059d5d207.12e1ofvjilausm2h8mxxu2zo0.0dnixgf.rcgu.o:(<u16 as mlua::traits::IntoLua>::push_into_stack) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 6 more times
+          
+          rust-lld: error: undefined symbol: lua_gettop
+          >>> referenced by function.rs:113 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/function.rs:113)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.6al25olgpyq53q9qpg2gx8v89.1llkygz.rcgu.o:(<mlua::function::Function>::call::<mlua::table::Table, (&str, core::option::Option<i32>, core::option::Option<i32>, core::option::Option<i32>, core::option::Option<i32>, core::option::Option<alloc::string::String>)>)
+          >>> referenced by function.rs:123 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/function.rs:123)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.6al25olgpyq53q9qpg2gx8v89.1llkygz.rcgu.o:(<mlua::function::Function>::call::<mlua::table::Table, (&str, core::option::Option<i32>, core::option::Option<i32>, core::option::Option<i32>, core::option::Option<i32>, core::option::Option<alloc::string::String>)>)
+          >>> referenced by mod.rs:56 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/mod.rs:56)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.bwy7zouq7egurpm838vp0a8i6.1llkygz.rcgu.o:(<mlua::util::StackGuard>::new)
+          >>> referenced 116 more times
+          
+          rust-lld: error: undefined symbol: lua_pcall
+          >>> referenced by function.rs:118 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/function.rs:118)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.6al25olgpyq53q9qpg2gx8v89.1llkygz.rcgu.o:(<mlua::function::Function>::call::<mlua::table::Table, (&str, core::option::Option<i32>, core::option::Option<i32>, core::option::Option<i32>, core::option::Option<i32>, core::option::Option<alloc::string::String>)>)
+          >>> referenced by error.rs:241 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/error.rs:241)
+          >>>               eech_world-b27d5a0059d5d207.bd4et3u3ipqz4f3134h1wrlv3.0dnixgf.rcgu.o:(mlua::util::error::protect_lua_closure::<<mlua::state::raw::RawLua>::create_sequence_from<i32, alloc::vec::Vec<i32>>::{closure#0}, ()>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by error.rs:241 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/error.rs:241)
+          >>>               eech_world-b27d5a0059d5d207.bd4et3u3ipqz4f3134h1wrlv3.0dnixgf.rcgu.o:(mlua::util::error::protect_lua_closure::<mlua::util::userdata::push_userdata<mlua::userdata::cell::UserDataStorage<eech_world::model_host::StoreHandle>>::{closure#0}, *mut core::ffi::c_void>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 25 more times
+          
+          rust-lld: error: undefined symbol: lua_rawget
+          >>> referenced by compat.rs:275 (patches/mlua-sys-0.6.8/src/lua51/compat.rs:275)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.82l0vd8pb68y05w8neaqq39q1.1llkygz.rcgu.o:(<mlua::table::Table>::raw_get::<core::option::Option<i32>, &str>)
+          >>> referenced by compat.rs:275 (patches/mlua-sys-0.6.8/src/lua51/compat.rs:275)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.82l0vd8pb68y05w8neaqq39q1.1llkygz.rcgu.o:(<mlua::table::Table>::raw_get::<i32, &str>)
+          >>> referenced by compat.rs:275 (patches/mlua-sys-0.6.8/src/lua51/compat.rs:275)
+          >>>               eech_world-b27d5a0059d5d207.58g4encucjarr71juop04rzj2.0dnixgf.rcgu.o:(<mlua::table::Table>::raw_get::<core::option::Option<alloc::string::String>, &str>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 15 more times
+          
+          rust-lld: error: undefined symbol: lua_type
+          >>> referenced by compat.rs:276 (patches/mlua-sys-0.6.8/src/lua51/compat.rs:276)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.82l0vd8pb68y05w8neaqq39q1.1llkygz.rcgu.o:(<mlua::table::Table>::raw_get::<core::option::Option<i32>, &str>)
+          >>> referenced by compat.rs:276 (patches/mlua-sys-0.6.8/src/lua51/compat.rs:276)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.82l0vd8pb68y05w8neaqq39q1.1llkygz.rcgu.o:(<mlua::table::Table>::raw_get::<i32, &str>)
+          >>> referenced by conversion.rs:1169 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:1169)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.e2lj2tyt4ysfip6ah3gr958a6.1llkygz.rcgu.o:(<core::option::Option<i32> as mlua::traits::FromLua>::from_stack)
+          >>> referenced 43 more times
+          
+          rust-lld: error: undefined symbol: lua_checkstack
+          >>> referenced by mod.rs:36 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/mod.rs:36)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.bwy7zouq7egurpm838vp0a8i6.1llkygz.rcgu.o:(mlua::util::check_stack)
+          >>> referenced by mod.rs:36 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/mod.rs:36)
+          >>>               eech_world-b27d5a0059d5d207.45fpic8gak0ioren8otoklggc.0dnixgf.rcgu.o:(mlua::util::check_stack) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by compat.rs:376 (/src/eech-campaign/patches/mlua-sys-0.6.8/src/lua51/compat.rs:376)
+          >>>               mlua-c6fb1fc3060e2305.mlua.81e5bd38dcd06809-cgu.00.rcgu.o:(mlua::util::error::callback_error::<mlua::util::error::init_error_registry::error_tostring::{closure#0}, i32>) in archive /target/t/debug/deps/libmlua-c6fb1fc3060e2305.rlib
+          >>> referenced 28 more times
+          
+          rust-lld: error: undefined symbol: lua_pushnil
+          >>> referenced by conversion.rs:1152 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:1152)
+          >>>               /target/t/debug/deps/physical_flags_collision-b9232bcdcb350f08.e2lj2tyt4ysfip6ah3gr958a6.1llkygz.rcgu.o:(<core::option::Option<i32> as mlua::traits::IntoLua>::push_into_stack)
+          >>> referenced by conversion.rs:1152 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:1152)
+          >>>               eech_world-b27d5a0059d5d207.538od2g6cokvlopgm0qya0i9p.0dnixgf.rcgu.o:(<core::option::Option<alloc::string::String> as mlua::traits::IntoLua>::push_into_stack) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by conversion.rs:1152 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:1152)
+          >>>               eech_world-b27d5a0059d5d207.538od2g6cokvlopgm0qya0i9p.0dnixgf.rcgu.o:(<core::option::Option<i64> as mlua::traits::IntoLua>::push_into_stack) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 7 more times
+          
+          rust-lld: error: undefined symbol: lua_pushboolean
+          >>> referenced by conversion.rs:398 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:398)
+          >>>               eech_world-b27d5a0059d5d207.12e1ofvjilausm2h8mxxu2zo0.0dnixgf.rcgu.o:(<bool as mlua::traits::IntoLua>::push_into_stack) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by util.rs:453 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/userdata/util.rs:453)
+          >>>               eech_world-b27d5a0059d5d207.6youm75vhyn4aytiyfrxhje29.0dnixgf.rcgu.o:(mlua::userdata::util::destroy_userdata_storage::<eech_world::model_host::StoreHandle>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by util.rs:451 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/userdata/util.rs:451)
+          >>>               eech_world-b27d5a0059d5d207.6youm75vhyn4aytiyfrxhje29.0dnixgf.rcgu.o:(mlua::userdata::util::destroy_userdata_storage::<eech_world::model_host::StoreHandle>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 14 more times
+          
+          rust-lld: error: undefined symbol: lua_toboolean
+          >>> referenced by conversion.rs:415 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/conversion.rs:415)
+          >>>               eech_world-b27d5a0059d5d207.12e1ofvjilausm2h8mxxu2zo0.0dnixgf.rcgu.o:(<bool as mlua::traits::FromLua>::from_stack) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by mod.rs:252 (src/util/mod.rs:252)
+          >>>               mlua-c6fb1fc3060e2305.mlua.81e5bd38dcd06809-cgu.05.rcgu.o:(mlua::util::to_string) in archive /target/t/debug/deps/libmlua-c6fb1fc3060e2305.rlib
+          >>> referenced by compat.rs:502 (patches/mlua-sys-0.6.8/src/lua51/compat.rs:502)
+          >>>               mlua_sys-a72419d6e08a51d5.5dzxv2jioly8pbphgqtrfif7i.19k8kln.rcgu.o:(mlua_sys::lua51::compat::luaL_tolstring) in archive /target/t/debug/deps/libmlua_sys-a72419d6e08a51d5.rlib
+          >>> referenced 1 more times
+          
+          rust-lld: error: undefined symbol: lua_touserdata
+          >>> referenced by registry.rs:146 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/userdata/registry.rs:146)
+          >>>               eech_world-b27d5a0059d5d207.2fnorlqxgchd7bkmqj1lq0cpw.0dnixgf.rcgu.o:(<mlua::userdata::registry::UserDataRegistry<eech_world::model_host::StoreHandle>>::box_method::<<eech_world::model_host::StoreHandle as mlua::userdata::UserData>::add_methods<mlua::userdata::registry::UserDataRegistry<eech_world::model_host::StoreHandle>>::{closure#0}, (), mlua::table::Table>::{closure#0}) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by registry.rs:146 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/userdata/registry.rs:146)
+          >>>               eech_world-b27d5a0059d5d207.2fnorlqxgchd7bkmqj1lq0cpw.0dnixgf.rcgu.o:(<mlua::userdata::registry::UserDataRegistry<eech_world::model_host::StoreHandle>>::box_method::<<eech_world::model_host::StoreHandle as mlua::userdata::UserData>::add_methods<mlua::userdata::registry::UserDataRegistry<eech_world::model_host::StoreHandle>>::{closure#2}, (mlua::value::Value, mlua::value::Value), mlua::table::Table>::{closure#0}) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by registry.rs:146 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/userdata/registry.rs:146)
+          >>>               eech_world-b27d5a0059d5d207.2fnorlqxgchd7bkmqj1lq0cpw.0dnixgf.rcgu.o:(<mlua::userdata::registry::UserDataRegistry<eech_world::model_host::StoreHandle>>::box_method::<<eech_world::model_host::StoreHandle as mlua::userdata::UserData>::add_methods<mlua::userdata::registry::UserDataRegistry<eech_world::model_host::StoreHandle>>::{closure#3}, (mlua::value::Value, mlua::value::Value, mlua::value::Value), mlua::table::Table>::{closure#0}) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 45 more times
+          
+          rust-lld: error: undefined symbol: lua_createtable
+          >>> referenced by mod.rs:128 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/mod.rs:128)
+          >>>               eech_world-b27d5a0059d5d207.45fpic8gak0ioren8otoklggc.0dnixgf.rcgu.o:(mlua::util::push_table) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by lua.rs:258 (patches/mlua-sys-0.6.8/src/lua51/lua.rs:258)
+          >>>               eech_world-b27d5a0059d5d207.9ea00hsg7aw3vjeks53g5pxiu.0dnixgf.rcgu.o:(<mlua::state::raw::RawLua>::make_userdata_with_metatable::<eech_world::model_host::StoreHandle, <mlua::state::raw::RawLua>::make_userdata<eech_world::model_host::StoreHandle>::{closure#0}>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by mod.rs:126 (src/util/mod.rs:126)
+          >>>               mlua-c6fb1fc3060e2305.mlua.81e5bd38dcd06809-cgu.05.rcgu.o:(mlua::util::push_table::{closure#0}) in archive /target/t/debug/deps/libmlua-c6fb1fc3060e2305.rlib
+          >>> referenced 4 more times
+          
+          rust-lld: error: undefined symbol: lua_rawset
+          >>> referenced by table.rs:259 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/table.rs:259)
+          >>>               eech_world-b27d5a0059d5d207.58g4encucjarr71juop04rzj2.0dnixgf.rcgu.o:(<mlua::table::Table>::raw_set::<&str, &str>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by table.rs:259 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/table.rs:259)
+          >>>               eech_world-b27d5a0059d5d207.58g4encucjarr71juop04rzj2.0dnixgf.rcgu.o:(<mlua::table::Table>::raw_set::<&str, alloc::string::String>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by table.rs:259 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/table.rs:259)
+          >>>               eech_world-b27d5a0059d5d207.58g4encucjarr71juop04rzj2.0dnixgf.rcgu.o:(<mlua::table::Table>::raw_set::<&str, bool>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced 25 more times
+          
+          rust-lld: error: undefined symbol: lua_newuserdata
+          >>> referenced by userdata.rs:117 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/userdata.rs:117)
+          >>>               eech_world-b27d5a0059d5d207.1w2vke853kq1cay913hdn06sl.0dnixgf.rcgu.o:(mlua::util::userdata::push_userdata::<mlua::userdata::cell::UserDataStorage<eech_world::model_host::StoreHandle>>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by userdata.rs:115 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/userdata.rs:115)
+          >>>               eech_world-b27d5a0059d5d207.1w2vke853kq1cay913hdn06sl.0dnixgf.rcgu.o:(mlua::util::userdata::push_userdata::<mlua::userdata::cell::UserDataStorage<eech_world::model_host::StoreHandle>>::{closure#0}) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by userdata.rs:21 (src/util/userdata.rs:21)
+          >>>               mlua-c6fb1fc3060e2305.mlua.81e5bd38dcd06809-cgu.06.rcgu.o:(mlua::util::userdata::push_internal_userdata::<mlua::types::Upvalue<core::option::Option<alloc::boxed::Box<dyn for<'a> core::ops::function::Fn<(&'a mlua::state::raw::RawLua, i32), Output = core::result::Result<i32, mlua::error::Error>>>>>>) in archive /target/t/debug/deps/libmlua-c6fb1fc3060e2305.rlib
+          >>> referenced 7 more times
+          
+          rust-lld: error: undefined symbol: lua_setmetatable
+          >>> referenced by userdata.rs:151 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/util/userdata.rs:151)
+          >>>               eech_world-b27d5a0059d5d207.1w2vke853kq1cay913hdn06sl.0dnixgf.rcgu.o:(mlua::util::userdata::take_userdata::<mlua::userdata::cell::UserDataStorage<eech_world::model_host::StoreHandle>>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by raw.rs:842 (/target/cargo-home/registry/src/index.crates.io-1949cf8c6b5b557f/mlua-0.10.5/src/state/raw.rs:842)
+          >>>               eech_world-b27d5a0059d5d207.9ea00hsg7aw3vjeks53g5pxiu.0dnixgf.rcgu.o:(<mlua::state::raw::RawLua>::make_userdata_with_metatable::<eech_world::model_host::StoreHandle, <mlua::state::raw::RawLua>::make_userdata<eech_world::model_host::StoreHandle>::{closure#0}>) in archive /target/t/debug/deps/libeech_world-b27d5a0059d5d207.rlib
+          >>> referenced by util.rs:132 (src/state/util.rs:132)
+          >>>               mlua-c6fb1fc3060e2305.mlua.81e5bd38dcd06809-cgu.02.rcgu.o:(mlua::state::util::callback_error_ext::<<mlua::state::raw::RawLua>::create_callback::call_callback::{closure#0}, i32>) in archive /target/t/debug/deps/libmlua-c6fb1fc3060e2305.rlib
+          >>> referenced 5 more times
+          
+          rust-lld: error: too many errors emitted, stopping now (use --error-limit=0 to see all errors)
+          collect2: error: ld returned 1 exit status
+          
+
+error: could not compile `eech-engine-sys` (test "physical_flags_collision") due to 1 previous error

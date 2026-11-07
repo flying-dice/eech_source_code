@@ -1,0 +1,4 @@
+u1-fmt-check exit=0
+u2-clippy-world exit=0
+u3-world-driver-tests exit=0
+DONE

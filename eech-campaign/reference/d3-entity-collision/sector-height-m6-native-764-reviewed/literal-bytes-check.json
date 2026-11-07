@@ -1,0 +1,26 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the external sealed files, no field normalisation",
+  "files": {
+    "independent-sector-height-M6-native-764-3c2-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 15921,
+      "sha256": "c5bd47fae88dcc7a8a70f92bb0f53285d31fc53fa1f367558395f0b1c2359a17"
+    },
+    "height-core-load-native-764-positive-Root-audit-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 4694,
+      "sha256": "af3d48a865cb4acb21a4f6ec269e2fa545fa39734c0744d29ee72e1e34a149c2"
+    },
+    "height-core-load-native-764-Root-binding-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 11722,
+      "sha256": "4e3ed7124e91f2309b76457e49b61892b7e0fa1d5fc328925a04c8189c73e838"
+    },
+    "Root-native-report-counter-learning-M6-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 1188,
+      "sha256": "5d0e856cbea9ba6e0417bf01161b7d3276333205129b5ff3d737414366873ff4"
+    }
+  },
+  "problems": []
+}

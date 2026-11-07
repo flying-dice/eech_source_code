@@ -1,0 +1,4 @@
+wsl: Failed to translate 'R:\d3-evidence\i686-enumeration-pose-20261106-env'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.31s
+     Running tests/entity_candidate_host.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_candidate_host-d8005ab78d8c4ab5)

@@ -1,0 +1,260 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-PHYSICAL-FLAGS-CHARACTERIZATION-CODE-FROZEN-20261107.json",
+      "bytes": 32336,
+      "sha256": "442ab9d47cddcec742ff58632551d46d5ef43cdfff1e02eaa024263abe07a90a"
+    },
+    {
+      "path": "inputmaps-compare.json",
+      "bytes": 1737,
+      "sha256": "64d8f1a436e7fc79c2112469bfc251344dfb87128f5b46e4c11347fc061721f9"
+    },
+    {
+      "path": "join-vs-reference.json",
+      "bytes": 6995,
+      "sha256": "eea3fcf2d1fe515bb12f0a0f54bd3343f45d4a9c5e8a8d020e24df0354536f72"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4099,
+      "sha256": "91b66c31e7938bb11b91bd38b31eaac64beb388ca090336cd84b2100620580f5"
+    },
+    {
+      "path": "runs/f1-fmt-check.json",
+      "bytes": 853,
+      "sha256": "660c8b33c066c75dcb7c3f0bf85d7ef0c90d99b8e91ee228ae9c250bfa51e9be"
+    },
+    {
+      "path": "runs/f1-fmt-check.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/f1-fmt-check.stdout.log",
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/f2-clippy-engine-sys-default.json",
+      "bytes": 960,
+      "sha256": "600963f2e67605837a13b5dc576cc31539b60cb78cf7e56b011c50ab799c7e90"
+    },
+    {
+      "path": "runs/f2-clippy-engine-sys-default.stderr.log",
+      "bytes": 188,
+      "sha256": "9f18c4ce5bad4db81215ee3948640e3b7d985a0d82155a4cb564bab5c25e4414"
+    },
+    {
+      "path": "runs/f2-clippy-engine-sys-default.stdout.log",
+      "bytes": 38,
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/f3-clippy-engine-sys-flags-feature.json",
+      "bytes": 972,
+      "sha256": "6aa980ed1a8eb4ffd1aba82daf39a77cb1113ea198e56a325d16b333ac670270"
+    },
+    {
+      "path": "runs/f3-clippy-engine-sys-flags-feature.stderr.log",
+      "bytes": 107,
+      "sha256": "cb9c7930c152b17de952c5f51462f241469432eb3ea2d08abf58e98b907a8a6a"
+    },
+    {
+      "path": "runs/f3-clippy-engine-sys-flags-feature.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/f4-engine-sys-default.json",
+      "bytes": 853,
+      "sha256": "1a9286cfbfcc51173ba14319674b31b190a1dad46aa4b0f97a5e0150bfbf3959"
+    },
+    {
+      "path": "runs/f4-engine-sys-default.stderr.log",
+      "bytes": 1123,
+      "sha256": "e1b42f3c2d7b715bc454dc03e454df6d24deefe89c9f499936e477bb1b4d0b49"
+    },
+    {
+      "path": "runs/f4-engine-sys-default.stdout.log",
+      "bytes": 6464,
+      "sha256": "e3df6677a56ad3c2c477f1b167279078779636869cac94f3b4bb2d0c1881c76b"
+    },
+    {
+      "path": "runs/f5-flags-control-and-guard.json",
+      "bytes": 1009,
+      "sha256": "51e202ca43ed7cf97d8ffb2c6f9cc8d80cf02e2160424b6c650cac3f00039dbc"
+    },
+    {
+      "path": "runs/f5-flags-control-and-guard.stderr.log",
+      "bytes": 349,
+      "sha256": "3243b084b8dc17f6d1e8659a8136a0d29638fe85b756c2e02be7ace7e3125e0f"
+    },
+    {
+      "path": "runs/f5-flags-control-and-guard.stdout.log",
+      "bytes": 775,
+      "sha256": "e5dd2e54a0e1197a0de523b27233fa2aa3cca7f73b1ef61f2439b1f4d3d7a5b3"
+    },
+    {
+      "path": "runs/hwflags-final-set-20261107.progress",
+      "bytes": 166,
+      "sha256": "5c62d16de2009865362af817499d85e2ed0e0b1900b2e5b4395dea1e0ea9b957"
+    },
+    {
+      "path": "runs/hwflags-final-set-lease-after-20261107.txt",
+      "bytes": 19,
+      "sha256": "4c04288a874657cf84a8d7ee257da46d3050f3dca11b09a8ac7da7f148e8555c"
+    },
+    {
+      "path": "runs/hwflags-final-set-lease-before-20261107.txt",
+      "bytes": 92,
+      "sha256": "46ebc5082c9201bca56d8a06ee500461a5f2e4c0ddb2564b05b9a3f63e40ff13"
+    },
+    {
+      "path": "runs/p1-flags-check.json",
+      "bytes": 955,
+      "sha256": "3c175d5a556584f10a0327fd77769d404ca7e416e30126f6e23277728b523425"
+    },
+    {
+      "path": "runs/p1-flags-check.stderr.log",
+      "bytes": 895042,
+      "sha256": "bebd86e01f43b79e0ed739b144c6882db13b88debe70cd58d02d5d66f9d4e45f"
+    },
+    {
+      "path": "runs/p1-flags-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/p2-flags-check.json",
+      "bytes": 955,
+      "sha256": "855b919090f1626cd0455c25685c0ea865adb9dda9c531a777cdc10742715791"
+    },
+    {
+      "path": "runs/p2-flags-check.stderr.log",
+      "bytes": 1860,
+      "sha256": "f4e7b5c483e8ebbec9f15ba818269c65f5c535a1645b7e6035f16b23907447b1"
+    },
+    {
+      "path": "runs/p2-flags-check.stdout.log",
+      "bytes": 410,
+      "sha256": "e38bdf3992cccc3cb8509b5fb75d250002d3c55082de810fe58bde740021e989"
+    },
+    {
+      "path": "runs/p3-flags-check.json",
+      "bytes": 954,
+      "sha256": "9ecba9ef218f9a1a2e2b25e302941f22c0aa337a0a7de65a36ea08b8929eb5a5"
+    },
+    {
+      "path": "runs/p3-flags-check.stderr.log",
+      "bytes": 825,
+      "sha256": "410fb0b29c4346896134f755201dd4cdbc2b2842898601a354bbc671272886dd"
+    },
+    {
+      "path": "runs/p3-flags-check.stdout.log",
+      "bytes": 540,
+      "sha256": "8462aa5097985e830f7aff9fcd4a4c19c125d6d852b7d5e604936f0189f587e1"
+    },
+    {
+      "path": "runs/p4-flags-check-and-guard.json",
+      "bytes": 978,
+      "sha256": "863f8d1eaf80747a1ddd94d0a2bc85280abecea4cf64f98fee5d4d9f652bfe41"
+    },
+    {
+      "path": "runs/p4-flags-check-and-guard.stderr.log",
+      "bytes": 349,
+      "sha256": "0981b73c097c2b279119863f67a61285ce342dcbb787463981b0671113c28711"
+    },
+    {
+      "path": "runs/p4-flags-check-and-guard.stdout.log",
+      "bytes": 645,
+      "sha256": "526ef5864b124889be6d082f0ff452f168f3390aff10c0969c8009ceb078abb6"
+    },
+    {
+      "path": "runs/p5-fmt-apply.json",
+      "bytes": 849,
+      "sha256": "c57a94640690ece0de313c56000dd9753fec61f9778ee7780b46765a1269a046"
+    },
+    {
+      "path": "runs/p5-fmt-apply.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/p5-fmt-apply.stdout.log",
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/p6-clippy-engine-sys-feature.json",
+      "bytes": 1024,
+      "sha256": "053d54d51b7750209fca7b41e40988fb3a77d6f0a514f0797c094d9222c5e37b"
+    },
+    {
+      "path": "runs/p6-clippy-engine-sys-feature.stderr.log",
+      "bytes": 188,
+      "sha256": "2ee82e58312892f2872e81d049556610bb1f71f9ca9384d3b5d50af1479d07ed"
+    },
+    {
+      "path": "runs/p6-clippy-engine-sys-feature.stdout.log",
+      "bytes": 38,
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "scripts/check-physical-flags-linux-20261107.sh",
+      "bytes": 1216,
+      "sha256": "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65"
+    },
+    {
+      "path": "scripts/freeze-hwflags-20261107.py",
+      "bytes": 24441,
+      "sha256": "d65a446f8b281e09ccfc686be3d4d6aa423888789db3cbde107f3278a5402f36"
+    },
+    {
+      "path": "scripts/hwflags-extra-identity-20261107.py",
+      "bytes": 3415,
+      "sha256": "35760293d9d1db4b86bd288c0c88f40db38eb5b2123172a2ff641992e828caf1"
+    },
+    {
+      "path": "scripts/hwflags-feedback-files-20261107.json",
+      "bytes": 462,
+      "sha256": "5302f445e59d2fe4d7600c42246bd994c5f1676696174bd6393e50cfb27e93d9"
+    },
+    {
+      "path": "scripts/hwflags-join-20261107.py",
+      "bytes": 7594,
+      "sha256": "dc71871b15276557fce0d8ff2952f6720c65860ae1a51dad8e60af27b63c51b0"
+    },
+    {
+      "path": "scripts/hwflags-retained-dev-runs-20261107.json",
+      "bytes": 953,
+      "sha256": "811f782b9d29b2b70fb9976dbafb4e55277ecffbafb2ee170bbfd3ed3fbc79ea"
+    },
+    {
+      "path": "scripts/run-hwflags-final-set-20261107.sh",
+      "bytes": 2274,
+      "sha256": "e3574f7827882466aa8bd40c6890174078f3a9f11d4d6edff1886467291e0c37"
+    },
+    {
+      "path": "scripts/run-physical-flags-direct-20261107.py",
+      "bytes": 2058,
+      "sha256": "067da47595fe7bab4bc80c5bd93d3797c210cb68c930315a75baf4ed56d2a4fe"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    }
+  ],
+  "scope": "Source and local-check packet of the M5/M6 witness batch only; not a native result, review, approval or acceptance."
+}

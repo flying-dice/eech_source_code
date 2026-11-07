@@ -1,0 +1,167 @@
+{
+  "kind": "independent_four_finding_changed_material_source_followup",
+  "sealed_utc": "2026-11-07T12:41:33.559222+00:00",
+  "source": {
+    "commit": "e42bb19a0845106df6f03d08774be32cbaa87d52",
+    "evidence_only_commit": "fa7d060df8d37c48b0625e7e1834c220a7c6b3a1",
+    "metadata_commit": "17f4b824b468c608ef488423b6c568382dd12798",
+    "actual_parent": "03eab486ff7a6705e8d0c2587cc3f1631ca581d2",
+    "previous_reviewed_source": "6e41390439fc59f4fe091cf65ae13ab43aafba90",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_clean_HEAD_at_start": "17f4b824b468c608ef488423b6c568382dd12798",
+    "changed_paths": [
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_hw_witness.c",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs",
+      "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+      "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs",
+      "eech-campaign/docs/d3-sector-height-production-contract.md"
+    ]
+  },
+  "scope": "Same reviewer; only new four-finding corrections, shared C path helper, Lua diagnostic oracle/retry/consumer changes, tests, contract and evidence. Correctness, clean code and boundary safety reviewed together. No closed math/kernel/prior native/CI review or replay.",
+  "decision": {
+    "status": "CHANGES_REQUIRED_DIAGNOSTIC_REFERENCE_ONLY",
+    "findings": [
+      {
+        "id": "ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1",
+        "severity": "P2",
+        "status": "OPEN_RESIDUAL",
+        "locations": [
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:237",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:271",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:285",
+          "eech-campaign/crates/eech-world/lua/sector-height-witness.lua:805"
+        ],
+        "problem": "Role-specific positive reference evidence is still incomplete. control= checks presence of handoff/trajectory/pair records and window equality, but never requires c.min_height/c.answered_y to be present valid finite raw words. Removing only answered_y from a successful paired control passes loading; a valid changed-word run can compare its real answer to nil and emit physical=changed while returning PASS. Removing min_height similarly treats absent evidence as a changed handoff. Setup validation compares scenario/seed/frame_ms/hours only: the existing campaign field is ignored and effective map identity is absent. Another effective M5 campaign/map can therefore pass the pre-intervention setup gate; aggregate trajectory counters cannot replace that missing identity. This is diagnostic correctness, not a production physics finding or an observed native outcome.",
+        "minimum_fix": [
+          "Validate complete role-specific handoff/trajectory/count fields and domains before output/boot/intervention. Every field consumed in parity/effect claims must be present and valid; missing/malformed/nonfinite physical words never mean changed output. Keep standalone controls explicitly unpaired.",
+          "Bind effective M5 map/campaign setup for original/control/intervention. For M6 preserve the legitimate original-save-to-generated-script relationship rather than naively requiring campaign-name equality across save/load; retain effective map/session provenance.",
+          "Keep the already-correct same-caller relation, strict positive request/ACK checks, fault/abort-before-UNREACHED precedence and no postfatal engine access. No production API, solver or framework is needed."
+        ],
+        "focused_controls": [
+          "Start with a coherent pair and valid changed-word positive, then remove only answered_y, remove only min_height, and damage one raw word. Each must refuse before boot/intervention and never claim an effect.",
+          "Change only effective campaign or map setup of a supplied M5 reference: require pre-effect refusal; matching default and explicitly matching override pairs remain valid.",
+          "Retain positive save/load generated-script/seed relationship and existing same-caller/fatal controls; only affected driver/fmt/clippy checks and honest final raw PRE/POST binding are requested."
+        ]
+      }
+    ],
+    "closed_source_ids": [
+      "ENV-SECTOR-HEIGHT-M5-ROUNDING-ORACLE-1",
+      "ENV-SECTOR-HEIGHT-M6-PACK-RETRY-1",
+      "ENV-SECTOR-HEIGHT-M6-SAVE-PATH-BOUND-1"
+    ],
+    "open_source_ids": [
+      "ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1"
+    ],
+    "Windows_build_clearance": true,
+    "Windows_build_clearance_is_conditional": true,
+    "native_launch_clearance": false,
+    "current_diagnostic_Lua_accepted": false,
+    "M5_guarded_fixed_wing_accepted": false,
+    "M6_native_Core_save_load_accepted": false,
+    "whole_sector_height_extraction_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "dispositions": [
+    {
+      "id": "ENV-SECTOR-HEIGHT-M5-ROUNDING-ORACLE-1",
+      "status": "CLOSED_SOURCE_AT_DECLARED_SCOPE",
+      "assessment": "Explicit toward-zero narrowing now follows an exact-double-difference check; an unformable expected value is FAILURE, not clean absence. Harness invokes real reference SSE selection, reads back MXCSR rounding and restores the saved word. Focused finite non-exact controls accept RTZ and reject the adjacent nearest result; targeted old-driver RED retained. No original C/math/tolerance/baseline changed. This is narrow x86-64 control, not native fw_move execution, i686/x87 or universal finite/FP coverage."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-M6-PACK-RETRY-1",
+      "status": "CLOSED_SOURCE",
+      "assessment": "Real-writer-order consistent repeated sector reads now reconcile into attempts with exact order/count/word comparison and a unique final saved-sector relationship. Save and load-second-pack retry positives pass; changed word, omitted sector, unsupported partial/duplicate ordering and excessive attempts fail. Old-driver retry RED retained. Real store_session overflow/file/load evidence remains unrun native validation, not implied by the collaborator."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-M6-SAVE-PATH-BOUND-1",
+      "status": "CLOSED_SOURCE",
+      "assessment": "Actual wrapper calls one shared C helper before file access/store_session. Terminated session arrays and both complete paths, suffix and NUL, are bounded to the real writer256-byte capacity. Both outputs are built only after both fit. Shared-helper controls cover fitting255-byte and non-fitting256-byte data/script paths and no-file/empty-output refusal behavior; guard pins capacities/call order. The new helper was first GREEN on new code, not falsely an old-helper RED. Original writer/private feature gate remain."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1",
+      "status": "PARTIALLY_CLOSED_RESIDUAL_OPEN",
+      "assessment": "Same-host-id read/lookahead/move state replaces global identity-free flags; incompatible callbacks drop pending state. Live handoff/answer completeness, strict raw request/reply/seed ACKs and paired trajectory checks improve. References now require schema/mode/profile/terminal PASS and reject duplicate/failed/truncated/unknown/fatal records; save rows/counts/seeds/generated-script relation are checked. Required reference physical words and complete effective setup remain unchecked as detailed in the residual. Trajectory is not an individual read caller identity; that limit stays explicit."
+    }
+  ],
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-SECTOR-HEIGHT-NATIVE-WITNESSES-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 65028,
+      "sha256": "2fe9732d2831be8c35ce0160caa986eada44102face18ff0afb7c15e361dc446"
+    },
+    {
+      "path": "R:/d3-evidence/height-witness-fix-Root-binding-17f-20261107.json",
+      "bytes": 3382,
+      "sha256": "f2ad25d984e1ed419f8c92a151e49445020c4ca6c030d05269da572de3096a21"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-height-witness-review-fix-20261107-completion.json",
+      "bytes": 1287,
+      "sha256": "7e6e3849d97f3bc7c67469f44d5651f8e21459622af125d5aff04d8418f15414"
+    },
+    {
+      "path": "R:/d3-evidence/independent-sector-height-native-witness-source-6e4139-20261107.json",
+      "bytes": 19464,
+      "sha256": "96b2f4140e47ef17b0e672691e39173b3d920ea75282ec0cee60d56cdab8730f"
+    }
+  ],
+  "source_check_join": {
+    "PRE_utc": "2026-11-07T12:24:49Z",
+    "POST_utc": "2026-11-07T12:31:15Z",
+    "full_input_rows": 3976,
+    "PRE_POST_JSON_literal_equal": true,
+    "source_map_identity": {
+      "bytes": 2041962,
+      "sha256": "b06295202bd731deb29cfae6fe5d17728bfbaee42484897dfd117390e260459d",
+      "location": "external (full per-file rows)"
+    },
+    "changed_paths_raw_Git_literal": 6,
+    "packet_entries_current_Git_literal": 90,
+    "final_direct_children": 10,
+    "final_actual_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "passing_test_instances": 673,
+    "counts_scope": "234 World including23 driver; shared C path2 plus guard4; Engine/DC194 default and195 witness; other default/control result instances at declared scope. Scripted controls do not run native fw_move/store_session/pack_session/unpack_session.",
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_terminal_utc": "2026-11-07T12:34:07Z",
+    "Windows_native_unrun": true,
+    "current_17f_CI": "Pending Root readback at supplied review state; no older-head inference and no CI waiver of the residual.",
+    "reviewer_ran_checks": false
+  },
+  "provenance_qualifications": [
+    "Same three inherited test Lua rawCRLF/GitLF differences and four Core filter-only identities with literal raw/Git bytes are separately bound. No input normalization.",
+    "All23 extra PRE/POST entries are equal to each other, but only22 match current bytes. freeze-hwfix-20261107.py changed after POST: PRE25550B SHA256f54d678fe9b0dc5ff00d6d3615db7ca9c9f3b1e7e788ad941dc241b61470b8eb; current27576B SHA256cfc428df6fdf947117944981a53f8c189eb258af32aec7567966828947511750. PRE body and first traceback retained. Explicit erratum identifies publisher sort-key failure/fix filtering x/y records before sorting; current script separately sealed by freeze/Git. This is qualified publisher-only chronology, not tested-source drift or reason to rerun C/tests; no all23-current claim.",
+    "Evidence-only fa7 and metadata17f remain distinct from executable e42. Earlier failures/reports stay literal. Selected old-driver RTZ/retry REDs are controlled-source checks, not a claim all REDs preceded implementation."
+  ],
+  "conditional_build_only_clearance": {
+    "permitted": "Root may compile exact frozen reviewed e42/17f inputs and perform read-only Windows profile/object/export/payload sealing. No execution of the current diagnostic/campaign/new native witness is permitted.",
+    "conditions": [
+      "Fresh immutable clone with longpaths before checkout, exact HEAD, clean full status and direct raw identity binding; no mutable WIP build.",
+      "One build-cache owner: author Cargo/cache operations excluded until Root releases ownership. Diagnostic source correction must not alter the frozen build clone.",
+      "Retain actual exits, features/compiler/producer/reader identities, private/export/test-feature isolation and sealed binaries/payloads. Old1b89 stays its old identity.",
+      "Later Lua/test/doc-only correction may reuse these compiled C/Rust binaries only with exact production/Cargo/build/runtime-input equivalence and a separately Git/blob/SHA-bound corrected literal. Preserve original build identity and sealed payloads; no relabelling or silent bundled-file replacement.",
+      "Native remains blocked until residual changed-material review and a concrete source-bound positive-first plan are cleared."
+    ]
+  },
+  "minimum_next_batch": "Only the residual reference-validation/setup correction, focused positive-first controls and final PRE/POST/fmt/World lint/affected-driver checks. Reuse source-closed C path/retry/RTZ evidence through exact unchanged inputs. No broad matrix/numeric programme/framework/bad native experiment/actor hunt/window extension.",
+  "remaining_required": [
+    "M5 guarded fixed-wing/M6 native Core save-load and height-open-facts remain required OPEN. Natural3h positive-first scope may legitimately be UNREACHED; authorized test-only real collaborator setup remains available if needed.",
+    "No whole-height/natural/all-history/FP/current full40/all8/four-input shipping/Task49/D3/delivery acceptance. All ten requirements, remaining coupled services/API/DCS/hierarchy/RNG/final census/current CI/review/normal merge stay required. Prep2 stays STOP; no D4/D5/TypeScript.",
+    "Prior finite1b89/CI635 and long-run P1/fullpack retain only accepted identities/limits. No reviewer build/test/native/cache/source mutation or nested agent."
+  ]
+}

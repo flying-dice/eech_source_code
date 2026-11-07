@@ -1,0 +1,24 @@
+{
+  "source": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+  "before_checks_after_checks_after_native_maps_all_literal_equal": true,
+  "file_count": 3952,
+  "all_raw_inputs_equal_committed_Git": true,
+  "maps": [
+    {
+      "path": "R:\\d3-evidence\\city-76fb-snapshot-before-20261106.json",
+      "bytes": 2028076,
+      "sha256": "cbb6a62aa601bdf872951fd5a7481524d142654a8eb891aa063e2c7d4a30218b"
+    },
+    {
+      "path": "R:\\d3-evidence\\city-76fb-snapshot-after-20261106.json",
+      "bytes": 2028076,
+      "sha256": "cbb6a62aa601bdf872951fd5a7481524d142654a8eb891aa063e2c7d4a30218b"
+    },
+    {
+      "path": "R:\\d3-evidence\\city-76fb-snapshot-after-native-20261106.json",
+      "bytes": 2028076,
+      "sha256": "cbb6a62aa601bdf872951fd5a7481524d142654a8eb891aa063e2c7d4a30218b"
+    }
+  ],
+  "scope": "Immutable compiled/Lua source before/after selected integration checks/after native. No world/private data, not wholeD3/fullpack acceptance."
+}

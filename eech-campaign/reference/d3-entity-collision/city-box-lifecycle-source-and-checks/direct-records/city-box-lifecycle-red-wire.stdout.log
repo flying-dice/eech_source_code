@@ -1,0 +1,57 @@
+
+running 6 tests
+test a_diagnostic_withdrawal_keeps_the_hosts_box_and_a_restoring_statement_must_carry_it ... FAILED
+test only_the_release_of_the_city_ends_a_retained_record_and_a_malformed_release_changes_nothing ... FAILED
+test a_citys_host_built_box_outlives_its_sector_placement_and_the_relinked_placement_continues_the_record ... FAILED
+test a_city_the_host_never_built_a_box_for_ends_with_its_last_placement_as_it_always_did ... ok
+test a_release_while_buildings_are_still_listed_ends_the_record_with_the_last_building ... FAILED
+test the_last_building_leaving_an_unplaced_city_retains_the_record_that_holds_the_hosts_box ... FAILED
+
+failures:
+
+---- a_diagnostic_withdrawal_keeps_the_hosts_box_and_a_restoring_statement_must_carry_it stdout ----
+
+thread 'a_diagnostic_withdrawal_keeps_the_hosts_box_and_a_restoring_statement_must_carry_it' (110) panicked at crates/eech-world/tests/city_box_lifecycle.rs:194:5:
+assertion `left == right` failed: a restoration is not a second source for the box
+  left: "placed"
+ right: "refused"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- only_the_release_of_the_city_ends_a_retained_record_and_a_malformed_release_changes_nothing stdout ----
+
+thread 'only_the_release_of_the_city_ends_a_retained_record_and_a_malformed_release_changes_nothing' (112) panicked at crates/eech-world/tests/city_box_lifecycle.rs:217:5:
+assertion `left == right` failed
+  left: ""
+ right: "1"
+
+---- a_citys_host_built_box_outlives_its_sector_placement_and_the_relinked_placement_continues_the_record stdout ----
+
+thread 'a_citys_host_built_box_outlives_its_sector_placement_and_the_relinked_placement_continues_the_record' (109) panicked at crates/eech-world/tests/city_box_lifecycle.rs:162:5:
+assertion `left == right` failed: the host names the record that holds the box it built
+  left: ""
+ right: "1"
+
+---- a_release_while_buildings_are_still_listed_ends_the_record_with_the_last_building stdout ----
+
+thread 'a_release_while_buildings_are_still_listed_ends_the_record_with_the_last_building' (111) panicked at crates/eech-world/tests/city_box_lifecycle.rs:263:5:
+assertion `left == right` failed
+  left: "refused"
+ right: "removed"
+
+---- the_last_building_leaving_an_unplaced_city_retains_the_record_that_holds_the_hosts_box stdout ----
+
+thread 'the_last_building_leaving_an_unplaced_city_retains_the_record_that_holds_the_hosts_box' (113) panicked at crates/eech-world/tests/city_box_lifecycle.rs:284:5:
+assertion `left == right` failed: 
+  left: ("removed", "")
+ right: ("removed", "1")
+
+
+failures:
+    a_citys_host_built_box_outlives_its_sector_placement_and_the_relinked_placement_continues_the_record
+    a_diagnostic_withdrawal_keeps_the_hosts_box_and_a_restoring_statement_must_carry_it
+    a_release_while_buildings_are_still_listed_ends_the_record_with_the_last_building
+    only_the_release_of_the_city_ends_a_retained_record_and_a_malformed_release_changes_nothing
+    the_last_building_leaving_an_unplaced_city_retains_the_record_that_holds_the_hosts_box
+
+test result: FAILED. 1 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

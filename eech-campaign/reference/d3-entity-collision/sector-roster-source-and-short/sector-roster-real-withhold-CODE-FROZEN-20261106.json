@@ -1,0 +1,327 @@
+{
+ "schema": "sector-roster-real-withhold-CODE-FROZEN/v1",
+ "written_utc": "2026-11-06T02:14:00Z",
+ "lane": "Sonnet 5.5 High, same context as the 92d/5182 correction lane (Task49/PR109)",
+ "status": "UNREVIEWED CODE_FROZEN. TEST-ONLY source over the compiled 5182b526d. Focused Linux checks only. Not a native clearance, not the actual control (Root runs it after the same reviewer reviews the two changed files), not a Task49/D3 acceptance.",
+ "branch": "codex/d3-object-tree-collision",
+ "worktree": "R:/d3-evidence/collision-characterization-20261029",
+ "newCodeSHA": "505cc399caf7fab6a372fce37dca1bc27883ab73",
+ "actual_direct_parent_git_rev_parse": "aff5ac2fa0d0fbeb60e7f3fffb16e1dc90ef9caa",
+ "compiled_source_reviewed_with_no_findings": "5182b526d08aefdd40ea93803188227fd74abae5",
+ "metadataSHA": "c341a130756f7344c939cb87841004e5cf8b471d",
+ "metadata_delta_over_code": [
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json"
+ ],
+ "pushed": "normal pushes, no force; code before metadata",
+ "no_product_change": {
+  "changed_paths": [
+   "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "raw_changes_between_the_5182_final_map_and_this_final_map": [
+   "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "any_other_file": [],
+  "statement": "no C, FFI, provider (model_host.rs, roster.rs) or physical file changed; the Root clone, builds, caches and the 3475 pack were not touched"
+ },
+ "review_inputs_read": [
+  {
+   "path": "R:/d3-evidence/sector-roster-corrections-ROOT-CHECKER-NOTE-20261106.txt",
+   "bytes": 1579,
+   "sha256": "db6c20f1598b4e9d8bdaf52202ddb340ecf8921321a825281f362232b08bd0a0"
+  }
+ ],
+ "characterised_existing_api_first": {
+  "remove_wire_operation": "the campaign's REMOVE is the existing ENTITY_SCAN question, phase 5 (0x40a00000), the other 15 facts zero, the roster key in the identity place after one space; the real provider (model_host.rs roster_event) answers result `removed` with an empty name and no cursor",
+  "named_refusal": "a later ENTRY or RESOLVED standing at that key is refused by the real provider before any decision as '[roster.key] the roster entry N has ended: it was removed or cleared'; the engine bridge turns a refused reply into [model-provider:entity_scan.refused] with the reason (as the candidate's refusal already is)",
+  "no_invented_protocol": "no new operation, field, second store or provider change: the mode only issues the existing REMOVE to the same provider and observes the existing refusal"
+ },
+ "mode": {
+  "name": "withdrawn_backing",
+  "kind": "host-side test mode in the existing driver; alters no answer",
+  "behaviour": "once, at the first real FIRST that serves an entry (non-empty key): pcall the same provider's REMOVE on that key; require result `removed` (name empty) -> scan.withdrawn = 1, else -1 and a reply fault (never a pass); the FIRST reply table is returned completely unchanged; the Core lists, entity and physics are untouched (the wrapper never touches them); the withdrawal is counted in scan.withdrawn apart from the campaign's roster events (those are counted by the model() wrapper, which the withdrawal does not pass through); the phase of the next scan question is recorded in scan.withdrawn_next",
+  "credit": "marker entity_scan.refused AND scan.withdrawn == 1 AND the next question was phase_entry AND failure.line names '[roster.key]' and 'has ended' AND request_faults == 0 AND reply_faults == 1 with first_fault 'scan reply: result refused'; anything else (not acknowledged, other phase, other reason, other fault, engine stop elsewhere, completion) is an error, not arbitrary exit 1",
+  "safe_report_fields": [
+   "roster_withdrawn",
+   "roster_withdrawn_next_phase",
+   "roster_withdrawn_cause (roster_key_ended)"
+  ],
+  "no_postfatal_read": "the counters are the wrapper's own, read after the stop without asking the provider or the engine anything; the existing unknown-stays-unknown fields (-1) are unchanged",
+  "upvalues": "no new file-level local; the counters are fields of the existing scan table (Lua 5.1 limit 60)",
+  "earlier_driver_strictness_kept": "grammar, request joins, lifecycle counters and the supported lifetimes are unchanged; 56 earlier driver tests pass unchanged"
+ },
+ "fixture_and_test": "entity_authority.rs: drive() registers the REAL eech-world model provider with its own SectorRoster as REAL_HOST; scenario real_scan forwards every entity_scan question (scan and roster) to it (the candidate, pose and narrow-phase collaborators stay scripted); a refused scan reply is the bridge's entity_scan.refused fatal; test the_real_provider_serves_the_scan_and_withdrawing_the_served_backing_by_its_real_remove_makes_the_next_entry_refused_by_name: healthy real control first (no fault, 4 scan questions in the order first/offer/next/first, 2 roster events cleared+placed, standing key rides ENTRY and RESOLVED only, nothing altered, nothing withdrawn), then the mode (marker, counts 1/phase_entry/roster_key_ended, nothing altered, request_faults 0, one reply fault = the named refusal, the real roster log boot+insertion+REMOVE of the served key acknowledged `removed`, scan log first then refused, standing key served, no delegation break), then the negatives (the scripted provider, which does not refuse the ended entry, completes and fails 'did not stop at entity_scan.refused'; an engine stop elsewhere fails 'not at [model-provider:entity_scan.refused]'); the original-profile mode list now includes the mode",
+ "tests_actual": {
+  "red_for_the_missing_capability": {
+   "label": "qreal-red-authority",
+   "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+   "actual_exit": 101,
+   "started_utc": "2026-11-06T02:10:56.738471+00:00",
+   "completed_utc": "2026-11-06T02:11:03.243563+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qreal-red-authority.json",
+    "bytes": 959,
+    "sha256": "67199e3a3d368813bea4ed4ad79a3a16ee15950105f9636dd359a7abec392602"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qreal-red-authority.stdout.log",
+    "bytes": 8204,
+    "sha256": "65f20a2321fc947fc292a2014a97494b7441cb91ecc412fcc8c177dca4827148"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qreal-red-authority.stderr.log",
+    "bytes": 11571,
+    "sha256": "09e6c595c349f021d7cd3bde6b115bd981777a16ce369efbba131f0ed945c356"
+   },
+   "test_result_rows": [
+    {
+     "status": "FAILED",
+     "passed": 56,
+     "failed": 2
+    }
+   ],
+   "failed_tests": [
+    "the_real_provider_serves_the_scan_and_withdrawing_the_served_backing_by_its_real_remove_makes_the_next_entry_refused_by_name",
+    "the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_scan_candidate_or_narrow_phase_question_and_a_missing_api_is_unreached"
+   ]
+  },
+  "red_explanation": "56 passed 2 failed: the new test failed at entity_authority.rs:2206 after its real healthy control passed (roster_withdrawn absent: Null vs 0), and the original-profile mode-list test failed because the mode does not exist. The failures are the missing capability, not setup.",
+  "first_green_not_final": {
+   "label": "qreal-g1-authority",
+   "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T02:11:32.059864+00:00",
+   "completed_utc": "2026-11-06T02:11:43.731031+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qreal-g1-authority.json",
+    "bytes": 955,
+    "sha256": "c35d2fa2209e56720db0ef361e2fdd5fc314ba460b5ed8ffb38765a050fea5c5"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qreal-g1-authority.stdout.log",
+    "bytes": 6965,
+    "sha256": "52ffc2516d7f95d3897351ea3a26f924ecf74c55531045e6cc1b7147cf5af91b"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qreal-g1-authority.stderr.log",
+    "bytes": 11526,
+    "sha256": "e498cc3f84ec91f583f82e77fb3cb97c43e4ba134e9c3ef4120490c42b5d390b"
+   },
+   "test_result_rows": [
+    {
+     "status": "ok",
+     "passed": 58,
+     "failed": 0
+    }
+   ],
+   "failed_tests": []
+  },
+  "formatting": {
+   "pre_check_exit_1_my_new_test_lines_only": {
+    "label": "qreal-pre-fmt-check",
+    "command": "cargo fmt -p eech-world -- --check",
+    "actual_exit": 1,
+    "started_utc": "2026-11-06T02:11:49.429390+00:00",
+    "completed_utc": "2026-11-06T02:11:54.457837+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-pre-fmt-check.json",
+     "bytes": 860,
+     "sha256": "69362d63928ab80b1d27cdeface2cc745167d2b7e7388bd179d523cc702710d7"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-pre-fmt-check.stdout.log",
+     "bytes": 6177,
+     "sha256": "46d3215bce3493f572505d1004401dbffb4deb2a5af6ff7c2879e5996f56d509"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-pre-fmt-check.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   "applied": {
+    "label": "qreal-fmt-apply",
+    "command": "cargo fmt -p eech-world",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:12:08.702429+00:00",
+    "completed_utc": "2026-11-06T02:12:12.809097+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-fmt-apply.json",
+     "bytes": 838,
+     "sha256": "66467396ea1c012b9b14b354cf2ae92d58eb6fe34d4d68bc0fe4957bb754124d"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-fmt-apply.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-fmt-apply.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   }
+  },
+  "final_on_frozen_bytes": [
+   {
+    "label": "qreal-final-1-fmt",
+    "command": "cargo fmt -p eech-world -- --check",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:12:17.089513+00:00",
+    "completed_utc": "2026-11-06T02:12:20.787823+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-final-1-fmt.json",
+     "bytes": 860,
+     "sha256": "208b61a34781c5191f4aa7fb0d78b2a81fe33301dd867849f5314f2dc795c260"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-final-1-fmt.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-final-1-fmt.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qreal-final-2-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:12:20.914704+00:00",
+    "completed_utc": "2026-11-06T02:12:27.910834+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-final-2-authority.json",
+     "bytes": 924,
+     "sha256": "a6277143d6b72844c7f280bfcff8ab24491805bdb7b85f5d681dd81195a861bb"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-final-2-authority.stdout.log",
+     "bytes": 6965,
+     "sha256": "13c8535c80f96f6fbc6b2d7be8e2bb669365bbfe1bb5e1a14b90f69a56be6983"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qreal-final-2-authority.stderr.log",
+     "bytes": 11526,
+     "sha256": "2948e97a7ea93e682ae7f46b48d97b9e3fe8c599f0bfdef7fa23ef70616c32b7"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 58,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   }
+  ],
+  "final_summary": "cargo fmt -p eech-world -- --check exit 0; cargo test --release --locked -p eech-world --test entity_authority exit 0, 58 passed 0 failed (56 earlier + the join test + this one); each a scoped helper child with separate raw stdout/stderr and the helper's actual exit; no warnings"
+ },
+ "final_fast_maps_literal_proof": {
+  "helper": {
+   "path": "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py",
+   "bytes": 5094,
+   "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "order": "all edits and formatting finished; map BEFORE; fmt check and entity_authority; map AFTER; no source edit or commit between the two maps (the code commit came after the after-map)",
+  "before": {
+   "path": "R:/d3-evidence/qreal-20261106-inputmap-before-final.json",
+   "bytes": 2028902,
+   "sha256": "ef6ddb3105857e554d81b7dafd60222aaa4be6227e1f6110844b6db5598862a0"
+  },
+  "after": {
+   "path": "R:/d3-evidence/qreal-20261106-inputmap-after-final.json",
+   "bytes": 2028902,
+   "sha256": "ef6ddb3105857e554d81b7dafd60222aaa4be6227e1f6110844b6db5598862a0"
+  },
+  "file_count": [
+   3952,
+   3952
+  ],
+  "files_object_literally_equal": true,
+  "fingerprint_before": "a2f62173f548707938c57d5a5daa81a9a98c5e4211416909c25db5865d0ee481",
+  "fingerprint_after": "a2f62173f548707938c57d5a5daa81a9a98c5e4211416909c25db5865d0ee481",
+  "fingerprints_equal": true,
+  "head_rev_arg": "HEAD",
+  "head_sha_at_capture": [
+   "aff5ac2fa0d0fbeb60e7f3fffb16e1dc90ef9caa",
+   "aff5ac2fa0d0fbeb60e7f3fffb16e1dc90ef9caa"
+  ],
+  "qualification_pre_existing_raw_vs_filter_differences_preserved_not_normalized": [
+   "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+   "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+   "modules/system/malloc.c.h",
+   "modules/system/nedmalloc.c"
+  ]
+ },
+ "changed_files_git_byte_join": [
+  {
+   "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "before_git_blob_at_direct_parent": "ff7c60410280098a9170fa7f8ffcb8df938feaff",
+   "before_bytes": 150180,
+   "before_sha256": "bada79dfa6331aa647560e04dcac6dc0668a89ec17b102bc7c2f25e50efc188d",
+   "after_git_blob_at_code_commit": "d06476da1e93a445f14ac6eb16bf824810968ffc",
+   "after_bytes": 154214,
+   "after_sha256": "cf684a24935b92b10b5ee750fa19101cefc0556088d7ade367cf33b2daaef2bb",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "git_hash_object_of_raw_bytes": "d06476da1e93a445f14ac6eb16bf824810968ffc",
+   "lines_added_removed": [
+    34,
+    1
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+   "before_git_blob_at_direct_parent": "92128c05543a06336ad48fd6812adbb42b56a13c",
+   "before_bytes": 208842,
+   "before_sha256": "bcc344a10329b6835b02b71e01f32287e4479b7affa121f7e733a9d9ff353b49",
+   "after_git_blob_at_code_commit": "128406200c5be240a74412647c093cd1ee95ab1a",
+   "after_bytes": 214504,
+   "after_sha256": "0eb656c6d4dbcad8b5f4509fe38d208ca9606b6f1e8ef7aa6e2bfc0c78f5322b",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "git_hash_object_of_raw_bytes": "128406200c5be240a74412647c093cd1ee95ab1a",
+   "lines_added_removed": [
+    112,
+    3
+   ]
+  }
+ ],
+ "reused_not_rerun_not_relabelled": "all 5182/92d results (C/FFI, FP, provider keys, the earlier driver and join tests' own runs, entity_roster_host 9, the roster library filter 7, model_target_point 33) stay at their own identity; only fmt and entity_authority ran here",
+ "qualifications": [
+  "the real provider is exercised here through the existing Rust provider crate with a scripted engine and scripted candidate/narrow-phase collaborators: this is the focused collaboration, not the native run; Root's actual control against the production roster is the evidence that the native scan serves the host's roster",
+  "the scripted scan walk visits one sector; the real provider's END then names the next sector, which the walk (unchanged) does not follow",
+  "the earlier ambient limits remain: a refusal mode credits a later valid question it alters even after an earlier request fault (the verdict was not widened); this mode adds its own strict fault check"
+ ],
+ "not_run_not_claimed": [
+  "independent review of this test source",
+  "any Windows or native build or run, the actual withdrawn_backing control, ordinary short, complete 40/all8",
+  "strict clippy or any matrix",
+  "any claim that all 10 D3 requirements, the natural moving weapon or the whole Task49 hold"
+ ],
+ "process_notes": [
+  "every script ran with python -I (a stray enum.py sits in the Temp directory)",
+  "docker owner checked through the helper (one owner at a time); no restart or cache prune",
+  "the ordinary 3475 pack, Root's 5182 clone and builds were not read or touched",
+  "the preparation counter was not reset"
+ ],
+ "remaining_gates": [
+  "same-reviewer review of the two changed files",
+  "Root's actual withdrawn_backing control against the real production roster, with the Windows builds and ordinary regression it already has underway",
+  "all ten D3 requirements, natural moving weapon, the complete Task49 40/all8, CI, review and normal merge (technical-lead APPROVED review); D4/D5/TypeScript unstarted"
+ ],
+ "no_native_clearance": true
+}

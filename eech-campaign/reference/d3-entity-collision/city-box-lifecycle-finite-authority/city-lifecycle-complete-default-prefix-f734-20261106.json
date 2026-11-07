@@ -1,0 +1,65 @@
+{
+  "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+  "captured_utc": "2026-11-06T23:36:14.440677+00:00",
+  "partial_prefix_only": true,
+  "complete_pack_or_all8_acceptance": false,
+  "results": [
+    {
+      "path": "reference/run1/recording.acmi",
+      "captured_bytes": 91905210,
+      "sha256": "b4f299a4284b970d9e50d7343f2ba9be40de1bd1a30d5af30b63aecdc255555d",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": "8296.07"
+    },
+    {
+      "path": "reference/run1/observations.jsonl",
+      "captured_bytes": 66093056,
+      "sha256": "ffe8248b13b72fa97b295dec79c208b9432197c8f2b8aa69a006b3cd695916e2",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": null
+    },
+    {
+      "path": "reference/run2/recording.acmi",
+      "captured_bytes": 91356432,
+      "sha256": "f70255415276702c610649f6bd76e02e413a2e24ce93cecabdbb09edda6b3d52",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": "8245.27"
+    },
+    {
+      "path": "reference/run2/observations.jsonl",
+      "captured_bytes": 65642496,
+      "sha256": "201344844e4302e1d365cbb037469742e664e6e2ee5e76df79cb61572939314c",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": null
+    }
+  ],
+  "all_captured_prefixes_equal": true,
+  "actual_processes": [
+    {
+      "pid": 16536,
+      "parent_pid": 11312,
+      "birth": "/Date(1793954756242)/",
+      "argv_sha256": "f0664974f72a6e5e3d2e0e8d4fd87b1a8522716802e1cf615e1bbcc24d1a3236"
+    },
+    {
+      "pid": 14488,
+      "parent_pid": 11312,
+      "birth": "/Date(1793954756255)/",
+      "argv_sha256": "98cae1952a7e5f5ed84222ed7a27d0f7a6553d27a2d1b73f593d8a46817c9898"
+    },
+    {
+      "pid": 5444,
+      "parent_pid": 21036,
+      "birth": "/Date(1793954759474)/",
+      "argv_sha256": "eda97434b500ea09f490d96b49e778a711cb2649d2d0d55d9eafdc8b4aed9e7f"
+    },
+    {
+      "pid": 12500,
+      "parent_pid": 21036,
+      "birth": "/Date(1793954759490)/",
+      "argv_sha256": "104aa4b407feb0e578c2b5ac2410eba5afc4738bc8a531d1dd96033702e13b81"
+    }
+  ],
+  "all_four_native_PID_birth_argv_unchanged": true,
+  "scope": "Read-only newly elapsed currentf734 pack prefixes. No source/bin/root/config/priority/affinity or job changes; not complete recordings/metrics/all40/all8/Task49/D3 acceptance."
+}

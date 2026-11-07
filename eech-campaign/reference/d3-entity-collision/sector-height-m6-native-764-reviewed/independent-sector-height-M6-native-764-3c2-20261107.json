@@ -1,0 +1,290 @@
+{
+  "schema": 1,
+  "kind": "Independent finite M6 real Core save/load and new-source default actual review",
+  "created_utc": "2026-11-07T14:58:47.862329+00:00",
+  "source": {
+    "runtime_commit": "764cfc4aa254c3efd3cb8ed77d43c83c3a3f2199",
+    "compiled_loader_commit": "90e9547ee5fbfb31a461a861fdaa2adac5fbafe0",
+    "external_literal_commit": "3c2dee5b3d0a7e7d58899dcadedb87db9acc0ede",
+    "literal_sha256": "912e8840a5776b755cb382c2d00d43a0486541f6a2d9570232463e4dc00c6613",
+    "prior_source_review_sha256": "bddb32bde68fd90e0f31966239a49ce063445d167ff1960ae11f9c657555ff36",
+    "scope": "New retained actuals only. No closed source/kernel/CI review, tests, builds, native/campaign/checker replay, cache/process/worktree change, nested agents or tracked writes."
+  },
+  "decision": {
+    "status": "FINITE_M6_AND_DEFAULT_SHORT_VERIFIED",
+    "findings": [],
+    "closed_ids": [
+      "ENV-SECTOR-HEIGHT-NATIVE-CORE-LOAD-LIST-1",
+      "ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1"
+    ],
+    "load_order_diagnostic_actual_verified": "ENV-SECTOR-HEIGHT-NATIVE-LOAD-ORDER-DIAGNOSTIC-1",
+    "finite_real_Core_save_load_and_second_pack_verified": true,
+    "two_profile_default_short_verified": true,
+    "whole_sector_height_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "current_full40_all8_accepted": false,
+    "delivery_accepted": false
+  },
+  "evidence": {
+    "proofs": [
+      {
+        "path": "R:/d3-evidence/height-core-load-native-764-Root-binding-20261107.json",
+        "bytes": 11722,
+        "sha256": "4e3ed7124e91f2309b76457e49b61892b7e0fa1d5fc328925a04c8189c73e838"
+      },
+      {
+        "path": "R:/d3-evidence/height-core-load-native-764-positive-Root-audit-20261107.json",
+        "bytes": 4694,
+        "sha256": "af3d48a865cb4acb21a4f6ec269e2fa545fa39734c0744d29ee72e1e34a149c2"
+      },
+      {
+        "path": "R:/d3-evidence/height-core-load-native-764-plan-20261107.json",
+        "bytes": 53721,
+        "sha256": "555e42b79cbb8b284bdc3bd1d70cb62b825d5c0b3ded689aa9768ad07d51aadf"
+      },
+      {
+        "path": "R:/d3-evidence/Root-native-report-counter-learning-M6-20261107.json",
+        "bytes": 1188,
+        "sha256": "5d0e856cbea9ba6e0417bf01161b7d3276333205129b5ff3d737414366873ff4"
+      },
+      {
+        "path": "R:/d3-evidence/height-core-load-native-windows-764-20261107-completion.json",
+        "bytes": 56525,
+        "sha256": "420c562c6bf93056dd88c37003375ed346f3888aa29d2a373f40724977dae281"
+      },
+      {
+        "path": "R:/d3-evidence/height-core-load-native-764-profile-20261107-completion.json",
+        "bytes": 6062,
+        "sha256": "e218ba7f65a2513ea65b8da4ec099795e56094d1ed7149499500708c8a76daf0"
+      }
+    ],
+    "cases": [
+      {
+        "mode": "ordinary_short",
+        "receipt": "R:\\d3-evidence\\height-core-load-native-764-ordinary_short-20261107-completion.json",
+        "receipt_sha256": "1a5e8623305fb018624f794739d6424d08f8aa4685036d947c5b66c993e04099",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "three_complete_default_files_literal_equal80fd": true
+      },
+      {
+        "mode": "save_short",
+        "receipt": "R:\\d3-evidence\\height-core-load-native-764-save_short-20261107-completion.json",
+        "receipt_sha256": "2dcc6c1544e8c127b8af570d8c86c568ecfd9b9df54ac476c9d184155ff2fc05",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "three_complete_default_files_literal_equal80fd": true
+      },
+      {
+        "mode": "save",
+        "receipt": "R:\\d3-evidence\\height-core-load-native-764-save-20261107-completion.json",
+        "receipt_sha256": "803915bb588f02479385543f868ae73b63aedcdd27a6a598ed2505c5931344cf",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\save\\witness.txt",
+        "report_sha256": "2769ea548a58138822ed30724cce9788987d9af6a93809b2fc4fb711d673c4c8",
+        "post_repository_compare_exit": 1,
+        "explicit_generated_artifact_delta": 2
+      },
+      {
+        "mode": "load",
+        "receipt": "R:\\d3-evidence\\height-core-load-native-764-load-20261107-completion.json",
+        "receipt_sha256": "cb1893198d48d79f16abbb4bf212ee0a095fb70fde07209711dcfa247ff8b590",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\load\\witness.txt",
+        "report_sha256": "5516accae722f13234f71d0a9b7d89d0d1be52cb70966cc69c11cf6e8f1b6f91",
+        "post_repository_compare_exit": 1,
+        "explicit_generated_artifact_delta": 4
+      },
+      {
+        "mode": "save_withheld",
+        "receipt": "R:\\d3-evidence\\height-core-load-native-764-save_withheld-20261107-completion.json",
+        "receipt_sha256": "18848c97ea89616cbf68050abf25fc364578f71f1ca3d4dfc67e61f3aec70f57",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\save_withheld\\witness.txt",
+        "report_sha256": "bfcb5b3aed9ca6c61b8723e4f545d77a773eb4c2fe13fe3511bf725c2ab216b9",
+        "post_repository_compare_exit": 1,
+        "explicit_generated_artifact_delta": 2,
+        "exact_expected_marker": "entity_scan.callback",
+        "no_second_pack_after_fatal": true
+      },
+      {
+        "mode": "load_withheld",
+        "receipt": "R:\\d3-evidence\\height-core-load-native-764-load_withheld-20261107-completion.json",
+        "receipt_sha256": "5fd1af147b2ba1634f7f6e33cb727743dbfd7c80ea9a71b2b1dbc35dab968e49",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\load_withheld\\witness.txt",
+        "report_sha256": "773d85429b7f2c0d87658a6bb4d4f7fb89eeaadb8f2f0c158c3d51ca52d84ef1",
+        "post_repository_compare_exit": 1,
+        "explicit_generated_artifact_delta": 2,
+        "exact_expected_marker": "entity_scan.callback",
+        "no_second_pack_after_fatal": true
+      },
+      {
+        "mode": "load_wrong_sector",
+        "receipt": "R:\\d3-evidence\\height-core-load-native-764-load_wrong_sector-20261107-completion.json",
+        "receipt_sha256": "a0ccbfc6c19308931a33fc2cc4ed0338c296123ed76fdc63b9075634558e136a",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\load_wrong_sector\\witness.txt",
+        "report_sha256": "c0441ec211b4ff3158e8425623ba923397fc8a39fa42c4ec696f2f205ba67bd4",
+        "post_repository_compare_exit": 1,
+        "explicit_generated_artifact_delta": 2,
+        "exact_expected_marker": "entity_scan.sector_height",
+        "no_second_pack_after_fatal": true
+      },
+      {
+        "mode": "load_wrong_state",
+        "receipt": "R:\\d3-evidence\\height-core-load-native-764-load_wrong_state-20261107-completion.json",
+        "receipt_sha256": "ea1e76bd609bccefa0675fc4209b3b59377e46941f308bb5338d559ffe1dff28",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\load_wrong_state\\witness.txt",
+        "report_sha256": "94e49a735e41114eeca5b634760e4a582f0922a6bb3abba1876bee6ac6389c11",
+        "post_repository_compare_exit": 1,
+        "explicit_generated_artifact_delta": 2,
+        "exact_expected_marker": "entity_scan.state",
+        "no_second_pack_after_fatal": true
+      },
+      {
+        "mode": "load_stale_word",
+        "receipt": "R:\\d3-evidence\\height-core-load-native-764-load_stale_word-20261107-completion.json",
+        "receipt_sha256": "1f324bea4f966db90ac61890dc4590fd33b640cec00c68c7b380310374a731e8",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\load_stale_word\\witness.txt",
+        "report_sha256": "f4f95f59025145a617cefff7e781f242259cc6c92a569ad06978039d879f5849",
+        "post_repository_compare_exit": 1,
+        "explicit_generated_artifact_delta": 2,
+        "exact_expected_marker": "entity_scan.sector_height",
+        "no_second_pack_after_fatal": true
+      }
+    ]
+  },
+  "actual_findings": {
+    "build_and_identity": {
+      "profiles": [
+        "ordinary",
+        "original",
+        "save"
+      ],
+      "actual_build_exits": [
+        0,
+        0,
+        0
+      ],
+      "payloads_each": 90,
+      "current_payloads_resealed": 270,
+      "profile_audits_all_zero": true,
+      "bound_COFF_objects": 39,
+      "parser_staged_proofs": 9,
+      "reader_qualification": "Actual new save-producer/retained reader toolchain is bound separately; no substitution or relabelling to the former9d image. All new runs retain true764 binary identity and separately bound3c2 Lua."
+    },
+    "default_shorts": {
+      "profiles": [
+        "ordinary",
+        "save"
+      ],
+      "actual_native_controller_exits_each": [
+        0,
+        0
+      ],
+      "pre_post_input_checks_zero": true,
+      "complete_files_each": 3,
+      "all_six_complete_files_literal_equal_accepted80fd": true,
+      "fixed_accepted_window": "0.001 hours/100ms/seed1,35 frames; no recording prefix or duration normalization"
+    },
+    "real_save": {
+      "native_controller_exit": [
+        0,
+        0
+      ],
+      "sectors": 1748,
+      "seeds": 3,
+      "pack_attempts": 1,
+      "data_version": 272,
+      "data_bytes": 300873,
+      "data_sha256": "ff0fa7b04ea46190de638a72807e12a526744a60f2978ac696824014afb37862",
+      "data_matches_prior_valid_save": true,
+      "generated_script_bytes": 2354,
+      "script_suffix": ".SCH"
+    },
+    "real_fresh_load_and_second_save": {
+      "native_controller_exit": [
+        0,
+        0
+      ],
+      "complete_restore_rows": 1748,
+      "restore_sequence_keys_indices_coverage_saved_words_ACKs_exact_equal": true,
+      "no_duplicate_restores": true,
+      "baseline_insertions_before_first_restore": 282933,
+      "inter_restore_insertions": 0,
+      "insertions_after_last_restore": 4635,
+      "second_pack_attempts": 1,
+      "second_data_bytes": 303855,
+      "second_data_sha256": "da7eca9f0cd3aad06b925e4afcf9d0e1bdc1192236747dbba973e93331e827ba",
+      "all_sector_histories_held": 1748,
+      "histories_raised": 0,
+      "negative_minus_infinity_quiet_NaN_seed_bits_preserved": true,
+      "both_binary_sector_sections_decoded_and_joined": true,
+      "whole_second_file_byte_equal_first": false
+    },
+    "five_single_faults": {
+      "positive_pair_completed_before_faults": true,
+      "save_withheld": {
+        "where": "save",
+        "marker": "entity_scan.callback",
+        "first_eligible_read": true
+      },
+      "load_withheld": {
+        "where": "boot",
+        "marker": "entity_scan.callback",
+        "first_eligible_restore": true
+      },
+      "load_wrong_sector": {
+        "where": "boot",
+        "marker": "entity_scan.sector_height",
+        "first_eligible_restore": true
+      },
+      "load_wrong_state": {
+        "where": "boot",
+        "marker": "entity_scan.state",
+        "first_eligible_restore": true
+      },
+      "load_stale_word": {
+        "where": "boot",
+        "marker": "entity_scan.sector_height",
+        "first_eligible_restore": true
+      },
+      "all_native_controller_exits_zero": true,
+      "fault_modes_completed_pack_rows": 0,
+      "load_fault_modes_valid_ACK_rows": 0,
+      "no_postfatal_measurement_or_second_pack": true
+    },
+    "retail_and_generated_files": {
+      "all_nine_full_original_1179_file_sets_unchanged": true,
+      "all270_profile_payloads_current": true,
+      "post_repository_compare_exit": 1,
+      "qualification": "The seven save/load-related repository comparisons deliberately report generated saved artifacts: two additions for save and each fault, four for successful load including its copied input pair plus generated output pair. Root explicitly joins these exact deltas and all original entries; no new exclusions, overwritten baseline or erased failure is inferred."
+    }
+  },
+  "correctness_clean_code_boundary_review": [
+    "The new loader is exercised by a real fresh Core boot of the actual generated saved script, completes through its real session path, and reaches a real second store/pack. Unlike the former all-zero callback prefix, the actual1748 restore rows match saved keys, indices, order, raw stated words and raw ACKs. This independently supplies the sequence check that the Lua keyed verdict alone did not enforce.",
+    "The reviewer independently read and hashed all nine completion receipts and seven witness reports, checked actual per-stage exits, complete PASS terminals, expected refusal phases/markers, absence of fault pack rows, and the entire1748 saved/restore/ACK/final held sequence. Root positive audit reader was inspected: its binary decoder reads version272, Core sector RLE/fog/optional roots/count/raw-height section and joins both binary sections to the corresponding report words. The retained decoder was not replayed.",
+    "Baseline population remains visible and is consistent with the reviewed CAMPAIGN_DATA-before-SAVED_CAMPAIGN lifecycle. No insertion is interleaved with sector restores. Later insertion attribution is by its position and the reviewed Core unpack flow; callbacks do not identify individual callers. Counts alone are not used to infer a successful load.",
+    "All1748 histories are held in this actual. That proves preservation of the reached negative, minus-infinity and quiet-NaN seeds and other saved words; native raising/no-lowering alternatives are not newly exercised. The second whole save is different, as its different size/hash shows; the accepted relation is the sector-word section, not whole-session byte parity.",
+    "The corrected literal sets intervention before returning the injected restore fault and appends a valid restore row only afterward. Thus zero valid ACK rows in load faults is correct. Exact first-request/baseline prefix, eligible-intervention PASS contract and fatal boundary support the attempt. The initial Root auditor expected one row, failed and was corrected read-only with the failed reader retained; no actual native exit or source was rewritten and no native was rerun.",
+    "Fault cases have no completed second pack and no postfatal engine facts. Save failure can leave the already opened/generated files; no transactional file rollback or atomic corrupt-session restore is claimed. Each consumed root remains distinct.",
+    "Fresh ordinary/save default short outputs are complete and literal to accepted80fd. Those finite default comparisons do not substitute for the required current-candidate full40/all8 and final input gates."
+  ],
+  "historical_identity_and_remaining": [
+    "Old17f save native0/controller1 from case-sensitive suffix checking and read-only recovery0 remain distinct. Old17f load native/controller1 and all-zero restores remain failed. The new764 success does not relabel those receipts.",
+    "M5 finite guarded-clearance acceptance remains separately bound to true17f runtime/external9cb literal and report81ded54e3cc9c8688da16bbba6e53f395401fdcbc214f1fb411e0b8789e87853. No new764 M5 execution is asserted.",
+    "This finite M6 closure does not prove whole-height/all-save histories, whole save-file parity, malformed/truncated-file transactional safety, native buffer retry, signaling NaNs, engine-C O2, multiplayer, exhaustive map/lifetime/consumer coverage, natural engagement or performance.",
+    "Next required validation includes the final current-candidate full40/all8/four-input shipping gates. All ten D3 requirements, remaining physical/API/DCS/hierarchy/RNG/natural services, exact current CI, independent review/normal merge/final census and whole Task49/D3 delivery remain required. Preparation remains2; no D4/D5 or historical TypeScript port."
+  ]
+}

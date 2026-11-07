@@ -1,0 +1,58 @@
+{
+  "source": "78ef839dd75d325c42acb3127d097fee400388c2",
+  "controller_pid": 19944,
+  "state": "terminal",
+  "started_utc": "2026-11-06T10:15:49.129848+00:00",
+  "root": "D:\\EECH-Migration-Evidence\\city-collision-state-native-roots-20261106\\withdrawn-city-state",
+  "output": "D:\\EECH-Migration-Evidence\\city-state-withdrawn-78ef839dd-20261106",
+  "healthy_output": "D:\\EECH-Migration-Evidence\\city-state-healthy-78ef839dd-20261106",
+  "healthy_native_helper_outer_exits": [
+    0,
+    0,
+    0
+  ],
+  "healthy_safe_counts": {
+    "city_state_before": 83408,
+    "city_state_stated": 0,
+    "city_state_joined": 4484,
+    "candidate_buildings": 44,
+    "stationary": 279,
+    "case_weapons_pending": 0
+  },
+  "scope": "ONE real CITY own-state withdrawal. Requires SECOND relevant stage of SAME served city; clean absence is UNREACHED, never acceptance. No answer/question/Core/list/config changes. Prior activity before the second relevant query is allowed; no wholephysical/natural/Task49/D3/fullpack acceptance.",
+  "pid": 10272,
+  "actual_helper_exit": 0,
+  "actual_native_exit": 0,
+  "safe_facts": {
+    "completed": false,
+    "failure_marker": "entity_candidate.refused",
+    "request_faults": 0,
+    "reply_faults": 1,
+    "view_applied": 5,
+    "city_state_before": 83408,
+    "city_state_after": 0,
+    "city_state_total": 0,
+    "city_state_stated": 0,
+    "city_state_joined": 459,
+    "city_state_withdrawn": 1,
+    "city_state_withdrawn_next": "city",
+    "city_state_withdrawn_cause": "city_state_withdrawn",
+    "candidate_buildings": 4,
+    "stationary": 26,
+    "moving": 0,
+    "scan_altered": 0,
+    "candidate_altered": 0,
+    "altered": 0,
+    "contact_any_tests_delta": -1,
+    "contact_any_hits_delta": -1,
+    "precision_high_delta": -1,
+    "case_weapons_pending": -1
+  },
+  "actual_exit": 0,
+  "payloads_verified": 88,
+  "pre_post_input_exits": [
+    0,
+    0
+  ],
+  "completed_utc": "2026-11-06T10:18:12.875275+00:00"
+}

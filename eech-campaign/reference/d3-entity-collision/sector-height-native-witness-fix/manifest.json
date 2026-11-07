@@ -1,0 +1,455 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-SECTOR-HEIGHT-NATIVE-WITNESSES-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 65028,
+      "sha256": "2fe9732d2831be8c35ce0160caa986eada44102face18ff0afb7c15e361dc446"
+    },
+    {
+      "path": "inputmaps-compare.json",
+      "bytes": 1737,
+      "sha256": "f8fbc5947d5c897ed83e43a5cec46828d188a6993e7f538ab2a8518fb4f91119"
+    },
+    {
+      "path": "join-vs-1b89-ci-and-reviewed.json",
+      "bytes": 26727,
+      "sha256": "bd0f4e95203dd8efc56b5410f415c9f7442422f0d0648195016976be2a6fe735"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5963,
+      "sha256": "cc0009e6325f0e86229c79ca57a115a1614b7cfa17d76910909e224f273daf76"
+    },
+    {
+      "path": "runs/hwfix-final-set-20261107.progress",
+      "bytes": 301,
+      "sha256": "db004929913b90df88a555650967b18358e1303b0b6f9a90c5bfaf2ddf622e7c"
+    },
+    {
+      "path": "runs/hwfix-final-set-lease-after-20261107.txt",
+      "bytes": 19,
+      "sha256": "4c04288a874657cf84a8d7ee257da46d3050f3dca11b09a8ac7da7f148e8555c"
+    },
+    {
+      "path": "runs/hwfix-final-set-lease-before-20261107.txt",
+      "bytes": 92,
+      "sha256": "ad5533d87849096dc7dbc8d07d18d77190fcd8bc59b2067db7fe76104dd60940"
+    },
+    {
+      "path": "runs/x1-witness-driver-tests.json",
+      "bytes": 875,
+      "sha256": "d4516e632a1ca228c4141349dd237212bfd8319976297ec22915a100e5adeac6"
+    },
+    {
+      "path": "runs/x1-witness-driver-tests.stderr.log",
+      "bytes": 429,
+      "sha256": "7eb7cb95b94d542684697abcfbe7ec40550943efb8626b6da27cffdc2a272b2c"
+    },
+    {
+      "path": "runs/x1-witness-driver-tests.stdout.log",
+      "bytes": 3056,
+      "sha256": "276b8eea9d1a40a3b48b44939dcd760b09aad2dd770dbc0fa6fc39dc33d39143"
+    },
+    {
+      "path": "runs/x10-clippy-witness.json",
+      "bytes": 1183,
+      "sha256": "2a0c77cb330f57f45acb9ea2a891a76beb737fe18bc61c4487add06515d1df56"
+    },
+    {
+      "path": "runs/x10-clippy-witness.stderr.log",
+      "bytes": 324,
+      "sha256": "c9361d10331b54d62dc14a59ef9895e588277a6f115cafaf42c26b5ea77b265a"
+    },
+    {
+      "path": "runs/x10-clippy-witness.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/x11-world-driver-tests.json",
+      "bytes": 1040,
+      "sha256": "bcf772d1fcbd5757f040001ef1038e4b1c0d9216e130031a27b87cb203620d9f"
+    },
+    {
+      "path": "runs/x11-world-driver-tests.stderr.log",
+      "bytes": 16715,
+      "sha256": "0f4dcc481d21520cd7867d0001d880e525981d431be2f0a678028373a8eb41bf"
+    },
+    {
+      "path": "runs/x11-world-driver-tests.stdout.log",
+      "bytes": 26283,
+      "sha256": "cd80bb388845f55d02329162383cb8e62712480a70b55e573a7a347769ecfb8d"
+    },
+    {
+      "path": "runs/x12-world-driver-tests.json",
+      "bytes": 1038,
+      "sha256": "e01b37f7b0be688a9b8815e3871190a5cfdcb873dfcbd2b5ddc81bb9bd2458da"
+    },
+    {
+      "path": "runs/x12-world-driver-tests.stderr.log",
+      "bytes": 16577,
+      "sha256": "ed7509cab1c11262c8e8c72b2636d844f57e826904ca415b66ad5334a446c03f"
+    },
+    {
+      "path": "runs/x12-world-driver-tests.stdout.log",
+      "bytes": 25577,
+      "sha256": "b7341d1086734148b76d5ab642bea50d3dce6f6813dbed2396a174bd5a14364e"
+    },
+    {
+      "path": "runs/x2-witness-driver-tests.json",
+      "bytes": 873,
+      "sha256": "fe9815ad2045e50ce6f97c1659c2b8ac6311702814adc2e7d53841e078c2e61a"
+    },
+    {
+      "path": "runs/x2-witness-driver-tests.stderr.log",
+      "bytes": 263,
+      "sha256": "ed8a325764425403c86058e92669e7e3680d88dc02446894de4de22de7ba4949"
+    },
+    {
+      "path": "runs/x2-witness-driver-tests.stdout.log",
+      "bytes": 2438,
+      "sha256": "48cec57af5b5b2a09c2fbf66daf5632432728b92eae94b5616624e16f388fbed"
+    },
+    {
+      "path": "runs/x3-red-old-driver.json",
+      "bytes": 997,
+      "sha256": "bd488e24f847a53cff6733f3e02e5f684e0b2e5ec3ddbc0a763e2139b7137adc"
+    },
+    {
+      "path": "runs/x3-red-old-driver.stderr.log",
+      "bytes": 154,
+      "sha256": "1b2a2cd0242b0a0b887e58a5afadcc330fd42967f5088feb0636d966b838595c"
+    },
+    {
+      "path": "runs/x3-red-old-driver.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/x3b-grammar-probe.json",
+      "bytes": 912,
+      "sha256": "2d34ba500ee91fb4c0d57b599e12862964f416ae50e017845e67f6924aae0284"
+    },
+    {
+      "path": "runs/x3b-grammar-probe.stderr.log",
+      "bytes": 263,
+      "sha256": "3df520e3663cf9a87dd4456154a590bcee3efcad0fec15ac0b48beb55ee57841"
+    },
+    {
+      "path": "runs/x3b-grammar-probe.stdout.log",
+      "bytes": 225,
+      "sha256": "ab9e7fcf3383b351aa24a132ea9b610a1754e20b7768c53a5019d5b4e0610781"
+    },
+    {
+      "path": "runs/x4-red-old-driver-rtz.json",
+      "bytes": 945,
+      "sha256": "b574811c7982439abb048f92df464eb04113aa2977c86030bca96bbbb109eff8"
+    },
+    {
+      "path": "runs/x4-red-old-driver-rtz.stderr.log",
+      "bytes": 429,
+      "sha256": "04ed961cb5166ef5717acdc1efd7da98f981734b8fee7653796dee6f9cd506ac"
+    },
+    {
+      "path": "runs/x4-red-old-driver-rtz.stdout.log",
+      "bytes": 1141,
+      "sha256": "dc2fab9b9bb2135d618d8912f56d679e56cd350ef6f65304d0997acb14ccd422"
+    },
+    {
+      "path": "runs/x5-red-old-driver-retry.json",
+      "bytes": 929,
+      "sha256": "93b7a5760ed504ff514bc67673f648ae366d11032f68237d1b12279eed12aec8"
+    },
+    {
+      "path": "runs/x5-red-old-driver-retry.stderr.log",
+      "bytes": 359,
+      "sha256": "34a4cd72e953576d2ad6be84bb7a5125e96616bac5ac87cb84e1fd6c8ff40d3e"
+    },
+    {
+      "path": "runs/x5-red-old-driver-retry.stdout.log",
+      "bytes": 989,
+      "sha256": "cc0c801026c82aa35a6326af128bf192d8ec5ef616ee37e6f918a7177afd3377"
+    },
+    {
+      "path": "runs/x6-c-path-check.json",
+      "bytes": 935,
+      "sha256": "82ea695f6e120776f7e06873b0156df78e1090a04660a257e6ad92fc9defa050"
+    },
+    {
+      "path": "runs/x6-c-path-check.stderr.log",
+      "bytes": 260,
+      "sha256": "2c172ceee98029097ed1f63265f494a8e29013d598913a26da616a4a5f2ce3b4"
+    },
+    {
+      "path": "runs/x6-c-path-check.stdout.log",
+      "bytes": 340,
+      "sha256": "b668c5eafae914a14471e45de807d3f09b40ffe663b19b066cb525e694d3db40"
+    },
+    {
+      "path": "runs/x7-c-guard.json",
+      "bytes": 946,
+      "sha256": "92376f67ee6db962ff1d27b6a085851d554c0ac57ac70690a42370b7efa6366b"
+    },
+    {
+      "path": "runs/x7-c-guard.stderr.log",
+      "bytes": 271,
+      "sha256": "0ee3a28fa3d9e31ca8d392075f4d8bb980c4e3c69ebe425fc23d217ac0eb37d5"
+    },
+    {
+      "path": "runs/x7-c-guard.stdout.log",
+      "bytes": 480,
+      "sha256": "61417dc22732edf45cf17f07cf627099b250d0d23745ef6c8119064932244cff"
+    },
+    {
+      "path": "runs/x8-fmt-apply.json",
+      "bytes": 799,
+      "sha256": "11fd3cc0f4861aa5314e50fab427a7812c70f8cdbe1958916edb32a9bbd233f4"
+    },
+    {
+      "path": "runs/x8-fmt-apply.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/x8-fmt-apply.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/x9-clippy-ws.json",
+      "bytes": 867,
+      "sha256": "b125dc307c877866a5e7903fb708282c3522bcbdbc97369b1b232efc9c448cea"
+    },
+    {
+      "path": "runs/x9-clippy-ws.stderr.log",
+      "bytes": 394,
+      "sha256": "01db124f83f6753bd61583c33e3c1da6b8648872eb2274e0308291db877df3df"
+    },
+    {
+      "path": "runs/x9-clippy-ws.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/y1-fmt-check.json",
+      "bytes": 802,
+      "sha256": "b62b632c064e0776de7335cde40185be89683d487409d30bc4873219a7844247"
+    },
+    {
+      "path": "runs/y1-fmt-check.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/y1-fmt-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/y10-engine-dc-witness.json",
+      "bytes": 974,
+      "sha256": "ccfed6f803c0dfcff9fdfaa944458cc2c710a12049d5e00915f607bd71509e55"
+    },
+    {
+      "path": "runs/y10-engine-dc-witness.stderr.log",
+      "bytes": 600,
+      "sha256": "e583c9c1ed2b600458d3316edd711857893ed9f1286f168835a167e8c559f914"
+    },
+    {
+      "path": "runs/y10-engine-dc-witness.stdout.log",
+      "bytes": 21973,
+      "sha256": "536fc29ca5b2d56c937ba2adf6b6b6bb5e760783600463c5f3c5b07ff3cad6cf"
+    },
+    {
+      "path": "runs/y2-clippy-workspace.json",
+      "bytes": 867,
+      "sha256": "123e95378b243e93b2890fb20fa48f97151a9d26439357fb6deb39e12e6c1584"
+    },
+    {
+      "path": "runs/y2-clippy-workspace.stderr.log",
+      "bytes": 177,
+      "sha256": "1049e96dd6e76197025063b894d806418e4bf1eac2f27fac88940849620766b1"
+    },
+    {
+      "path": "runs/y2-clippy-workspace.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/y3-clippy-witness-features.json",
+      "bytes": 1182,
+      "sha256": "d65c5d9204198997a8c577f49be7111f43f58a5d52d902ab69cb479ec88c5b52"
+    },
+    {
+      "path": "runs/y3-clippy-witness-features.stderr.log",
+      "bytes": 107,
+      "sha256": "504f4c66de6c2d7d3ac5f4e5b80f596abb23360b6a773096d1d1dd5d649ec600"
+    },
+    {
+      "path": "runs/y3-clippy-witness-features.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/y4-world-driver-tests.json",
+      "bytes": 1037,
+      "sha256": "4a0b82bb70655fe0caa578f54def251e899abb68741addc2bb6871d2a3e710f9"
+    },
+    {
+      "path": "runs/y4-world-driver-tests.stderr.log",
+      "bytes": 16507,
+      "sha256": "b16bc91513bb6740fb23f5d3fba0da3b7cde812ec91fc5a7cfcd439ef14e588d"
+    },
+    {
+      "path": "runs/y4-world-driver-tests.stdout.log",
+      "bytes": 25577,
+      "sha256": "a86b17ff2764d91e2e1d3c97d8e4055a611f63b099420684f77ea28506f69e2f"
+    },
+    {
+      "path": "runs/y5-engine-sys-default.json",
+      "bytes": 811,
+      "sha256": "e5b8cb08863b25c7198a53fda96612859b3251cefc590df79074326dc2ccc685"
+    },
+    {
+      "path": "runs/y5-engine-sys-default.stderr.log",
+      "bytes": 905,
+      "sha256": "ff75bdec24c9f9ba4a348a0e89cd19f02db3bb8b88a704fea0efbe6e05bad449"
+    },
+    {
+      "path": "runs/y5-engine-sys-default.stdout.log",
+      "bytes": 5621,
+      "sha256": "adf244e7130ef6299d0c699e199b75bee04de75291990126c30c2d3ccb5e8d72"
+    },
+    {
+      "path": "runs/y6-control-hosted.json",
+      "bytes": 915,
+      "sha256": "c0cbfb0784301aa41ece6af9469c2dced7a4e91eb4077987afb8d3c995232b60"
+    },
+    {
+      "path": "runs/y6-control-hosted.stderr.log",
+      "bytes": 244,
+      "sha256": "382c836e42fcdb1ebf046fbc58d340814b3123cc9293d0dce686947ac175c50a"
+    },
+    {
+      "path": "runs/y6-control-hosted.stdout.log",
+      "bytes": 254,
+      "sha256": "cc07a2813235cfd43f9e44885ad054e26834921d362d89b4aebbff53045a0350"
+    },
+    {
+      "path": "runs/y7-control-original-solver.json",
+      "bytes": 950,
+      "sha256": "7446b11efa017da338344581be842c9a95a71cef2e159ab4c1091777a87afde0"
+    },
+    {
+      "path": "runs/y7-control-original-solver.stderr.log",
+      "bytes": 244,
+      "sha256": "b8b94e5591b5d2622fa9d2babeba8352b825dc74888e4bf324d992da149a4846"
+    },
+    {
+      "path": "runs/y7-control-original-solver.stdout.log",
+      "bytes": 254,
+      "sha256": "16d4d616a676fd4fd4e3ae7ab7a0ab5a0b98dff619d0260c1190cae49b03c0ad"
+    },
+    {
+      "path": "runs/y8-witness-c-path-check-and-guard.json",
+      "bytes": 1004,
+      "sha256": "456c5967788099d9144051501d8f17843016d84cb2fade58a924f065bfd4cf17"
+    },
+    {
+      "path": "runs/y8-witness-c-path-check-and-guard.stderr.log",
+      "bytes": 377,
+      "sha256": "710159a5e7014ce24e64fa9e965f3e78e77d23de49382fabe30b215216681a7a"
+    },
+    {
+      "path": "runs/y8-witness-c-path-check-and-guard.stdout.log",
+      "bytes": 820,
+      "sha256": "15df80514988766a2e349d58509a4fa5fc5933ffc3c4e29e3ece661e6e90ad2b"
+    },
+    {
+      "path": "runs/y9-engine-dc-default.json",
+      "bytes": 823,
+      "sha256": "25c6205f9830893b25220763e0bbe508768b870fe7c3eb3c8d5d5dadb8d003da"
+    },
+    {
+      "path": "runs/y9-engine-dc-default.stderr.log",
+      "bytes": 600,
+      "sha256": "3f360dad00dd50be472145406d4b5507e4d52216c9d647cee8b6fb886a8f6e97"
+    },
+    {
+      "path": "runs/y9-engine-dc-default.stdout.log",
+      "bytes": 21849,
+      "sha256": "6c7a119f44a4c080750b9cb82e6b4167e5c28ff678d44748b290649547e81c21"
+    },
+    {
+      "path": "scripts/check-height-witness-linux-20261107.sh",
+      "bytes": 1117,
+      "sha256": "33b3dfb28c7f2711675fc31eab6dffc177e0bbd6f654c72fcaee2370b84f6ef3"
+    },
+    {
+      "path": "scripts/freeze-hwfix-20261107.PRE-version.py",
+      "bytes": 25550,
+      "sha256": "f54d678fe9b0dc5ff00d6d3615db7ca9c9f3b1e7e788ad941dc241b61470b8eb"
+    },
+    {
+      "path": "scripts/freeze-hwfix-20261107.py",
+      "bytes": 27576,
+      "sha256": "cfc428df6fdf947117944981a53f8c189eb258af32aec7567966828947511750"
+    },
+    {
+      "path": "scripts/height-witness-reviewed-README-20261107.md",
+      "bytes": 3326,
+      "sha256": "5c64e7d899b6e8de14369692aed6c49d2c59e97814c8e3767b61c4a4aaef82b7"
+    },
+    {
+      "path": "scripts/hwfix-extra-identity-20261107.py",
+      "bytes": 3367,
+      "sha256": "01c388b699c3e379e8039258d56561d4ef033301d294029f0d5b1c56fa2f9d6d"
+    },
+    {
+      "path": "scripts/hwfix-freeze-attempt1-20261107.stderr.txt",
+      "bytes": 1084,
+      "sha256": "6d5c400e0c6b9911f4ac0ca31dfa9baee5e6a7ffbf43bac013cd78b40f93dbfb"
+    },
+    {
+      "path": "scripts/hwfix-join-20261107.py",
+      "bytes": 16569,
+      "sha256": "1a158987818da055966d3bed0db9b5ab0c0840c80a4ea1cd9d01938898ca5589"
+    },
+    {
+      "path": "scripts/patch-card-status-witness-checkpoint1-20261107.py",
+      "bytes": 12909,
+      "sha256": "790b4bfd5258c73acb535069fbbd2acc0d2acf4bb8aedc970af9c3ca564086e6"
+    },
+    {
+      "path": "scripts/publish-witness-review-20261107.py",
+      "bytes": 6545,
+      "sha256": "d37e8bcd60077071fa23bad583305e8ea31657b39f929af8c7c845f298c33cc4"
+    },
+    {
+      "path": "scripts/run-height-witness-direct-20261107.py",
+      "bytes": 2068,
+      "sha256": "396a3f84623524b2227b83b1350e2efae49a8262b1c2a61d23aaef4602f2bb2e"
+    },
+    {
+      "path": "scripts/run-hwfix-final-set-20261107.sh",
+      "bytes": 3334,
+      "sha256": "7c846cacf907210c6dc30e175173038ed41c7ff99b1adc6912f3a99bed5257cf"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    }
+  ],
+  "scope": "Source and local-check packet of the M5/M6 witness batch only; not a native result, review, approval or acceptance."
+}

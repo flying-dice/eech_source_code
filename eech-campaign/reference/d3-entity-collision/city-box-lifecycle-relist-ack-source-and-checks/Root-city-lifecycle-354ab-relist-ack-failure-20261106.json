@@ -1,0 +1,71 @@
+{
+  "schema": "Root-actual-native-blocker.v1",
+  "created_utc": "2026-11-06T22:52:28.477784+00:00",
+  "source": {
+    "commit": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "metadata_commit": "a1ef80b05612f4b8f2d355ad024cef6037426e55"
+  },
+  "decision": {
+    "native_launch_clearance": false,
+    "findings": [
+      {
+        "id": "ENV-CITY-LIFECYCLE-RELIST-FIXED-ACK-1",
+        "severity": "P2",
+        "title": "Actual complete lifecycle counted six relist expansion requests as lacking acknowledged fixed state",
+        "actual_evidence": {
+          "altered_request": 0,
+          "box_max": "0x4203ffff,0x4124fca8,0x420fffff",
+          "box_min": "0xc2040000,0xc0e1f578,0xc2100000",
+          "buildings": 6,
+          "city_stage_lookups_in_window": 2,
+          "completed": true,
+          "consumed_after_selected": 1,
+          "consumed_before_selected": 1,
+          "continuation_links": 2,
+          "empty_key_changed": 1,
+          "empty_keyed": 1,
+          "event": "city_lifecycle_authority",
+          "expansions_selected": 6,
+          "expansions_selected_answered": 6,
+          "failure_line": "",
+          "failure_marker": "",
+          "first_fault": "scan request: a city expansion names the building 137970, whose fixed state the provider never acknowledged",
+          "frames": 301,
+          "host_keyed": 1,
+          "intervened": 0,
+          "intervention": "none",
+          "list_order_restored": 1,
+          "mirror_box_equal": 1,
+          "mode": "city_box_lifecycle",
+          "natural_weapon_engagement": "not_claimed_terminal_witness",
+          "profile": "hosted",
+          "query_after_hit": 0,
+          "query_after_kind": "none",
+          "query_before_hit": 0,
+          "query_before_kind": "none",
+          "query_equal": 1,
+          "releases_in_window": 0,
+          "reply_faults": 0,
+          "report_bound": 1,
+          "request_faults": 6,
+          "restored_key_changed": 1,
+          "restored_keyed": 1,
+          "retained_answers": 2,
+          "row_phase": "after_boot_warmup_standalone_fixture",
+          "selected_record": "11193",
+          "unreached": ""
+        },
+        "required_correction": "Characterize full real C/Host retained-record/fixed-state/alias acknowledgement transitions and the driver validator. Repair actual contract/tracking defect; do not silence faults or accept completed/tuple equality alone. If production truly lacks required state report, fix writer contract; if observer misclassifies a legitimate retained/rebound record, prove exact current/held/alias relation before credit."
+      }
+    ]
+  },
+  "actual_native_helper_outer_exits": [
+    1,
+    1,
+    1
+  ],
+  "raw_completion": "R:\\d3-evidence\\city-lifecycle-control-native-354abd9c0-20261106-completion.json",
+  "raw_completion_sha256": "a14962d20bc07809ba96e506584c71a3e1125225806865318a0a6da5c71b8cf4",
+  "no_negative_launched": true,
+  "scope": "Root actual failure, not independent source review. Physical path completed but faults make it FAILED.215a failedbridge1 remainsliteral;354ab sourceReviewed5 conditional does not accept this actual."
+}

@@ -1,0 +1,155 @@
+{
+  "kind": "independent_residual_reference_source_followup",
+  "sealed_utc": "2026-11-07T13:15:00.460635+00:00",
+  "source": {
+    "commit": "9cb480fbb21e2bb5d492a056046e0bd854bc987b",
+    "metadata_commit": "beb57c879af20e17aaa6b6c0c8cef20eb76fb690",
+    "parent": "99eeaa57975c324bb504bfa88aad80b068d632dc",
+    "compiled_runtime_source": "17f4b824b468c608ef488423b6c568382dd12798",
+    "compiled_code": "e42bb19a0845106df6f03d08774be32cbaa87d52",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_clean_HEAD_at_review_start": "beb57c879af20e17aaa6b6c0c8cef20eb76fb690",
+    "literal": {
+      "path": "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+      "bytes": 78534,
+      "git_blob": "9ceea98c65c080bf5fb9aa9b4952808352125df0",
+      "sha256": "ff120f0b806af517c801aa944477ce1885fc0da0326b582a5da95826641a066c"
+    }
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_BOUNDED_POSITIVE_FIRST_NATIVE_VALIDATION",
+    "findings": [],
+    "closed_source_ids": [
+      "ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1"
+    ],
+    "prior_three_source_closures_reused": [
+      "ENV-SECTOR-HEIGHT-M5-ROUNDING-ORACLE-1",
+      "ENV-SECTOR-HEIGHT-M6-PACK-RETRY-1",
+      "ENV-SECTOR-HEIGHT-M6-SAVE-PATH-BOUND-1"
+    ],
+    "native_launch_clearance": true,
+    "native_launch_clearance_is_conditional": true,
+    "reuse_exact_17f_compiled_binaries_with_separate_corrected_literal_permitted": true,
+    "M5_guarded_fixed_wing_accepted": false,
+    "M6_native_Core_save_load_accepted": false,
+    "whole_sector_height_extraction_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "review_scope": "Same reviewer, one changed-material correctness/clean-code/boundary-safety review of only the residual reference validation, new sociable controls and source/evidence/compiled-equivalence join. Other three P2 source closures remain at report507f. No repeated kernel/FP/old matrix/native review or replay.",
+  "disposition": {
+    "id": "ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1",
+    "status": "CLOSED_SOURCE",
+    "assessment": [
+      "Clearance reference loading now requires all consumed physical fields elevation/min_height/pre_y/answered_y as complete finite raw words before output/boot/intervention. Integer exponent classification rejects Inf and NaN without loading the payload as a float; signed zero/subnormal raw patterns remain finite. Missing/nil/short/nonhex/nonfinite/duplicate fields cannot become a changed physical answer. The effect comparison also has an explicit absent-word failure guard.",
+      "Whole handoff/count/trajectory/pair fields are checked at their role-specific domains; an intervention needs an unaltered hosted paired control with the expected window. Existing same-caller relation and fault/abort-before-UNREACHED behavior remain unchanged.",
+      "Schema3 binds effective map and campaign for M5 original/control/intervention. Matching explicit default overrides are accepted; differing or missing campaign/map evidence is refused before effects. It binds semantic configuration, not fresh-root path equality.",
+      "M6 compares effective map and retains the legitimate original-save-to-generated-saved-script name relation. It does not naively demand original campaign equals the later saved-script campaign. Raw saved NaN/Inf history words do not pass through the new clearance-finiteness rule and their existing positive save/load controls remain valid.",
+      "Retained q5 old-Lua stdout explicitly says drop_handoff_answered_y was accepted and credited physical=changed after coherent positives; q8 explicitly accepts another effective campaign with PASS after the matching override positive. These establish the relevant defects, not merely schema3/schema2 mismatch. New controls reject each for its stated field/setup reason before any effect."
+    ]
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-SECTOR-HEIGHT-REFERENCE-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 42123,
+      "sha256": "0b09974476f3d148ccbe466ad869e77259b92eef96eb342b3e4a7d92bb85a911"
+    },
+    {
+      "path": "R:/d3-evidence/height-reference-Root-binding-beb-20261107.json",
+      "bytes": 11301,
+      "sha256": "e1b5cad058845f3c6a3d3d7b7fa6a1ac8846425d1ca8a061ae76b524af2cfb64"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-height-reference-resume-9d247-20261107-completion.json",
+      "bytes": 1316,
+      "sha256": "38ea7bc681639c19ca602052aa00767b640d2dc4bc502059c9dcf6d2332aa2ea"
+    },
+    {
+      "path": "R:/d3-evidence/independent-sector-height-native-witness-fix-e42bb-source-20261107.json",
+      "bytes": 13129,
+      "sha256": "507f49b7aff355115713c7ec325b6fe250601991be7866c8ca6eaadad53dbf99"
+    },
+    {
+      "path": "R:/d3-evidence/height-witness-native-windows-17f-20261107-completion.json",
+      "bytes": 56304,
+      "sha256": "cbd8aa4320f9b28e161a2b19ec2338bfbeea97439b50835251d3dfc33fb08fe0"
+    },
+    {
+      "path": "R:/d3-evidence/height-witness-native-17f-profile-20261107-completion.json",
+      "bytes": 6029,
+      "sha256": "92c281c841f5f1eeb4fa250432c489555426c9aec85f019e0828ae953dcf6232"
+    }
+  ],
+  "check_and_identity_join": {
+    "full_input_rows": 3976,
+    "PRE_POST_JSON_literal_equal": true,
+    "PRE_utc": "2026-11-07T13:07:24Z",
+    "POST_utc": "2026-11-07T13:07:54Z",
+    "source_map_sha256": "f75b2ed4b33f7504b137119aab34a5bd8fa92be92bca7ebbc0b2d6b609f9de7b",
+    "extra_rows_PRE_POST_current_equal": 23,
+    "post_POST_reader_drift": false,
+    "packet_entries_current_Git_literal": 62,
+    "changed_Lua_test_contract_paths_Git_literal": 3,
+    "final_direct_children": 3,
+    "final_actual_exits": [
+      0,
+      0,
+      0
+    ],
+    "passing_test_instances": 237,
+    "driver_test_instances": 26,
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_terminal_utc": "2026-11-07T13:09:30Z",
+    "qualifications": [
+      "Same three inherited test Lua rawCRLF/GitLF and four Core filter-only/rawGit-literal differences remain explicitly bound; no input normalization.",
+      "New explicitly leased9d247 test/reader image has measured rustc/cargo1.99.1 and GCC12.2; no old810e identity is borrowed. q1 absent old image is blocked prerequisite/zero tests, not coverage. WIP patch/checkpoint preserved before resume.",
+      "q2 legitimate saved-script relationship refusal and q6 malformed test-escape failures are retained separately from final GREEN. q4/q5/q8 controlled old-Lua REDs and restoration are retained; earlier bad RED attempts are not relabelled.",
+      "Current beb CI was pending at supplied state; no CI-only review loop or inference of all-current-green. Source clearance is not delivery acceptance."
+    ]
+  },
+  "compiled_reuse_assessment": {
+    "source_runtime": "17f4b824b468c608ef488423b6c568382dd12798",
+    "build_actual_exit": 0,
+    "profiles": [
+      "ordinary",
+      "original",
+      "save"
+    ],
+    "profile_actual_exits": [
+      0,
+      0,
+      0
+    ],
+    "sealed_payloads_each": 90,
+    "profile_audit_actual_exit": 0,
+    "bound_COFF_objects": 36,
+    "source_difference_rule": "Root independently compares the whole3976-row map and immutable Git diff, not only an author product-row filter. Only diagnostic Lua, its integration test, contract and records changed since17f; no product C/Rust/Cargo/build delta or added/removed map rows.",
+    "reuse": "Corrected Lua is EXTERNAL to the old sealed build payloads. Materialize literal directly from its reviewed Git blob, record its own SHA/bytes plus any unchanged helper identity, and bind both to the actual17f runtime/profile in a new immutable plan. Never overwrite bundled files or label these binaries as9cb/beb. No unchanged Windows/default rebuild is required solely for this Lua/test/doc delta."
+  },
+  "conditional_native_plan": {
+    "owner": "Root only; one cache/native owner, existing jobs preserved",
+    "common_gates": [
+      "Use separately fresh verified roots and exclusive immutable outputs, complete pre/post input records and sealed payload hashes; bind actual binary/profile/build source17f, corrected literal9cb, controller/plan SHA and this report. No source/binary/literal identity collapse.",
+      "Validate every supplied reference is the whole successful report actually produced by the same literal and declared runtime/profile/setup; preserve raw report and artifact hashes privately. A parser PASS is not authenticity or source provenance on its own.",
+      "Record actual native/helper/wrapper/controller/checker exits separately. Preserve any failure/UNREACHED/partial artifacts; no rerun into green, actor/geometry/seed/frame/duration search, tolerances or baseline normalization. Protected fatal means no engine physical/counter/metrics/close call afterward; unknown facts remain unknown."
+    ],
+    "M5": [
+      "Original-solver successful positive FIRST, with no host height queries and a complete real handoff. Then ordinary hosted unaltered control on the same declared setup; require the complete successful Original reference and exact declared physical-field equality before unlocking any altered run.",
+      "Use the successful paired control reference/selected window for the changed-word and matched refusal runs. Require the declared trajectory and same-caller/finite-field/real-positive contract, actual intervention and exact marker/cause/fault attribution. Report changed or unchanged handoff/physical effects honestly; an unobserved caller identity is not invented.",
+      "Keep the predeclared3h/100ms/seed1 maximum and early stop at first eligible handoff; natural reach is not guaranteed. Clean absence stays UNREACHED and unlocks no matched negatives. A legitimate bounded test-only controlled collaborator setup remains authorized if separately source-frozen/reviewed; no shipping campaign policy change."
+    ],
+    "M6": [
+      "Run the real save positive on the save-feature profile; bind both generated saved script and data (name, file hashes/bytes/version), full successful save report and reconciled pack attempts/seeds. Retain original retail inputs, no overwrite/rotation/deletion; post-effect partial save failure consumes its root and remains failure.",
+      "Copy only the declared generated save artifacts into separately verified load roots with explicit manifest delta/provenance; boot that actual saved script through the real Core path. A successful load/second-save must verify all restored raw words/ACKs, restore-before-insert order, legitimate repeat reads and no-lowering relation before any matched bad load is credited.",
+      "Only a successful real positive pair unlocks withheld/malformed/state/sector/stale negatives on matching fresh roots and literal/runtime. A missing prerequisite is UNREACHED, never native M6 acceptance."
+    ]
+  },
+  "limits": [
+    "All native M5/M6 executions remain UNRUN for this corrected literal. This source gate closes only the residual source finding; guarded fixed-wing/native Core save-load and height-open-facts remain required OPEN until actual evidence review.",
+    "No whole-height/all-family/all-history/FP/natural engagement, full current40/all8/four-input shipping, Task49/D3/delivery acceptance. All ten requirements, remaining coupled services/API/DCS/hierarchy/RNG/final census/current CI/review/normal merge remain required. Prep2 stays STOP; no D4/D5/TypeScript.",
+    "Prior finite1b89/CI635, source507f and closed long-run P1/fullpack proofs retain their exact identities/scopes. No reviewer tests/builds/native/cache/source mutation or agents."
+  ]
+}

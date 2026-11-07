@@ -1,0 +1,90 @@
+{
+  "controller_pid": 852,
+  "source": "f01e64e7950d8d323da0a7bda5c065f899f30be5",
+  "case": "short",
+  "snapshot": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source",
+  "binary": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source\\eech-campaign\\target\\sector-height-observer\\f01",
+  "root": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-roots-20261107\\short",
+  "output": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-short-20261107",
+  "state": "terminal",
+  "started_utc": "2026-11-07T06:05:37.783408+00:00",
+  "plan_sha256": "56b5c274604fa932d7d936f1f8d1c453c14b512152b5775425fb9a82f5849b71",
+  "review_sha256": "075924c7209dcb7372fe73c6c267b842afa3c4bb089ca0ececad39debd2c0542",
+  "profile_sha256": "9a654ef53a079e9a8029d79cc3466e5d60da849aa414f95a2edc473832acce19",
+  "build_sha256": "20a225af602f865bebcc3fd04181ce103166c0b2180b7225859d7161bc6d35c3",
+  "controller_sha256": "6b5a90da308b33556a9ff0e16024ef114c9acb8dfcd5d0987f7fd1ce4f235e0f",
+  "stages": [
+    {
+      "stage": "pre-inputs",
+      "pid": 6384,
+      "birth_utc": "2026-11-07T06:05:37.786175+00:00",
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source\\eech-campaign\\tools\\input-manifest.py",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-roots-20261107\\short",
+        "--compare",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-short-20261107\\pre-inputs.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-07T06:05:37.791087+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-07T06:05:39.096085+00:00"
+    },
+    {
+      "stage": "native",
+      "pid": 9132,
+      "birth_utc": "2026-11-07T06:05:39.247225+00:00",
+      "argv": [
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source\\eech-campaign\\target\\sector-height-observer\\f01\\eech-world.exe",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source\\eech-campaign\\target\\sector-height-observer\\f01\\lua\\campaign.lua",
+        "root=D:/EECH-Migration-Evidence/sector-height-capacity-f01-roots-20261107/short",
+        "scenario=lebanon_retail",
+        "out=D:/EECH-Migration-Evidence/sector-height-capacity-f01-short-20261107/model.jsonl",
+        "metrics=D:/EECH-Migration-Evidence/sector-height-capacity-f01-short-20261107/metrics.json",
+        "hours=0.001",
+        "record=1",
+        "record_every=10",
+        "observe_every=1",
+        "observe_supply=1",
+        "acmi=D:/EECH-Migration-Evidence/sector-height-capacity-f01-short-20261107/recording.acmi",
+        "observe=D:/EECH-Migration-Evidence/sector-height-capacity-f01-short-20261107/observations.jsonl"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-07T06:05:39.254894+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-07T06:05:53.875426+00:00"
+    },
+    {
+      "stage": "post-inputs",
+      "pid": 11096,
+      "birth_utc": "2026-11-07T06:05:53.879098+00:00",
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source\\eech-campaign\\tools\\input-manifest.py",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-roots-20261107\\short",
+        "--compare",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-short-20261107\\post-inputs.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-07T06:05:53.886647+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-07T06:05:54.911331+00:00"
+    }
+  ],
+  "scope": "ONE reviewed correctedobserver finite short; hours0.001/frame100/seed1/unchanged35-floorframes. No timeout termination/restart/extension, physical move or D3 acceptance.",
+  "actual_native_exit": 0,
+  "all_three_complete_literal_equal": true,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T06:05:55.121508+00:00",
+  "verified_payloads": 89
+}

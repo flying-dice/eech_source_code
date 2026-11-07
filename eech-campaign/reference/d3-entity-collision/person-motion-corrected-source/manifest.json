@@ -1,0 +1,45 @@
+{
+  "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 42,
+      "sha256": "7f05961d39c57eb03437bba72a621eaba6caedfb41d33ef21472bc63f2121a65"
+    },
+    {
+      "path": "frozen-gate.json",
+      "bytes": 3779,
+      "sha256": "746ab779d4c79e907638f4f38cc7c2bfe0ee61ecb0ed590651aadee3e863b1a5"
+    },
+    {
+      "path": "frozen-status.txt",
+      "bytes": 104,
+      "sha256": "ab47666ad442c4b1eff94419247c4d393ae7cd8036b77fce90fb23f5a0f9a2c6"
+    },
+    {
+      "path": "original-person-code-frozen.json",
+      "bytes": 15497,
+      "sha256": "e388ea201f98e9650b4d919895ce663829273907e4d675c0ecb7e3bb6c9d350b"
+    },
+    {
+      "path": "original-protocol-code-frozen.json",
+      "bytes": 4140,
+      "sha256": "e9c5128778d308081abc6ee2b21d3c9213841933f0ca6a9c7e6aba65781fd077"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2316,
+      "sha256": "f2c30a5f145f27f523d1bf379d80e75f7e170e49c41e36e522c837d7466158f0"
+    },
+    {
+      "path": "source-binding.json",
+      "bytes": 2510,
+      "sha256": "50a7e172b67f7fdd20a6835a2e764a3cab82afce7c858576716e9689813befb9"
+    },
+    {
+      "path": "source-review.json",
+      "bytes": 14486,
+      "sha256": "62f5641e61c2c470cb9cca17aed90d0d0e69f20c800d942c4b2974e212e24be1"
+    }
+  ]
+}

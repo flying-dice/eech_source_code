@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "review_date": "2026-11-05",
+  "reviewer_role": "sole independent Codex reviewer",
+  "scope": "ONE new actual diagnostic supplement joined to the completed observational source note; no new source review, instrumentation, build or native replay",
+  "source": {
+    "diagnostic_commit": "bd6e9c5794c26fc7e3fadbbcbcd31ae292b8d0ce",
+    "failed_parent_production": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "snapshot": "D:/EECH-Migration-Evidence/pose-motion-diag-bd6e9c579-20261105",
+    "build_info_sha256": "194e2b23a9bdeceddc1b0ab9fa64773cd3b978badd3fb248dffc8976185f41ea",
+    "source_note": {
+      "path": "R:/d3-evidence/independent-pose-motion-diagnostic-source-bd6e-20261105.json",
+      "sha256": "b2ef7882caac936c22972347221d83ed62fd3e29becc0fe2d4dc16add1152bb7",
+      "scope": "Reused two-file observational instrumentation and actual compiled Person writer/retention inspection at that identity; C production paths unchanged from failed parent"
+    }
+  },
+  "decision": {
+    "status": "PERSON_VECTOR_RETENTION_FAILURE_CONFIRMED_IN_REPLAY",
+    "finding": "ENV-ENTITY-POSE-LONG-RUN-MOTION-1",
+    "observed_actor_and_retention_mechanism_confirmed": true,
+    "another_instrumentation_run_required_by_this_evidence": false,
+    "corrected_source_reviewed": false,
+    "corrected_source_tested": false,
+    "new_production_native_clearance": false,
+    "physical_pose_authority_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "actual_replay": {
+    "native_exit": 1,
+    "helper_exit": 1,
+    "native_completed_utc": "2026-11-05T21:27:05.042768+00:00",
+    "helper_completed_utc": "2026-11-05T21:27:06.269465+00:00",
+    "termination": "Natural engine failure; no stop/restart performed by this reviewer",
+    "pre_post_full_input_compare_exits": [
+      0,
+      0
+    ],
+    "manifest_files_each": 1179,
+    "manifest_bytes_each": 102239559,
+    "complete_pre_post_manifest_bytes_literal_equal": true,
+    "verified_and_current_rehashed_payloads": 88,
+    "native_log_marker": "[model-provider:entity_pose.mirror]",
+    "difference_mask": 20,
+    "configured_run": "Lebanon retail campaign, hours3, record0, checkpoint_every3600; it failed before completion and is not a conformance pass"
+  },
+  "safe_trace_projection": {
+    "private_trace_sha256": "9fafa239c4217f2cb914ec086741513b902fbecdff93c3e7c4440eafca04d34b",
+    "private_trace_bytes": 3517,
+    "mismatches_in_trace": 1,
+    "movement_kind": "Person",
+    "observed_entity_type": 19,
+    "alive": 1,
+    "observation_stage": 0,
+    "difference_mask": 20,
+    "Core_and_canonical_position_words_equal": true,
+    "canonical_held_motion_equals_initial_zero_seed": true,
+    "Core_motion_is_nonzero_and_differs_from_held": true,
+    "canonical_pending": false,
+    "accepted_requests": {
+      "create_place": 1,
+      "person_begin": 3752,
+      "person_end": 3752
+    },
+    "total_accepted_requests": 7505,
+    "refused_requests": 0,
+    "recent_history": {
+      "entries": 16,
+      "accepted_begin_end_pairs": 8,
+      "all_held_after_words_still_initial_zero": true
+    },
+    "raw_identity_pose_trajectory_and_motion_words_not_copied": true
+  },
+  "causal_join": {
+    "active_Host_solver_boundary": "In immutable bd6/ea2b, movement.rs2266-2267 calls begin_person/end_person. Their completed path uses settle_person at3729 to compute the actual Outcome.motion_vector through eech_person_settle, but it receives only &mut Pose and does not update Record.motion_vector. Neither dispatch epilogue2607 nor step1900-1917 retains that returned vector.",
+    "active_Core_application": "rv_hostmv.c1746-1764 apply_person_pose writes the returned physical result into the real person attitude/position/speed and motion_vector. The hosted ps_move.c345 branch calls campaign_movement_person_begin/end; this is not its excluded legacy #else. A non-pending begin and each completed end apply the returned vector.",
+    "actual_match": "The actual first failure is the predicted class and direction: a living Person has a completed non-pending history with3752 accepted ends, repeated new pose applications and a nonzero Core vector, but the canonical vector stays at its bind seed. Position words agree. The actual mirror20 contains the real held-motion bit4 plus diagnostic16; it is not formula16 alone.",
+    "conclusion": "This source plus the actual actor/history is sufficient to confirm missing retention of the Host-computed completed Person vector as the mechanism of this replayed mirror failure. It is no longer merely a possible unrelated writer category. Another instrumentation restart is not needed just to add the returned-vector field.",
+    "limits": [
+      "The current ring does not independently log the returned Outcome.motion_vector or every later Core write; the active source application path supplies that link. This is a combined source/actual inference, not a claim those words were captured.",
+      "This establishes the replayed first Person failure mechanism. It does not prove every fatal in all four prior full-pack runs used the same actor or exclude a second latent defect.",
+      "It does not establish the full long-run conformance or correctness of any not-yet-reviewed correction.",
+      "Existing short/default/source clearances remain at their stated finite identities and do not retroactively make the failed pack pass."
+    ]
+  },
+  "minimum_corrective_boundary": {
+    "required": "Retain the exact already Host-computed vector when a Person step actually completes: non-pending PersonBegin and completed PersonEnd. Keep the old held vector through a pending begin whose placeholder output is not yet applied.",
+    "preserve": [
+      "Original person solver arithmetic, output words, staged terrain request and Core apply order",
+      "Canonical registry ownership and the existing mirror predicate",
+      "All accepted input/baseline/scenario definitions"
+    ],
+    "do_not_use": [
+      "Query-time seeding or a cache of Core-computed vector words",
+      "A guessed row2-times-speed replacement for the actual person solver output",
+      "A canonical zero/default or new refusal on a legitimate completed step",
+      "Suppression of held-motion bit4 or a relaxed long-run acceptance oracle"
+    ],
+    "validation_disposition": "The sole author is preparing corrected frozen source separately. That new material needs its source/affected-controls join, then Root selects the targeted/native/full Task49 validation at the correct identities. This supplement grants no production/native acceptance and requests no immediate replay."
+  },
+  "evidence": [
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-motion-diag-20261105/replay/controller.json",
+      "bytes": 3600,
+      "sha256": "24ed8874ffbc00709960230883c3f844d4d5d6fc2c65016b5a28f722e8059d25"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-motion-diag-20261105/replay-controller.exit",
+      "bytes": 7,
+      "sha256": "cf205dbb8cea84897b488abcc281bf96698d5e94b1096b16657b4caba9082a22"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-motion-diag-20261105/replay/native.log",
+      "bytes": 40802,
+      "sha256": "981e6dd33df29f64414fc2d9a5dc2a8cb9a3f273025095fbf3d2bf32bb1bea9a"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-motion-diag-20261105/replay/pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-motion-diag-20261105/replay/post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-motion-diag-20261105/PRIVATE-pose-motion-mismatch.txt",
+      "bytes": 3517,
+      "sha256": "9fafa239c4217f2cb914ec086741513b902fbecdff93c3e7c4440eafca04d34b"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-motion-diag-bd6e9c579-20261105/eech-campaign/target/windows-pose-motion-diag-bd6e9c579/BUILD-INFO.txt",
+      "bytes": 8788,
+      "sha256": "194e2b23a9bdeceddc1b0ab9fa64773cd3b978badd3fb248dffc8976185f41ea"
+    }
+  ],
+  "independent_verification": [
+    "Trace bytes/hash and exactly one mismatch record",
+    "Private raw comparisons for equal position, initial/canonical zero vector and different nonzero Core vector",
+    "Exact Person/alive/stage/mask,3752+3752 accepted counts and eight recent begin/end pairs with unchanged held state",
+    "Direct native/helper/pre/post exit joins, complete manifests/counts/literal equality",
+    "All88 current payload hashes checked against the build information seal and its controller hash"
+  ],
+  "publication_safety": "This is a safe derived projection. The private trace, actor identity and raw pose/trajectory/vector words remain private; only aggregate counts, type/stage flags, booleans, source paths and hashes are included.",
+  "review_operations": "Read-only immutable actual trace/controller/manifest/log/build seal joins plus this report write; no new source mutation, instrument change, build/test/native launch, process restart, agents, cache/VM or external actions."
+}

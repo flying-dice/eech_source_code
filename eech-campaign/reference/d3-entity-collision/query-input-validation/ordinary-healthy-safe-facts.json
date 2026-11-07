@@ -1,0 +1,118 @@
+{
+  "runtime_source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "literal": {
+    "path": "R:\\d3-evidence\\person-motion-authority-3475fb93b-literal.lua",
+    "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "git_blob": "ad4238d9a51e79b236dba833bdcea18ca146fde3",
+    "sha256": "e580b0e2752c28ccb440b66778bd0b4992de0651502dcdc9e9975d4b6af68d05",
+    "bytes": 127724,
+    "no_native_binary_relabel": true
+  },
+  "source_review_sha256": "62f5641e61c2c470cb9cca17aed90d0d0e69f20c800d942c4b2974e212e24be1",
+  "controllers": [
+    {
+      "role": "ordinary-short",
+      "path": "D:\\EECH-Migration-Evidence\\person-motion-ordinary-short-3475fb93b-20261105\\controller.json",
+      "sha256": "e5865334b779809a53a5d5bafcc5871fc712301a048a6684394c87d50891005e",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "actual_outer_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "complete_manifest_bytes_equal": true,
+      "payloads": 88,
+      "native_seconds": 9.920688
+    },
+    {
+      "role": "healthy",
+      "path": "D:\\EECH-Migration-Evidence\\person-motion-healthy-3475fb93b-20261105\\controller.json",
+      "sha256": "6e3f7f2e6b635dc4506e0b62cf2f022df307fd2e661515d8a1dc5669bea8aa02",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "actual_outer_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "complete_manifest_bytes_equal": true,
+      "payloads": 88,
+      "native_seconds": 103.140422
+    }
+  ],
+  "ordinary_three_complete_files_literal_equal_80fd": true,
+  "all_three_profiles_88_payloads_rehashed_after_runs": true,
+  "physical_comparison_with_observer_parent": {
+    "parent_source": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+    "fields": [
+      "cohort_signature",
+      "cohort_size",
+      "case_weapons_ended",
+      "case_weapons_pending",
+      "contact_any_hits_delta",
+      "contact_any_tests_delta",
+      "precision_high_delta",
+      "entity_before",
+      "entity_after",
+      "candidate_before",
+      "candidate_after",
+      "scan_before",
+      "scan_after",
+      "real_hit",
+      "real_miss",
+      "real_mask_56",
+      "real_mask_63",
+      "stationary",
+      "moving",
+      "candidate_need_updated"
+    ],
+    "all_equal": true,
+    "different_names": []
+  },
+  "common_authority_fields": 117,
+  "common_authority_different_names": [
+    "pose_fact_motion_held",
+    "pose_fact_motion_not_held",
+    "pose_histogram",
+    "pose_pre_histogram"
+  ],
+  "pose_facts": {
+    "pose_fact_aircraft_motion_differs": 0,
+    "pose_fact_attitude_compared": 3161,
+    "pose_fact_attitude_differs": 0,
+    "pose_fact_dead": 0,
+    "pose_fact_dead_recorded": 0,
+    "pose_fact_formula_differs": 2364,
+    "pose_fact_formula_equal": 3727,
+    "pose_fact_motion_held": 6091,
+    "pose_fact_motion_held_differs": 0,
+    "pose_fact_motion_not_held": 0,
+    "pose_fact_no_id": 0,
+    "pose_fact_observations": 9252,
+    "pose_fact_offers": 6091,
+    "pose_fact_position_differs": 0,
+    "pose_fact_recorded": 6091,
+    "pose_fact_recorded_by_kind": "1=6091",
+    "pose_fact_retired": 0,
+    "pose_fact_unknown": 0,
+    "pose_fact_unrecorded": 0,
+    "pose_fact_vehicle_formula_differs": 2364,
+    "pose_fact_vehicle_formula_equal": 3727
+  },
+  "histograms": {
+    "pre": "0:1:1:recorded:1:16=2204;0:23:1:recorded:1:0=3578;1:23:1:recorded:1:0=3040",
+    "post": "0:1:1:recorded:1:16=130;0:23:1:recorded:1:0=149;0:23:1:recorded:1:16=30;1:23:1:recorded:1:0=121"
+  },
+  "candidate_mobile_named": 430,
+  "candidate_mobile_unnamed": 0,
+  "moving_queries": 0,
+  "candidate_need_updated": 0,
+  "limitations": [
+    "ONE unchanged ordinary short and ONE default natural healthy control only; not full40/all8 or Task49/D3 acceptance.",
+    "Reached record/pose counts are repeated questions, not unique mobiles; no unobserved family/lifecycle/writer coverage inferred.",
+    "Coherent mirror/record equality alone does not prove canonical rather than Core consumption; provider canonical-vs-discarded-word control is separate.",
+    "Successful changed physical effect and moving per-target public path remain required; no positive changed/Original control has run yet.",
+    "Player/pack/other physical writers, Core-origin adoption and all whole-D3 scope remain required."
+  ]
+}

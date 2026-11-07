@@ -1,0 +1,230 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-SECTOR-HEIGHT-LOAD-ORDER-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 34538,
+      "sha256": "d1d7c0d98e3a8fb7aebd2ad6fec1dabb09203efbd33e64ba6e4b3de514bcc9e7"
+    },
+    {
+      "path": "inputmaps-compare.json",
+      "bytes": 1737,
+      "sha256": "730b52829c51c7f4adc185063db2f827e34d9b8aa778ba2e1ad3d5ecbf21840c"
+    },
+    {
+      "path": "join-vs-loader-fix.json",
+      "bytes": 10989,
+      "sha256": "bc33837aa783bd9ef509e63def15d86c8b8a1320df30ede3284881fac84095c4"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3229,
+      "sha256": "a211f90f67dfac36f8307dd2aeb8c15018f8017a42a83aab43a7e85ceae78580"
+    },
+    {
+      "path": "runs/hwload-final-set-20261107.progress",
+      "bytes": 77,
+      "sha256": "761c338ba01a122ebc4418ef4cc10d71933b2b5e67af426bd52ece024234ae55"
+    },
+    {
+      "path": "runs/hwload-final-set-lease-after-20261107.txt",
+      "bytes": 19,
+      "sha256": "4c04288a874657cf84a8d7ee257da46d3050f3dca11b09a8ac7da7f148e8555c"
+    },
+    {
+      "path": "runs/hwload-final-set-lease-before-20261107.txt",
+      "bytes": 92,
+      "sha256": "46ebc5082c9201bca56d8a06ee500461a5f2e4c0ddb2564b05b9a3f63e40ff13"
+    },
+    {
+      "path": "runs/t1-load-order-driver-tests.json",
+      "bytes": 882,
+      "sha256": "6b517563a899242e643e77ee93e4c74172950b0a71ffaa4de69dc01a7fbad665"
+    },
+    {
+      "path": "runs/t1-load-order-driver-tests.stderr.log",
+      "bytes": 429,
+      "sha256": "4a477beb46fd77985934c8ed39ef4f2c01daed9a2960ee0e297ab84aa77dc457"
+    },
+    {
+      "path": "runs/t1-load-order-driver-tests.stdout.log",
+      "bytes": 3533,
+      "sha256": "51933b921dd8ef6f48b089f43cde18c863558775f62b71bb3943133404647a29"
+    },
+    {
+      "path": "runs/t2-load-order-driver-tests.json",
+      "bytes": 881,
+      "sha256": "c9c003f5d732d667e276286c3ad5f9ab2f4316ae7c755ef9ece39d983ad4cf18"
+    },
+    {
+      "path": "runs/t2-load-order-driver-tests.stderr.log",
+      "bytes": 263,
+      "sha256": "31d40b69b99e1e4d16489fca8a049c81489e6ab275f48e7c87bd6bc89d71ef82"
+    },
+    {
+      "path": "runs/t2-load-order-driver-tests.stdout.log",
+      "bytes": 2913,
+      "sha256": "0c07e46e1dcd5533393c8e3a51bb83d39571879e6a14739e6315339571354313"
+    },
+    {
+      "path": "runs/t3-load-order-driver-tests.json",
+      "bytes": 879,
+      "sha256": "3c8342990a079fd698a708f162dd72e7d63758d5ab8a15262345ef7da3570e92"
+    },
+    {
+      "path": "runs/t3-load-order-driver-tests.stderr.log",
+      "bytes": 263,
+      "sha256": "e3fb37687787070832572a3b2cda534a1b82cf27d177b5d8ca8b64cb8436e47a"
+    },
+    {
+      "path": "runs/t3-load-order-driver-tests.stdout.log",
+      "bytes": 2913,
+      "sha256": "862c311123a7ee952d8b6ea95b21a99b375d98aa3dce7f22827a76c27be8a247"
+    },
+    {
+      "path": "runs/t4-red-previous-lua-baseline.json",
+      "bytes": 948,
+      "sha256": "65a5de7b55599bd5c01b848846802ac143fbf48049f4c6b07addc4ed64c72c1b"
+    },
+    {
+      "path": "runs/t4-red-previous-lua-baseline.stderr.log",
+      "bytes": 429,
+      "sha256": "e431ea4781fa47625cdf1a7610262db36b6f53f10126eb524fd53d5e948080ae"
+    },
+    {
+      "path": "runs/t4-red-previous-lua-baseline.stdout.log",
+      "bytes": 1157,
+      "sha256": "3a1611aa0769de0ca9b47ed49a9b65fc405bb6003224e90aa634e65f7afbfef1"
+    },
+    {
+      "path": "runs/t5-fmt-apply.json",
+      "bytes": 852,
+      "sha256": "530ba9d216689966abc3ae5847e78df9b9540ff64d0b3da84b320d1b004c6317"
+    },
+    {
+      "path": "runs/t5-fmt-apply.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/t5-fmt-apply.stdout.log",
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/t6-clippy-world.json",
+      "bytes": 954,
+      "sha256": "ac49a7f5930b0e76fa0b8c7c9aded22ebc0dbbff04d15cf9423ad0d7ac6fa259"
+    },
+    {
+      "path": "runs/t6-clippy-world.stderr.log",
+      "bytes": 177,
+      "sha256": "306c7088b8542c9d0e24bbcde4b14ce0fe68109ee9d5d9f405213c87ab3c2fba"
+    },
+    {
+      "path": "runs/t6-clippy-world.stdout.log",
+      "bytes": 38,
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/u1-fmt-check.json",
+      "bytes": 856,
+      "sha256": "f6462ff91402feb52b6497990f0805e0744174236066ee0208429b853fb79784"
+    },
+    {
+      "path": "runs/u1-fmt-check.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/u1-fmt-check.stdout.log",
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/u2-clippy-world.json",
+      "bytes": 954,
+      "sha256": "790f8e7257e9d9548fd11a4ee78af6ba1cbd69d53d008cb6ce559829368a2277"
+    },
+    {
+      "path": "runs/u2-clippy-world.stderr.log",
+      "bytes": 107,
+      "sha256": "d52b464c283c36fee8f3cb18d6b59133198e05acd2fed99c7ca53438f47a247e"
+    },
+    {
+      "path": "runs/u2-clippy-world.stdout.log",
+      "bytes": 38,
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/u3-world-driver-tests.json",
+      "bytes": 1084,
+      "sha256": "596f575b5e8b174637152655392bf3ac7f3561e2c744712f6acedab79faad785"
+    },
+    {
+      "path": "runs/u3-world-driver-tests.stderr.log",
+      "bytes": 16577,
+      "sha256": "f9c2250afd729f88fb9d655d6056788f1738b865a4d41515e9c952d7b0af0f7c"
+    },
+    {
+      "path": "runs/u3-world-driver-tests.stdout.log",
+      "bytes": 26088,
+      "sha256": "09b39a4b2b30bde8582bb811e6fb07086966631c38ee8ef45eef343d88f161e5"
+    },
+    {
+      "path": "scripts/check-height-reference-linux-20261107.sh",
+      "bytes": 1193,
+      "sha256": "a82c4121b4e53895e89cebcfe666f97e302dffd55fbbabe185f7c8e8d46abfa1"
+    },
+    {
+      "path": "scripts/freeze-hwload-20261107.py",
+      "bytes": 24131,
+      "sha256": "5eb119ca03d0d46681faf6f19ab11d77ef50d434dfbb8116e56bdfeebe16af6f"
+    },
+    {
+      "path": "scripts/hwload-extra-identity-20261107.py",
+      "bytes": 3708,
+      "sha256": "766782eb01a83f0cd6de9ffe8f66b64d707c131236d580e4732204a710b53fce"
+    },
+    {
+      "path": "scripts/hwload-join-20261107.py",
+      "bytes": 6059,
+      "sha256": "8fdad0b7a622c630470bccdc7c8065eadc74566df52513b7f53f31454e316336"
+    },
+    {
+      "path": "scripts/hwload-retained-dev-runs-20261107.json",
+      "bytes": 942,
+      "sha256": "618c3698f11384d26cef00e3f494ef461b398630fd845c1b4afca248afd1cb72"
+    },
+    {
+      "path": "scripts/publish-load-followup-20261107.py",
+      "bytes": 8460,
+      "sha256": "1bfb205b298dc41507394cac60c3f84bc6aaee27d338b5f875f08f11d5ad1748"
+    },
+    {
+      "path": "scripts/run-height-reference-direct-20261107.py",
+      "bytes": 2078,
+      "sha256": "370e4c92d35f0e56306ffb705f57b28172635df917ade53d1a0c7d060d1d0d77"
+    },
+    {
+      "path": "scripts/run-hwload-final-set-20261107.sh",
+      "bytes": 2259,
+      "sha256": "b663c3bba2fbd3400aac25ed90a074ff57ef6a12c740f6d6b1ab2884642a012b"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    }
+  ],
+  "scope": "Source and local-check packet of the M5/M6 witness batch only; not a native result, review, approval or acceptance."
+}

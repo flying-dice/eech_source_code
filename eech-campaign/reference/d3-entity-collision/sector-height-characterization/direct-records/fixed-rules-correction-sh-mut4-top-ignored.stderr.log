@@ -1,0 +1,5 @@
+wsl: Failed to translate 'R:\d3-evidence\collision-characterization-20261029'
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s
+     Running tests/sector_height.rs (/target/debug/deps/sector_height-00c3d69cf88a12da)
+error: test failed, to rerun pass `-p eech-engine-sys --test sector_height`

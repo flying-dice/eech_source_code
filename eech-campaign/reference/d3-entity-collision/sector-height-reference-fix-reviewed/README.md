@@ -1,0 +1,3 @@
+# SAME review f61dac32 of the consumer-reference correction 9cb480fbb (literal records)
+
+The review found nothing open in the residual and closes `ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1` at SOURCE (the three other source closures stay those of review 507f49b7); native launch clearance is conditional (bounded positive-first, reuse of the exact 17f binaries with a separately bound external Lua) and M5, M6, the whole extraction, Task49, D3 and delivery are not accepted. Root's binding of the exact clean beb head and the exact beb CI read-back (all nine jobs, three workflows) are kept beside it. Literal copies (`* -text`), not a native result, review of any later change, or acceptance.

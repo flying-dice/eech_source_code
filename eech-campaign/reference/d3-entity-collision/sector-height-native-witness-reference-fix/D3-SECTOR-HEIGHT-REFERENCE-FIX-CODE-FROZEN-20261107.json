@@ -1,0 +1,765 @@
+{
+  "kind": "D3 sector-height M5/M6 witness source CONSUMER-REFERENCE CORRECTION CODE_FROZEN (UNREVIEWED; test-only; native UNRUN): the residual of ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1 from review 507f49b7 corrected in source; the finding, both witness findings and height-open-facts stay OPEN",
+  "frozen_utc": "2026-11-07T13:08:19.701044+00:00",
+  "task": "EEDCS-49",
+  "stage": "second correction of the required witnesses inside the current sector-height extraction (not a preparation batch; the count stays 2); Lua witness, its scripted tests and the contract only: no C, Rust product, build, Cargo or compiled input changed",
+  "source_before": "99eeaa57975c324bb504bfa88aad80b068d632dc",
+  "reviewed_code_commit": "e42bb19a0845106df6f03d08774be32cbaa87d52",
+  "native_identity_not_relabelled": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982",
+  "findings": {
+    "ENV-SECTOR-HEIGHT-M5-ROUNDING-ORACLE-1": "CLOSED_SOURCE by the SAME review 507f49b7 (unchanged by this batch)",
+    "ENV-SECTOR-HEIGHT-M6-PACK-RETRY-1": "CLOSED_SOURCE by the SAME review 507f49b7 (unchanged by this batch)",
+    "ENV-SECTOR-HEIGHT-M6-SAVE-PATH-BOUND-1": "CLOSED_SOURCE by the SAME review 507f49b7 (unchanged by this batch)",
+    "ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1": "OPEN until the SAME reviewer accepts the correction",
+    "ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1": "OPEN until actual native proof",
+    "ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1": "OPEN until actual native proof",
+    "sector-height-host-move-open-facts": "OPEN"
+  },
+  "sealed_inputs": {
+    "independent-sector-height-native-witness-fix-e42bb-source-20261107.json": {
+      "sha256": "507f49b7aff355115713c7ec325b6fe250601991be7866c8ca6eaadad53dbf99"
+    },
+    "height-witness-fix-Root-binding-17f-20261107.json": {
+      "sha256": "f2ad25d984e1ed419f8c92a151e49445020c4ca6c030d05269da572de3096a21"
+    }
+  },
+  "root_feedback_files_present": [
+    "Root-city-relist-ack-review-feedback-20261106.json",
+    "Root-feedback-height-native-CI-20261107.json",
+    "Root-needed-consumer-api-disposition-feedback-20261107.json",
+    "Root-sector-height-production-feedback-20261107.json",
+    "Root-sector-height-public-baseline-fix-feedback-20261107.json",
+    "Root-sector-height-public-baseline-join-fix-feedback-20261107.json",
+    "Root-sector-height-review-feedback-20261106.json"
+  ],
+  "lease": {
+    "volume": "eech-linux-d3-height-reference-9d247-20261107",
+    "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+    "image_named_never_substituted": true,
+    "containers_before": [
+      "containers_before=0"
+    ],
+    "containers_after": "containers_after=0",
+    "cache_cleanup": "none",
+    "cache_release_marker": "R:/d3-evidence/Root-height-witness-cache-release-17f-20261107.json (state released, read before the first cargo/rustup/docker/wsl command)",
+    "root_lease": {
+      "file": "Root-height-reference-reader-9d247-lease-20261107.json",
+      "sha256": "5c627794b8b1e323a80a3be9de0f3a7d71f2058419d9d4126345f7746e9b178e",
+      "statement": "explicit Root tool-image/cache lease recovery, not silent substitution: the old 810e image became unresident; q1 (image inspect failure) is a BLOCKED PREREQUISITE with zero test coverage; the new image is the resident frozen-17f save-profile producer image and is NOT claimed equal to the old producer or compiler, its tools measured separately in the z-runs (cargo/fmt/clippy versions)"
+    },
+    "fresh_volume": "created by the first docker run into it; the old Linux volume is preserved untouched",
+    "tooling_note": "the leased image has no rustfmt or clippy; they were installed into each EPHEMERAL container by `rustup component add` (network read, no image, volume or global change)"
+  },
+  "change": {
+    "physical_words": "every field a parity or effect claim consumes (hand-off ordinal/window/reads/phase/host_id/sector/real_word/answered_word, the four physical words elevation, min_height, pre_y and answered_y as FINITE raw words, the counts and trajectory records, the pairing record and an unaltered hosted control) is validated in original= and control= BEFORE any output, boot or intervention; an absent, nil, short, non-hex, infinite, NaN, duplicate or out-of-domain field is a refusal; an effect is claimed only between two real finite words",
+    "effective_setup": "schema 3 reports carry the effective campaign and map; original, control and intervention must have the same semantic setup (never a root path); matching defaults and explicit overrides are the same setup, a different campaign or map is refused; a save report binds the map and names a campaign while the load boots the generated saved script; the finiteness rule is only for the physical clearance fields (saved raw NaN and infinite height histories untouched)",
+    "docs": "contract section 12.5 and the schema reference in 12.4"
+  },
+  "red_green": {
+    "red_on_previous_driver": [
+      "q4-red-previous-lua-physical-words",
+      "q5-red-previous-lua-physical-words",
+      "q8-red-previous-lua-effective-setup"
+    ],
+    "green": [
+      "the final set z3"
+    ],
+    "refactor": "none (test-only source)"
+  },
+  "test_counts_final": {
+    "z1-fmt-check": 0,
+    "z2-clippy-world": 0,
+    "z3-world-driver-tests": 237
+  },
+  "retained_development_runs": {
+    "q1-witness-driver-tests": {
+      "actual_exit": 1,
+      "why": "BLOCKED PREREQUISITE with ZERO test coverage, not a result and not a regression: the old leased image sha256:810e0121... was unresident ('No such image') after Root's build retagging; run before Root's explicit 9d247 lease; no substitute was used"
+    },
+    "q2-witness-driver-tests": {
+      "actual_exit": 101,
+      "why": "first run on the new 9d247 image: 19 passed, 7 failed; a real defect of the author's new Lua: the save reference is read under the role name `expect`, so the campaign-binding exemption keyed on role == save never applied and a load's generated script alpha.Sch was compared with the save's LEBANON.CHC (the legitimate relationship refused); plus one test needle that quoted the report's side of the setup-mismatch message. Fixed (the exemption keys on the expected mode save), q3 green"
+    },
+    "q4-red-previous-lua-physical-words": {
+      "actual_exit": 101,
+      "why": "RED on the PREVIOUS Lua (only the Lua file reverted from HEAD for the run, then restored byte-identical; tests unchanged): after the positive-first coherent pair and valid changed-word run, a control with a field removed was accepted (the test then printed no damage name; q5 repeats it with the damage named)"
+    },
+    "q5-red-previous-lua-physical-words": {
+      "actual_exit": 101,
+      "why": "RED on the PREVIOUS Lua, the same single-field test with a self-describing assertion: 'the control damaged by drop_handoff_answered_y was ACCEPTED and credited (sh-witness-effect handoff=changed physical=changed)': a removed answered_y was credited as a changed physical output (the review's exact false credit); the new Lua refuses it before output, boot or intervention"
+    },
+    "q6-witness-driver-tests": {
+      "actual_exit": 101,
+      "why": "test setup, not a driver defect: the restructured setup test's Lua override strings held single backslashes (a Lua invalid escape turned the map into ..commonmapsmap5) because the shell collapsed them; corrected to Lua-escaped double backslashes, q7 green"
+    },
+    "q8-red-previous-lua-effective-setup": {
+      "actual_exit": 101,
+      "why": "RED on the PREVIOUS Lua: after the positive-first explicit-default override pair was accepted, a run of ANOTHER effective campaign (GEORGIA.CHC against a LEBANON.CHC control) was accepted with 'status=PASS' (the previous setup match ignored the campaign and the effective map); the new Lua refuses it before any effect"
+    }
+  },
+  "runs": [
+    {
+      "label": "q1-witness-driver-tests",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_witness_driver --no-fail-fast",
+      "actual_exit": 1,
+      "started_utc": "2026-11-07T12:54:36.658745+00:00",
+      "completed_utc": "2026-11-07T12:54:36.883103+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "374f54290f45fd4fb7b8f73e3c09ded224e6b8872c5fd249a9ab269d198af1bb"
+    },
+    {
+      "label": "q2-witness-driver-tests",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_witness_driver --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T13:02:51.507124+00:00",
+      "completed_utc": "2026-11-07T13:03:06.286527+00:00",
+      "tests_passed": 19,
+      "tests_failed": 7,
+      "targets": {
+        "tests/sector_height_witness_driver.rs": 19
+      },
+      "stdout_sha256": "f33af50ca06a4ea5d3ce735b7a9e1efbd581803908bc8b0fbc1f72ad8b01d518",
+      "stderr_sha256": "9d6977385f04c3c7e3666a2e9927a147dc136750a1b3819da27dcc994143197e"
+    },
+    {
+      "label": "q3-witness-driver-tests",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_witness_driver --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:03:24.842719+00:00",
+      "completed_utc": "2026-11-07T13:03:26.974917+00:00",
+      "tests_passed": 26,
+      "tests_failed": 0,
+      "targets": {
+        "tests/sector_height_witness_driver.rs": 26
+      },
+      "stdout_sha256": "ee04ebd8e97c07b05e3712076f69e816f599c2ae3e00b1b27421232501dc1746",
+      "stderr_sha256": "178cd6129bc1cf9a32b741177ab616f15805611641673d7a4f6e7065e8f6cfcb"
+    },
+    {
+      "label": "q4-red-previous-lua-physical-words",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_witness_driver a_control_reference_must_hold_every_physical_word --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T13:03:44.858899+00:00",
+      "completed_utc": "2026-11-07T13:03:47.603223+00:00",
+      "tests_passed": 0,
+      "tests_failed": 1,
+      "targets": {
+        "tests/sector_height_witness_driver.rs": 0
+      },
+      "stdout_sha256": "b2971f7e4bda1314b7190b9e426ce8408abd9ae2340ae75eff37134f5a142aa4",
+      "stderr_sha256": "e494b986626faba00198f866e0f92bd1f7d4eae8396906aee59643c8f161c18b"
+    },
+    {
+      "label": "q5-red-previous-lua-physical-words",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_witness_driver a_control_reference_must_hold_every_physical_word --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T13:04:07.045897+00:00",
+      "completed_utc": "2026-11-07T13:04:08.940945+00:00",
+      "tests_passed": 0,
+      "tests_failed": 1,
+      "targets": {
+        "tests/sector_height_witness_driver.rs": 0
+      },
+      "stdout_sha256": "0c0b4fa979ef2b229b866752c41a1e385ce0a192fd112609d941670461ccbf67",
+      "stderr_sha256": "546914dd5f20c72f0cde8afa6bd522adecebe746d76b694eb6e63a195184df8f"
+    },
+    {
+      "label": "q6-witness-driver-tests",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_witness_driver --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T13:04:45.585904+00:00",
+      "completed_utc": "2026-11-07T13:04:47.754765+00:00",
+      "tests_passed": 25,
+      "tests_failed": 1,
+      "targets": {
+        "tests/sector_height_witness_driver.rs": 25
+      },
+      "stdout_sha256": "937d72a6a07d7b3505b727550cd6106c1a59b7254399ad038e299a9292b719d4",
+      "stderr_sha256": "895fde57350e40c8b10c0dc884427b02289b38a203837fce782a5746c8fa215e"
+    },
+    {
+      "label": "q7-witness-driver-tests",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_witness_driver --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:04:56.151227+00:00",
+      "completed_utc": "2026-11-07T13:04:58.269178+00:00",
+      "tests_passed": 26,
+      "tests_failed": 0,
+      "targets": {
+        "tests/sector_height_witness_driver.rs": 26
+      },
+      "stdout_sha256": "df675d5337a80418e4c56a9f49c8d3ce8e656484bbca2cbf3b71db97e3575661",
+      "stderr_sha256": "d296a83325ae027184d0ab8ddb715350984c580966f837be890d539431aa697d"
+    },
+    {
+      "label": "q8-red-previous-lua-effective-setup",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_witness_driver a_reference_must_name_the_same_effective --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T13:05:04.048495+00:00",
+      "completed_utc": "2026-11-07T13:05:05.755004+00:00",
+      "tests_passed": 0,
+      "tests_failed": 1,
+      "targets": {
+        "tests/sector_height_witness_driver.rs": 0
+      },
+      "stdout_sha256": "2b1215b38e37703b69377cf5a0b6fabe8149723c725b0c331cac6f564fe883dc",
+      "stderr_sha256": "913e7ac98bb2c6bb537529d282b5f591c6974513da73e11217fd6e7e19c373e4"
+    },
+    {
+      "label": "q9-fmt-apply",
+      "final": false,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --all",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:06:12.241131+00:00",
+      "completed_utc": "2026-11-07T13:06:18.465037+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "label": "q10-clippy-world",
+      "final": false,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:06:23.487278+00:00",
+      "completed_utc": "2026-11-07T13:06:35.657554+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "7c2fe8f34a371d209005fd05c8c2e2168be11b5bd215d46366234556bc814ebd"
+    },
+    {
+      "label": "z1-fmt-check",
+      "final": true,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:07:33.819083+00:00",
+      "completed_utc": "2026-11-07T13:07:39.521532+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "label": "z2-clippy-world",
+      "final": true,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:07:39.609239+00:00",
+      "completed_utc": "2026-11-07T13:07:42.419320+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "7d9cdfe0b22fdaf837c207d2b32ecd46148541a2ab5a3304290ece36ef4850ba"
+    },
+    {
+      "label": "z3-world-driver-tests",
+      "final": true,
+      "command": "cargo --version && cargo test --locked -p eech-world --test sector_height_witness_driver --test entity_authority --test sector_height_baseline_driver --test host_callbacks --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T13:07:42.516573+00:00",
+      "completed_utc": "2026-11-07T13:07:48.459434+00:00",
+      "tests_passed": 237,
+      "tests_failed": 0,
+      "targets": {
+        "tests/entity_authority.rs": 116,
+        "tests/host_callbacks.rs": 82,
+        "tests/sector_height_baseline_driver.rs": 13,
+        "tests/sector_height_witness_driver.rs": 26
+      },
+      "stdout_sha256": "bb08bc892d2391937fddb554356d74606415b78ca022d0afb1fce2341dd23c64",
+      "stderr_sha256": "df96e2bdc28b57f2db6a7e2d29bc657e29f78c4f779767a981070231fbe04b90"
+    }
+  ],
+  "guards": {
+    "generic": 0,
+    "production-cutover": 0,
+    "fix-blocker ENV-SECTOR-HEIGHT-M5-ROUNDING-ORACLE-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-M6-PACK-RETRY-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-M6-SAVE-PATH-BOUND-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1": 0,
+    "fix-blocker ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1": 0,
+    "fix-blocker ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1": 0,
+    "fix-blocker sector-height-host-move-open-facts": 0,
+    "deliver (expected unmet)": 1
+  },
+  "input_maps": {
+    "files": {
+      "hwref-inputmap-PRE-20261107.json": {
+        "bytes": 2041760,
+        "sha256": "f75b2ed4b33f7504b137119aab34a5bd8fa92be92bca7ebbc0b2d6b609f9de7b",
+        "location": "external (full per-file rows)"
+      },
+      "hwref-inputmap-POST-20261107.json": {
+        "bytes": 2041760,
+        "sha256": "f75b2ed4b33f7504b137119aab34a5bd8fa92be92bca7ebbc0b2d6b609f9de7b",
+        "location": "external (full per-file rows)"
+      },
+      "hwref-extra-identity-PRE-20261107.json": {
+        "bytes": 5927,
+        "sha256": "cf49f1efabeec1dafe8ecb5bdccfc0debeb10c06e1dfd27ad6ea51fb4768ad21",
+        "location": "external (full per-file rows)"
+      },
+      "hwref-extra-identity-POST-20261107.json": {
+        "bytes": 5927,
+        "sha256": "cf49f1efabeec1dafe8ecb5bdccfc0debeb10c06e1dfd27ad6ea51fb4768ad21",
+        "location": "external (full per-file rows)"
+      },
+      "hwfix-inputmap-POST-20261107.json": {
+        "bytes": 2041962,
+        "sha256": "b06295202bd731deb29cfae6fe5d17728bfbaee42484897dfd117390e260459d",
+        "location": "external (full per-file rows)"
+      }
+    },
+    "compare_pre_post": {
+      "pre_fingerprint": "780b1951553742be9a1d5056190d48e1034ae0bc1639e1af39ad7e97c6ad9788",
+      "post_fingerprint": "780b1951553742be9a1d5056190d48e1034ae0bc1639e1af39ad7e97c6ad9788",
+      "file_count_pre": 3976,
+      "file_count_post": 3976,
+      "rows_only_in_pre": [],
+      "rows_only_in_post": [],
+      "rows_that_differ": [],
+      "all_rows_equal": true,
+      "head_sha": "99eeaa57975c324bb504bfa88aad80b068d632dc",
+      "changed_from_head_count": [
+        5,
+        5
+      ],
+      "deleted_from_head": [
+        [],
+        []
+      ],
+      "raw_vs_git_filtered_disagreements": {
+        "pre": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ],
+        "post": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ]
+      },
+      "extra_identity_equal": true,
+      "extra_identity_aggregate": [
+        "df1be67257093044b9ae05c1594070a68b8a2a5e206af657bdc993f21cc79e9a",
+        "df1be67257093044b9ae05c1594070a68b8a2a5e206af657bdc993f21cc79e9a"
+      ]
+    },
+    "pre_utc": "2026-11-07T13:07:24Z",
+    "post_utc": "2026-11-07T13:07:54Z",
+    "post_utc_note": "recorded by `date -u` immediately before the POST capture; not reconstructed from a file time",
+    "join_vs_e42bb": {
+      "kind": "explicit compiled-input equivalence and change join of the consumer-reference correction against the e42bb19a0 code commit (17f metadata) and its final POST map",
+      "code_commit": "e42bb19a0845106df6f03d08774be32cbaa87d52",
+      "metadata_commit": "17f4b824b468c608ef488423b6c568382dd12798",
+      "map_rows_changed": [
+        "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+        "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs"
+      ],
+      "map_rows_added": [],
+      "map_rows_removed": [],
+      "map_rows_identical": 3974,
+      "compiled_input_rows": 3760,
+      "compiled_inputs_aggregate_sha256_e42bb": "b23f182b5a7ea3bb545de5302d31ceef4be9e88c6c3602e78e2568bcc753efa8",
+      "compiled_inputs_aggregate_sha256_now": "b23f182b5a7ea3bb545de5302d31ceef4be9e88c6c3602e78e2568bcc753efa8",
+      "compiled_inputs_identical": true,
+      "changed_in_git_since_code_commit": [
+        {
+          "path": "STATUS.md",
+          "class": "contract prose or records"
+        },
+        {
+          "path": "docs/handover/ACTIVE-EXTRACTION.json",
+          "class": "contract prose or records"
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+          "class": "the host Lua driver (run by eech-world as an EXTERNAL script, bound separately by Git blob and SHA-256; not compiled into any binary)"
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs",
+          "class": "its scripted tests (a test source, not a product input)"
+        },
+        {
+          "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+          "class": "contract prose or records"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix-reviewed/.gitattributes",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix-reviewed/README.md",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix-reviewed/height-witness-fix-Root-binding-17f-20261107.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix-reviewed/independent-sector-height-native-witness-fix-e42bb-source-20261107.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix-reviewed/literal-bytes-check.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix-reviewed/manifest.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/D3-SECTOR-HEIGHT-NATIVE-WITNESSES-FIX-CODE-FROZEN-20261107.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/manifest.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/.gitattributes",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/README.md",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/hwref-final-set-20261107.progress",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/hwref-final-set-lease-after-20261107.txt",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/hwref-final-set-lease-before-20261107.txt",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q1-witness-driver-tests.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q1-witness-driver-tests.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q1-witness-driver-tests.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q10-clippy-world.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q10-clippy-world.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q10-clippy-world.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q2-witness-driver-tests.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q2-witness-driver-tests.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q2-witness-driver-tests.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q3-witness-driver-tests.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q3-witness-driver-tests.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q3-witness-driver-tests.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q4-red-previous-lua-physical-words.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q4-red-previous-lua-physical-words.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q4-red-previous-lua-physical-words.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q5-red-previous-lua-physical-words.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q5-red-previous-lua-physical-words.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q5-red-previous-lua-physical-words.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q6-witness-driver-tests.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q6-witness-driver-tests.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q6-witness-driver-tests.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q7-witness-driver-tests.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q7-witness-driver-tests.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q7-witness-driver-tests.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q8-red-previous-lua-effective-setup.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q8-red-previous-lua-effective-setup.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q8-red-previous-lua-effective-setup.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q9-fmt-apply.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q9-fmt-apply.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/q9-fmt-apply.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/z1-fmt-check.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/z1-fmt-check.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/z1-fmt-check.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/z2-clippy-world.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/z2-clippy-world.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/z2-clippy-world.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/z3-world-driver-tests.json",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/z3-world-driver-tests.stderr.log",
+          "class": "retained evidence packet (not an input of any check)"
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix/runs/z3-world-driver-tests.stdout.log",
+          "class": "retained evidence packet (not an input of any check)"
+        }
+      ],
+      "allowed_map_changes": {
+        "eech-campaign/crates/eech-world/lua/sector-height-witness.lua": "the host Lua driver (run by eech-world as an EXTERNAL script, bound separately by Git blob and SHA-256; not compiled into any binary)",
+        "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs": "its scripted tests (a test source, not a product input)"
+      },
+      "conclusion": "every compiled and linked input is raw-identical to the e42bb19a0/17f map; only the host Lua driver, its scripted test and prose/records/evidence moved. A compiled binary of the exact 17f is reusable for this source ONLY through this equivalence and a separately Git/blob/SHA-bound corrected external Lua; nothing is relabelled and nothing is claimed natively",
+      "problems": []
+    }
+  },
+  "literal_bytes": {
+    "changed_sources": {
+      "eech-campaign/crates/eech-world/lua/sector-height-witness.lua": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 78534,
+        "sha256": "ff120f0b806af517c801aa944477ce1885fc0da0326b582a5da95826641a066c",
+        "crlf_lines": 0
+      },
+      "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 84755,
+        "sha256": "3edf42c0b4a745d489dd1a3647cb4d436615a9889fe717874efdf1a34dc6042a",
+        "crlf_lines": 0
+      },
+      "eech-campaign/docs/d3-sector-height-production-contract.md": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 43134,
+        "sha256": "65151e88c5c12c66688a506064fdf04f9b2de6b3bb9d341d9604eb39ed839355",
+        "crlf_lines": 0
+      }
+    },
+    "lua_crlf_raw_vs_git_exceptions": [
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+    ],
+    "core_filter_only_qualifications": [
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+      "modules/system/malloc.c.h",
+      "modules/system/nedmalloc.c"
+    ],
+    "older_packets_unchanged_against_HEAD": {
+      "eech-campaign/reference/d3-entity-collision/sector-height-proof-guards-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-finite-native-ci-reviewed": true,
+      "eech-campaign/reference/d3-ci-lua-download": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix-reviewed": true
+    }
+  },
+  "compiled_input_equivalence": {
+    "to": "e42bb19a0 / 17f (the immutable source Root builds)",
+    "identical": true,
+    "rows": 3760,
+    "aggregate_sha256": "b23f182b5a7ea3bb545de5302d31ceef4be9e88c6c3602e78e2568bcc753efa8",
+    "statement": "bound from the raw per-file maps BEFORE this freeze; a compiled binary of 17f is reusable only through it and a separately Git/blob/SHA-bound corrected external Lua"
+  },
+  "audit_reader_timing": "this freeze script, the join, the extra-identity script, the final-set runner, the runner, the check script, the batched map script and the comparer were FINAL before the PRE identity capture (their SHA-256 recorded at PRE and verified unchanged by this script); no reader changed after the POST capture",
+  "reused_unchanged": "the C path helper, RTZ oracle, pack retry and the hosted/original-solver controls of e42bb19a0 keep their source-closed evidence through the compiled-input equivalence above; nothing is re-run for unchanged inputs",
+  "scripts": [
+    {
+      "name": "run-height-reference-direct-20261107.py",
+      "sha256": "370e4c92d35f0e56306ffb705f57b28172635df917ade53d1a0c7d060d1d0d77"
+    },
+    {
+      "name": "check-height-reference-linux-20261107.sh",
+      "sha256": "a82c4121b4e53895e89cebcfe666f97e302dffd55fbbabe185f7c8e8d46abfa1"
+    },
+    {
+      "name": "run-hwref-final-set-20261107.sh",
+      "sha256": "79dda992158ff12d856cb0649fb504be3c3f72b33f83afc3d3a9a6de196c7633"
+    },
+    {
+      "name": "hwref-join-20261107.py",
+      "sha256": "da86a5a5d28f4933d3f30365325071782ca5a821fbef50171c1947f3d2a27009"
+    },
+    {
+      "name": "hwref-extra-identity-20261107.py",
+      "sha256": "20d2074dc7529fdfceea67c48690f7505abbdde627f8abc617f688b46c3a5bcd"
+    },
+    {
+      "name": "freeze-hwref-20261107.py",
+      "sha256": "5353a15c4c929c548ba8fee29a2d29223613556686e21ab1b84c08bacd6ef16d"
+    },
+    {
+      "name": "sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "name": "sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "name": "publish-reference-review-20261107.py",
+      "sha256": "248462bcbeaf5ba4b2b37d123a6313b7fb2833a1abd2649d0f318655271b8496"
+    },
+    {
+      "name": "patch-card-status-reference-checkpoint1-20261107.py",
+      "sha256": "cd1b718263257faba2e2f6b9c48d29f6f6074f3cac0071409fe09e7aa243793e"
+    },
+    {
+      "name": "hwref-wip-20261107.patch",
+      "sha256": "1e4dc3e7da8e2a1ab378db9783bd767569ef68c4f9ee7736711bc89e56a14776"
+    },
+    {
+      "name": "claude-hwref-checkpoint-20261107.json",
+      "sha256": "2f7814425c1d341549aefba2cc5e3a71f299a89078e6a8d992429934fa6c6812"
+    },
+    {
+      "name": "hwref-retained-dev-runs-20261107.json",
+      "sha256": "547741f4822ab351dedf5a3fd4d462f70c053fef2e08f2a32eea518d2d3d714e"
+    },
+    {
+      "name": "run-height-witness-direct-20261107.py",
+      "sha256": "396a3f84623524b2227b83b1350e2efae49a8262b1c2a61d23aaef4602f2bb2e"
+    },
+    {
+      "name": "check-height-witness-linux-20261107.sh",
+      "sha256": "33b3dfb28c7f2711675fc31eab6dffc177e0bbd6f654c72fcaee2370b84f6ef3"
+    }
+  ],
+  "not_run": [
+    "native, Windows, retail or war launch (Root's)",
+    "the witness runs themselves (natively UNRUN)",
+    "any unchanged C, engine-sys, engine or dc check, the 179/150/221 characterisations, the 16 matrices and any campaign replay (compiled inputs identical to e42bb19a0)",
+    "i686 or EECH_C_OPT=2 builds",
+    "agents/MCP/authentication/model change",
+    "cache, image or process deletion",
+    "merge"
+  ],
+  "limits": [
+    "source and Linux checks only; nothing here is a native result, clearance or acceptance; the consumer join and both witness findings stay OPEN; the current diagnostic Lua is not accepted until the SAME reviewer says so",
+    "the scripted collaborator checks the DRIVER (reference validation, setup binding, eligibility, same-caller join, fault controls), never fw_move.c, store_session, pack_session or unpack_session",
+    "the trajectory binding proves the control and the intervention reached the same window state of a deterministic campaign; reads carry no caller identity",
+    "the effective setup is the campaign script and map the driver boots plus scenario, seed, frame and hours; it does not identify the installation's data beyond the root Root verifies",
+    "M5 is still a natural reach at a declared window and may be UNREACHED; a bounded test-only task leader was not needed and not built",
+    "fmt and clippy ran only because the components were installed into each ephemeral container of the leased image"
+  ],
+  "state": {
+    "claims": "no self-review, approval, native clearance, finding closure, whole Task49 or D3, delivery",
+    "D3-CURRENT.json": "not edited (Root owns it)"
+  },
+  "hygiene_problems_at_freeze": []
+}

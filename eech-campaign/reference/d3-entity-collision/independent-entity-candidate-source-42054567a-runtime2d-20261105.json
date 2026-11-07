@@ -1,0 +1,205 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T11:39:43.204416+00:00",
+  "review": "Independent combined correctness, clean-code and boundary-safety SOURCE review of the new ENTITY_CANDIDATE per-candidate decision cutover",
+  "source": {
+    "commit": "42054567a95c1efe91004ec492a339c20dff4ec8",
+    "runtime_commit": "2d1a16273f599e852eefaf9b10581be49cf80309",
+    "reviewed_base": "b007f215c8147f8e01bfa1bb3f69d50b74bfbb99",
+    "repository": "R:/d3-evidence/collision-characterization-20261029",
+    "changed_source_paths": [
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_host_guard.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/build.rs",
+      "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/tests/entity_candidate_host.rs",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md"
+    ],
+    "metadata_only_paths_after_runtime_commit": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/reference/d3-entity-collision/entity-scan-direct-gate-20261105.json",
+      "eech-campaign/reference/d3-entity-collision/finite-authority/PUBLICATION-MANIFEST.json",
+      "eech-campaign/reference/d3-entity-collision/finite-authority/README.md"
+    ],
+    "all_other_blobs_and_modes_unchanged_runtime_to_metadata_head": true
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "source_review_no_blocking_findings": false,
+    "finite_candidate_slice_closed": false,
+    "whole_Task49_or_D3_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-ENTITY-CANDIDATE-PRECONDITION-1",
+      "priority": "P1",
+      "title": "Skipped candidates are forced through scene/model prerequisites the original never required",
+      "locations": [
+        "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c:546",
+        "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c:583",
+        "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c:605",
+        "aphavoc/source/entity/mobile/mb_hostentity.h:252",
+        "eech-campaign/crates/eech-world/src/entity_host.rs:265"
+      ],
+      "evidence": "offer_candidate_to_host initializes scene=0. For a directly listed non-mobile CITY_BUILDING it sets CITY_BUILDING=1 but never sets a scene, then calls the candidate exchange. The exchange permits scene0 only when CITY=1; otherwise it requires a valid scene. The valid direct-building skip therefore stops before the host can decide. More generally, fixed candidates in sectors below the segment are offered only after shape/position/heading/align facts have been read, and candidate_in_store resolves and requires a loaded model before the tallest-structure decision. The original skipped such non-mobile candidates before reading their fixed flag/shape/model facts, and explicitly skipped a directly listed city building without a shape lookup.",
+      "impact": "A valid original skip becomes a scene/refusal failure. The production supported-input precondition has been strengthened to require geometry and pose facts that the original branch did not use. A diagnostic characterization census that filters invalid shapes does not justify imposing that prerequisite on production skipped candidates.",
+      "minimum_correction": "Represent the offered role and defer scene/model/pose prerequisites until the original branch actually needs them. Direct sector city buildings must reach their explicit host skip without a fabricated scene, radius or model lookup. The tallest-structure skip likewise must not require an otherwise-unused valid/loaded model. Preserve host ownership of these physical decisions and original enabled-read/side-effect order; do not put the old physical decision back into Core or manufacture a default model.",
+      "minimum_validation": "Add focused positive-first coverage through the actual shared C offer/dialogue and provider/store boundary for a directly listed city building and a fixed candidate skipped by tallest height without usable geometry. Existing C collaborator guards are sufficient; no known-bad native launch is required. The Rust differential currently calls candidate directly with a synthetic radius and thus bypasses the C scene check and ModelStore wrapper where these failures occur."
+    },
+    {
+      "id": "ENV-ENTITY-CANDIDATE-REPLY-1",
+      "priority": "P2",
+      "title": "The new reply finite classifier and identity diagnostic need to preserve the intended refusal boundary",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostentity.h:151",
+        "aphavoc/source/entity/mobile/mb_hostentity.h:222",
+        "aphavoc/source/entity/mobile/mb_hostentity.h:272",
+        "aphavoc/source/entity/mobile/mb_hostmodel.c:1853",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c:496"
+      ],
+      "subitems": [
+        {
+          "problem": "candidate_word_is_finite takes an untrusted reply component as a float value before inspecting its bytes. A signaling-NaN pose supplied by a Rust ModelProvider can undergo an x87 floating load/argument transfer before the named finite-pose refusal. Such a transfer may signal or quiet the value. This is a specific source-level portability/refusal-safety concern in the NEW helper, not a measured trap or a reopened TREE issue. The current finite-pose C refusal case uses infinity, not signaling NaN.",
+          "correction": "Inspect the raw word through a pointer/memcpy without first materializing a floating argument, as the existing entity_reply_word pattern does. Add signaling NaN to the existing focused pose-refusal cases. No 32-bit experiment or new FP diagnostic programme is required to correct this source contract."
+        },
+        {
+          "problem": "ENTITY_CANDIDATE reuses CAMPAIGN_ENTITY_IDENTITY, which is bound to check_target_point_identity(..., entity_collision). A bad scene-name echo for the new operation therefore reports entity_collision.identity. The scripted C identity helper and expectation also use that old label, so the passing guard does not distinguish the new refusal boundary.",
+          "correction": "Give the new candidate identity check its own entity_candidate.identity label and matching focused expectation while retaining the closed narrowphase label unchanged."
+        }
+      ],
+      "impact": "Malformed answers must stop safely and identify the actual new operation before pose use or further service/collision work. Keep validation complete and caller output atomicity unchanged."
+    }
+  ],
+  "reviewed_observations": [
+    "The host kernel retains the original <= min/max branches, negated strict box comparisons, radius-plus-ten expressions, moving threshold, UPDATED meaning, city height-before-xz arithmetic and stationary placement expressions. Nonfinite facts are explicitly refused by the new contract; the source retains original comparison forms rather than silently rewriting them to ordered >= comparisons. No native numerical conformance is inferred from this source observation.",
+    "The new synchronous service loop is bounded by its reply checks for the production facts: NEED_UPDATED is permitted only before its mobile answer exists; NEED_NORMAL only for an aligned fixed non-mobile before its normal exists. The C code performs the real destructive UPDATED getter and terrain-normal service, not a simulated value. These effects must keep their original enabled-call order; the current eager collection of other facts is not literally the original getter sequence.",
+    "The UPDATED implementation remains the original whole-word AND-with-mask in mb_int.c, not an ordinary read and not merely clearing one entity bit. The candidate host currently obtains the corresponding Boolean through the real Core getter when requested. The transcribed differential logs requests but does not model the shared bitfield implementation or execute the actual engine scan loop.",
+    "The candidate facts count, enum values and appended C/Rust reply fields agree. Engine validates request and pose sizes; Lua carries the five states and finite test poses; C validates state/service prerequisites and pose size before using the reply. The closed output-only narrowphase mask and partial-write logic are unchanged by the appended dialogue.",
+    "The final announced-order ModelStore is shared through the existing final_store path, with no new authoritative roster/store. The model lookup must be delayed as required by PRECONDITION-1; using the same store alone does not correct the added prerequisites.",
+    "Original collision/model fixture exclusions are retained and the old scan stays under the original branch. The ordinary source still owns sector-window arithmetic, tail-first enumeration, source/target exclusions, raw membership/flags and live state reads. This is not the complete physical-query extraction.",
+    "Debug collision-box drawing is explicitly dropped from the hosted candidate path; this is a diagnostic-scope change, not proof of global dormancy. draw_collision_boxes defaults false but has compiled debug-event toggles, and the top-level source-segment debug line remains before the new conditional. The prose should describe the declared unsupported diagnostic rather than rely on an unproved assertion that headless code can never select an external view. No renderer/UI port is requested."
+  ],
+  "retained_actual_direct_gate": {
+    "directory": "D:\\EECH-Migration-Evidence\\entity-scan-20261105-a\\gate",
+    "direct_steps": [
+      {
+        "name": "fmt",
+        "child_exit": 0
+      },
+      {
+        "name": "tests-four-crates",
+        "child_exit": 0
+      },
+      {
+        "name": "test-model-walk",
+        "child_exit": 0
+      },
+      {
+        "name": "test-tree-dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "test-entity-dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "build-collision-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-weapon-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-model-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-model-host-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-weapon-and-collision-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-four-crates",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-dc-collision",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-dc-weapon",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-dc-weapon-and-collision",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-engine-sys-tree-dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-engine-sys-entity-dialogue",
+        "child_exit": 0
+      }
+    ],
+    "container_exit": 0,
+    "test_result_rows": 65,
+    "passed": 1179,
+    "failed": 0,
+    "gate_log": {
+      "bytes": 273035,
+      "sha256": "45745eb715111c73e62d7c502dab95f7e36a407b9268347bcfb724b26552d807"
+    },
+    "source_receipts": {
+      "bytes_each": 468594,
+      "literal_equal": true,
+      "sha256": "a0467e6d9ce6fe75080d937936cd799d96b5322a800eff6b994d6ac1b2f8dac5",
+      "rows": 2915,
+      "raw_column_sha256": "e20e0e04a2838fd75d699f958f56385fd725018d4dcf19eb2d86a33d9b69809f",
+      "filtered_column_sha256": "53b81df004de0723b4eae97e580095791165ac6a879a2245b7e02050c745a561",
+      "qualification": "Raw working-byte and clean-filter identities remain distinct; the existing three pre-existing CRLF qualifications are retained. No source or accepted recording was normalized by this review."
+    },
+    "new_gate_scope": "Eight host-kernel tests including 400 generated worlds times six segments; 170 actual shared C-dialogue expectations; bounded bridge/callback tests and source-profile guards. The generated differential transcribes the original control flow and uses a synthetic narrowphase signature. It does not execute en_cllsn.c or validate the failing role/scene path through the store wrapper.",
+    "mutation_controls": {
+      "red_child_exits": [
+        101,
+        101,
+        101,
+        101,
+        101
+      ],
+      "summary_sha256": "143a84e2547f882c163c8e16c317981e1f6c5e4b3cf5374b811ab272987abd60",
+      "original_and_restored_kernel_sha256": "8e10cc7397487e30e4fd8805f632ede0723c18c0a49a4b82471b5e5c6c48ffda",
+      "restored_kernel_literal_equal": true,
+      "scope": "Five kernel mutants demonstrably fail the retained synthetic differential. They do not excuse the production-offer precondition finding."
+    },
+    "preserved_failed_gates": "Initial fmt/String-match compilation, stale script inventory/test Clippy and later DC-test Clippy failures remain separate from the final green gate; no failing shell/pipeline result is promoted to success."
+  },
+  "next_required_gate": [
+    "Correct both consolidated source groups in one bounded batch, run affected focused guards, and rejoin the exact source before native clearance. No known-bad campaign or unsafe portability experiment is requested.",
+    "After clearance, Root owns corrected Windows compilation, exact ordinary short comparison with retained 80fd and actual changed/withheld ENTITY_CANDIDATE public authority. Capture short-run wall time: one or more provider round trips per flagged candidate is a material performance change. None of these new native gates has yet run for 2d/420.",
+    "Reuse closed narrowphase 1ab, finite stationary authority ae1, TREE7ad and Task50/52 evidence at their original identities. No new full war is required for each internal helper; eventual complete Task49 shipping/delivery remains separate.",
+    "All required roster/enumeration/livepose work, raw loader/forest/cloud ownership, hierarchy/device/rotor/smoke consumers, host identities and DCS API/data mapping remain open. No whole Task49 or D3 closure is granted."
+  ],
+  "review_operations": "Read exact committed new source and retained evidence; wrote this new safe report only. No source edits, builds, tests, native launches, process/cache/VM actions, nested agents or external application writes.",
+  "publication_safety": "Counts, hashes and source/contract descriptions only; no retail geometry, coordinates, catalogue, allocation identities or pointers."
+}

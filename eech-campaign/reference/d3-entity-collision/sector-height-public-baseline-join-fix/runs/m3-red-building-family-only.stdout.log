@@ -1,0 +1,20 @@
+
+running 1 test
+test the_real_placement_map_in_the_staged_order_joins_every_placement_and_still_refuses_what_has_no_record ... FAILED
+
+failures:
+
+---- the_real_placement_map_in_the_staged_order_joins_every_placement_and_still_refuses_what_has_no_record stdout ----
+
+thread 'the_real_placement_map_in_the_staged_order_joins_every_placement_and_still_refuses_what_has_no_record' (4156) panicked at crates/eech-engine/tests/sector_height_funnel.rs:119:5:
+assertion `left == right` failed: sho-join records=6 link_total=6 link_fixed=5 link_city=1 link_mobile=0 links_joined=6 links_unjoined=0 stmt_joined=7 stmt_unjoined=0 stmt_type_mismatch=0 stmt_child=3 stmt_child_unexpected=0 double_insert=0 remove_unjoined=0 index_out_of_range=0
+  left: (7, 3, 0)
+ right: (9, 1, 0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_real_placement_map_in_the_staged_order_joins_every_placement_and_still_refuses_what_has_no_record
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,9 @@
+mutated helper: selftest exit 1, 24 FAIL lines
+FAIL: primary truncated: pinned bytes at dest
+FAIL: primary truncated: the primary was tried first, then the fallback
+FAIL: primary corrupt: pinned bytes at dest
+FAIL: primary corrupt: the primary was tried first, then the fallback
+FAIL: primary empty: pinned bytes at dest
+FAIL: primary empty: the primary was tried first, then the fallback
+FAIL: all sources fail (corrupt corrupt): exit 1
+FAIL: all sources fail (corrupt corrupt): both sources were tried

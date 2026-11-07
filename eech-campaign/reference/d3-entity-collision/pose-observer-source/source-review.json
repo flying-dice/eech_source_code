@@ -1,0 +1,345 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T16:51:19.865181+00:00",
+  "review": "One independent combined correctness, clean-code and boundary-safety source review of the NEW mobile ENTITY_POSE observer prerequisite, including its corrected formula classifier, transport, shared C dialogue and literal diagnostic. Read-only inspection; no reviewer source edits, builds, tests, engine launches, cache/process/VM/auth operations or subagents.",
+  "source": {
+    "base_commit": "31585104c93b086ce4da9ed8ca371454ff1257b6",
+    "runtime_commit": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+    "metadata_head_before_publication": "369560540ad21fb32eef23029fec8d97c4c015ac",
+    "commit": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+    "worktree": "R:\\d3-evidence\\collision-characterization-20261029",
+    "changed_code_paths": [
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/main.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/movement.rs",
+      "eech-campaign/crates/eech-world/src/reference_arithmetic.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/entity_pose_host.rs"
+    ],
+    "all_17_changed_code_paths_independently_raw_exact_to_committed_runtime": true,
+    "runtime_to_metadata_only_paths": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/reference/d3-entity-collision/entity-pose-observer-correction-gate-20261105.json"
+    ],
+    "source_binding": {
+      "path": "R:\\d3-evidence\\pose-observer-source-binding-369-runtime1f9a-20261105.json",
+      "bytes": 5127,
+      "sha256": "7a8a445ee41a9ac625e3de4a08ebafdf9734b12908c21a80655075669acfe3e0"
+    },
+    "freeze_record": {
+      "path": "R:\\d3-evidence\\mobile-pose-observer-CODE-FROZEN-20261105.json",
+      "bytes": 14721,
+      "sha256": "5876979720ff743654277e228695d195d84d914d8cd42b2e992f71931db38412"
+    },
+    "literal_witness": {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "a5eb38b6663072599315b84da4e4128e19d68530",
+      "bytes": 88493,
+      "sha256": "ef6186ee5930868b56e7d9091f2938256bf3b0b340d4e4f1448c671ccc4a6c1b"
+    },
+    "fresh_immutable_Windows_snapshot": {
+      "path": "D:\\EECH-Migration-Evidence\\pose-observer-production-1f9a939bc",
+      "HEAD": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+      "no_alternates_file": true,
+      "not_a_Windows_build_or_run_result": true
+    },
+    "current_uncommitted_publication_prose_paths": [
+      "STATUS.md",
+      "eech-campaign/docs/d3-entity-collision-provider.md"
+    ],
+    "qualification": "Root applied only the agreed eight-seeded-pattern prose wording to STATUS/provider documentation after the captured clean metadata head. This review binds runtime1f9a and prepublication369, not that dirty prose worktree as if it were compiled."
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_ONE_PLANNED_OBSERVER_CHARACTERIZATION",
+    "source_review_no_blocking_findings": true,
+    "native_launch_clearance": true,
+    "findings": [],
+    "clearance_scope": [
+      "Fresh clean immutable-source Windows ordinary and hosted builds with source/profile/payload seals",
+      "One fresh ordinary retained-argument short: literal comparison of all three complete outputs, inputs/payloads and observed walltime",
+      "One fresh hosted healthy natural observer characterization using the exact literal witness, with whole pre/post input checks and all payload identities"
+    ],
+    "observer_native_characterization_closed": false,
+    "physical_pose_authority_closed": false,
+    "moving_public_parity_or_authority_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "corrected_findings": [
+    {
+      "area": "Observer floating-point side effects",
+      "resolution": "The original diagnostic used ordinary f32 multiplication inside the unprotected model callback. It now retains observed words as u32 and compares stored floats by to_bits, and computes its formula classification in integer arithmetic only. No observed nonfinite word is used as a floating operand. The local observer no longer needs to change rounding, masks or sticky flags, and the separate physical movement arithmetic is unchanged."
+    },
+    {
+      "area": "Stage/held-vector truth",
+      "resolution": "The real C reply checker receives the request stage. An offer-stage attitude-difference bit is refused because those words were not read. DIFFERS_MOTION and NO_HELD_MOTION together are refused. Class/name presence, nonrecorded zero kind/mask, recorded nonzero kind and all numeric bounds remain checked. The former impossible mask31 positive was replaced with valid stage-specific cases; Lua witness validation follows the same exact contradictions."
+    },
+    {
+      "area": "Whole existing host-ID domain",
+      "resolution": "A separate char host_id[129] field is appended consistently in the private C request and repr(C) sys mirror, with corresponding Engine transport. C memset plus whole bounded copy carries every valid roster identity up to128 bytes with its terminator; a compile-time equality ties the limits to the actual roster domain. There is no silent127-byte skip/truncation. Nontermination/nontext/out-of-domain cases are refused;128-byte and multibyte positive cases cross the layers."
+    },
+    {
+      "area": "Source NULs",
+      "resolution": "The two newly introduced literal NULs in the isolated C control were replaced with textual backslash-zero character literals. The final C control blob has zero NUL bytes. Existing unrelated source NUL qualifications were not normalized."
+    },
+    {
+      "area": "Added reads and eligibility",
+      "resolution": "Documentation now declares the three additional read-only metadata reads per observation. Actual TYPE is a direct entity field, ALIVE reads the mobile alive field, and HOST_ID performs the read-only current-member lookup with its existing mapping-consistency assertion. The shared C control counts these separately. Its old physical-getter transcript is explicitly not an all-getter transcript. Only eligible non-city mobile sector candidates are observed; mobile-flagged city children are intentionally outside this observer."
+    },
+    {
+      "area": "Formula and histogram denominators",
+      "resolution": "The fixed formula is explicitly IEEE gradual-underflow RTZ (DAZ=FTZ=0), not arbitrary caller denormal behavior. The hardware oracle explicitly selects that masked profile then restores its saved word. Offer-level facts count stage0 observations only; attitude facts count stage1; pose_fact_observations counts both. Repeat offers of the same mobile remain repeat observations, not unique mobiles or records."
+    }
+  ],
+  "source_assessment": [
+    {
+      "area": "Physical decision/order boundary",
+      "finding": "The observer is beside existing position/motion reads and, when requested by the existing candidate dialogue, its attitude read. It copies already-read words; it does not request extra physical fields, skip a candidate, alter a first-hit decision, replace a model answer or write a pose/output. Valid unknown/unrecorded/retired/no-ID classifications remain observations rather than a missing-record physical refusal. The added observation protocol is validated; malformed observers and inconsistent mappings still fail by named boundary."
+    },
+    {
+      "area": "Single authoritative registry and lifetime",
+      "finding": "Main registers SharedMovers as another Rc handle to the exact Movers registry the movement callbacks bind, step and retire. The provider reads the current registry on each observation; it does not copy a pose cache, create/adopt a record or retire/rebind anything. Immutable try_borrow avoids a RefCell panic on an active mutable borrow, returning a named busy error. Borrowed host-ID and observation storage are copied into the synchronous bounded request before callback return; no Core pointer or allocation index crosses."
+    },
+    {
+      "area": "Word/ABI/semantic transport",
+      "finding": "Fifteen word patterns, stage, entity type, alive and the complete semantic ID are wired through C/sys/Engine/DC/World in the same order. The appended field is inspected in both C and repr(C) Rust. The provider parses the fixed-width bit-pattern prefix before the optional full ID suffix; signed zeros and signaling-NaN payload words remain words. A no-ID question is distinguished from a named unknown identity. Actual clean Windows/native crossing of this changed ABI is still a next gate, not inferred from the source or standins."
+    },
+    {
+      "area": "No new original-profile requirement",
+      "finding": "The observer belongs to the hosted entity offer. Explicit collision-fixture retains its original body and is included in the final Linux fixture builds, including weapon+collision. This finite observer source clearance does not require a third Original Windows/native matrix before the single healthy characterization."
+    },
+    {
+      "area": "Clean-code and scope",
+      "finding": "The integer classifier is small and separated from actual movement. Real shared C headers drive the collaborator tests, avoiding a second Core-service implementation. The extra reference-arithmetic write helper is used to set/restore test MXCSR profiles; the production host selector still changes only its existing RC bits. No old physical solver/cache was introduced for observer results."
+    }
+  ],
+  "integer_classifier_assessment": {
+    "contract": "For two finite IEEE f32 words, exact integer significand multiplication followed by round-toward-zero with gradual underflow; None for a nonfinite operand, which becomes a formula-difference observation. This is a reference-product diagnostic, not a new physical movement solver.",
+    "static_safety_and_math": [
+      "Finite significands are at most24 bits; their exact product fits48 bits in u64. Zero returns the XOR sign, preserving signed zero.",
+      "A normal result uses a significand length1..48, giving normalization shifts -23..24. The biased exponent selects normal packing or signed maxfinite saturation for RTZ overflow.",
+      "In the subnormal branch the exponent/length inequality bounds any left shift and the retained result to23 bits. A right shift of64 or more explicitly yields signed zero, avoiding invalid shifts; other shifts truncate toward zero.",
+      "The implementation performs no floating arithmetic and is independent of caller rounding/flags/masks. Its fixed gradual-underflow result deliberately does not emulate caller DAZ/FTZ flushing."
+    ],
+    "validation_scope": "The focused hardware comparison covers approximately3million finite operand pairs plus explicit zero/subnormal/normal/sign/overflow/underflow cases under a stated masked RTZ, DAZ=FTZ=0 oracle. It does not enumerate every possible pair. The observation-state test covers four rounding modes x eight seeded sticky-flag patterns x two mask configurations,64 MXCSR settings, including unmasked exceptions. The eight patterns are0, the six individual flags and0x3f; not all64 flag combinations. No new full public caller-FP/x87 matrix is claimed."
+  },
+  "diagnostic_witness_assessment": {
+    "mode": "Existing entity-authority.lua natural control, extended to observe prelaunch and armed phases and to emit sorted per-stage histograms. Exact Lua identity is pinned above.",
+    "joins": "Request/reply domains, stage-specific masks, no-ID/name relationship and before/after observation counts are checked. The natural probe requires a positive observation somewhere in the run and complete valid classification, not an expected count, a zero-difference oracle or a prescribed physical outcome.",
+    "denominators": "stage0=offer observations, including repeated offers of the same mobile; stage1=attitude comparisons for reached placements; observations=both stages. Offer-level class/dead/position/motion/formula/kind facts count stage0 only.",
+    "privacy": "The diagnostic raw output remains private because the existing case/cohort rows carry identities and physical terminal details. The future safe publication should use counts/hashes/verified joins only.",
+    "limits": "A difference says that the mirror and record differ, not which writer caused it. No difference proves nothing about unreached writers/pack/gunship/dependent routes. Mobile offer counts do not establish moving-candidate coverage; candidate_need_updated and actual moving questions retain that separate scope."
+  },
+  "final_direct_gate": {
+    "log": {
+      "path": "D:\\EECH-Migration-Evidence\\pose-fix-20261105-a\\final\\final.log",
+      "bytes": 61415,
+      "sha256": "23b6265704262e50bba9ac816f81bd49be6242451fc709f279499efe3437e2d2"
+    },
+    "runner_exit_record": {
+      "path": "D:\\EECH-Migration-Evidence\\pose-fix-20261105-a\\final\\runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    },
+    "actual_container_exit": 0,
+    "direct_commands": [
+      {
+        "name": "fmt_apply",
+        "actual_exit": 0
+      },
+      {
+        "name": "fmt_check",
+        "actual_exit": 0
+      },
+      {
+        "name": "check_four",
+        "actual_exit": 0
+      },
+      {
+        "name": "build_collision_fixture",
+        "actual_exit": 0
+      },
+      {
+        "name": "build_weapon_fixture",
+        "actual_exit": 0
+      },
+      {
+        "name": "build_model_fixture",
+        "actual_exit": 0
+      },
+      {
+        "name": "build_model_host_fixture",
+        "actual_exit": 0
+      },
+      {
+        "name": "build_weapon_and_collision",
+        "actual_exit": 0
+      },
+      {
+        "name": "dialogue",
+        "actual_exit": 0
+      },
+      {
+        "name": "engine_lib",
+        "actual_exit": 0
+      },
+      {
+        "name": "dc_lib",
+        "actual_exit": 0
+      },
+      {
+        "name": "movement",
+        "actual_exit": 0
+      },
+      {
+        "name": "pose_host",
+        "actual_exit": 0
+      },
+      {
+        "name": "entity_authority",
+        "actual_exit": 0
+      },
+      {
+        "name": "tree_authority",
+        "actual_exit": 0
+      },
+      {
+        "name": "host_callbacks",
+        "actual_exit": 0
+      },
+      {
+        "name": "clippy_four",
+        "actual_exit": 0
+      },
+      {
+        "name": "clippy_entity_dialogue",
+        "actual_exit": 0
+      }
+    ],
+    "direct_command_count": 18,
+    "test_result_rows": 8,
+    "tests_passed": 462,
+    "tests_failed": 0,
+    "target_pass_counts": {
+      "C_dialogue": 1,
+      "Engine_lib": 116,
+      "DC_lib": 64,
+      "World_movement_filtered_module": 144,
+      "entity_pose_host": 5,
+      "entity_authority": 33,
+      "unchanged_tree_authority": 17,
+      "host_callbacks": 82
+    },
+    "C_dialogue_expectations_actual_printed": 356,
+    "movement_tests_filtered_out": 200,
+    "scope": "Affected default checks, actual C shared dialogue, five relevant fixture compile profiles, focused changed-library/module/provider/witness targets, fmt and strict gates. This is not a corrected full four-crate test-suite rerun. The parent3ad/32e full16 gate/1220 tests remains parent-only evidence. No reviewer command reran tests or builds.",
+    "focused_mutants": {
+      "summary": {
+        "path": "D:\\EECH-Migration-Evidence\\pose-fix-20261105-a\\mutants\\summary.txt",
+        "bytes": 470,
+        "sha256": "6a24910b6fd441483130aae40d6cbca64af97dd75ae23a3d0e208fbb1e56efb4"
+      },
+      "five_targeted_actual_Cargo_exits": 101,
+      "wrapper_success_is_not_a_green_mutant": true,
+      "scope": "Replacement with hardware multiplication, omitted offer-attitude rejection, omitted held/no-held rejection, truncated ID and missing Lua stage fault each produced genuine failure and were restored at their own pre-final identities. The hardware-multiply mutant exercised SIGFPE under unmasked exceptions. No new broad mutation programme."
+    }
+  },
+  "source_binding_qualification": {
+    "post_gate_manifest": {
+      "path": "D:\\EECH-Migration-Evidence\\pose-fix-20261105-a\\source-after.txt",
+      "bytes": 466807,
+      "sha256": "21e905989ab91953d35a5a2b2ddcadb843a882f46c255bee97937352776f86f4"
+    },
+    "post_commit_manifest": {
+      "path": "D:\\EECH-Migration-Evidence\\pose-fix-20261105-a\\source-after-commit.txt",
+      "bytes": 465907,
+      "sha256": "20fc1b4e7ba4465d533e7cd69aba920c478d3f0b6e8dc4ec4f8862235e026772"
+    },
+    "post_gate_and_post_commit_raw_filtered_maps_independently_equal": true,
+    "input_rows": 2919,
+    "final_pre_gate_map_available": false,
+    "prior_12ce_manifest": {
+      "path": "D:\\EECH-Migration-Evidence\\pose-fix-20261105-a\\source-before.txt",
+      "bytes": 465907,
+      "sha256": "ebaafb98ac16c2ba729126061cd741c6f75c48159a3118eb85c08ecb61fef75b"
+    },
+    "prior_map_is_not_equal_and_is_not_final_pre_gate_evidence": true,
+    "actual_sequence": "The final run began with cargo fmt --all, then the named checks. No after-format/pre-check map was captured. Root/author observed no subsequent edits during the final run. The post-gate and post-commit maps and the17 changed code blobs are bound to the final commit.",
+    "explicit_nonclaims": [
+      "No full pre/post source-byte equality for this final gate",
+      "No immutable Linux build snapshot",
+      "No inference that post-gate equality alone proves every file read by every earlier command",
+      "No relabel of parent full-suite or earlier mutation/gate identities"
+    ],
+    "assessment": "The disclosed capture gap is retained rather than repaired by assertion. The inspected bounded final residual delta, reported source-edit stop, direct successful checks and exact post-gate/commit code binding are sufficient for the next fresh immutable Windows/native validation scope; they do not establish reproducible immutable Linux testing or native conformance.",
+    "root_enumerated_raw_Git_exact_inputs": 2916,
+    "all_2919_raw_equal_Git": false,
+    "separate_unchanged_testLua_working_CRLF_vs_Git_LF": [
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "tested_working_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+        "runtime_git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+        "tested_working_bytes": 3691,
+        "runtime_git_bytes": 3608,
+        "working_CRLF_count": 83,
+        "unchanged_since_base": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "tested_working_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+        "runtime_git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+        "tested_working_bytes": 5848,
+        "runtime_git_bytes": 5720,
+        "working_CRLF_count": 128,
+        "unchanged_since_base": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "tested_working_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+        "runtime_git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+        "tested_working_bytes": 3683,
+        "runtime_git_bytes": 3600,
+        "working_CRLF_count": 83,
+        "unchanged_since_base": true
+      }
+    ],
+    "separate_Core_clean_filter_exceptions_with_identical_raw_Git_bytes": [
+      "aphavoc/laa.c",
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h"
+    ],
+    "no_source_or_accepted_output_normalization": true
+  },
+  "remaining_prose_qualification": {
+    "pinned_runtime_doc": "Provider documentation at1f9a overstates the seeded flag coverage as every preexisting pattern. The actual test uses exactly eight patterns, as recorded above. Root has applied the agreed two-line wording fix to the provider document and current STATUS in pending publication metadata, without a C/Rust/Lua/test change.",
+    "status": "Nonblocking factual qualification recorded; no invented additional gate or all-flags claim."
+  },
+  "native_validation_still_unmeasured": [
+    "Clean source/profile/BUILDINFO and payload seals for the fresh ordinary+hosted Windows builds",
+    "The retained ordinary short with all three COMPLETE files compared literally, full retail input manifests and recorded walltime",
+    "The one healthy exact-literal observer run with semantic class/record/dead/mirror/motion/formula histograms and honest denominators",
+    "Any physical use of Host pose instead of the Core mirror; actual moving authority/parity or all-writer coverage"
+  ],
+  "required_remaining_scope": [
+    "Actual characterization before the planned Host-sourced pose cutover from the same Movers registry, with explicit disposition of missing/unrecorded/retired identities and mirror differences",
+    "Unreached pose writers, packet/pack/gunship/dependent carries and lifecycle/synchronization obligations",
+    "Core backing roster/sector lists, stable identities/live state, city children and effectful services",
+    "Required raw tree/forest/cloud, geometry/hierarchy/devices/muzzles/rotor/smoke and DCS mapping work",
+    "Eventual consolidated Task49 full pack/dependency/delivery and whole-D3 requirements"
+  ],
+  "closed_evidence_reused": "SCAN Source1a856 and finite authority5cab; Candidate Source673 and authority0e27; corrected narrowphase1ab/stationaryae1; TREE7ad; delivered Task50/52 shipping3fdf remain at their identities. They were not reopened, rerun or used as new mobile-pose coverage.",
+  "publication_safety": "Counts, source paths, Git/SHA identities and finite limits only; no raw retail coordinates/geometry/physical tuples, catalogue or cohort signatures, host-ID suffixes, entity indices/pointers, recordings, transcripts, assets, binaries or credentials."
+}

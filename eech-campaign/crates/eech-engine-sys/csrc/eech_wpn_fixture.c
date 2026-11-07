@@ -42,8 +42,10 @@
 
 #include "eech_engine.h"
 #include "eech_headless.h"
+#include "eech_mq_report.h"
 #include "entity/mobile/mb_wpnfx.h"
 #include "entity/mobile/mb_hostaim.h"
+#include "entity/mobile/mb_hostplace.h"
 
 #define SAMPLE_SLOTS 2
 #define SAMPLE_COUNT 256
@@ -1964,5 +1966,608 @@ int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, in
 		(unsigned long long) (trace.counters[C_birth_calls] - births_before), (unsigned long long) (trace.counters[C_launch_created] - created_before), restored);
 	return (n < 0 || n >= capacity) ? -1 : 0;
 }
+
+/*
+ * TEST-ONLY controlled moving ENTITY QUERY case (EEDCS-49, D3). Compiled only with `weapon-fixture`; it is neither a solver, a model nor an entity store. It asks the production
+ * get_line_of_sight_collision_entity (the function the compiled consumers call) a fixed finite set of questions about ONE real moving routed vehicle, so that the SAME caller can be
+ * exercised by the hosted module (host entity decisions) and by the original build (weapon-fixture with collision-fixture, which keeps the original solver).
+ *
+ *   prepare   the target is a roster host id (never a pointer). Its alive flag, type, collision-candidate flag, position and the model's radius and bounds are read and, if every one
+ *             is supported and finite, THREE segments are latched from the collision fixture's own structured moving-target recipe (eech_collision_fixture.c entity_struct_target:
+ *             bearings 0, 1 and 2, reach radius + 20 m, y at the middle of the model's bounding box without lines, centred on the entity's position at this moment). The position and the
+ *             model reads only construct the explicit query INPUTS; they are not an expected answer. An unsupported target or model (no bounds, a non-finite value, a kind other than a routed
+ *             vehicle, not collidable, not alive) is a named failure and latches nothing: it is never converted into a miss.
+ *   run       validates everything BEFORE the first query (the report capacity proved from the worst case of every report, a latched case, the identity still naming an alive routed vehicle),
+ *             then asks the production function for each of the three latched segments, exactly as the recipe does (no source, no target exclusion; the intercept point and the face normal
+ *             are zeroed locally first, which is not a physical oracle and is never read on a miss) and reports hit or miss, the kind and semantic host identity of a hit and, for a HIT only, the
+ *             intercept point and the face normal as bit patterns. A miss reports no output word: they are never read. The latch is consumed: a second run needs a new prepare. No pointer,
+ *             heap index or layout is stored or reported; the target is looked up again by its host id.
+ *             Every identity in a report is the ENCODED identity of eech_mq_report.h (reversible, no whitespace), so any roster identity of 1 to 128 bytes is reported exactly.
+ * The queries are the original production caller: the effects of its getters (the whole-word AND of the UPDATED flag and the shared terrain point record) happen exactly as in any scan and
+ * are neither observed nor restored here. Nothing is moved, created or destroyed.
+ */
+static const float mq_bearings[MQ_SEGMENTS] = { 0.5235988f, 2.0943951f, 3.6651914f };
+
+static struct
+{
+	int latched;
+	char host_id[MQ_ID_MAX + 1];
+	vec3d a[MQ_SEGMENTS];
+	vec3d b[MQ_SEGMENTS];
+} mq;
+
+static uint32_t mq_bits (float value)
+{
+	uint32_t bits;
+	memcpy (&bits, &value, sizeof (bits));
+	return bits;
+}
+
+static void mq_words (const vec3d *v, uint32_t words[3])
+{
+	words[0] = mq_bits (v->x);
+	words[1] = mq_bits (v->y);
+	words[2] = mq_bits (v->z);
+}
+
+static int mq_finite3 (const vec3d *v)
+{
+	return isfinite (v->x) && isfinite (v->y) && isfinite (v->z);
+}
+
+/* the refusal: a NAMED reason with the encoded identity, in the report buffer the engine entry returns with the non-poison argument status (the Rust bridge keeps it) */
+static int mq_error (char *text, int capacity, const char *reason, const char *host_id)
+{
+	char encoded[MQ_ID_ENCODED_MAX + 1];
+
+	mq.latched = 0;
+	if (host_id == NULL || mq_encode_id (host_id, encoded, sizeof (encoded)) < 0)
+	{
+		snprintf (encoded, sizeof (encoded), "-");
+	}
+	if (mq_format_error (text, (size_t) capacity, reason, encoded) < 0)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=capacity host_id=-\n");
+	}
+	return -1;
+}
+
+/* a defect of the report itself after the queries ran: a NAMED refusal replaces whatever was written, never a partial report that could be read as a result */
+static int mq_internal (char *text, int capacity, const char *reason)
+{
+	mq.latched = 0;
+	if (mq_format_error (text, (size_t) capacity, reason, "-") < 0)
+	{
+		text[0] = 0;
+	}
+	return -1;
+}
+
+/* the longest compiled entity type name, or -1 when one is longer than the report allows or holds a whitespace byte (the names are `ENTITY_TYPE_...`): every type a hit may report is bounded here */
+static int mq_type_names_max (void)
+{
+	int longest = 0, type;
+
+	for (type = 0; type < NUM_ENTITY_TYPES; type++)
+	{
+		const char *name = get_entity_type_name ((entity_types) type);
+		size_t length = name ? strlen (name) : 0, k;
+
+		if (length < 1 || length > MQ_TYPE_NAME_MAX)
+		{
+			return -1;
+		}
+		for (k = 0; k < length; k++)
+		{
+			if ((unsigned char) name[k] <= ' ' || (unsigned char) name[k] > '~')
+			{
+				return -1;
+			}
+		}
+		if ((int) length > longest)
+		{
+			longest = (int) length;
+		}
+	}
+	return longest;
+}
+
+/* the target's identity and kind checks shared by prepare and run: NULL and a reason when the id does not name a live, alive, collidable routed vehicle */
+static entity *mq_target (const char *host_id, const char **reason)
+{
+	entity *en = case_find (host_id);
+	if (!en)
+	{
+		*reason = "no_such_host_id";
+		return NULL;
+	}
+	if (en->type != ENTITY_TYPE_ROUTED_VEHICLE)
+	{
+		*reason = "target_kind_unsupported";
+		return NULL;
+	}
+	if (!get_local_entity_int_value (en, INT_TYPE_ALIVE))
+	{
+		*reason = "target_not_alive";
+		return NULL;
+	}
+	if (!get_local_entity_int_value (en, INT_TYPE_COLLISION_TEST_MOBILE))
+	{
+		*reason = "target_not_collidable";
+		return NULL;
+	}
+	return en;
+}
+
+/* the report capacity, proved from the worst case of EVERY report this case can produce (see eech_mq_report.h) before anything is read or queried */
+static int mq_capacity_refusal (char *text, int capacity)
+{
+	int type_max = mq_type_names_max ();
+
+	text[0] = 0;
+	if (type_max < 0 || !mq_capacity_holds (capacity, (size_t) type_max))
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=capacity host_id=-\n");
+		return -1;
+	}
+	return 0;
+}
+
+int eech_wpn_moving_query_prepare_run (const char *host_id, char *text, int capacity)
+{
+	const char *reason;
+	char encoded[MQ_ID_ENCODED_MAX + 1], line[MQ_REPORT_SCRATCH];
+	entity *en;
+	vec3d *position;
+	int index, k, n, used = 0;
+	float radius, reach, ymid;
+	object_3d_bounds *bounds;
+	uint32_t a[3], b[3];
+
+	mq.latched = 0;
+	if (mq_capacity_refusal (text, capacity))
+	{
+		return -1;
+	}
+	if (mq_encode_id (host_id, encoded, sizeof (encoded)) < 0)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=host_id_domain host_id=-\n");
+		return -1;
+	}
+	en = mq_target (host_id, &reason);
+	if (!en)
+	{
+		return mq_error (text, capacity, reason, host_id);
+	}
+	position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+	index = get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+	if (!position || !mq_finite3 (position) || index <= 0 || index >= OBJECT_3D_LAST)
+	{
+		return mq_error (text, capacity, "target_pose_unsupported", host_id);
+	}
+	radius = get_object_3d_radius ((object_3d_index_numbers) index);
+	bounds = get_object_3d_bounding_box_without_lines ((object_3d_index_numbers) index);
+	if (!bounds || !isfinite (radius) || !(radius > 0.0f) || !isfinite (bounds->ymin) || !isfinite (bounds->ymax))
+	{
+		return mq_error (text, capacity, "target_model_unsupported", host_id);
+	}
+	reach = radius + 20.0f;
+	ymid = position->y + ((bounds->ymin + bounds->ymax) * 0.5f);
+	for (k = 0; k < MQ_SEGMENTS; k++)
+	{
+		float sx = (float) sin (mq_bearings[k]), cz = (float) cos (mq_bearings[k]);
+		mq.a[k].x = position->x - (sx * reach);
+		mq.a[k].y = ymid;
+		mq.a[k].z = position->z - (cz * reach);
+		mq.b[k].x = position->x + (sx * reach);
+		mq.b[k].y = ymid;
+		mq.b[k].z = position->z + (cz * reach);
+		if (!mq_finite3 (&mq.a[k]) || !mq_finite3 (&mq.b[k]))
+		{
+			return mq_error (text, capacity, "segment_not_finite", host_id);
+		}
+	}
+	n = mq_format_prepare_header (line, sizeof (line), encoded, get_entity_type_name ((entity_types) en->type), mq_bits (radius));
+	if (n < 0 || n >= capacity - used)
+	{
+		return mq_error (text, capacity, "capacity", host_id);
+	}
+	memcpy (text + used, line, (size_t) n + 1);
+	used += n;
+	for (k = 0; k < MQ_SEGMENTS; k++)
+	{
+		mq_words (&mq.a[k], a);
+		mq_words (&mq.b[k], b);
+		n = mq_format_segment (line, sizeof (line), k, mq_bits (mq_bearings[k]), a, b);
+		if (n < 0 || n >= capacity - used)
+		{
+			return mq_error (text, capacity, "capacity", host_id);
+		}
+		memcpy (text + used, line, (size_t) n + 1);
+		used += n;
+	}
+	snprintf (mq.host_id, sizeof (mq.host_id), "%s", host_id);
+	mq.latched = 1;
+	return 0;
+}
+
+int eech_wpn_moving_query_run (char *text, int capacity)
+{
+	const char *reason;
+	char encoded[MQ_ID_ENCODED_MAX + 1], line[MQ_REPORT_SCRATCH];
+	entity *en;
+	int k, n, used = 0;
+
+	/* every check precedes the first query: the report capacity from the worst case of every report, the latch, and the identity (looked up again: no pointer was kept) naming an alive collidable routed vehicle */
+	if (mq_capacity_refusal (text, capacity))
+	{
+		return -1;
+	}
+	if (!mq.latched)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=not_latched host_id=-\n");
+		return -1;
+	}
+	en = mq_target (mq.host_id, &reason);
+	if (!en)
+	{
+		return mq_error (text, capacity, reason, mq.host_id);
+	}
+	if (mq_encode_id (mq.host_id, encoded, sizeof (encoded)) < 0)
+	{
+		return mq_error (text, capacity, "host_id_domain", NULL);
+	}
+	n = mq_format_run_header (line, sizeof (line), encoded);
+	if (n < 0 || n >= capacity - used)
+	{
+		return mq_error (text, capacity, "capacity", mq.host_id);
+	}
+	memcpy (text + used, line, (size_t) n + 1);
+	used += n;
+	mq.latched = 0;
+	for (k = 0; k < MQ_SEGMENTS; k++)
+	{
+		vec3d a = mq.a[k], b = mq.b[k], point, normal;
+		entity *hit;
+		const char *hit_id;
+		char encoded_hit[MQ_ID_ENCODED_MAX + 1];
+		uint32_t aw[3], bw[3], pw[3] = { 0, 0, 0 }, nw[3] = { 0, 0, 0 };
+
+		point.x = point.y = point.z = 0.0f;
+		normal.x = normal.y = normal.z = 0.0f;
+		hit = get_line_of_sight_collision_entity (NULL, NULL, &a, &b, &point, &normal);
+		mq_words (&mq.a[k], aw);
+		mq_words (&mq.b[k], bw);
+		encoded_hit[0] = 0;
+		if (hit)
+		{
+			hit_id = case_entity_live (hit) ? campaign_roster_host_id (hit) : NULL;
+			/* the intercept point and the face normal are assigned on a hit (the contract); on a miss nothing is read */
+			mq_words (&point, pw);
+			mq_words (&normal, nw);
+			if (hit_id && mq_encode_id (hit_id, encoded_hit, sizeof (encoded_hit)) < 0)
+			{
+				/* the roster domain is 1 to MQ_ID_MAX bytes, so this cannot hold; it is an internal defect, never a silent miss */
+				return mq_internal (text, capacity, "report_identity_defect");
+			}
+		}
+		n = mq_format_result (line, sizeof (line), k, hit != NULL, aw, bw, hit == en, hit ? get_entity_type_name ((entity_types) hit->type) : "none", encoded_hit[0] ? encoded_hit : NULL, pw, nw);
+		if (n < 0 || n >= capacity - used)
+		{
+			/* proved impossible before the first query (mq_capacity_refusal); a failure here is a defect of the bound */
+			return mq_internal (text, capacity, "report_bound_defect");
+		}
+		memcpy (text + used, line, (size_t) n + 1);
+		used += n;
+	}
+	return 0;
+}
+
+/*
+ * TEST-ONLY CITY box lifecycle witness (EEDCS-49, D3, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION). Compiled only with the `weapon-fixture` feature, like the moving query case above; never part of the shipping module and
+ * changing no production source and no default behaviour.
+ *
+ * It drives ONE real, bound CITY through the campaign's own shared services, so the changed placement map (mb_hostplacemap.h) and the host's real provider are exercised by the actual Core C, never replayed:
+ *   1. SELECT (a pure function of the loaded world, no random draw and no search): the first CITY, in the sector scan order the collision probe uses, that holds at least one building (at most CL_MAX_BUILDINGS),
+ *      whose mirrored bounding box is a BUILT box (every axis minimum at or below its maximum, not the original's inverted initial box) and whose sector placement the host holds a key for.
+ *   2. QUERY (the consuming path): the unchanged get_line_of_sight_collision_entity, the function the compiled consumers call, along one horizontal segment through the middle of the city's box; its answer is kept.
+ *   3. DRAIN: every building is unlisted from the city by the real list funnel (delete_local_entity_from_parents_child_list), head first: the city is EMPTY and holds no list.
+ *   4. EMPTY RELINK and RESTORE: the shared fixed-position setter (set_local_entity_vec3d, VEC3D_TYPE_POSITION) moves the city one sector over and back: each move is a real removal and a real insertion, with the
+ *      host's retained record continued by the campaign's LINK and the position and mirrored box stated again.
+ *   5. RELIST: every building is listed again by the real funnel, in the reverse order, so the city's own list is the same list; each link asks the host to expand the box.
+ *   6. QUERY again, along the same segment: the answer must equal the first.
+ * The report states the selection, both answers, whether each relink produced a new host-keyed placement, whether the city's list order and its mirrored box words are as they were, and that the city now stands at the
+ * END of its sector's list (a relink always does: the original list order is not restorable by the real funnel, so this witness is a TERMINAL one and is never followed by a physical run).
+ * Nothing is read or written about the host here: every host answer is the real provider's, and a refusal stops the engine by name through the campaign's own exchange. A prerequisite that does not hold writes
+ * `wpn-city-lifecycle-unreached reason=...` BEFORE anything is changed and returns normally: it is never a pass.
+ */
+#define CL_MAX_BUILDINGS 256
+#define CL_REPORT_MIN 4096
+
+struct cl_answer
+{
+	int hit;
+	entity *who;
+	const char *kind;
+	uint32_t point[3], normal[3];
+};
+
+static int cl_unreached (char *text, int capacity, const char *reason)
+{
+	snprintf (text, (size_t) capacity, "wpn-city-lifecycle-unreached reason=%s\n", reason);
+	return 0;
+}
+
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+static void cl_query (const vec3d *from, const vec3d *to, struct cl_answer *answer)
+{
+	vec3d a = *from, b = *to, point, normal;
+
+	point.x = point.y = point.z = 0.0f;
+	normal.x = normal.y = normal.z = 0.0f;
+	answer->who = get_line_of_sight_collision_entity (NULL, NULL, &a, &b, &point, &normal);
+	answer->hit = (answer->who != NULL);
+	answer->kind = answer->who ? get_entity_type_name ((entity_types) answer->who->type) : "none";
+	/* the contract: the intercept point and the face normal are assigned on a hit only, so a miss reports none (the words stay zero and print as "-") */
+	memset (answer->point, 0, sizeof (answer->point));
+	memset (answer->normal, 0, sizeof (answer->normal));
+	if (answer->hit)
+	{
+		mq_words (&point, answer->point);
+		mq_words (&normal, answer->normal);
+	}
+}
+
+/* three raw words as the report prints them: "0xXXXXXXXX,0xXXXXXXXX,0xXXXXXXXX", or "-" when there are none (a miss) */
+static void cl_triple (char *out, size_t size, int present, const uint32_t *words)
+{
+	if (!present)
+	{
+		snprintf (out, size, "-");
+		return;
+	}
+	snprintf (out, size, "0x%08x,0x%08x,0x%08x", (unsigned int) words[0], (unsigned int) words[1], (unsigned int) words[2]);
+}
+
+static int cl_same (const struct cl_answer *x, const struct cl_answer *y)
+{
+	return (x->hit == y->hit) && (x->who == y->who) && (memcmp (x->point, y->point, sizeof (x->point)) == 0) && (memcmp (x->normal, y->normal, sizeof (x->normal)) == 0);
+}
+
+/* a built box: finite, every minimum at or below its maximum, and not the inverted initial box (minimum 1.0e6, maximum -1.0e6) a city holds until its first building links */
+static int cl_box_built (const vec3d *min, const vec3d *max)
+{
+	return mq_finite3 (min) && mq_finite3 (max) && !(min->x > max->x) && !(min->y > max->y) && !(min->z > max->z) && !(min->x >= 1.0e6f);
+}
+
+/* one sector over, by the sector the city stands in: east when it exists, else west, else south, else north; none when the map is one sector */
+static int cl_neighbour (const vec3d *position, vec3d *to)
+{
+	int x, z;
+
+	get_x_sector (x, position->x);
+	get_z_sector (z, position->z);
+	*to = *position;
+	if ((x + 1) < NUM_MAP_X_SECTORS)
+	{
+		to->x = position->x + (float) SECTOR_SIDE_LENGTH;
+	}
+	else if (x > 0)
+	{
+		to->x = position->x - (float) SECTOR_SIDE_LENGTH;
+	}
+	else if ((z + 1) < NUM_MAP_Z_SECTORS)
+	{
+		to->z = position->z + (float) SECTOR_SIDE_LENGTH;
+	}
+	else if (z > 0)
+	{
+		to->z = position->z - (float) SECTOR_SIDE_LENGTH;
+	}
+	else
+	{
+		return 0;
+	}
+	return mq_finite3 (to);
+}
+
+static int cl_emit (char *text, int capacity, int *used, const char *format, ...) __attribute__ ((format (printf, 4, 5)));
+
+static int cl_emit (char *text, int capacity, int *used, const char *format, ...)
+{
+	va_list arguments;
+	int n;
+
+	va_start (arguments, format);
+	n = vsnprintf (text + *used, (size_t) (capacity - *used), format, arguments);
+	va_end (arguments);
+	if (n < 0 || n >= capacity - *used)
+	{
+		return -1;
+	}
+	*used += n;
+	return 0;
+}
+
+static int cl_find (entity **city_out, entity **buildings, int *count_out)
+{
+	int x, z;
+
+	for (x = 0; x < NUM_MAP_X_SECTORS; x++)
+	{
+		for (z = 0; z < NUM_MAP_Z_SECTORS; z++)
+		{
+			entity *sector = entity_sector_map[x + (z * NUM_MAP_X_SECTORS)];
+			entity *en;
+
+			if (!sector)
+			{
+				continue;
+			}
+			for (en = get_local_entity_first_child (sector, LIST_TYPE_SECTOR); en; en = get_local_entity_child_succ (en, LIST_TYPE_SECTOR))
+			{
+				entity *building;
+				vec3d min, max;
+				int n = 0;
+
+				if ((get_local_entity_type (en) != ENTITY_TYPE_CITY) || !get_local_entity_first_child (en, LIST_TYPE_CITY_BUILDING))
+				{
+					continue;
+				}
+				get_local_entity_vec3d (en, VEC3D_TYPE_BOUNDING_BOX_MIN, &min);
+				get_local_entity_vec3d (en, VEC3D_TYPE_BOUNDING_BOX_MAX, &max);
+				if (!cl_box_built (&min, &max) || !campaign_place_key (en, 0)[0])
+				{
+					continue;
+				}
+				for (building = get_local_entity_first_child (en, LIST_TYPE_CITY_BUILDING); building; building = get_local_entity_child_succ (building, LIST_TYPE_CITY_BUILDING))
+				{
+					if (n >= CL_MAX_BUILDINGS)
+					{
+						break;
+					}
+					buildings[n++] = building;
+				}
+				if (n >= CL_MAX_BUILDINGS)
+				{
+					continue;
+				}
+				*city_out = en;
+				*count_out = n;
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+int eech_wpn_city_lifecycle_run (char *text, int capacity)
+{
+	entity *city = NULL, *buildings[CL_MAX_BUILDINGS];
+	struct cl_answer before, after;
+	vec3d position, moved, box_min, box_max, from, to;
+	uint32_t min_words[3], max_words[3], min_after_words[3], max_after_words[3];
+	char key_start[32], key_empty[32], key_restored[32];
+	char min_text[40], max_text[40], min_after_text[40], max_after_text[40], before_point[40], before_normal[40], after_point[40], after_normal[40];
+	int count = 0, used = 0, i, keyed_empty, keyed_restored, order_restored = 1, box_equal;
+	entity *walk;
+
+	if (capacity < CL_REPORT_MIN)
+	{
+		snprintf (text, (size_t) capacity, "wpn-city-lifecycle-error reason=capacity\n");
+		return -1;
+	}
+	text[0] = 0;
+	if (!cl_find (&city, buildings, &count))
+	{
+		return cl_unreached (text, capacity, "no_bound_city_with_a_built_box_and_buildings");
+	}
+	{
+		vec3d *at = get_local_entity_vec3d_ptr (city, VEC3D_TYPE_POSITION);
+
+		if (!at || !mq_finite3 (at))
+		{
+			return cl_unreached (text, capacity, "city_position_not_finite");
+		}
+		position = *at;
+	}
+	if (!cl_neighbour (&position, &moved))
+	{
+		return cl_unreached (text, capacity, "no_neighbour_sector");
+	}
+	get_local_entity_vec3d (city, VEC3D_TYPE_BOUNDING_BOX_MIN, &box_min);
+	get_local_entity_vec3d (city, VEC3D_TYPE_BOUNDING_BOX_MAX, &box_max);
+	mq_words (&box_min, min_words);
+	mq_words (&box_max, max_words);
+	/* one horizontal segment through the middle of the city's box (the box is relative to the city's position), 20 m beyond it on each side */
+	from.x = position.x + box_min.x - 20.0f;
+	to.x = position.x + box_max.x + 20.0f;
+	from.y = to.y = position.y + ((box_min.y + box_max.y) * 0.5f);
+	from.z = to.z = position.z + ((box_min.z + box_max.z) * 0.5f);
+	if (!mq_finite3 (&from) || !mq_finite3 (&to))
+	{
+		return cl_unreached (text, capacity, "segment_not_finite");
+	}
+	snprintf (key_start, sizeof (key_start), "%s", campaign_place_key (city, 0));
+
+	/* 2. the consuming query, before anything changes */
+	cl_query (&from, &to, &before);
+
+	/* 3. drain: every building leaves the city's list through the real funnel */
+	for (i = 0; i < count; i++)
+	{
+		delete_local_entity_from_parents_child_list (buildings[i], LIST_TYPE_CITY_BUILDING);
+	}
+
+	/* 4. the empty city's relink and its restore, through the shared fixed-position setter */
+	set_local_entity_vec3d (city, VEC3D_TYPE_POSITION, &moved);
+	snprintf (key_empty, sizeof (key_empty), "%s", campaign_place_key (city, 0));
+	keyed_empty = key_empty[0] != 0;
+	set_local_entity_vec3d (city, VEC3D_TYPE_POSITION, &position);
+	snprintf (key_restored, sizeof (key_restored), "%s", campaign_place_key (city, 0));
+	keyed_restored = key_restored[0] != 0;
+
+	/* 5. relist in the reverse order (each insertion is at the head), so the city's own list is the list it was */
+	for (i = count - 1; i >= 0; i--)
+	{
+		insert_local_entity_into_parents_child_list (buildings[i], LIST_TYPE_CITY_BUILDING, city, NULL);
+	}
+	for (i = 0, walk = get_local_entity_first_child (city, LIST_TYPE_CITY_BUILDING); i < count; i++, walk = walk ? get_local_entity_child_succ (walk, LIST_TYPE_CITY_BUILDING) : NULL)
+	{
+		if (walk != buildings[i])
+		{
+			order_restored = 0;
+		}
+	}
+	if (walk)
+	{
+		order_restored = 0;
+	}
+
+	/* 6. the same query again */
+	cl_query (&from, &to, &after);
+	get_local_entity_vec3d (city, VEC3D_TYPE_BOUNDING_BOX_MIN, &box_min);
+	get_local_entity_vec3d (city, VEC3D_TYPE_BOUNDING_BOX_MAX, &box_max);
+	mq_words (&box_min, min_after_words);
+	mq_words (&box_max, max_after_words);
+	box_equal = (memcmp (min_words, min_after_words, sizeof (min_words)) == 0) && (memcmp (max_words, max_after_words, sizeof (max_words)) == 0);
+
+	cl_triple (min_text, sizeof (min_text), 1, min_words);
+	cl_triple (max_text, sizeof (max_text), 1, max_words);
+	cl_triple (min_after_text, sizeof (min_after_text), 1, min_after_words);
+	cl_triple (max_after_text, sizeof (max_after_text), 1, max_after_words);
+	cl_triple (before_point, sizeof (before_point), before.hit, before.point);
+	cl_triple (before_normal, sizeof (before_normal), before.hit, before.normal);
+	cl_triple (after_point, sizeof (after_point), after.hit, after.point);
+	cl_triple (after_normal, sizeof (after_normal), after.hit, after.normal);
+	/* the SELECTED city is named by the host's key of its sector placement when it was chosen (a roster key: a decimal the host issued, never a pointer or an index), so the driver can bind the whole witness to that one record */
+	if (cl_emit (text, capacity, &used, "wpn-city-lifecycle-selected buildings=%d placement_key=%s box_min=%s box_max=%s host_keyed=%d\n", count, key_start, min_text, max_text, key_start[0] != 0) ||
+		cl_emit (text, capacity, &used, "wpn-city-lifecycle-query phase=before hit=%d kind=%s point=%s normal=%s\n", before.hit, before.kind, before_point, before_normal) ||
+		cl_emit (text, capacity, &used, "wpn-city-lifecycle-relink empty_keyed=%d empty_key_changed=%d restored_keyed=%d restored_key_changed=%d\n", keyed_empty, strcmp (key_empty, key_start) != 0, keyed_restored,
+			strcmp (key_restored, key_empty) != 0) ||
+		cl_emit (text, capacity, &used, "wpn-city-lifecycle-query phase=after hit=%d kind=%s point=%s normal=%s\n", after.hit, after.kind, after_point, after_normal) ||
+		cl_emit (text, capacity, &used, "wpn-city-lifecycle-result query_equal=%d list_order_restored=%d mirror_box_equal=%d box_min_after=%s box_max_after=%s sector_order_changed=1 terminal=1\n", cl_same (&before, &after),
+			order_restored, box_equal, min_after_text, max_after_text))
+	{
+		snprintf (text, (size_t) capacity, "wpn-city-lifecycle-error reason=report_bound_defect\n");
+		return -1;
+	}
+	return 0;
+}
+
+#else
+
+int eech_wpn_city_lifecycle_run (char *text, int capacity)
+{
+	if (capacity < CL_REPORT_MIN)
+	{
+		snprintf (text, (size_t) capacity, "wpn-city-lifecycle-error reason=capacity\n");
+		return -1;
+	}
+	return cl_unreached (text, capacity, "not_a_host_asking_build");
+}
+
+#endif
 
 #endif

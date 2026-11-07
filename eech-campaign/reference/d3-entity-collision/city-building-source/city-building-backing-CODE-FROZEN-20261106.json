@@ -1,0 +1,991 @@
+{
+ "schema": "city-building-backing-CODE-FROZEN/v1",
+ "written_utc": "2026-11-06T03:13:43Z",
+ "lane": "Sonnet 5.5 High, the same implementation lane (Task49/PR109)",
+ "status": "UNREVIEWED CODE_FROZEN. Focused Linux checks only. Not a native clearance, not the actual control, not a Task49/D3 acceptance. The new C is compile-checked and exercised by the isolated dialogue control over the REAL placement map, but NO real engine has run it.",
+ "branch": "codex/d3-object-tree-collision",
+ "worktree": "R:/d3-evidence/collision-characterization-20261029",
+ "newCodeSHA": "2541843d13fb666299f1dbd4551f233e46e986ce",
+ "actual_direct_parent_git_rev_parse": "98c39c35b7d8ee16b9982248b4db277857b09b78",
+ "metadataSHA": "7e0026b087927a3576dfbf901bcdbbd87a4d9bb6",
+ "metadata_delta_over_code": [
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json"
+ ],
+ "pushed": "normal pushes, no force; code before metadata",
+ "progress_guard": "migration-progress.py --action fix-blocker --blocker entity-object-collision: next_action fix-blocker, exit 0 (before the work and after the metadata); the preparation counter was not reset",
+ "what_moved_to_the_host": [
+  "the city building list (LIST_TYPE_CITY_BUILDING): its membership and ORDER (insertion at the head or after a predecessor; a scan walks head to tail), through the one funnel en_list.c; the scan's city traversal (mb_hostoffer.h, bound in en_cllsn.c) asks the host for the first building and the one after each; the campaign's list at the same place is only the conformance mirror (entity_scan.city_mirror, city_key, city_parent: named stops, never an end, a miss or a fallback)",
+  "one canonical record per structure (eech-world roster.rs): a building's place in its city's list and its sector placement are declared the same entity (LINK, as soon as the second exists, in either order); the record is named by the legacy object-report identity at the point campaign_object_identify issues it (NAME, after the unchanged request and serial: lazy timing and the counter are unchanged, nothing is allocated earlier); a relink of a named structure names its new placement again (NAME, or the LINK to the child that still holds the record)",
+  "ownership rules in the host: one placement of each kind per record; an identity names one record and ends with the record's last placement; a city's own sector placement cannot leave its list while a building is listed under it (the campaign destroys the buildings first, as ct_dstry asserts)"
+ ],
+ "what_remains_required": [
+  "the tallest structure of a sector; every entity's shape, collision flags, live flags and static pose (the offer still reads them from the campaign's entities); hierarchy and sub-objects",
+  "UPDATED and terrain-normal effectful services and the shared terrain record",
+  "the other readers of the city list that still read the campaign's own list: the blast windows (explosn.c), cover (gd_cover.c), drawing (ct_draw.c), tacview; the campaign's list bookkeeping (LINK/UNLINK notifications) stays in EECH_DC",
+  "raw tree/forest/cloud RNG, devices/muzzles/rotor/smoke, the DCS needed-only mapping, natural moving weapon, complete Task49 40/all8, CI, review and normal merge, all ten D3 requirements; D4/D5/TypeScript unstarted",
+  "an object identity whose length leaves no room beside its key in the 128-byte identity place is a named stop (host-issued identities are far shorter): a stated limit, not a supported-path refusal"
+ ],
+ "complete_contract": {
+  "traced_writers": {
+   "creator": "cb_creat.c insert_local_entity_into_parents_child_list (en, LIST_TYPE_CITY_BUILDING, raw->city_building_link.parent, raw->city_building_link.child_pred) BEFORE the sector insertion; popread.c creates each city (ct_creat.c inserts it into its sector at the end of its creation) before its buildings, passes ENTITY_ATTR_PARENT (LIST_TYPE_CITY_BUILDING, city) and NO predecessor (no ENTITY_ATTR_CHILD_PRED names this list anywhere), so every building goes to the head and the walk order is newest first",
+   "destroyers": "cb_dstry.c (sector delete first, then the city list delete, then set_free_entity); ct_dstry.c destroys the children through it before the city's own sector deletion (ASSERT first_child == NULL)",
+   "unpack_restore": "no pack or unpack route carries the list: the city block of a session stores only the buildings' alive state and the list links are never packed; the buildings are created by popread before any unpack",
+   "relink": "the sector relink of a fixed entity (fx_vec3d.c) deletes and inserts the SECTOR list only; the city list is not touched",
+   "release_reset": "place_release_entity removes a still-listed building (city list first, then the sector placement) from the keys recorded at the insertion; a boot (place_reset) clears the campaign's keys and the host's roster, lists and records"
+  },
+  "wire": "ENTITY_SCAN question, phases 7 CHILD_INSERT (identity: parent key, or parent key and predecessor key; the entity type in fact 3), 8 CHILD_REMOVE (parent and child), 9 CHILD_FIRST (parent), 10 CHILD_NEXT (parent and child), 11 LINK (sector placement and child), 12 NAME (placement key, one space, the object identity); every other fact zero; replies: next (first/next building, empty at the end), placed (the key issued, or the key linked/named echoed), removed; the FFI, engine and dc layers are unchanged (the existing states carry them)",
+  "validation_order": "C: the identity place grammar (keys, count, object identity text, 128-byte field) before anything is sent; host: every word by integer classification (no FP), then every key against the live roster and its parent relation BEFORE anything is served or changed; the standing-key rules of ENTRY and RESOLVED are unchanged; the reply is checked completely in C (state per phase, key rules, echoes, no cursor)",
+  "preserved": "city and child first-found order (host list head first, mirror-compared), city-level versus child exclusions and windows/depth/cursors (the kernel and the candidate dialogue are unchanged), parent/child construction order (the parent's sector placement is required and named when absent), the lazy object-identity timing and counter, no RNG, FPU state, or pointer/layout exposure, and one record per entity (no second store)"
+ },
+ "distinguishing_backing_dependence_control": {
+  "specified_before_implementation": true,
+  "mode": "withdrawn_child (entity-authority.lua, test-only; the same pattern as the closed withdrawn_backing)",
+  "behaviour": "at the first real city traversal reply that serves a building, the driver sends the host's own REMOVE of that building (phase 8, the city's key and the building's) to the SAME real provider, requires `removed`, hands the reply on unchanged (the campaign's lists, the building and its physics are untouched), counts the withdrawal apart; the traversal's next question stands at the ended building and the provider refuses it by name",
+  "credit": "marker entity_scan.refused AND the withdrawal acknowledged AND the question after it was child_next AND the failure line names '[roster.child]' and 'has ended' AND request_faults 0 AND the only reply fault the host's refusal; never an arbitrary exit; reported safely as city_withdrawn, city_withdrawn_next, city_withdrawn_cause (no key, entity or physical data)",
+  "old_core_backed_cannot_pass": "an old Core-backed traversal asks the host no city question: city_served is 0 and the mode returns UNREACHED ('the case holds no city traversal'); the same flight shape is the negative test that is green here. Generic scan_none/withheld modes override above the lookup and prove no new backing.",
+  "native_prerequisite": "the default fixed case may hold no city whose box the scan meets: then the driver reports the finite prerequisite UNREACHED with the city counts; no actor, time or geometry hunt, no guessed result, and no criterion was weakened. Root runs one matched healthy control (reports city_*) and the specific mode after the source review."
+ },
+ "new_proof_plan_for_root": [
+  "source review of the 18 changed files (C, Rust, Lua, tests) by the same reviewer; the hosted C is compile-checked only here",
+  "Windows hosted/Original/ordinary builds on the immutable frozen source",
+  "matched native pair: healthy `control` (counts city events and buildings served) and `withdrawn_child` (credited only by the exact reached withdrawal and named refusal), or the finite UNREACHED",
+  "the ordinary short and complete 40/all8 byte-equality against the accepted baseline, as for the sector roster; the city traversal adds host questions but no physical change"
+ ],
+ "tests_actual": {
+  "red_before_the_authority_existed": [
+   {
+    "label": "qcity-red-c-guard",
+    "command": "cargo test --release --locked -p eech-engine-sys --test entity_roster_guard --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T03:05:11.375472+00:00",
+    "completed_utc": "2026-11-06T03:06:27.484684+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-red-c-guard.json",
+     "bytes": 974,
+     "sha256": "c005f11c9756ba4df1c0ecfdd80a0ffb376d6b18633949c55578eec0dad058d6"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-red-c-guard.stdout.log",
+     "bytes": 1351,
+     "sha256": "96a67210c8b7ce13827c6af42caf62f4b4424da73fd5243965ddf62d5e081344"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-red-c-guard.stderr.log",
+     "bytes": 445,
+     "sha256": "8480c76dca0ed3f4220e9365300ad5fa6a6646f461fc5138806e0b43b7abaeb6"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 5,
+      "failed": 1
+     }
+    ],
+    "failed_tests": [
+     "every_write_to_the_city_building_list_goes_through_the_funnel_and_a_scan_reads_the_hosts_list"
+    ]
+   },
+   {
+    "label": "qcity-red-provider-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T03:04:50.140195+00:00",
+    "completed_utc": "2026-11-06T03:05:01.307628+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-red-provider-authority.json",
+     "bytes": 958,
+     "sha256": "77276daf80fc42c9088749170b9eafe7eb754741a4ffab8efb06b985a36eae7f"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-red-provider-authority.stdout.log",
+     "bytes": 18462,
+     "sha256": "b6cd5cda86ea67227fef4d23c4ed3ff4dd221fbce3e6b2bd4d2f8182c2d9bea1"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-red-provider-authority.stderr.log",
+     "bytes": 11669,
+     "sha256": "c4c10197d36df966792d4f0d6a30bb0e22d66dff37065b3aa5ffe33f98e9b4c4"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 58,
+      "failed": 3
+     }
+    ],
+    "failed_tests": [
+     "a_city_traversal_served_by_the_real_provider_is_a_healthy_control_with_the_city_events_counted_apart",
+     "each_single_fault_of_the_city_grammar_is_counted_at_its_question_and_is_never_a_pass",
+     "withdrawing_the_served_building_by_the_hosts_real_remove_makes_the_next_building_question_refused_by_name"
+    ]
+   }
+  ],
+  "red_explanations": {
+   "qcity-red-provider-authority": "the NEW tests and fixture against the OLD provider (model_host.rs and roster.rs stashed from HEAD): 58 passed, 3 failed: the city traversal and its events are refused by the old provider as scan questions ('fact 6 ... within 1..16777216'), the fault table fails at its first case, and withdrawn_child returns UNREACHED with 0 city questions (the old-style flight): the missing authority, not setup",
+   "qcity-red-c-guard": "the NEW source guard against the OLD C (the ten C files stashed from HEAD): 5 passed, 1 failed: 'en_list.c insertion: campaign_place_child_insert (en, parent, pred); is not there' (the funnel did not report the city list). The new C dialogue control cannot compile against the old C (its offer macros are new), so the C red is the guard."
+  },
+  "intermediate_runs_kept": [
+   {
+    "label": "qcity-fmt-apply",
+    "command": "cargo fmt -p eech-world -p eech-engine-sys",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T03:07:33.826529+00:00",
+    "completed_utc": "2026-11-06T03:07:37.348877+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-fmt-apply.json",
+     "bytes": 876,
+     "sha256": "24fe3674f6b4def4d5a4962fdc96a2142ce38f7254f09fc8dbd7ecb00278522b"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-fmt-apply.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-fmt-apply.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-g1-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T03:04:06.893448+00:00",
+    "completed_utc": "2026-11-06T03:04:12.753105+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-authority.json",
+     "bytes": 959,
+     "sha256": "ce70e3d3321d817eb1324d103b291e4577247e06bf6526d1be246cee57783e09"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-authority.stdout.log",
+     "bytes": 11567,
+     "sha256": "e1e0a796eed0de31b9fe4a430da5aa77acc1a99ddfae54b5bbeb0dfe4877543e"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-authority.stderr.log",
+     "bytes": 11852,
+     "sha256": "fb41e22fad45a9433f29d100ea14dc9458e9ba7061a15fbd7c77829f0d389589"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 60,
+      "failed": 1
+     }
+    ],
+    "failed_tests": [
+     "a_city_traversal_served_by_the_real_provider_is_a_healthy_control_with_the_city_events_counted_apart"
+    ]
+   },
+   {
+    "label": "qcity-g1-check",
+    "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:57:22.087775+00:00",
+    "completed_utc": "2026-11-06T02:57:28.029736+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-check.json",
+     "bytes": 971,
+     "sha256": "ee8a77f7d3ba9ea62e99ffcc49ed08de00a0c6e4f467229847a3f48206cd4408"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-check.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-check.stderr.log",
+     "bytes": 390,
+     "sha256": "725c49b42f4a7f6f8fbb728b8aa363bf030675fea559b3d94b926d18b976288a"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-g1-dialogue",
+    "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:50:34.177553+00:00",
+    "completed_utc": "2026-11-06T02:51:44.182917+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-dialogue.json",
+     "bytes": 1030,
+     "sha256": "1d3e0e59dd89379b7c32d2857b1d8374edb10cd1dd761a6b5953e70419bec936"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-dialogue.stdout.log",
+     "bytes": 232,
+     "sha256": "4a38145499dcae56086789f48f4ae2fd134164183a4b93f1fb66398756c2181a"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-dialogue.stderr.log",
+     "bytes": 279,
+     "sha256": "0b0e352f806ece177b5afaf1718f0b0c100cac14859678ad2d8c1d26c7bdfce5"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 1,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-g1-guard",
+    "command": "cargo test --release --locked -p eech-engine-sys --test entity_roster_guard --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:56:00.834175+00:00",
+    "completed_utc": "2026-11-06T02:57:13.438706+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-guard.json",
+     "bytes": 972,
+     "sha256": "60bb3d5ff8a36f40b3193322c324afd9508982b7d2bb51137654e1660e140b70"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-guard.stdout.log",
+     "bytes": 766,
+     "sha256": "0c1e5df07931f350ee8046a313476f49a854ec62e389c9721c5ee10ac8eba2c4"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-guard.stderr.log",
+     "bytes": 287,
+     "sha256": "615c5eaff20dd9a5337f63c9117f6f61669ae97da25d51a9a1b531d7573915a6"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 6,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-g1-roster-host",
+    "command": "cargo test --release --locked -p eech-world --test entity_roster_host --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T02:43:57.879841+00:00",
+    "completed_utc": "2026-11-06T02:44:08.053284+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-roster-host.json",
+     "bytes": 963,
+     "sha256": "6d91dd956fa1f13f1040dfdc4f25e1101d98157398761e92bec3877351f66d0e"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-roster-host.stdout.log",
+     "bytes": 2051,
+     "sha256": "a980c6410932242d7ccf89957ba7ea488f87938ffb7e80107f62ac571bd750ab"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g1-roster-host.stderr.log",
+     "bytes": 420,
+     "sha256": "6d9fcd021ffe619fbe4bf2a5efa296c9326918bee2a10285592f78eebaea1557"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 12,
+      "failed": 1
+     }
+    ],
+    "failed_tests": [
+     "a_city_event_is_validated_against_the_live_roster_and_its_parent_before_anything_is_served_or_changed"
+    ]
+   },
+   {
+    "label": "qcity-g2-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T03:04:22.688532+00:00",
+    "completed_utc": "2026-11-06T03:04:28.397895+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g2-authority.json",
+     "bytes": 957,
+     "sha256": "cf5eb87d7f42a53a6f5438b4b5a4bbfcd436ba2fabd24797fb7e82f699a904ec"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g2-authority.stdout.log",
+     "bytes": 7293,
+     "sha256": "6d81c88e7fd97d81d0f99b0ece89919dc9532ee3fc38cfe622e165e1fd951ef0"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g2-authority.stderr.log",
+     "bytes": 11888,
+     "sha256": "27003a8430c6feb8646b1b30ebcec2746e1dc0e7d3ffa75b6bfc4d92944e9d5c"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 61,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-g2-dialogue",
+    "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:53:15.209684+00:00",
+    "completed_utc": "2026-11-06T02:54:24.113951+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g2-dialogue.json",
+     "bytes": 1031,
+     "sha256": "d94a1ea66a76796f3acf71412548a6940123c2f7a70f451b18436a44620b6115"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g2-dialogue.stdout.log",
+     "bytes": 232,
+     "sha256": "4affe61cc4d03b0769516d200981a9925551d8e03e5017d30291ce35b740d158"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g2-dialogue.stderr.log",
+     "bytes": 279,
+     "sha256": "3dfae89c68761b2fbfe722845ca89719063d5e429fdbae477d668d0433c18041"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 1,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-g2-roster-host",
+    "command": "cargo test --release --locked -p eech-world --test entity_roster_host --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:44:17.820200+00:00",
+    "completed_utc": "2026-11-06T02:44:20.245677+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g2-roster-host.json",
+     "bytes": 961,
+     "sha256": "5735fd405d155c1dcb5b92a5c487cd172da4802ff6d153aa363bfd5d2c000953"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g2-roster-host.stdout.log",
+     "bytes": 1462,
+     "sha256": "340d7858fbcd367a7c56b3353666e5483b3aaba60d60ac827a96c64c15570c59"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g2-roster-host.stderr.log",
+     "bytes": 274,
+     "sha256": "64154fa077f8aa58e23e482910076c24eb8a16115c24abc3393f1b50d3d46f5f"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 13,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-g3-dialogue-count",
+    "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue -- --nocapture",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T02:54:30.339646+00:00",
+    "completed_utc": "2026-11-06T02:54:33.849697+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g3-dialogue-count.json",
+     "bytes": 1031,
+     "sha256": "b4c344a92aaeba7548b98c023e817f8a4d2d94444e186c2c702968894e465a71"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g3-dialogue-count.stdout.log",
+     "bytes": 271,
+     "sha256": "a56e20d652d05b82babfbca7b03c51d9fee9ff37a48c407fe1e83c8b36c8ed46"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-g3-dialogue-count.stderr.log",
+     "bytes": 198,
+     "sha256": "75ed1a295b2a36c014961a5c613686d74ae7f9670784aa00fff8d785da33011b"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 1,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-pre-fmt-check",
+    "command": "cargo fmt -p eech-world -p eech-engine-sys -- --check",
+    "actual_exit": 1,
+    "started_utc": "2026-11-06T03:07:25.080947+00:00",
+    "completed_utc": "2026-11-06T03:07:28.715559+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-pre-fmt-check.json",
+     "bytes": 899,
+     "sha256": "f61ea8683aaebeaf8d063f44c1522f0811991c3f51018ffedc7cdb7deba5eb4b"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-pre-fmt-check.stdout.log",
+     "bytes": 25618,
+     "sha256": "8ae316b213e2e00bd5d7c0be438c1edf28374aba154a3b2547a6547364d41322"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-pre-fmt-check.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   }
+  ],
+  "intermediate_explanations": {
+   "qcity-g1-roster-host": "1 failed: my test helper put an entity type in the facts of a non-insert city event (the provider correctly refused a nonzero fact); fixed in the test",
+   "qcity-g1-authority": "1 failed: the paired scan_real control ends with the configured hit, so scan_after is 3, not 4 (my expectation); fixed in the test",
+   "qcity-pre-fmt-check": "exit 1 on my own new lines only; applied by qcity-fmt-apply",
+   "dialogue": "qcity-g1-dialogue/g2-dialogue/g3-dialogue-count: the dialogue control with the new offer bindings passed 439 old expectations, then 494 with the city cases"
+  },
+  "final_on_frozen_bytes": [
+   {
+    "label": "qcity-final-1-fmt",
+    "command": "cargo fmt -p eech-world -p eech-engine-sys -- --check",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T03:08:33.231553+00:00",
+    "completed_utc": "2026-11-06T03:08:36.782914+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-1-fmt.json",
+     "bytes": 897,
+     "sha256": "a3098ae23191abef2d170241c8279ac73a34176ac0218aa99ce4b69fd81e6922"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-1-fmt.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-1-fmt.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-final-2-check",
+    "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T03:08:36.875480+00:00",
+    "completed_utc": "2026-11-06T03:09:48.479351+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-2-check.json",
+     "bytes": 970,
+     "sha256": "def6572028259d2a7df6b95944a55363ccf881c827bce671a64152f929d1bc4f"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-2-check.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-2-check.stderr.log",
+     "bytes": 391,
+     "sha256": "c6d57165d7c51a12a6d5a45543298f57591c2355558cdeade82318d8e6ab38fa"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-final-3-engine-sys",
+    "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T03:09:48.588180+00:00",
+    "completed_utc": "2026-11-06T03:11:07.819516+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-3-engine-sys.json",
+     "bytes": 1205,
+     "sha256": "bfc6ac4cf2de94a224c4b3f877692893a5390647517a3de18fd90bd8afdff9d0"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-3-engine-sys.stdout.log",
+     "bytes": 2254,
+     "sha256": "349ee577b707b3c5a015cd4b89ccb1184a695f9dd6e14847e159e4756c85020b"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-3-engine-sys.stderr.log",
+     "bytes": 597,
+     "sha256": "f426f66ea902080fa08483b079c6c91bb69fd920aaaf52c9c2c450801b201edd"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 1,
+      "failed": 0
+     },
+     {
+      "status": "ok",
+      "passed": 5,
+      "failed": 0
+     },
+     {
+      "status": "ok",
+      "passed": 4,
+      "failed": 0
+     },
+     {
+      "status": "ok",
+      "passed": 6,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-final-4-world",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test model_target_point --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T03:11:07.923432+00:00",
+    "completed_utc": "2026-11-06T03:11:19.585398+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-4-world.json",
+     "bytes": 1061,
+     "sha256": "5f598f6f0ceda4aa62cc6e96bc2e84b44ff9c9ca65699bfdb87ad12e322fd45b"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-4-world.stdout.log",
+     "bytes": 12379,
+     "sha256": "94c9fd0a6f869cceeeb68c5ca084e3695d061940db6f25bf1942c1d5053e8bd9"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-4-world.stderr.log",
+     "bytes": 12089,
+     "sha256": "34f7c726cfd4aadd14405740e6d0c16ace4bfa3f77eaf1ca73899607e1385303"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 61,
+      "failed": 0
+     },
+     {
+      "status": "ok",
+      "passed": 13,
+      "failed": 0
+     },
+     {
+      "status": "ok",
+      "passed": 33,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qcity-final-5-lib",
+    "command": "cargo test --release --locked -p eech-world --lib roster",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T03:11:19.685087+00:00",
+    "completed_utc": "2026-11-06T03:11:29.736775+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-5-lib.json",
+     "bytes": 904,
+     "sha256": "2fdf17bcfde4ab50c02dbe31fa4c45394b91cf9a80ba59d21993c55c20edce37"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-5-lib.stdout.log",
+     "bytes": 850,
+     "sha256": "59d02fdc5f29add376853792d9a3c72cd4ea05e74955c0acfe67083dc8b7f63c"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qcity-final-5-lib.stderr.log",
+     "bytes": 259,
+     "sha256": "ddf84296b2885dbb4fc47c085a66448885a51f48dfcc85a05a22c6bac7b70c25"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 7,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   }
+  ],
+  "final_summary": {
+   "fmt_check": "exit 0 (eech-world and eech-engine-sys)",
+   "four_crate_check": "exit 0, no warnings",
+   "engine_sys": "entity_dialogue 1 (494 expectations), entity_roster_guard 6 (incl. the new city guard), entity_host_guard 5 and entity_pose_lifecycle_guard 4: all passed",
+   "world": "entity_authority 61, entity_roster_host 13, model_target_point 33: all passed",
+   "lib": "roster filter 7 passed",
+   "all_exits": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "bug_found_by_self_review_and_fixed_before_the_freeze": "CAMPAIGN_PLACE_OBJECT_ID first bound campaign_object_host_id, which answers a hosted mobile's roster identity for any non-structure: every mobile insertion would have sent a NAME with the mobile's identity. mb_hostplace.c now answers only for structures (place_object_id). Found by reading the helper before the final run; the dialogue control binds its own CAMPAIGN_PLACE_OBJECT_ID and cannot catch a binding error in mb_hostplace.c, so this one is covered by review and the source guard's text assertions only (no C test of the real binding exists without an engine).",
+ "final_fast_maps_literal_proof": {
+  "helper": {
+   "path": "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py",
+   "bytes": 5094,
+   "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "order": "all edits and formatting finished; map BEFORE; the five selected checks; map AFTER; no source edit or commit between the two maps (the code commit came after the after-map)",
+  "before": {
+   "path": "R:/d3-evidence/qcity-20261106-inputmap-before-final.json",
+   "bytes": 2029791,
+   "sha256": "5cdf00fa1f233e4f2f70d679079f4b92f19343d5c43fbdf5cd06a23379afcbf7"
+  },
+  "after": {
+   "path": "R:/d3-evidence/qcity-20261106-inputmap-after-final.json",
+   "bytes": 2029791,
+   "sha256": "5cdf00fa1f233e4f2f70d679079f4b92f19343d5c43fbdf5cd06a23379afcbf7"
+  },
+  "file_count": [
+   3952,
+   3952
+  ],
+  "files_object_literally_equal": true,
+  "fingerprint_before": "f615dfc5cc64271e9161b0b5ecfcc2e06f96463d09e471761af7a7d8fa8695f1",
+  "fingerprint_after": "f615dfc5cc64271e9161b0b5ecfcc2e06f96463d09e471761af7a7d8fa8695f1",
+  "fingerprints_equal": true,
+  "head_rev_arg": "HEAD",
+  "head_sha_at_capture": [
+   "98c39c35b7d8ee16b9982248b4db277857b09b78",
+   "98c39c35b7d8ee16b9982248b4db277857b09b78"
+  ],
+  "raw_changes_against_the_previous_final_map_qjoin2": [
+   "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+   "aphavoc/source/entity/mobile/mb_hostentity.h",
+   "aphavoc/source/entity/mobile/mb_hostmodel.c",
+   "aphavoc/source/entity/mobile/mb_hostmodel.h",
+   "aphavoc/source/entity/mobile/mb_hostobj.c",
+   "aphavoc/source/entity/mobile/mb_hostoffer.h",
+   "aphavoc/source/entity/mobile/mb_hostplace.c",
+   "aphavoc/source/entity/mobile/mb_hostplace.h",
+   "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+   "aphavoc/source/entity/system/en_funcs/en_list.c",
+   "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+   "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+   "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+   "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "eech-campaign/crates/eech-world/src/model_host.rs",
+   "eech-campaign/crates/eech-world/src/roster.rs",
+   "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+   "eech-campaign/crates/eech-world/tests/entity_roster_host.rs"
+  ],
+  "qualification_pre_existing_raw_vs_filter_differences_preserved_not_normalized": [
+   "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+   "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+   "modules/system/malloc.c.h",
+   "modules/system/nedmalloc.c"
+  ]
+ },
+ "changed_files_git_byte_join": [
+  {
+   "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+   "before_git_blob": "aeea6a2ea057362fb00d17587b0abb76f75b964d",
+   "before_bytes": 77127,
+   "before_sha256": "a9a334f162526b2af1af0aaa8b81da2a045bb453570c02fd5be6d8248e4250da",
+   "after_git_blob": "0f72e7187668f15b35a1d49e71f478b3911e831d",
+   "after_bytes": 77423,
+   "after_sha256": "cf3e2606cacaf23dc793091c23db036683987e541c623d3aa081399b7fe99824",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    3,
+    2
+   ]
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+   "before_git_blob": "63c220c4d42d97e56dc501415bc393240e65ee61",
+   "before_bytes": 32992,
+   "before_sha256": "ddca556d77ab94b01fbd74e4401198c6fd544f463b7631f35e27ec2fddf52b44",
+   "after_git_blob": "44944817976e7c0c3cc0ca26de2473f7acbc377e",
+   "after_bytes": 39359,
+   "after_sha256": "16992e72c479b68d287e7ce1b8328db1abc66d9d4d67e290ccb0b9d5bc1d41d2",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    182,
+    0
+   ]
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+   "before_git_blob": "e3166bc5d73f4b87a98bfcf1d07db02a28fc7481",
+   "before_bytes": 86040,
+   "before_sha256": "dfa83e4eabeaf1b1afed91c4a6d5c04750877a1b0cca3b2a2153961b67e04bbd",
+   "after_git_blob": "bc56529f422b998ddacbc361b55d8788d2f87eb7",
+   "after_bytes": 87205,
+   "after_sha256": "4208771413a59c37265848a9fc07835253af44312ec7cd045724d29e557a7bea",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    20,
+    0
+   ]
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+   "before_git_blob": "54a0ec00514e6091c3f5da2ae0dcb9e0d03b3d8a",
+   "before_bytes": 48492,
+   "before_sha256": "16d625b8d0cee340db27f298b6485a26376bff6a9c119f7b4a24ac22e4e3ddef",
+   "after_git_blob": "be13363393e764b28195a201ad112aeb40d21754",
+   "after_bytes": 49698,
+   "after_sha256": "d4a8139846e8b67ca740048e64e1f92bc272c77c515c83ccd6bfa48d39c507e9",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    14,
+    1
+   ]
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostobj.c",
+   "before_git_blob": "b4f97df15f547f85af16829836f3bde941b6f980",
+   "before_bytes": 15041,
+   "before_sha256": "501aff24898d0b283514d4929cea752257ed139f184eb4d84aa8b20cb3a27f2f",
+   "after_git_blob": "0f3bba6d230b2aa0fc2063d17271b892a93c60d1",
+   "after_bytes": 15497,
+   "after_sha256": "29b13593f857a95611e85794ab026b7f7d8f21a066c453781ff8f11a3c248183",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    6,
+    0
+   ]
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+   "before_git_blob": "a00b47c6bd05abc3544a61e1414b0dc0b7b49d34",
+   "before_bytes": 12098,
+   "before_sha256": "a32b3f53a63326789ce648c7d95bb1dd62e2cf8df3cb13e53a55a96647df667a",
+   "after_git_blob": "a237f163e15d6db2c2e15082741ce18897f696ba",
+   "after_bytes": 12416,
+   "after_sha256": "682984ff5980eb32e6447f917c36a5ca148fe38cc28a7a5b9c981b720a06591d",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    3,
+    2
+   ]
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostplace.c",
+   "before_git_blob": "5125b74726994edeb2b616b597eb1281c4cb7c3a",
+   "before_bytes": 1901,
+   "before_sha256": "fde7c04f8bdfdeab105258ec0d4e1a503c43132cdac995f4377f24c196c211be",
+   "after_git_blob": "84b8aaa31cfdb7fcf904cd1cf6246a736e87c798",
+   "after_bytes": 3090,
+   "after_sha256": "1de045c43029c2ab03dd016baf6a7b58ee731229095e8804fa7ccd43af44a1de",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    40,
+    0
+   ]
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostplace.h",
+   "before_git_blob": "5ad2e3ebdeef02e18c06bb131a2f6bc3c21fac50",
+   "before_bytes": 1875,
+   "before_sha256": "d60d57512834ed4bc8ed4d50549388730613ddd3edad9d4e0bbed246f7d34f0d",
+   "after_git_blob": "27e7a29bf68489dad46410048140e67d9a933a42",
+   "after_bytes": 3146,
+   "after_sha256": "eef67571e4169cf46a339bcb38a369ca02f1f4c6d64b3338c73c1ae12568ad28",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    17,
+    0
+   ]
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+   "before_git_blob": "ae1be9eb8d1e425a5a447958254eb898edf68e91",
+   "before_bytes": 9631,
+   "before_sha256": "92b9dea3a61459769606735439dfeee192455c359557fa832f2e19645d291221",
+   "after_git_blob": "a709a9842fe08ffb51735977caeaa8b3eb433525",
+   "after_bytes": 21456,
+   "after_sha256": "74a6f6169dd55244b1a8847837de243267a901222446d3a8f832ec52a299756c",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    402,
+    62
+   ]
+  },
+  {
+   "path": "aphavoc/source/entity/system/en_funcs/en_list.c",
+   "before_git_blob": "4855aa0c69be2a43cb4335edfcc3fb09cdc96958",
+   "before_bytes": 31729,
+   "before_sha256": "936c5004333982819e1a65fef97a80bf20b0d614c483c3c68cf96bc552f45166",
+   "after_git_blob": "0aca8ca6818d9adb9abff41c699b679f4cbc779d",
+   "after_bytes": 32066,
+   "after_sha256": "982cd33f274ff2720b58051dfbd92378e62998ff5b5414ca541282c5e4f61cb2",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    9,
+    0
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+   "before_git_blob": "b8c431d02d472d7215e82dc0ae8690b8116e9c7f",
+   "before_bytes": 103030,
+   "before_sha256": "ff3836dc4026d5f273d32d47b815aebcf68dcf18fa4deccce57c9f34621c6dd9",
+   "after_git_blob": "85805669ae038adf4c61611579a7e53cf7bee2d8",
+   "after_bytes": 124164,
+   "after_sha256": "860a883b5d256e92d23c8c6c39de8a6a544417378148e45ec7274745993addd8",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    537,
+    5
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+   "before_git_blob": "1f4e94faf16c4b29bb8d4b200433d61ed7be0a16",
+   "before_bytes": 2324,
+   "before_sha256": "633b43094d1654eae8070f05bcde773679d4ad3746b45a665cdb9a38333c1b1f",
+   "after_git_blob": "c45785f05a6a0e707ff30eb3520a856078f6f282",
+   "after_bytes": 2324,
+   "after_sha256": "0447d48a542e3ae6b0eb932728ebea96307ac94dd1cd499ca8a034038ff53030",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    1,
+    1
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+   "before_git_blob": "d145c74f7a22da2cbb1918e6c73230ef2c70d755",
+   "before_bytes": 14140,
+   "before_sha256": "27439815cd50e8d6e1d839d96d201a1caec0760d698c80b562876330b28e7200",
+   "after_git_blob": "d4684616b0e8aaf675a0c61844570b7f24570963",
+   "after_bytes": 25051,
+   "after_sha256": "83457a70cc354282c280ff1073447fff8c3f4f8497dad004536b2233e1e2f662",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    205,
+    0
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "before_git_blob": "d06476da1e93a445f14ac6eb16bf824810968ffc",
+   "before_bytes": 154214,
+   "before_sha256": "cf684a24935b92b10b5ee750fa19101cefc0556088d7ade367cf33b2daaef2bb",
+   "after_git_blob": "5a5ec51c95d1cf10d0f93d3421641a4542db0e10",
+   "after_bytes": 166495,
+   "after_sha256": "501663b9ac68c9da136183718fc3f0f4e75ed0fee7f6edef7112301898eb11ad",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    146,
+    11
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+   "before_git_blob": "8089204988bed515480def2682183ac355b4f236",
+   "before_bytes": 121910,
+   "before_sha256": "63d48a0de9b683d265e943ebe655bd84346113240b504a6d84da6a91dc535994",
+   "after_git_blob": "28d613e425bee48b8f3b4ae23229e44a369de877",
+   "after_bytes": 128438,
+   "after_sha256": "2688049911fa5e95300a06e1838a0fa9a21e8a6a5fd4bebc0475866714f89d83",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    115,
+    1
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/src/roster.rs",
+   "before_git_blob": "8bc38d8d382f1b31ce563596f11e7492262b16db",
+   "before_bytes": 17176,
+   "before_sha256": "9cf8bc54bb57c7412558255d5d3ec2776678e7fc3364c3ff755a6f81abce9a30",
+   "after_git_blob": "d03eab8118cb3505867b5205a9bd85387166cd60",
+   "after_bytes": 29975,
+   "after_sha256": "a403f19fd4c232c3c096b9851bc922af18ede84fc733a217910707e6d53f1dde",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    278,
+    1
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+   "before_git_blob": "128406200c5be240a74412647c093cd1ee95ab1a",
+   "before_bytes": 214504,
+   "before_sha256": "0eb656c6d4dbcad8b5f4509fe38d208ca9606b6f1e8ef7aa6e2bfc0c78f5322b",
+   "after_git_blob": "cc2b0f819b1814da7b68c21bee615c40b6d23dfc",
+   "after_bytes": 229912,
+   "after_sha256": "25192e73ca06734196ba1a7368a8d2111ce888affe3c19b3ba1b394ebaeffbcb",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    270,
+    8
+   ]
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+   "before_git_blob": "0ef9d80dda9ec0c99f947700b9e9baf7cc5dd0eb",
+   "before_bytes": 22237,
+   "before_sha256": "019200daf57aee6a2af007c23a22b2f24b2cf517aeed69830aed32060f04c19d",
+   "after_git_blob": "56abaffffae1fb2a30c30b617c39679d850d3861",
+   "after_bytes": 37253,
+   "after_sha256": "f1d6dc5acefde6eb39d04e1413c1439f2793edf79f23295a6608228d09c4365d",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false,
+   "lines_added_removed": [
+    261,
+    0
+   ]
+  }
+ ],
+ "changed_file_count": 18,
+ "reused_not_rerun_not_relabelled": "the closed roster/FP/provider-key/driver results at 5182/505/91a7 and the 7bec C passes keep their own identity; eech-dc, eech-engine and the other engine-sys and world suites (host_callbacks, entity_candidate_host, entity_collision_host, entity_pose_host, the full library) were NOT rerun on this source (their code is unchanged by it)",
+ "qualifications": [
+  "the isolated C dialogue control exercises the REAL placement map, exchange and offer against a scripted host; the real funnel hooks (en_list.c), the real getters (en_cllsn.c bindings), mb_hostplace.c's heap binding and mb_hostobj.c's NAME call are compile-checked and source-guarded only, until a native run",
+  "the driver tests run the real provider with scripted engine, candidate and narrow-phase collaborators; the scripted city candidate is a fixed candidate whose buildings state walks the host's list (the building's own decisions are the next scripted answer)",
+  "the fixture covers one sector window and the default native case may contain no city traversal (UNREACHED then, never a pass)",
+  "a refusal mode still credits a later valid question it alters after an earlier request fault (the closed driver qualification); withdrawn_child adds its own strict fault check"
+ ],
+ "not_run_not_claimed": [
+  "independent review",
+  "any Windows or native build or run, ordinary short, complete 40/all8, the actual withdrawn_child control",
+  "strict clippy or any matrix",
+  "whole Task49 or whole D3, the DCS mapping, the natural moving weapon"
+ ],
+ "process_notes": [
+  "every script ran with python -I; one writer per log; one docker owner at a time through the helper; no restart or cache prune",
+  "the ordinary 3475 pack and Root's clones, builds and caches were not touched",
+  "the two red runs stashed and restored files with git stash push/pop (the tree was verified clean of stashes and the 18 files restored before the freeze)"
+ ],
+ "remaining_gates": [
+  "same-reviewer source review of the 18 changed files",
+  "Root's Windows builds and the matched native pair (or the finite UNREACHED)",
+  "ordinary short and complete 40/all8, CI, review, technical-lead approval and normal merge",
+  "static pose/shape/live flags/hierarchy, tallest structure, UPDATED/shared terrain, RNG, devices, DCS mapping, natural moving weapon, all ten D3 requirements; D4/D5/TypeScript unstarted"
+ ],
+ "no_native_clearance": true
+}

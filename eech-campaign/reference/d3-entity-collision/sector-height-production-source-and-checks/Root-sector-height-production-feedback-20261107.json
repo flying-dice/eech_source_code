@@ -1,0 +1,11 @@
+{
+  "kind": "Root publication readback; no new source scope or extra test request",
+  "publication": "93495d1b6ddc519f8ec4fee9c6b1147d2c292f39",
+  "publication_binding": "R:/d3-evidence/sector-height-baseline-publication-93495-20261107.json",
+  "binding_sha256": "d97a9531a158dc6e98bbf93404bc90ad1f4975134bcdcf523cdda9cc8d14d7d9",
+  "authority": "Live M5 goal remainsv3. Ledger is now174: finite observer baseline3665accepted, required physicalheightSOURCEstarted; M5M6unreached/currentopenfacts/remainingall10 preserved. No scope change from173.",
+  "ledger_proof": "R:/d3-evidence/ledger-sector-height-finite-v174-preservation-20261107.json: entire prior173body and all5reportparameters literal; new date-node generatedID/display formatting only, normalization companion records it.",
+  "Jira": "EEDCS-49 comment11019; Epic21/Task49 stillInProgress. PR109draft body reconciled to finite evidence/source work and remaininggates; no merge or physicalacceptance.",
+  "publication_CI": "Exact93495 ALL9SUCCESS; sector-height-publication-93495-CI-readback-20261107.json. FirstWindowssetupcurl28 beforecompile retained. Rootrequested failed-only retry once; actualAPI lists fresh7campaignjobs, allsuccess. No local/native/baseline replay. Your eventualproductionhead still needs ownCI; no CI-onlymetadata commit.",
+  "Root_policy": "Source plan/remainingcase disposition and production implementation remain your sole lane. This file adds no runtime probe, new requirement or review. Read it before finalfreeze per boundprompt; don't restart checks or recapture PRE merely because this metadata file appeared. Exactnewsource/native/authority gates and all10 remain as already directed."
+}

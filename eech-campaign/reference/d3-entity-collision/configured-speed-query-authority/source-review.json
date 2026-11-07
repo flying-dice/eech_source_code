@@ -1,0 +1,204 @@
+{
+  "schema": "independent-narrow-source-review/v1",
+  "reviewed_utc": "2026-11-05T23:44:19.235248+00:00",
+  "source": {
+    "literal_commit": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+    "actual_direct_parent": "cef51fb03674c2c896d0f12fc78983ef1f4bf972",
+    "metadata_commit": "05408103dba810db175ffa5ed4694f841aaf4fff",
+    "compiled_runtime_commit": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "literal_git_blob": "d690abdb252a6191349a5d5e0ae55860ed2bff86",
+    "literal": {
+      "path": "R:/d3-evidence/query-speed-input-6fb7ff43a-literal.lua",
+      "bytes": 139227,
+      "sha256": "5d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422"
+    },
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "git_blob": "d690abdb252a6191349a5d5e0ae55860ed2bff86",
+        "sha256": "5d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "git_blob": "f4cc2dd52056acfe1a2542777a0efe613b496877",
+        "sha256": "5c1647f53127b17208b9f57a664f354821079602c3c96e1e952d695f5d76846f"
+      }
+    ],
+    "no_runtime_relabel": true
+  },
+  "scope": "One narrow correctness, clean-code and boundary-safety review of the configured speed-demand Lua witness and its existing driver tests. Closed production, numeric, original and other authority slices were not reopened.",
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_ONE_MATCHED_CONFIGURED_INPUT_CONTROL_SET",
+    "findings": [],
+    "diagnostic_native_launch_clearance": true,
+    "native_launch_clearance": true,
+    "allowed_compiled_runtime": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "allowed_literal_source": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+    "conditions": [
+      "Run positive Hosted A first with this exact literal and unchanged declared fixed configuration. A must reach the actual target NeedUpdated, test and moving16 query path before B or Original starts.",
+      "B must bind to its actual completed same-profile A signature and the same literal/source, target, prepared three rays, fixed configuration and complete input manifests. Original must use the same declared transform and its own matched A; final authority requires the cross-profile physical joins.",
+      "Retain UNREACHED or UNCHANGED as unaccepted without changing factors, seed, warmup, actor selection or rays. Do not search for a physical effect.",
+      "Do not relabel compiled3475 binaries or its protected ordinary full pack as source6fb. Reuse the prior sealed profiles solely through the explicit Lua/test-only compatibility proof."
+    ],
+    "actual_positive_A_proved": false,
+    "actual_changed_B_proved": false,
+    "configured_speed_input_authority_closed": false,
+    "natural_weapon_engagement_proved": false,
+    "Person_long_run_regression_closed": false,
+    "full_pack_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "contract_and_source_assessment": [
+    {
+      "area": "Truthful input boundary",
+      "result": "B changes the desired_velocity that the Host solver receives to zero as an opt-in test configuration. Core task/route/command storage and production policy code remain unchanged, but the solver input demand is explicitly different. This is not evidence that the Host failed to fulfil an unchanged command, not terrain authority and not natural weapon integration."
+    },
+    {
+      "area": "Real presence and deterministic selection",
+      "result": "The same fixed warmup and identity-order predicate in Hosted A/B and Original requires a real final-warmup move answer with finite motion above one and an actually supplied finite positive desired_velocity. None-terrain inputs remain valid. Missing, nonnumeric, nonfinite or nonpositive demands are ineligible; absence is an honest prelaunch UNREACHED."
+    },
+    {
+      "area": "Bounded transformation",
+      "result": "Only within the one prepare-to-run engine frame, for the watched target move callback with a finite positive incoming demand, B makes one shallow copy changing only desired_velocity to zero. Nested tables and all other values are reused unchanged. The received Engine table is not mutated. There is one delegation per actual callback to the same Movers; the answer, pose, getters, solver and normal Core result application are not edited. Incoming demand and substituted zero are recorded; transformed/delegated counts remain distinct."
+    },
+    {
+      "area": "Observation and ordering",
+      "result": "New warmup observation uses type/finiteness/sign checks and stores the actual demand, not a computed replacement. The only transformation is the declared zero demand in the bounded window. Delegation credit increments after the Host returns. Missing/invalid demand or no actual window step creates no change and no credit. No additional random draws, second store or movement computation was added."
+    },
+    {
+      "area": "Strict result gates",
+      "result": "A retains per-target NeedUpdated, test and moving16. Hosted B requires an actual transformed delegation, post-transform target offer/answer, contract/mirror coherence and physical signature different from authentic A. B may legitimately broadphase-skip the moving read; that does not weaken A. Original requires no hosted entity/candidate/scan/pose questions. Its optional Lua signature is not authority by itself: Root runner binds actual matched A and enforces changed output and input joins."
+    },
+    {
+      "area": "Tests and realistic limits",
+      "result": "Seven added tests use the real driver with sociable Engine/Host collaborators. They check positive selection, skipped ineligible values, terrain-less support, unchanged A, only-one-field copy and one delegation, non-target/warmup preservation, missing/invalid/no-window inputs, strict A versus allowed B broadphase skip, absent offer/control and unchanged result rejection, plus Original behavior. Scripted ray results depend on the demand received by the stand-in; they are not evidence that real solver output changes a retail query."
+    }
+  ],
+  "final_source_and_test_binding": {
+    "compatibility": {
+      "path": "R:/d3-evidence/query-speed-input-compiled-compatibility-20261105.json",
+      "bytes": 2082,
+      "sha256": "8ac54d158edb9eb4224a3dce94d955df30f376e8ad7523b085009872b5413aae"
+    },
+    "checkpoint": {
+      "path": "R:/d3-evidence/query-speed-input-CODE-FROZEN-20261105.json",
+      "bytes": 14057,
+      "sha256": "99ec2f92f1fda3e6c12e1837a79497ff14fc6668c18814395765a41515d793d2"
+    },
+    "native_runner": {
+      "path": "R:/d3-evidence/run-query-speed-input-native3475-20261105.py",
+      "bytes": 8149,
+      "sha256": "1ab866a34aa303b47bf071861c80875d097130f5527ed8519699b932ad1858db"
+    },
+    "native_runner_assessment": "Read-only inspection confirms fresh unique outputs, sealed compiled payload/literal checks, positive Hosted A prerequisite for later roles, matched same-profile A signatures and post-run source/target/rays/configuration/input joins. Exact physical cross-profile comparison remains an actual audit gate.",
+    "code_scope": "Independently confirmed the only compiled-scope changes relative to3475 are the Lua diagnostic and its Rust test. No C, production Rust, ABI or build-input change. Metadata054 changes only STATUS/card.",
+    "full_before_map": {
+      "path": "R:/d3-evidence/qspeed-20261105/scope-final-before.tsv",
+      "bytes": 730003,
+      "sha256": "26c35e5d279ebb99fdf6ffe1d9829c81b83bdae3dd6b837ccf7649d8644132ed"
+    },
+    "full_after_map": {
+      "path": "R:/d3-evidence/qspeed-20261105/scope-final-after.tsv",
+      "bytes": 730003,
+      "sha256": "26c35e5d279ebb99fdf6ffe1d9829c81b83bdae3dd6b837ccf7649d8644132ed"
+    },
+    "retained_rows": 3658,
+    "map_literal_equal": true,
+    "changed_before_hashes": {
+      "path": "R:/d3-evidence/qspeed-20261105/changed-final-before.sha",
+      "bytes": 319,
+      "sha256": "32a665d2a28496621987c5136a9aa742bb5f2aab2ce3e702723205944ccec343"
+    },
+    "changed_after_hashes": {
+      "path": "R:/d3-evidence/qspeed-20261105/changed-final-after.sha",
+      "bytes": 319,
+      "sha256": "32a665d2a28496621987c5136a9aa742bb5f2aab2ce3e702723205944ccec343"
+    },
+    "changed_hashes_literal_equal": true,
+    "changed_Git_raw_hashes_independently_joined": true,
+    "raw_vs_Git_qualification": {
+      "paths": [
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "eech-campaign/reference/d3-collision-characterization/boot-d5-to-5416adb3b-comparison.json",
+        "eech-campaign/reference/d3-collision-characterization/independent-tree-input-capture-review-f3fd93dfb.json",
+        "eech-campaign/reference/d3-collision-characterization/tree-geometry-original-537c36faf-first-measurements.json",
+        "eech-campaign/reference/d3-entity-collision/.gitattributes",
+        "eech-campaign/reference/d3-entity-collision/dependencies-20261105/.gitattributes"
+      ],
+      "description": "Eight unchanged files have working CRLF versus Git LF bytes: three old test Lua and five reference/attribute paths. Each was independently checked against its map raw hash and unchanged compiled-base Git blob. No file or baseline was rewritten. All3658 before/after rows are stable; all3658 rawGit equality is not claimed."
+    },
+    "final_fmt_exit": {
+      "path": "R:/d3-evidence/qspeed-20261105/qspeed-final-fmt.exit",
+      "bytes": 17,
+      "sha256": "6c45c35a3687ccc50a94acb2b82aa05b4564dc476a80a1d0320c2bd68754746d"
+    },
+    "final_fmt_log": {
+      "path": "R:/d3-evidence/qspeed-20261105/qspeed-final-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final_test_exit": {
+      "path": "R:/d3-evidence/qspeed-20261105/qspeed-final-test.exit",
+      "bytes": 18,
+      "sha256": "aaefaf37f75166ab78a53075e91847ac935367bac7d611bee6e294bf6fc9a174"
+    },
+    "final_test_log": {
+      "path": "R:/d3-evidence/qspeed-20261105/qspeed-final-test.log",
+      "bytes": 10698,
+      "sha256": "ccb7d026f3426f57a876a3242e6585862596bfca52fa2851b8f7733946eaa003"
+    },
+    "final_actual_child_exits": {
+      "fmt": 0,
+      "entity_authority": 0
+    },
+    "final_real_Lua_tests": {
+      "passed": 53,
+      "failed": 0
+    },
+    "actual_author_terminal_exit": 0
+  },
+  "preserved_failure_evidence": {
+    "old_Lua_RED_exit": {
+      "path": "R:/d3-evidence/qspeed-20261105/qspeed-red-test.exit",
+      "bytes": 18,
+      "sha256": "676d52da77cf6cfda6d8be48e237fa9868833029f7b6a7cb122ba861bac03475"
+    },
+    "old_Lua_RED_log": {
+      "path": "R:/d3-evidence/qspeed-20261105/qspeed-red-test.log",
+      "bytes": 10300,
+      "sha256": "2ce7e4e6e50ea5746d8df129717ae29fa6552d095e6cc392f47262c6c424dd4d"
+    },
+    "old_Lua_RED": {
+      "passed": 46,
+      "failed": 7,
+      "actual_exit": 101
+    },
+    "RED_qualification": "The RED run used the prior Lua with new tests before two test-collaborator repairs. Its absent-mode cause is independently sufficient for those seven failures; no claim is made that the final repaired test bytes were rerun against old Lua.",
+    "first_green_mock_failure": {
+      "path": "R:/d3-evidence/qspeed-20261105/qspeed-green-test.log",
+      "bytes": 10418,
+      "sha256": "e64e5fafc879b39ab15d72e3e8e5d24e0f59fe381e869f30ee8802de073818d7"
+    },
+    "second_green_mock_failure": {
+      "path": "R:/d3-evidence/qspeed-20261105/qspeed-green-test-2.log",
+      "bytes": 10630,
+      "sha256": "f418f445aff65be56c2c6ab96ea96258a3bb9975aa41234544f24c1303a95913"
+    },
+    "mock_failures": "Each was52pass/1fail101: NaN self-inequality in mutation detection, then numeric formatting of a string demand in the logger. They were corrected in the collaborator, not by weakening driver eligibility.",
+    "initial_format_failure": {
+      "path": "R:/d3-evidence/qspeed-20261105/qspeed-fmt-1.log",
+      "bytes": 11704,
+      "sha256": "fb00ae4f62ad4493fc804859d5cb57078e483ad811dced23977b16d1f0e83f1e"
+    }
+  },
+  "limits": [
+    "No native, actual transformed step, changed query output, Original parity or new full-pack result is supplied by this source/test pass.",
+    "The earlier terrain-input attempt remains honest UNREACHED at its own identity. New speed modes are separate and cannot relabel old positive or failed runs.",
+    "No new C/Windows rebuild or broad matrix is required for the exact Lua/test-only delta, and none is claimed. The active ordinary3475 pack remains protected.",
+    "All required physical backing/roster/lifecycle/live pose/writers, effectful getters, city children, loaders/forest/cloud/hierarchy/devices, DCS mapping, Task49 normal delivery and whole-D3 requirements remain open."
+  ],
+  "publication_safety": "Only source references, hashes, counts and bounded contracts. No raw retail coordinates/vectors/physical tuples, actor identity suffixes, signatures, model catalogues or binaries."
+}

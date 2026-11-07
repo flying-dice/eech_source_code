@@ -1,0 +1,35 @@
+
+running 6 tests
+test the_driver_grammar_is_the_emitters ... ok
+test a_module_built_without_the_observer_is_refused ... ok
+test an_observation_that_is_not_whole_is_refused_after_the_file_is_closed ... ok
+test a_whole_observation_is_written_in_order_after_the_ordinary_boot_and_frames ... FAILED
+test sequence_numbers_that_do_not_increase_are_refused ... ok
+test the_arguments_are_checked_before_any_side_effect ... ok
+
+failures:
+
+---- a_whole_observation_is_written_in_order_after_the_ordinary_boot_and_frames stdout ----
+
+thread 'a_whole_observation_is_written_in_order_after_the_ordinary_boot_and_frames' (127) panicked at crates/eech-world/tests/sector_height_baseline_driver.rs:98:5:
+sho-baseline schema=1 scenario=georgia seed=1 frame_ms=100 hours=0.0005 frames=18 elapsed_seconds=1.500 observer=read-only
+sho-summary schema=1 note=x
+sho-counts seq=9 link_total=1
+sho-clearance leader_reached=0 follow_reached=0 reads=1 stored=1
+sho-scan reads=1 sectors=1 candidate_offers=0 candidate_nonzero=0
+sho-tables events_used=2 events_capacity=262144 events_overflow=0
+sho-complete value=1
+sho-event i=0 seq=3 kind=link
+sho-event i=1 seq=5 kind=link
+sho-clearance i=0 seq=4
+sho-scan i=0 sx=1 sz=2
+sho-verdict whole=1 events=2 clearances=1 sectors=1
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_whole_observation_is_written_in_order_after_the_ordinary_boot_and_frames
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

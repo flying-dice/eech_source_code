@@ -1,0 +1,27 @@
+{
+  "runtime": "4f790b712871561c2b04c3d3173ad7ad51ee8a24",
+  "metadata_before_publication": "17d3ba35ba23072f32d876b11dc5ef7ca3ca6b05",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 62,
+      "sha256": "9464b301a283a4eb3e9d7857adc11aee7074bf311ae6da26117d3458bad5be13"
+    },
+    {
+      "path": "checkpoint.json",
+      "bytes": 13250,
+      "sha256": "b15701fda0625d9631d1769ce84f46e39193a8f29bcb1d78dc044dbe9bb14360"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2545,
+      "sha256": "9b25aa95cd7c8f1c432341a8d6efa651a4d29e47069ac6e4f724dfc8d70e4084"
+    },
+    {
+      "path": "source-review.json",
+      "bytes": 17902,
+      "sha256": "4d2f7343ff1890bb9a85f0dc4730f0d3ba755b679986672f63f1d57efaf7c050"
+    }
+  ],
+  "decision": "CHANGES_REQUIRED; NO NATIVE CLEARANCE"
+}

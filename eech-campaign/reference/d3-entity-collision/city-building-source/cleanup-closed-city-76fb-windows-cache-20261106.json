@@ -1,0 +1,13 @@
+{
+  "source": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+  "volume": "eech-win-city-building-76fbf557c-20261106",
+  "actual_exit": 0,
+  "no_container_owners": true,
+  "all_three_profiles_rehashed_payloads_each": 88,
+  "preservation": "D:\\EECH-Migration-Evidence\\city-profile-artifacts-76fb-20261106\\preservation.json",
+  "preservation_sha256": "0b8a1b3a152dec058ced2b26d69cfeec1ccc551a160c29b641c31aa72389a0c6",
+  "retained_objects": 12,
+  "retained_files": 30,
+  "scope": "Only closed dedicated Windows cache removed. Actual source/bin/roots/raw/compiled proof retained, fullRLIBnotretained. Original3475fullpack untouched.",
+  "completed_utc": "2026-11-06T04:48:06.577556+00:00"
+}

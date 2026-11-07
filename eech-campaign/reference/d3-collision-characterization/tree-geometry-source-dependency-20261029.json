@@ -1,0 +1,32 @@
+{
+  "scope": "Root read-only source audit for the next unmet Task49 geometry dependency; no new implementation or native result",
+  "source": "f0bd165c9399d7dd92d05946cc402d154b61ddcf",
+  "observations": [
+    {
+      "source": "modules/3d/3dobjdb.c:3178",
+      "fact": "Original geometry lookup resolves the scene collision_object_index, walks surfaces and polygon faces by depth, triangulates faces as a fan, and scales signed-short point coordinates with each axis bounding extent divided by 32767.0. The actual decoded output is an original-code oracle for a later host model loader. Copying only collision kernel triangles does not move this loader."
+    },
+    {
+      "source": "eech-campaign/crates/eech-engine-sys/build/patches.rs:181",
+      "fact": "Accepted build patch C1 maps retail 3dobjdb.bin collision object index zero to -1, matching the EES path. A host geometry loader must match the effective patched original, not assume raw zero is usable geometry."
+    },
+    {
+      "source": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c:1990",
+      "fact": "A type1 tree uses FOREST_TREE_OBJECT collision geometry when available; identity matrix multiplication and height/position transforms precede original triangle intersection. The first successful triangle returns immediately. If the geometry accessor returns false at depth zero, the same tree takes the quad path. Missing geometry on measured maps does not make the branch dormant."
+    },
+    {
+      "source": "eech-campaign/crates/eech-engine-sys/csrc/eech_collision_fixture.c:580",
+      "fact": "The existing fixture classifies a tree as geometry only when type1 and the real forest geometry accessor succeeds. Current trace facts record geometry0, so type1 presence in retail files alone cannot prove geometry-branch coverage."
+    },
+    {
+      "source": "aphavoc/source/app3d/3d_init.c:145; modules/3d/3dobjdb.c:1737",
+      "fact": "Native initialization loads the object database and side files; its existence is required physical/model coupling, not evidence that render-named services are unreachable."
+    }
+  ],
+  "next_required_evidence": [
+    "Characterize actual original decoded geometry from named retail models before implementing the host model loader; preserve polygon/surface/depth order and numeric scaling.",
+    "Establish a controlled original forest-geometry witness through the original solver with explicit environmental geometry input and restoration, rather than inventing expected hits in the new host implementation.",
+    "Compare host geometry cases bit for bit and prove relevant public host authority/refusal before full Task49 delivery. No always-miss or permanently-absent workaround is accepted by this audit."
+  ],
+  "limits": "Source observations only. No geometry branch or model loader has been executed or accepted by this audit. Existing original transcripts and baselines remain unchanged. Whole D3 remains incomplete."
+}

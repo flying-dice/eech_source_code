@@ -949,13 +949,10 @@ void campaign_roster_link_member (entity *group, entity *member)
 			descriptor.position[2] = mob->position.z;
 			descriptor.velocity = mob->velocity;
 			memcpy (descriptor.attitude, mob->attitude, sizeof (descriptor.attitude));
-			if ((descriptor.movement_kind == CAMPAIGN_MOVEMENT_KIND_FIXED_WING) ||
-				(descriptor.movement_kind == CAMPAIGN_MOVEMENT_KIND_HELICOPTER))
-			{
-				descriptor.motion_vector[0] = mob->motion_vector.x;
-				descriptor.motion_vector[1] = mob->motion_vector.y;
-				descriptor.motion_vector[2] = mob->motion_vector.z;
-			}
+			// the explicit seed of the host's canonical motion vector, for every hosted kind (the host holds it from here on and the campaign's copy is compared with it)
+			descriptor.motion_vector[0] = mob->motion_vector.x;
+			descriptor.motion_vector[1] = mob->motion_vector.y;
+			descriptor.motion_vector[2] = mob->motion_vector.z;
 			if (descriptor.movement_kind == CAMPAIGN_MOVEMENT_KIND_HELICOPTER)
 			{
 				const helicopter *raw = (helicopter *) get_local_entity_data (member);
@@ -1655,8 +1652,16 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 
 static campaign_member_record *current_member_record (entity *member)
 {
-	int index = entity_index (member);
-	int record_index = current_member_by_entity[index] - 1;
+	int index;
+	int record_index;
+
+	/* before the roster's first reset no entity is a member: a lookup asks about entities (the sector lists' placement does, for every entity it inserts) and is answered with none */
+	if (!current_member_by_entity)
+	{
+		return NULL;
+	}
+	index = entity_index (member);
+	record_index = current_member_by_entity[index] - 1;
 	if (record_index < 0)
 	{
 		return NULL;

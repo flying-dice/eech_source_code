@@ -1,0 +1,13 @@
+
+running 8 tests
+test an_existing_output_is_never_overwritten_and_nothing_boots ... ok
+test the_driver_grammar_is_the_emitters ... ok
+test the_arguments_are_checked_before_any_side_effect ... ok
+test a_module_built_without_the_observer_is_refused ... ok
+test sequence_numbers_that_do_not_increase_are_refused ... ok
+test an_observation_that_is_not_whole_is_refused_after_the_file_is_closed ... ok
+test a_whole_observation_is_written_in_order_after_the_ordinary_boot_and_the_finite_default_window ... ok
+test the_real_c_report_is_replayed_through_the_driver_line_for_line ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

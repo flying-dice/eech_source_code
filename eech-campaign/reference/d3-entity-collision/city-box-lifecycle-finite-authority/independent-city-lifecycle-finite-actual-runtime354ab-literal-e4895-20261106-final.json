@@ -1,0 +1,213 @@
+{
+  "schema": "d3-independent-city-lifecycle-finite-actual-review.compact.v1",
+  "created_utc": "2026-11-06T23:41:01.148179+00:00",
+  "reviewer": "SAME sole independent Codex reviewer",
+  "source": {
+    "measured_runtime_source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "diagnostic_literal_source": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+    "initial_same_Lua_source": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+    "diagnostic_metadata_commit": "90dbf29e034f09b66ae2b8ba070cd1aacbd6ce79",
+    "source_clearance_publication_commit": "e9e6a1f136c8fb8a228291599e341c880a7ee6be",
+    "literal_git_blob": "3591429759763d9ed3a2216790402c2d5e9e0c09",
+    "literal_sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db"
+  },
+  "references": {
+    "closed_source_review": {
+      "path": "R:/d3-evidence/independent-city-lifecycle-relist-ack-source-e4895-20261106.json",
+      "sha256": "5b5cbc95ddf9e64cc5f9545578e854aed362741269d664c966ae83507a3de628"
+    },
+    "Root_retained_actual_join": {
+      "path": "R:/d3-evidence/city-lifecycle-Root-actual-join-runtime354ab-literal-e4895-20261106.json",
+      "sha256": "07160a624300d81e8f8d3937d2c166d8bfda14d0470d558e160eac81347cd319"
+    },
+    "immutable_plan": {
+      "path": "R:/d3-evidence/city-relist-native-plan-runtime354ab-literal-e4895-20261106.json",
+      "sha256": "18c234a0b89a729f3087f5b9bb099688f11f7aabdd860f23cc0f65a7d572a3eb"
+    },
+    "runtime_literal_equivalence": {
+      "path": "R:/d3-evidence/city-relist-runtime-equivalence-e4895-on-354ab-20261106.json",
+      "sha256": "1a6ff7af841e352ae3a033bdd3ef1b719745fbade514d8dea5885bd89c980ae8"
+    },
+    "detailed_same_pass_private_review": {
+      "path": "R:/d3-evidence/independent-city-lifecycle-finite-actual-runtime354ab-literal-e4895-20261106-v2.json",
+      "sha256": "1cbfa20d3966a3488abe46cab0991b9ca1c6b91b6672e40ce5fe78bd66b4f0d9"
+    }
+  },
+  "scope": "One retained-only actual/evidence pass; no source re-review, tests, builds, native launches, agents, process/cache/shared-state mutations. Runtime and separately Git-bound Lua remain distinct.",
+  "actuals": [
+    {
+      "role": "control",
+      "completion_receipt": {
+        "path": "R:/d3-evidence/city-relist-control-runtime354ab-literal-e4895-20261106-completion.json",
+        "sha256": "441669db0d9cbca120d8a9c7fcd4d5c7123b673fc1e3749529029e8b458be670"
+      },
+      "native_helper_checker_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "completed": true,
+      "BEFORE_consumed": 1,
+      "AFTER_callback_count": 1,
+      "retained_answers": 2,
+      "continuation_links": 2,
+      "expansions": 6,
+      "expansions_answered": 6,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "intervention": "none",
+      "intervened": 0,
+      "altered_request": 0,
+      "report_bound": 1,
+      "cause": "none",
+      "buildings": 6,
+      "query_before_hit": 0,
+      "query_after_hit": 0,
+      "query_list_mirror_equal": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "role": "missing",
+      "completion_receipt": {
+        "path": "R:/d3-evidence/city-relist-missing-runtime354ab-literal-e4895-20261106-completion.json",
+        "sha256": "d32af7c03235ac1793b0ed4ce4ea2e434ac14dd49c52d797a407da9d439646a2"
+      },
+      "native_helper_checker_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "completed": false,
+      "BEFORE_consumed": 1,
+      "AFTER_callback_count": 0,
+      "retained_answers": 1,
+      "continuation_links": 0,
+      "expansions": 0,
+      "expansions_answered": 0,
+      "request_faults": 0,
+      "reply_faults": 1,
+      "intervention": "host_retention_release",
+      "intervened": 1,
+      "altered_request": 0,
+      "report_bound": 0,
+      "cause": "retained_record_released_then_link_key_ended",
+      "failure_marker": "entity_scan.refused",
+      "first_fault": "scan reply: result refused",
+      "report_physical_fields_unknown_minus_one": true
+    },
+    {
+      "role": "changed",
+      "completion_receipt": {
+        "path": "R:/d3-evidence/city-relist-changed-runtime354ab-literal-e4895-20261106-completion.json",
+        "sha256": "10e7fc04bbd6d3eaf8a5140d3077403d5e1a37985f3119361eb784b2b742a833"
+      },
+      "native_helper_checker_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "completed": false,
+      "BEFORE_consumed": 1,
+      "AFTER_callback_count": 0,
+      "retained_answers": 1,
+      "continuation_links": 1,
+      "expansions": 0,
+      "expansions_answered": 0,
+      "request_faults": 0,
+      "reply_faults": 1,
+      "intervention": "mirror_conformance_negative",
+      "intervened": 1,
+      "altered_request": 1,
+      "report_bound": 0,
+      "cause": "city_box_mirror_differs_from_held_state",
+      "failure_marker": "entity_scan.refused",
+      "first_fault": "scan reply: result refused",
+      "report_physical_fields_unknown_minus_one": true
+    }
+  ],
+  "common_verification": {
+    "same_private_selected_record_all_cases": true,
+    "control_first_then_missing_then_changed": true,
+    "all_native_helper_checker_outer_exits_zero": true,
+    "all_inner_pre_native_post_exits_zero": true,
+    "exact_runtime_literal_plan_controller_and_checker_identities": true,
+    "fixed_seed": 1,
+    "frame_ms": 100,
+    "warmup": 30,
+    "settle": 120,
+    "last_known_frames": 301,
+    "six_FULL_input_manifests_literal_reference": true,
+    "reference_files": 1179,
+    "reference_total_input_bytes": 102239559,
+    "manifest_bytes": 209622,
+    "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "all_three_profiles_current_payloads_rehashed": {
+      "ordinary": 88,
+      "hosted": 88,
+      "original": 88
+    }
+  },
+  "retained_default_join": {
+    "runtime": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "ordinary_short_actual_exits": [
+      0,
+      0,
+      0
+    ],
+    "three_COMPLETE_files_literal80fd": true,
+    "short_comparison": {
+      "path": "R:/d3-evidence/city-lifecycle-ordinary-short-comparison-354abd9c0-20261106.json",
+      "sha256": "803028da58eb2d0b831219bdfaf2f90b46a6f31ed06360959ffe088770194f85"
+    },
+    "healthy_actual_exits": [
+      0,
+      0,
+      0
+    ],
+    "all194_authority_fields_exact681": true,
+    "healthy_whole_model_JSONL_literal_equal681": true,
+    "complete_terminal_JSONL_bytes": 180,
+    "complete_terminal_JSONL_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+    "healthy_receipt": {
+      "path": "R:/d3-evidence/city-lifecycle-healthy-354abd9c0-20261106-completion.json",
+      "sha256": "ff83a1b464dcb2c9ca1a5e5f030a92621bd5ab70aa10b63287535aefc084f3de"
+    },
+    "no_signature_or_baseline_normalization": true,
+    "qualification": "Retained default/runtime evidence; no unchanged Windows/default replay for the diagnostic-only Lua correction."
+  },
+  "interpretation_and_limits": [
+    "The actual real-Core fixture drained/restored six children, performed two empty-CITY sector relinks and consumed the SAME selected canonical CITY record before and after. Query/list/mirror consistency and six answered expansions passed with zero faults.",
+    "Both control query outputs are MISS. This verifies the selected CITY-state/box-consuming stage and retained-state dependency, not an actual hit, changed hit point, natural weapon engagement or every CITY/lifecycle/writer domain.",
+    "Missing mode used the SAME real provider acknowledged retention RELEASE, then the actual continuation failed on that selected ended record. Changed mode altered one forwarded CITY_STATE mirror word and obtained the real held-box mismatch refusal; it is mirror conformance, not changed Host geometry.",
+    "Negative report_bound0, completed=false and report numerics-1/text empty are unavailable physical data. AFTER callback count0 is not a postfatal Core observation. Normal releases_in_window0 is separate from the private acknowledged missing-mode intervention1. No poisoned-engine reads were credited.",
+    "Thin checker validates aggregate rows; full report/tuple and ACK consistency rely on the previously reviewed driver. Native/runtime/literal/input/payload identities and exact named causes were independently joined here; no raw selected key or physical tuple is published.",
+    "Original215a bridge and bundled-driver354ab relist failures remain failed. The six-fault354ab run was not relabelled as a pass or checker-only recovery."
+  ],
+  "decision": {
+    "status": "FINITE_SELECTED_CITY_BOX_LIFECYCLE_RETENTION_VERIFIED",
+    "findings": [],
+    "finite_city_box_lifecycle_retention_closed": true,
+    "finite_selected_city_lifecycle_authority_closed": true,
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION_finite_gate_closed": true,
+    "additional_native_cases_required_for_this_finite_gate": false,
+    "next_sector_height_characterization_may_start": true,
+    "next_physical_cutover_authorized_by_this_report": false,
+    "whole_CITY_physics_accepted": false,
+    "natural_weapon_integration_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "remaining_blockers": [
+    "ENV-ENTITY-POSE-LONG-RUN-MOTION-1 remains OPEN and blocks further physical cutover while the existing corrected f734 long-run pack is incomplete. This finite CITY gate does not close it.",
+    "Next bounded sector-height CHARACTERIZATION may proceed; another physical cutover is not authorized by this report.",
+    "All ten D3 requirements, remaining physical services/caller/data/DCS disposition, natural-moving integration, current final40/all8, final inputs/payload census, current CI, normal merge/delivery and final census remain required. Parent f734 prefixes remain PARTIAL at their own source, not current/full acceptance."
+  ]
+}

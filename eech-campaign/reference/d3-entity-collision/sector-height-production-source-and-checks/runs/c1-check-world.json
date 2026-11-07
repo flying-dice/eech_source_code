@@ -1,0 +1,20 @@
+{
+  "controller_pid": 25196,
+  "state": "terminal",
+  "started_utc": "2026-11-07T06:30:46.160374+00:00",
+  "command": "cargo check --locked -p eech-world --all-targets",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo check --locked -p eech-world --all-targets"
+  ],
+  "scope": "One Cargo command. Separate stdout/stderr files: each has one Windows writer. WSL/helper return is the actual Cargo/docker stage exit, no trailing echo/pipeline. Working-tree check only unless separately frozen/source-bound.",
+  "pid": 12328,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T06:30:56.420597+00:00"
+}

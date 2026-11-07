@@ -1,0 +1,19 @@
+
+running 1 test
+test the_hosted_clearance_record_captures_no_consumed_word_and_never_reads_the_retired_member_or_asks_the_host ... FAILED
+
+failures:
+
+---- the_hosted_clearance_record_captures_no_consumed_word_and_never_reads_the_retired_member_or_asks_the_host stdout ----
+
+thread 'the_hosted_clearance_record_captures_no_consumed_word_and_never_reads_the_retired_member_or_asks_the_host' (3929) panicked at crates/eech-engine-sys/tests/sector_height_hosted_clearance.rs:23:5:
+sho-clearance i=0 seq=3 sx=3 sz=4 tallest=0xc0ffee11 terrain=0x41480000 after_tallest=0x42c60000 final=0x42c60000 final_seen=1
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_hosted_clearance_record_captures_no_consumed_word_and_never_reads_the_retired_member_or_asks_the_host
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

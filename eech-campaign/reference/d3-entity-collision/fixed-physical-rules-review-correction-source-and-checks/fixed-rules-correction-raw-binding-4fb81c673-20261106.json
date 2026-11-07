@@ -1,0 +1,56 @@
+{
+  "schema": "d3.fixed-physical-rules.raw-source-binding.v1",
+  "commit": "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453",
+  "parent": "bfce56e3c9e56352c1f2c6beb6c53d930dbee649",
+  "map_before": "fixed-rules-correction-inputmap-before-20261106.json",
+  "map_after": "fixed-rules-correction-inputmap-after-20261106.json",
+  "maps_literal_equal": true,
+  "map_file_count": 3953,
+  "files_raw_equal_to_commit_blob_bytes": 3950,
+  "files_missing_at_commit": [],
+  "files_raw_different_from_commit_blob_bytes": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_size": 3691,
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "git_size": 3608,
+      "git_bytes_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+      "git_blob": "41780e08e6f192c4f90d27052f61beadf5a8ae40"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_size": 5848,
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "git_size": 5720,
+      "git_bytes_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+      "git_blob": "ec7dd360f70821a2213efe82db9f93ad46f20ee0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_size": 3683,
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "git_size": 3600,
+      "git_bytes_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+      "git_blob": "fb767e110002096f637c48c4e65d48ff5c6168fc"
+    }
+  ],
+  "changed_files_vs_parent": [
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/src/entity_host.rs",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+    "eech-campaign/docs/d3-entity-collision-provider.md"
+  ],
+  "changed_files_new_at_this_commit": [],
+  "changed_files_outside_the_map_roots": [
+    {
+      "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+      "git_blob": "7685dd362e07444b1e7a79ffe3f6aa355c2498c4",
+      "git_size": 98847,
+      "git_bytes_sha256": "49bfcde958a5ce3db05d6a6535b8ea0e7e73a921e7ccbda57740506b44a02c57",
+      "working_tree_bytes_equal_to_blob": true
+    }
+  ],
+  "method": "raw SHA-256 and size from the map against the SHA-256 and size of git cat-file --batch blob bytes of the commit; not the filtered hash-object identity"
+}

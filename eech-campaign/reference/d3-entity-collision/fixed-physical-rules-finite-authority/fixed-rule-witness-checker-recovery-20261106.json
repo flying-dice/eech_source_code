@@ -1,0 +1,76 @@
+{
+  "created_utc": "2026-11-06T19:38:14.326895+00:00",
+  "actual_exit": 0,
+  "scope": "Read-only checker recovery only; original outer1 remains1, native/helper0 unchanged. Finite negative evidence pending independent actual review; not new execution, shipping/fullD3 acceptance or native coverage of all15subtypes.",
+  "runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+  "literal_source": "879b0ebde110250169513dfd9fecc4c83f3b7b01",
+  "metadata_commit": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+  "original_completion_sha256": "fe6ce47404bfc1bbf3067ec8bd8062a13723e878396d7362cda42a450d477bd0",
+  "original_native_helper_outer_exits": [
+    0,
+    0,
+    1
+  ],
+  "recovery_checker_actual_exit": 0,
+  "checker_schema": "post-launch authority row; case_weapons_pending=-1 failure sentinel; no invented BOOT fields or physical measurement",
+  "safe_facts": {
+    "mode": "changed_fixed_rule",
+    "profile": "hosted",
+    "completed": false,
+    "fixed_rule_eligible": 1,
+    "fixed_rule_changed": 1,
+    "fixed_rule_changed_next": "placement",
+    "fixed_rule_changed_cause": "fixed_rule_mirror_differs",
+    "request_faults": 0,
+    "reply_faults": 1,
+    "first_fault": "candidate reply: result refused",
+    "failure_marker": "entity_candidate.refused",
+    "frames": 301,
+    "frame_budget": 6200,
+    "case_weapons_pending": -1,
+    "case_weapons_ended": 0,
+    "view_applied": 1
+  },
+  "pre_post_inputs_full_literal_reference": true,
+  "pre_post_input_actual_exits": [
+    0,
+    0
+  ],
+  "input_reference_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+  "verified_payloads": 88,
+  "literal_git_blob": "e27c2da83ee59dda1ac614a36d0755698f302722",
+  "literal_sha256": "8cb88ddf2ab548728abbbd99e64bdf4c41258fe144cf9607e9ba6efbf1867892",
+  "raw_outputs_before_after_literal_unchanged": true,
+  "raw_outputs": {
+    "controller.json": {
+      "bytes": 4223,
+      "sha256": "290801ec9f84ea0b8ed441a3761ee4ea14d59df25488daba5c2c599628ef46d7"
+    },
+    "model.jsonl": {
+      "bytes": 5566,
+      "sha256": "b022044508e83391c8073bbab608c2214839c8bddafa11dfbd2b890cdedcc4a4"
+    },
+    "native.log": {
+      "bytes": 41043,
+      "sha256": "7e8bac8a88026d16a1cbafe81f33d2d49538bbee5fb39dd289f7c163753573f0"
+    },
+    "post-inputs.json": {
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    "post-inputs.log": {
+      "bytes": 333,
+      "sha256": "4e77ab7cc4e9950e55671a2c2a814bc2699cbbeb97ce18c3437477274aed31fe"
+    },
+    "pre-inputs.json": {
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    "pre-inputs.log": {
+      "bytes": 333,
+      "sha256": "4e77ab7cc4e9950e55671a2c2a814bc2699cbbeb97ce18c3437477274aed31fe"
+    }
+  },
+  "original_completion_preserved": true,
+  "no_native_or_input_tool_rerun": true
+}

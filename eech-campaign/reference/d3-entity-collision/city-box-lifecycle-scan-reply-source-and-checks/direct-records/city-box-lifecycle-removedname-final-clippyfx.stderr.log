@@ -1,0 +1,3 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.78s

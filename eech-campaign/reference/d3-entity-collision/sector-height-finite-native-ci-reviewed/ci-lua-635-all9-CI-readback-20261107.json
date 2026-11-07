@@ -1,0 +1,590 @@
+{
+  "schema": 1,
+  "repository": "flying-dice/eech_source_code",
+  "commit": "635d4542c1a092febf3cd0269fefbff8aea637f4",
+  "all_three_workflows_success": true,
+  "all_nine_jobs_success": true,
+  "no_manual_rerun_for_this_commit": true,
+  "workflow_runs": [
+    {
+      "id": 42363442220,
+      "name": "eech-loss-structural",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 399,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42363442220/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42363442220/logs",
+      "workflow_id": 391769320
+    },
+    {
+      "id": 42363442296,
+      "name": "eech-core-ts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 608,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42363442296/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42363442296/logs",
+      "workflow_id": 364678585
+    },
+    {
+      "id": 42363442222,
+      "name": "eech-campaign",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 754,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42363442222/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42363442222/logs",
+      "workflow_id": 367324141
+    }
+  ],
+  "jobs": [
+    {
+      "id": 128376399912,
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42363442222,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Lints",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 128376399937,
+      "name": "dcs-probe-tools",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42363442222,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Lua 5.1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Syntax",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Self-test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "SUPPLY arrival runner inputs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        }
+      ]
+    },
+    {
+      "id": 128376399962,
+      "name": "windows-cross",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42363442222,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Lua 5.1.5 as lua.dll",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Test under Wine",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 128376399985,
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42363442222,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Lints",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 128376400001,
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42363442222,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Lints",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 128376400003,
+      "name": "evidence-selftest",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42363442222,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Evidence comparison selftest",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Pinned-archive downloader",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Host-identity retained hashes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Supply-arrival retained hashes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        }
+      ]
+    },
+    {
+      "id": 128376400012,
+      "name": "test (i686-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42363442222,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Lints",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 128376399744,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42363442296,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install Lua 5.1 and a 32-bit capable C compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Generated sources match the EECH C",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Typecheck",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Lint",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Tests with 100% coverage",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Lua 5.1 build and smoke test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Lua 5.1 conformance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "C reference differential tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Upload coverage report",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27
+        }
+      ]
+    },
+    {
+      "id": 128376399499,
+      "name": "Slice 1a historical equivalence",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42363442220,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Fetch the reviewed base and the slice 1a extraction",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Check structural equivalence at the slice 1a extraction",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Check equivalence sensitivity in isolated copies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    }
+  ],
+  "pinned_archive_actual_hosted_fallback": {
+    "job_id": 128376399962,
+    "step": "Lua 5.1.5 as lua.dll",
+    "actual_conclusion": "success",
+    "decoded_log_receipt": "height-ci-635-windows-job-log-decoded-20261107.json",
+    "decoded_log_receipt_sha256": "cb9c10853bef49afec54e3ff60b23068bee459c10de924de70c95f04f9093aeb",
+    "lines": [
+      "2026-11-07T10:20:27.4257934Z curl: (28) Failed to connect to www.lua.org port 443 after 15001 ms: Timeout was reached",
+      "2026-11-07T10:20:27.4265721Z fetch-pinned-archive: https://www.lua.org/ftp/lua-5.1.5.tar.gz failed: curl exit 28",
+      "2026-11-07T10:20:27.8128003Z fetch-pinned-archive: lua.tar.gz from https://distfiles.macports.org/lua/lua-5.1.5.tar.gz (SHA-256 2640fc56a795f29d28ef15e13c34a47e223960b0240e8cb0a82d9b0738695333)"
+    ],
+    "conclusion": "Actual official-origin timeout bounded to15001ms then MacPorts fallback succeeds with unchanged pin beforeextract; full windows job succeeds."
+  },
+  "scope": "Exact635 CI only; historical TS workflow is a retained check, not resumed implementation. No native1b89 relabel, no M5/M6 witness/currentfull40/Task49/D3 delivery."
+}

@@ -1,0 +1,216 @@
+{
+  "kind": "safe summary of the preserved failure records; the raw job logs are not copied",
+  "records": {
+    "initial": {
+      "file": "R:\\d3-evidence\\sector-height-publication-1b89-CI-initial-download-failure-20261107.json",
+      "bytes": 52864,
+      "sha256": "816bcd919cab4f57b3df11c941135a02937bbd2470e3e86ce0d78d84204abba7",
+      "embedded_log_field": "raw_failed_job_log_tool_result",
+      "embedded_log_lines": 449,
+      "source": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982",
+      "workflow_run": 42359965325,
+      "recorded_reason": "curl failed to connect www.lua.org:443 after135185ms",
+      "jobs": [
+        {
+          "id": 128366083149,
+          "name": "evidence-selftest",
+          "conclusion": "success"
+        },
+        {
+          "id": 128366083230,
+          "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+          "conclusion": "success"
+        },
+        {
+          "id": 128366083260,
+          "name": "dcs-probe-tools",
+          "conclusion": "success"
+        },
+        {
+          "id": 128366083294,
+          "name": "test (i686-unknown-linux-gnu)",
+          "conclusion": "success"
+        },
+        {
+          "id": 128366083308,
+          "name": "test (x86_64-unknown-linux-gnu)",
+          "conclusion": "success"
+        },
+        {
+          "id": 128366083321,
+          "name": "windows-cross",
+          "conclusion": "failure"
+        },
+        {
+          "id": 128366083361,
+          "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+          "conclusion": "success"
+        }
+      ],
+      "failed_job": {
+        "id": 128366083321,
+        "name": "windows-cross",
+        "steps": [
+          {
+            "number": 1,
+            "name": "Set up job",
+            "conclusion": "success"
+          },
+          {
+            "number": 2,
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success"
+          },
+          {
+            "number": 3,
+            "name": "Toolchain",
+            "conclusion": "success"
+          },
+          {
+            "number": 4,
+            "name": "Lua 5.1.5 as lua.dll",
+            "conclusion": "failure"
+          },
+          {
+            "number": 5,
+            "name": "Test under Wine",
+            "conclusion": "skipped"
+          },
+          {
+            "number": 10,
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success"
+          },
+          {
+            "number": 11,
+            "name": "Complete job",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "failing_step_log_lines": [
+        {
+          "utc": "2026-11-07T09:30:41.5328610Z",
+          "line": "##[group]Run curl -fsSL -o lua.tar.gz https://www.lua.org/ftp/lua-5.1.5.tar.gz"
+        },
+        {
+          "utc": "2026-11-07T09:32:56.7332084Z",
+          "line": "curl: (28) Failed to connect to www.lua.org port 443 after 135185 ms: Couldn't connect to server"
+        },
+        {
+          "utc": "2026-11-07T09:32:56.7355924Z",
+          "line": "##[error]Process completed with exit code 28."
+        }
+      ],
+      "process_exit_codes_in_log": [
+        "28"
+      ]
+    },
+    "retry": {
+      "file": "R:\\d3-evidence\\sector-height-publication-1b89-CI-retry-download-failure-20261107.json",
+      "bytes": 51783,
+      "sha256": "52b2049c32d7129861768cca75bfe4650b4b1ec90ee209ba7d63d20ea5bb197b",
+      "embedded_log_field": "raw_log_tool_result",
+      "embedded_log_lines": 451,
+      "source": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982",
+      "workflow_run": 42359965325,
+      "recorded_reason": "Second actual Lua.org443 download timeout after136790ms; no repeated retry requested",
+      "jobs": [
+        {
+          "id": 128369471075,
+          "name": "windows-cross",
+          "conclusion": "failure"
+        },
+        {
+          "id": 128369471669,
+          "name": "dcs-probe-tools",
+          "conclusion": "success"
+        },
+        {
+          "id": 128369472092,
+          "name": "evidence-selftest",
+          "conclusion": "success"
+        },
+        {
+          "id": 128369472412,
+          "name": "test (i686-unknown-linux-gnu)",
+          "conclusion": "success"
+        },
+        {
+          "id": 128369472480,
+          "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+          "conclusion": "success"
+        },
+        {
+          "id": 128369472497,
+          "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+          "conclusion": "success"
+        },
+        {
+          "id": 128369507009,
+          "name": "test (x86_64-unknown-linux-gnu)",
+          "conclusion": "success"
+        }
+      ],
+      "failed_job": {
+        "id": 128369471075,
+        "name": "windows-cross",
+        "steps": [
+          {
+            "number": 1,
+            "name": "Set up job",
+            "conclusion": "success"
+          },
+          {
+            "number": 2,
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success"
+          },
+          {
+            "number": 3,
+            "name": "Toolchain",
+            "conclusion": "success"
+          },
+          {
+            "number": 4,
+            "name": "Lua 5.1.5 as lua.dll",
+            "conclusion": "failure"
+          },
+          {
+            "number": 5,
+            "name": "Test under Wine",
+            "conclusion": "skipped"
+          },
+          {
+            "number": 10,
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success"
+          },
+          {
+            "number": 11,
+            "name": "Complete job",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "failing_step_log_lines": [
+        {
+          "utc": "2026-11-07T09:46:48.0048717Z",
+          "line": "##[group]Run curl -fsSL -o lua.tar.gz https://www.lua.org/ftp/lua-5.1.5.tar.gz"
+        },
+        {
+          "utc": "2026-11-07T09:49:04.8019537Z",
+          "line": "curl: (28) Failed to connect to www.lua.org port 443 after 136790 ms: Couldn't connect to server"
+        },
+        {
+          "utc": "2026-11-07T09:49:04.8040348Z",
+          "line": "##[error]Process completed with exit code 28."
+        }
+      ],
+      "process_exit_codes_in_log": [
+        "28"
+      ]
+    }
+  },
+  "problems": []
+}

@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-07T05:05:16.710034+00:00",
+  "review_kind": "Same-reviewer changed-material correction/source/check review only",
+  "source": {
+    "commit": "d74ca2e1b360b5fc31fd314e3e081bdadb252e2e",
+    "parent": "ba3ad01c3fbbaddbb0ec6725f211b933019ad3a5",
+    "metadata_commit": "4901b6880a3126ca6ffe1cc99aa9ad9b61950438",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "changed_source_paths": 16,
+    "physical_high_water_writer_moved": false
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "findings": [
+      "ENV-SECTOR-HEIGHT-OBSERVER-JOIN-1"
+    ],
+    "closed_ids": [
+      "ENV-SECTOR-HEIGHT-OBSERVER-COMPLETE-1",
+      "ENV-SECTOR-HEIGHT-BASELINE-RUN-1"
+    ],
+    "native_baseline_verified": false,
+    "physical_sector_height_cutover_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "finding_dispositions": [
+    {
+      "id": "ENV-SECTOR-HEIGHT-OBSERVER-JOIN-1",
+      "severity": "P2",
+      "status": "OPEN",
+      "title": "The new recorder assumes a public callback order and building placement domain that the actual funnel does not have",
+      "verified_improvements": "Private observer rec identities, release/removal lifetime closure, explicit unobserved shape and raw FIRST/fact12 relation address the original data-loss direction. They do not yet form a valid whole public observation.",
+      "evidence": [
+        "eech-campaign/crates/eech-engine-sys/build/patches.rs:2556-2557 opens SH1 only after campaign_place_insert(en) returns.",
+        "aphavoc/source/entity/mobile/mb_hostplacemap.h:492-535 actual place_insert registers/declares the placement then calls place_fixed_state(en) at535 before returning. SH8/9 execute inside this call.",
+        "eech_sho.c:424-464 requires an existing current_rec for non-building statements, and increments stmt_unjoined/mismatches when absent. Therefore initial fixed/CITY statements precede the observer record and permanently make whole() false.",
+        "eech-campaign/crates/eech-engine/tests/sector_height_observer_chain.rs coherent control drives core INSERT then LINK then statement, so it does not cover the actual nested public ordering.",
+        "eech_sho.c:439-442 treats every CITY_BUILDING statement as child-only, without a sector record.",
+        "aphavoc/source/entity/fixed/cbuild/cb_creat.c:197-199 lists each building under its city then its sector. mb_hostplacemap.h:420 prefers the sector key when present;661-662 explicitly describes state statements at both stages. A later sector statement must join its actual sector placement rather than remain rec0 merely because its family is CITY_BUILDING."
+      ],
+      "minimum_correction": "Open or latch the private observer insertion at the real stage before its nested state callback, without moving the production roster/state calls or adding eager production semantic IDs. Distinguish the actual child-list statement from the actual sector-placement statement using the current relationship/key; join the latter to its placement record. Preserve explicit failure for truly unjoined/wrong-type/released records and bounded private lifecycle storage.",
+      "required_focused_control": "Use the real shared placement/list funnel, or a source-bound C collaborator preserving its callback order: initial fixed and CITY placement must emit the nested statement and remain whole; a city building must emit child-stage then sector-stage statements with only the sector-stage bound to that sector record. Cover relink/release and repeated same-family records without suppressing mismatch counters. No retail/native failure run is needed to establish this source defect."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-OBSERVER-COMPLETE-1",
+      "status": "CLOSED",
+      "basis": "The independent64-word sample cap is removed. Every pack/unpack uses the bounded common event table; total/stored/omitted counts are emitted and whole() requires totals equal stored. The chain control passes70 pack and70 unpack words; separate cap control fills262144 slots, then checks visible pack and unpack omission plus latched incomplete after overflow. It uses recorder plain data, not a public campaign."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-BASELINE-RUN-1",
+      "status": "CLOSED",
+      "basis": "The wrapper removes Kill and defaults to hours0.001/frame100/seed1, the established3.6-second finite window. It records PID/birth/arguments and a running receipt; finite wait expiration returns still-running2 with no completion and preserves the native. WaitSeconds0 retains a waiting parent. Output uses exclusive creation. AST checks are static evidence only: corrected script0 versus retained old script1; no live-process timeout test or native run is claimed."
+    }
+  ],
+  "other_changed_material": {
+    "CI_inventory": "The new baseline script legitimately adds one reference-arithmetic client. host_callbacks retains the semantic prepare/profile/before-boot checks and exact inventory changes62→63, with focused reproduction101 and final suite0. This repairs the retained ba3 five-job inventory failure; it is not a claim that current-head CI was read back or passed.",
+    "converter_controls": "Engine public methods now use the same bounded report converter helpers exercised by core→Ctext→Rust controls. Real emitted text is pinned and passed through the Lua driver control. C entry lock/state checks and the eech-dc binding itself are still not runtime exercised by these controls; they are compiled/linted. No public-funnel or native authority credit is given.",
+    "noninterference_scope": "New identity hooks use heap indices only for process-private diagnostic bookkeeping/reporting, and close records on actual remove/release. They allocate no production semantic ID, modify no entity state, and keep word copies integer/memcpy. Private reports contain indices/words and must not be published as safe aggregate evidence. Existing pointer-taking/spill/code-generation qualification remains; Windows exact ordinary-short equivalence is still required."
+  },
+  "evidence": {
+    "prior_report": {
+      "path": "R:/d3-evidence/independent-sector-height-public-baseline-source-9dad-20261107.json",
+      "bytes": 12256,
+      "sha256": "ad7e9a3776a9adab7bb929c4cf1c7b0815c8e4a690749cb445f359c71bcb0e06"
+    },
+    "freeze": {
+      "path": "R:/d3-evidence/D3-sector-height-public-baseline-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 25148,
+      "sha256": "c64f8c631b4edfb04cbb1ac65774a7719c978f02a396493a0b30010f0cfa687e"
+    },
+    "producer": {
+      "path": "R:/d3-evidence/claude-d3-sector-height-public-baseline-fix-20261107-completion.json",
+      "bytes": 1334,
+      "sha256": "3f9e6b4dbb8b4b79888cd4e253350aff73e64d3d38617832b064cb8997fe4583"
+    },
+    "Root_binding": {
+      "path": "R:/d3-evidence/sector-height-public-baseline-fix-Root-binding-d74-20261107.json",
+      "bytes": 22930,
+      "sha256": "7a83d8831e50a8fdc13e60b457df256a573a48d2da71a6875aff65dda9c14fe8"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "source_and_pack": "Root binds16 changed source paths and74 packet entries literally to Git; metadata-only changes preserve source code.",
+    "final_check_chronology": "The superseded first PRE preceded the inventory correction/feedback and is not final proof. Actual final PRE04:54:01 and POST04:59:01 contain3965 per-file rows and are whole-JSON literally equal SHA6b41c27772a11a02d2077b36f75a6cc696220f573dfa61ea7bfbb03fbea247f8. All rows match current raw bytes; eight extra identity rows also match. k1-k9 actual0 lie inside this interval.",
+    "qualifications": "Three inherited untouched World test Lua CRLF raw differences and seven filtered-identity qualifications are retained. The AST pair has no recorded timestamps; corrected AST0 and old AST1 are retained as separate static checks, not chronologically bound native evidence. g1 fixture bootstrap101, h1 fmt1, i1 inventory101 and superseded maps remain archived. No source normalization or test replay was performed by this reviewer.",
+    "check_limit": "All passing controls are Linux/source/scripted-recorder/converter checks at their declared identities. The recorder itself is tested with plain data; real sector-message hooks retain179 C expectations but deliberately report unjoined without the public list funnel. None proves the actual nested placement order now found above."
+  },
+  "next_gates": [
+    "One minimal JOIN correction and correctly timed final PRE/POST affected checks; retain COMPLETE/RUN closures and unaffected evidence. Do not replay a broad unchanged matrix.",
+    "Only after the same changed-material review clears it may Root build a fresh exact clean ordinary/observer Windows pair with separate cache ownership, actual profile/object isolation and sealed payload/source identities.",
+    "Observer ordinary short must equal all three complete accepted files literally, with actual exits and pre/post input checks. Then ONE reviewed finite3.6-second public baseline on a fresh verified root; larger observations require a separately justified bounded plan before launch. No scenario/actor/seed/geometry/time search.",
+    "Actual baseline must have whole report/explicit domain reach and private identity joins. An absent CITY-shape/clearance/save/restore case stays unobserved or UNREACHED; it is not an invalid-case observation or authority proof."
+  ],
+  "limits": [
+    "Core remains authoritative for the high-water word and consumers. No physical move, new Windows/native result, whole current shipping, Task49/D3 or delivery acceptance.",
+    "P1 fullpack4de closure and closed179/033/API scopes remain unchanged; no closed proofs were replayed.",
+    "Preparation remains2of2 and all ten D3 requirements remain; remaining physical/API/hierarchy/RNG/natural moving/final current40/all8/fourinputs/currentCI/review/normalmerge/finalcensus are not waived."
+  ]
+}

@@ -1,0 +1,51 @@
+
+running 6 tests
+test a_relinked_city_is_still_not_the_city_of_a_building_listed_under_another ... FAILED
+test a_building_of_the_other_city_is_never_eligible_and_no_state_is_withdrawn_for_it ... FAILED
+test a_boot_stop_at_the_expected_generic_marker_with_nothing_withdrawn_is_a_failure_and_never_unreached ... FAILED
+test a_city_expansion_reply_of_six_exact_patterns_is_credited_with_a_signed_zero_and_a_subnormal ... ok
+test a_city_expansion_reply_that_is_not_exactly_six_patterns_is_a_reply_fault_though_it_has_the_length_of_one ... FAILED
+test the_current_pair_of_a_relinked_or_an_empty_relinked_city_is_eligible_and_the_withdrawal_is_credited ... ok
+
+failures:
+
+---- a_relinked_city_is_still_not_the_city_of_a_building_listed_under_another stdout ----
+
+thread 'a_relinked_city_is_still_not_the_city_of_a_building_listed_under_another' (72) panicked at crates/eech-world/tests/entity_authority.rs:5067:5:
+assertion `left == right` failed: cross_relinked: {"boot_stop":true,"box_eligible":1,"box_withdrawn":1,"box_withdrawn_cause":"city_box_building_state_withdrawn","box_withdrawn_key":"4","city_expand_after":0,"city_expand_answered":0,"city_expand_before":1,"city_expand_total":1,"city_held_lifetime":3,"completed":false,"event":"authority","expected_marker":"entity_scan.refused","failure_line":"runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.refused] [roster.city_box.building_state] the host withdrew the collision state of the city child 4","failure_marker":"entity_scan.refused","first_fault":"scan reply: result refused","fixed_held_lifetime":2,"incomplete":false,"mode":"withdrawn_box_state","physical_after_stop":-1,"profile":"hosted","reply_faults":1,"request_faults":0}
+  left: (Number(1), Number(1), String("city_box_building_state_withdrawn"))
+ right: (Number(0), Number(-2), String(""))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- a_building_of_the_other_city_is_never_eligible_and_no_state_is_withdrawn_for_it stdout ----
+
+thread 'a_building_of_the_other_city_is_never_eligible_and_no_state_is_withdrawn_for_it' (69) panicked at crates/eech-world/tests/entity_authority.rs:5067:5:
+assertion `left == right` failed: cross: {"boot_stop":true,"box_eligible":1,"box_withdrawn":1,"box_withdrawn_cause":"city_box_building_state_withdrawn","box_withdrawn_key":"3","city_expand_after":0,"city_expand_answered":0,"city_expand_before":1,"city_expand_total":1,"city_held_lifetime":2,"completed":false,"event":"authority","expected_marker":"entity_scan.refused","failure_line":"runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.refused] [roster.city_box.building_state] the host withdrew the collision state of the city child 3","failure_marker":"entity_scan.refused","first_fault":"scan reply: result refused","fixed_held_lifetime":2,"incomplete":false,"mode":"withdrawn_box_state","physical_after_stop":-1,"profile":"hosted","reply_faults":1,"request_faults":0}
+  left: (Number(1), Number(1), String("city_box_building_state_withdrawn"))
+ right: (Number(0), Number(-2), String(""))
+
+---- a_boot_stop_at_the_expected_generic_marker_with_nothing_withdrawn_is_a_failure_and_never_unreached stdout ----
+
+thread 'a_boot_stop_at_the_expected_generic_marker_with_nothing_withdrawn_is_a_failure_and_never_unreached' (68) panicked at crates/eech-world/tests/entity_authority.rs:5144:5:
+runtime error: entity-authority: UNREACHED: withdrawn_box_state: the boot asked no city expansion that joined a held city state and a held building state (0 expansions asked, 0 answered, 0 in the boot window): no actor, time or geometry was searched for
+stack traceback:
+	[C]: in ?
+	[C]: in function 'error'
+	[string "entity-authority.lua"]:2309: in main chunk
+
+---- a_city_expansion_reply_that_is_not_exactly_six_patterns_is_a_reply_fault_though_it_has_the_length_of_one stdout ----
+
+thread 'a_city_expansion_reply_that_is_not_exactly_six_patterns_is_a_reply_fault_though_it_has_the_length_of_one' (71) panicked at crates/eech-world/tests/entity_authority.rs:5157:9:
+assertion `left == right` failed: commas: {"altered":0,"answered_hit":0,"answered_miss":0,"attribution":"global_to_the_war_no_per_weapon_identity","candidate_after":1,"candidate_altered":0,"candidate_answered_skip":0,"candidate_before":0,"candidate_buildings":0,"candidate_keyed":0,"candidate_mobile":1,"candidate_mobile_named":1,"candidate_mobile_unnamed":0,"candidate_need_fixed":0,"candidate_need_normal":0,"candidate_need_placement":0,"candidate_need_updated":0,"candidate_scene0":0,"candidate_skip":0,"candidate_test":1,"candidate_unkeyed":0,"case_weapons_ended":1,"case_weapons_pending":0,"city_after":2,"city_before":2,"city_child_first":0,"city_child_insert":0,"city_child_next":0,"city_child_remove":2,"city_expand_after":0,"city_expand_answered":2,"city_expand_before":2,"city_expand_total":2,"city_link":0,"city_name":0,"city_next":0,"city_next_joined":0,"city_placed":0,"city_removed":2,"city_served":0,"city_state_after":0,"city_state_before":1,"city_state_held_lifetime":1,"city_state_joined":0,"city_state_stated":0,"city_state_total":0,"city_state_withdrawn":0,"city_state_withdrawn_cause":"","city_state_withdrawn_next":"","city_withdrawn":0,"city_withdrawn_cause":"","city_withdrawn_next":"","cohort_signature":"gun|ground|40|1.5,100.5,3|3|4","cohort_size":1,"completed":true,"contact_any_hits_delta":0,"contact_any_tests_delta":1,"duplicate_terminals":0,"elapsed":2,"entity_after":1,"entity_before":0,"event":"authority","expected_marker":"","failure_line":"","failure_marker":"","first_fault":"","fixed_after":0,"fixed_before":2,"fixed_held_lifetime":2,"fixed_joined":0,"fixed_stated":0,"fixed_total":0,"fixed_withdrawn":0,"fixed_withdrawn_cause":"","fixed_withdrawn_next":"","fixture_api":false,"foreign_terminals":0,"frame_budget":212,"frames":2,"incomplete":false,"later_births":0,"lift_answered_y":0,"lift_baseline_elevation":0,"lift_constant":500,"lift_elevation":0,"lift_frame":-1,"lift_refused":0,"lifted":0,"miss_coverage":"","mode":"control","moving":0,"other_ops_after":2,"other_ops_before":2,"pose_after":1,"pose_altered":0,"pose_before":0,"pose_fact_aircraft_motion_differs":0,"pose_fact_attitude_compared":0,"pose_fact_attitude_differs":0,"pose_fact_dead":0,"pose_fact_dead_recorded":0,"pose_fact_formula_differs":0,"pose_fact_formula_equal":1,"pose_fact_motion_held":0,"pose_fact_motion_held_differs":0,"pose_fact_motion_not_held":1,"pose_fact_no_id":0,"pose_fact_observations":1,"pose_fact_offers":1,"pose_fact_position_differs":0,"pose_fact_recorded":1,"pose_fact_recorded_by_kind":"1=1","pose_fact_retired":0,"pose_fact_unknown":0,"pose_fact_unrecorded":0,"pose_fact_vehicle_formula_differs":0,"pose_fact_vehicle_formula_equal":1,"pose_histogram":"0:4:1:recorded:1:8=1","pose_named":1,"pose_no_id":0,"pose_pre_histogram":"","pose_pre_named":0,"pose_pre_no_id":0,"pose_pre_recorded":0,"pose_pre_retired":0,"pose_pre_stage_offer":0,"pose_pre_stage_placement":0,"pose_pre_total":0,"pose_pre_unknown":0,"pose_pre_unrecorded":0,"pose_recorded":1,"pose_retired":0,"pose_stage_offer":1,"pose_stage_placement":0,"pose_unknown":0,"pose_unrecorded":0,"precision_high_delta":1,"profile":"hosted","real_hit":0,"real_mask_56":1,"real_mask_63":0,"real_mask_other":0,"real_miss":1,"record_displaced":0,"record_withdrawn":0,"reply_faults":0,"request_faults":0,"roster_after":2,"roster_before":2,"roster_cleared":0,"roster_insert":1,"roster_placed":1,"roster_remove":1,"roster_removed":1,"roster_reset":0,"roster_withdrawn":0,"roster_withdrawn_cause":"","roster_withdrawn_next_phase":"","scan_after":4,"scan_altered":0,"scan_answered_done_none":0,"scan_before":0,"scan_done_hit":0,"scan_done_none":0,"scan_excluded":0,"scan_first":2,"scan_next":1,"scan_offer":1,"scan_phase_begin":1,"scan_phase_end":1,"scan_phase_entry":1,"scan_phase_resolved":1,"secondary_input":"","stationary":1,"target":"eech-world:2","target_after_lift":0,"target_after_lift_test":0,"target_buildings":0,"target_need_fixed":0,"target_need_normal":0,"target_need_placement":0,"target_need_updated":0,"target_questions":0,"target_skip":0,"target_test":0,"view_already_set":0,"view_answers_seen":1,"view_applied":1,"view_input":"configured_view_weapon_true_on_armed_weapon_steps","view_steps_seen":2}
+  left: Number(2)
+ right: 0
+
+
+failures:
+    a_boot_stop_at_the_expected_generic_marker_with_nothing_withdrawn_is_a_failure_and_never_unreached
+    a_building_of_the_other_city_is_never_eligible_and_no_state_is_withdrawn_for_it
+    a_city_expansion_reply_that_is_not_exactly_six_patterns_is_a_reply_fault_though_it_has_the_length_of_one
+    a_relinked_city_is_still_not_the_city_of_a_building_listed_under_another
+
+test result: FAILED. 2 passed; 4 failed; 0 ignored; 0 measured; 79 filtered out; finished in 0.01s
+

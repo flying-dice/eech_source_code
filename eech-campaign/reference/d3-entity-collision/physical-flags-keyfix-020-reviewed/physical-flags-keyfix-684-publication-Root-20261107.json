@@ -1,0 +1,828 @@
+{
+  "kind": "Root READ_ONLY exact Git packet/publication binding, not source or native acceptance",
+  "utc": "2026-11-07T19:46:01.730257+00:00",
+  "HEAD": "684f30d94a09b814ee436aa6c1ce183c08056aff",
+  "code": "020fb3cfa5450acd91f136e678974160c12c8275",
+  "clean": true,
+  "pushed_upstream_exact": true,
+  "packet_entries": 165,
+  "external_literal_copies": [
+    {
+      "packet": "D3-PHYSICAL-FLAGS-KEYFIX-CODE-FROZEN-20261107.json",
+      "external": "R:\\d3-evidence\\D3-PHYSICAL-FLAGS-KEYFIX-CODE-FROZEN-20261107.json",
+      "sha256": "abd58d59b6c00a29c067510fbd2940345e98eb894151708b88607e742f0d204b"
+    },
+    {
+      "packet": "fixed-sources-at-the-red-run/mb_hostentity.h",
+      "external": "R:\\d3-evidence\\keyfix-fixed-copies\\mb_hostentity.h",
+      "sha256": "48354a1e2f58df6b91bb1a3b701b7b1fd8d8781a9e2046aaa13e744791c7216a"
+    },
+    {
+      "packet": "fixed-sources-at-the-red-run/mb_hostmodel.c",
+      "external": "R:\\d3-evidence\\keyfix-fixed-copies\\mb_hostmodel.c",
+      "sha256": "5262accf592b2e8b49052b667740dda6f5b72a681b0b39a8e0e3a574bbaadc4c"
+    },
+    {
+      "packet": "inputmaps-compare.json",
+      "external": "R:\\d3-evidence\\hwkey-inputmaps-compare-20261107.json",
+      "sha256": "c226d7a3ac5ede613c2b802885697acfe551999cbde8f0e531cc643110f9b502"
+    },
+    {
+      "packet": "join-vs-reference.json",
+      "external": "R:\\d3-evidence\\hwkey-join-vs-0d0-20261107.json",
+      "sha256": "e2390579a74b6e4df990dcdb42e9d2288cbba4ecac47d97eaf62356f99c9a264"
+    },
+    {
+      "packet": "Root-physical-flags-key-fix-feedback-20261107-1848.json",
+      "external": "R:\\d3-evidence\\Root-physical-flags-key-fix-feedback-20261107-1848.json",
+      "sha256": "44e4eb67ffcbe97b8648a54eafc3053a22b3d74686e789e8a938341c36aca594"
+    },
+    {
+      "packet": "Root-physical-flags-key-fix-feedback-20261107-1909.json",
+      "external": "R:\\d3-evidence\\Root-physical-flags-key-fix-feedback-20261107-1909.json",
+      "sha256": "1d9fd1787cb51a7fec82068c6f203b56a1860910ac3aa6be77a9a7df7f9542ea"
+    },
+    {
+      "packet": "Root-physical-flags-key-fix-feedback-20261107-1916.json",
+      "external": "R:\\d3-evidence\\Root-physical-flags-key-fix-feedback-20261107-1916.json",
+      "sha256": "aa3a8d55ab544bfc1357b36069d30241d69de0915121248e7d1f7355704003bf"
+    },
+    {
+      "packet": "runs/d1-identity.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d1-identity.json",
+      "sha256": "01b893ea72b1ec0ef7da1cbcb1491e56394140de7f3db03ff4ecedff644b973c"
+    },
+    {
+      "packet": "runs/d1-identity.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d1-identity.stderr.log",
+      "sha256": "125330143ae77fff23dfad571fd6d8e9426c7549c035c6438942661d85c450d2"
+    },
+    {
+      "packet": "runs/d1-identity.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d1-identity.stdout.log",
+      "sha256": "92ec1336f1e2bd61644f139819510affe44ca6247d5fe7a8378c0e08e36a2e0a"
+    },
+    {
+      "packet": "runs/d10-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d10-collision-orig.json",
+      "sha256": "be39f3f1ad16a8c5bd9343881658a5600151aa676498caba3117dcd05b6f7cc5"
+    },
+    {
+      "packet": "runs/d10-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d10-collision-orig.stderr.log",
+      "sha256": "f69905d3b19dd64828a35ef1c108b25ed16cb502f4c0a63a42c77ff77b1bf2ef"
+    },
+    {
+      "packet": "runs/d10-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d10-collision-orig.stdout.log",
+      "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+    },
+    {
+      "packet": "runs/d11-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d11-collision-orig.json",
+      "sha256": "9537117d5d335aea182e2ca30010bb5dbc069e51d20c8631cfc6db26e032e340"
+    },
+    {
+      "packet": "runs/d11-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d11-collision-orig.stderr.log",
+      "sha256": "e3b32e9f2da7be641104ff0d1940e0c7c6a4f935c8cdfe7aebe970c2aa8a8468"
+    },
+    {
+      "packet": "runs/d11-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d11-collision-orig.stdout.log",
+      "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+    },
+    {
+      "packet": "runs/d12-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d12-collision-orig.json",
+      "sha256": "ccde5e52916d7ad3245080a7f890e1254b05f8a1e2ae5a7bb02346aa56e4f028"
+    },
+    {
+      "packet": "runs/d12-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d12-collision-orig.stderr.log",
+      "sha256": "1f4f5461d7bc3e236dbf81bd53f3e8e5915d27cd1969b1985aa5b9afabd36575"
+    },
+    {
+      "packet": "runs/d12-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d12-collision-orig.stdout.log",
+      "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+    },
+    {
+      "packet": "runs/d13-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d13-collision-orig.json",
+      "sha256": "83b60afd2674e2ff0c88d273d2f5a9d05f31507cc44de73d95994b34de8f6390"
+    },
+    {
+      "packet": "runs/d13-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d13-collision-orig.stderr.log",
+      "sha256": "6a19a2fb3d165f31bd4f67df7e81878a1294c3ea0452571f76af1ef44f5c1ba2"
+    },
+    {
+      "packet": "runs/d13-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d13-collision-orig.stdout.log",
+      "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+    },
+    {
+      "packet": "runs/d14-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d14-collision-orig.json",
+      "sha256": "4771d3a6bcc07637efa37d6a6886c6c922237d72ab2089f761f24ba7abb8c373"
+    },
+    {
+      "packet": "runs/d14-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d14-collision-orig.stderr.log",
+      "sha256": "8939e5f81bae1c221cdd736526b81ac9685985ba7586518ded779b44affd0215"
+    },
+    {
+      "packet": "runs/d14-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d14-collision-orig.stdout.log",
+      "sha256": "0ea49f14cf6de7ca8ee3bb548b7f628b0a4a6d9904670d392fa1e9157dde370b"
+    },
+    {
+      "packet": "runs/d15-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d15-collision-orig.json",
+      "sha256": "65dfa9399f2544eb712bb9c80f2eb79485cf4c4ebcfdc0199bab71e9ca8a3fff"
+    },
+    {
+      "packet": "runs/d15-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d15-collision-orig.stderr.log",
+      "sha256": "1421ffebb6b57e10f3f10545867c80058cc5ba41cb63239ad68ba44b4b6917fe"
+    },
+    {
+      "packet": "runs/d15-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d15-collision-orig.stdout.log",
+      "sha256": "8182368172f6d50efa09e522652ef997d21e59ddab2c105a2e2d20edadf6f50d"
+    },
+    {
+      "packet": "runs/d16-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d16-collision-orig.json",
+      "sha256": "e357a2eae337848698dcaf17c2f553ad7d9969e09e3ac1f55d3ede27f899af9e"
+    },
+    {
+      "packet": "runs/d16-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d16-collision-orig.stderr.log",
+      "sha256": "1421ffebb6b57e10f3f10545867c80058cc5ba41cb63239ad68ba44b4b6917fe"
+    },
+    {
+      "packet": "runs/d16-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d16-collision-orig.stdout.log",
+      "sha256": "8182368172f6d50efa09e522652ef997d21e59ddab2c105a2e2d20edadf6f50d"
+    },
+    {
+      "packet": "runs/d17-collision-diag.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d17-collision-diag.json",
+      "sha256": "e7e920ae0174ad51ac0bfa6423052f9b9d5b801776d7310098e12cd461b87d42"
+    },
+    {
+      "packet": "runs/d17-collision-diag.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d17-collision-diag.stderr.log",
+      "sha256": "52765edc54064819a4ec602936bf920fc559133781d9ff13a5eeac0bf3e9c8ce"
+    },
+    {
+      "packet": "runs/d17-collision-diag.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d17-collision-diag.stdout.log",
+      "sha256": "1d60582d0792f64000e127ed9fe0b946b9671a9d16921aa5e99f659a549125cb"
+    },
+    {
+      "packet": "runs/d18-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d18-collision-orig.json",
+      "sha256": "8738bb4478de8bdef2c74c236fcf87c110a0932b2c0954b9518154fdc91cfe9f"
+    },
+    {
+      "packet": "runs/d18-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d18-collision-orig.stderr.log",
+      "sha256": "3cf64bb34c17c27177f980c8b1e1a738d09c42b98af02eee2f40c6290c7edbe2"
+    },
+    {
+      "packet": "runs/d18-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d18-collision-orig.stdout.log",
+      "sha256": "ae27f2355803f121d7ae3eef942eae7a1079c91bd95588213012be8b3807fd17"
+    },
+    {
+      "packet": "runs/d19-collision-orig-real.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d19-collision-orig-real.json",
+      "sha256": "c27a2e30ae39527054bbb9dc70fca4c0e506514f7c0c4b38da25346910c61a17"
+    },
+    {
+      "packet": "runs/d19-collision-orig-real.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d19-collision-orig-real.stderr.log",
+      "sha256": "b90ebb1c51abac821a3ea6b1b3a58f2f331ddad03611b91b1e90d3c5acc43295"
+    },
+    {
+      "packet": "runs/d19-collision-orig-real.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d19-collision-orig-real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/d2-red-0d0-source.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d2-red-0d0-source.json",
+      "sha256": "3b07fdbf387d27d948a8d296fe6523aabab97dbaf3e45f01189c1c7174b5ce7b"
+    },
+    {
+      "packet": "runs/d2-red-0d0-source.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d2-red-0d0-source.stderr.log",
+      "sha256": "3b71fe7e348c24ec02e28bb799042b20e2b67ae5edacf89adada6910d86b3e6b"
+    },
+    {
+      "packet": "runs/d2-red-0d0-source.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d2-red-0d0-source.stdout.log",
+      "sha256": "543481fe810423e018feddfda1e7d9c0d58de95820c185bbb148505b2d1631b5"
+    },
+    {
+      "packet": "runs/d20-collision-orig-real.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d20-collision-orig-real.json",
+      "sha256": "deb8aba64e1e805470754b54ddb95588eaabca3d7fec597a2d3afc7a3b8a2ff7"
+    },
+    {
+      "packet": "runs/d20-collision-orig-real.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d20-collision-orig-real.stderr.log",
+      "sha256": "9fae58ad0b23d525b998675d51655594576fedd8072f409f8e42944c032732c0"
+    },
+    {
+      "packet": "runs/d20-collision-orig-real.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d20-collision-orig-real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/d21-collision-orig-real.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d21-collision-orig-real.json",
+      "sha256": "839e32aab7a3af9bb86f9e608509621f076112e84c1e4168051d118c026260c1"
+    },
+    {
+      "packet": "runs/d21-collision-orig-real.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d21-collision-orig-real.stderr.log",
+      "sha256": "f320d41ab987abd98739bb72f2e7fab8b1ce1e74423cb1f6798429a40d506816"
+    },
+    {
+      "packet": "runs/d21-collision-orig-real.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d21-collision-orig-real.stdout.log",
+      "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+    },
+    {
+      "packet": "runs/d22-collision-orig-real.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d22-collision-orig-real.json",
+      "sha256": "7af060198e8607179dd9da7878bb0f905b9ad59a74efe3cc6c1cbadbb190d5a9"
+    },
+    {
+      "packet": "runs/d22-collision-orig-real.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d22-collision-orig-real.stderr.log",
+      "sha256": "6820f7381c0558b492fb5e8d4f0eb7ad139aa2e5cd02f4fc4a758e5b1d1eaa20"
+    },
+    {
+      "packet": "runs/d22-collision-orig-real.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d22-collision-orig-real.stdout.log",
+      "sha256": "bd3c7e56e2abe039866831d65be9ad876af8aaf059ae6151e44c0d70ed2b6a12"
+    },
+    {
+      "packet": "runs/d23-collision-hosted.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d23-collision-hosted.json",
+      "sha256": "b00817361352ffed4b2e0ba52acbb4cd6a3884baba0058551128860dffce9f60"
+    },
+    {
+      "packet": "runs/d23-collision-hosted.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d23-collision-hosted.stderr.log",
+      "sha256": "d7e2389eab6d7d8088ef2910db914de442631c3ea58ad8ebac32f9ab815edb9e"
+    },
+    {
+      "packet": "runs/d23-collision-hosted.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d23-collision-hosted.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/d24-collision-hosted.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d24-collision-hosted.json",
+      "sha256": "54f5a39a5356f99ebf319e2cf0a52d569ea41114d2b3606bb1ecc85d8d302acc"
+    },
+    {
+      "packet": "runs/d24-collision-hosted.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d24-collision-hosted.stderr.log",
+      "sha256": "7ef78252ef7c320b5681adfac04db12b98163924e7ffaa8d246547fac50d6deb"
+    },
+    {
+      "packet": "runs/d24-collision-hosted.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d24-collision-hosted.stdout.log",
+      "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+    },
+    {
+      "packet": "runs/d25-collision-hosted.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d25-collision-hosted.json",
+      "sha256": "33d783a69ee5478e43fd8486a238c755893b7b44b997d6eeecf9f71cbab3233b"
+    },
+    {
+      "packet": "runs/d25-collision-hosted.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d25-collision-hosted.stderr.log",
+      "sha256": "26148f393a9928a6a9e39811f1ff8c0fcce3df78d57c6df0716f150c207a148f"
+    },
+    {
+      "packet": "runs/d25-collision-hosted.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d25-collision-hosted.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/d26-collision-hosted.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d26-collision-hosted.json",
+      "sha256": "cd1b0664d45b3a493eb28cc62f80a34280ea1cf47a8d12c1e0c608c7e520e3ab"
+    },
+    {
+      "packet": "runs/d26-collision-hosted.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d26-collision-hosted.stderr.log",
+      "sha256": "49cb697e6fc7555a7ffdbef1924c0b97bfb6a58d07c3f749da282e0fcdb5a9cb"
+    },
+    {
+      "packet": "runs/d26-collision-hosted.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d26-collision-hosted.stdout.log",
+      "sha256": "48bf79d61392f608dc06a389ec41b44ec62b1b56a967bd0897c2028ba6d912fc"
+    },
+    {
+      "packet": "runs/d27-guard.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d27-guard.json",
+      "sha256": "840fd0be97702f656ef11d38f98055df62a65de7818fbff825575bf7adf18e77"
+    },
+    {
+      "packet": "runs/d27-guard.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d27-guard.stderr.log",
+      "sha256": "1fcd204d2504c9db7590a4b0e5bdb8fba78f71f23d3f788680bf7343f165924e"
+    },
+    {
+      "packet": "runs/d27-guard.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d27-guard.stdout.log",
+      "sha256": "2e9c49ee8255e6007aef57b5e629c602bf4b42f11c5bf3b171fa08dd50a1f722"
+    },
+    {
+      "packet": "runs/d28-guard.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d28-guard.json",
+      "sha256": "e9dbb3b3ff0597814bc246615ce0983587667de3f8e87fb1bb9b2c7675d4d56e"
+    },
+    {
+      "packet": "runs/d28-guard.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d28-guard.stderr.log",
+      "sha256": "5fc480ab10b66af3c1764b245c1968a683f5bde5176a6b9ddf1506fb6f6e7bae"
+    },
+    {
+      "packet": "runs/d28-guard.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d28-guard.stdout.log",
+      "sha256": "5f906df29c5ffa5d4b04236d2e498a8eb7cc7359f7e22af498e3375eda6e6d7e"
+    },
+    {
+      "packet": "runs/d29-fmt-clippy.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d29-fmt-clippy.json",
+      "sha256": "9a940dd59e0651aec8627ba83bbeb9062a13d88731a0994c43099cbb64c526b6"
+    },
+    {
+      "packet": "runs/d29-fmt-clippy.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d29-fmt-clippy.stderr.log",
+      "sha256": "1223394156dfd9f656abce461ebccb523cd55c077508954d41842e3e6cf3e46e"
+    },
+    {
+      "packet": "runs/d29-fmt-clippy.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d29-fmt-clippy.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/d3-world-dc-engine.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d3-world-dc-engine.json",
+      "sha256": "bf8f8e3c71566cf77e3108478ff1701bd41a36c6df6666ffac0d6d23f1a7de11"
+    },
+    {
+      "packet": "runs/d3-world-dc-engine.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d3-world-dc-engine.stderr.log",
+      "sha256": "d9b8310534d97e14d010a6a50ad88970aa08633d483624587cb423f2d82eeaa0"
+    },
+    {
+      "packet": "runs/d3-world-dc-engine.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d3-world-dc-engine.stdout.log",
+      "sha256": "24565b9a963398794da76a51b11c68981e75a4a6cdeac61e2895de3b6402c5b9"
+    },
+    {
+      "packet": "runs/d30-collision-hosted-bound.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d30-collision-hosted-bound.json",
+      "sha256": "7b16536f033cf960a17bbdd594b136ef04f1623f02aa1f87827cc482b37f03aa"
+    },
+    {
+      "packet": "runs/d30-collision-hosted-bound.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d30-collision-hosted-bound.stderr.log",
+      "sha256": "d3cb26711ded2b280e38648242f8fd264ff9309ccf5eb62a44504191e577b807"
+    },
+    {
+      "packet": "runs/d30-collision-hosted-bound.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d30-collision-hosted-bound.stdout.log",
+      "sha256": "28272e6cd764676fd610b80982d4c03302a4748112b2bfc411f6543b2ecb8536"
+    },
+    {
+      "packet": "runs/d31-fmt-clippy.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d31-fmt-clippy.json",
+      "sha256": "31618393e549f3ef075d4ed18e5081f46e840892754557cac73b9b3d2771f22e"
+    },
+    {
+      "packet": "runs/d31-fmt-clippy.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d31-fmt-clippy.stderr.log",
+      "sha256": "57efbb87b6d5802c8c7ccba9b8d3a37267e8e289acb45e3a81dfb4aa34cbc90e"
+    },
+    {
+      "packet": "runs/d31-fmt-clippy.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d31-fmt-clippy.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/d4-world-targets.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d4-world-targets.json",
+      "sha256": "6e3c6eb0c4191fc55b740958ad1ac1cc3e9ab1af1d88fbead5787d7a8a0a1947"
+    },
+    {
+      "packet": "runs/d4-world-targets.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d4-world-targets.stderr.log",
+      "sha256": "203f66a70b1a26748cd7c61c7cc1fc224994193d106dcd7f6743b1c45ece1ee1"
+    },
+    {
+      "packet": "runs/d4-world-targets.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d4-world-targets.stdout.log",
+      "sha256": "ec0effeb7eeb00cb1836c3bbcc74bd0cf8e54aff4f3928fdb78a0a835cb94485"
+    },
+    {
+      "packet": "runs/d5-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d5-collision-orig.json",
+      "sha256": "c6875196e697c924b50ab0d0c20ed7e534549cbddae4dff7c96b62b08e22a8b9"
+    },
+    {
+      "packet": "runs/d5-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d5-collision-orig.stderr.log",
+      "sha256": "2baeee365549864097734d3b691e149dda81ca815cb98f1574c4aa43407ca6d8"
+    },
+    {
+      "packet": "runs/d5-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d5-collision-orig.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/d6-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d6-collision-orig.json",
+      "sha256": "cd002b191f026580dc08bbfc08bb57fb5b729052d12ffcabd2b9642933cc60cb"
+    },
+    {
+      "packet": "runs/d6-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d6-collision-orig.stderr.log",
+      "sha256": "189acd46156670e6ace6f377a2c17f2b8bc27ea357626c2d54ac63da37dd02da"
+    },
+    {
+      "packet": "runs/d6-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d6-collision-orig.stdout.log",
+      "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+    },
+    {
+      "packet": "runs/d7-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d7-collision-orig.json",
+      "sha256": "d9b011366ec0128fa09ac96a249a8a94e2aaed7b206a9044bd6811b3d777bd3e"
+    },
+    {
+      "packet": "runs/d7-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d7-collision-orig.stderr.log",
+      "sha256": "04222a4142c7e9cf8222f20dcf2553bc27e196e111e4d4ccdf7a5a1428aec65d"
+    },
+    {
+      "packet": "runs/d7-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d7-collision-orig.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/d8-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d8-collision-orig.json",
+      "sha256": "7178480b9453d86341d67c99de11beb2b90d0d4cb39b2beadd8141d52d25794b"
+    },
+    {
+      "packet": "runs/d8-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d8-collision-orig.stderr.log",
+      "sha256": "d6584bf178361e613825faa5243ab670a52aba8f10b1678549a428676f4d0ef3"
+    },
+    {
+      "packet": "runs/d8-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d8-collision-orig.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/d9-collision-orig.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-d9-collision-orig.json",
+      "sha256": "9f541d779a68d9884404a0b26fadf3a5dee90de2e0143e776c5f972b752156a1"
+    },
+    {
+      "packet": "runs/d9-collision-orig.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d9-collision-orig.stderr.log",
+      "sha256": "7ae82ba1fa52a4e167e8cf2c6694dc664fb04453bbbc9912883b24b5f080a9a6"
+    },
+    {
+      "packet": "runs/d9-collision-orig.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-d9-collision-orig.stdout.log",
+      "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+    },
+    {
+      "packet": "runs/hwkey-final-set-20261107.progress",
+      "external": "R:\\d3-evidence\\hwkey-final-set-20261107.progress",
+      "sha256": "1434c9f896ceeb12ae730e575239543a79666291f23ca31d6777f89ef61ee4a7"
+    },
+    {
+      "packet": "runs/hwkey-final-set-lease-after-20261107.txt",
+      "external": "R:\\d3-evidence\\hwkey-final-set-lease-after-20261107.txt",
+      "sha256": "4c04288a874657cf84a8d7ee257da46d3050f3dca11b09a8ac7da7f148e8555c"
+    },
+    {
+      "packet": "runs/hwkey-final-set-lease-before-20261107.txt",
+      "external": "R:\\d3-evidence\\hwkey-final-set-lease-before-20261107.txt",
+      "sha256": "d009cbe4bfbfa011d611f4537dd5c3fd9f4867938be3abb7f2734592998f7b88"
+    },
+    {
+      "packet": "runs/hwkey-preflight-receipts-20261107.json",
+      "external": "R:\\d3-evidence\\hwkey-preflight-receipts-20261107.json",
+      "sha256": "4b318256796d52cc1cd2375bd461aaaa035e4e00151e62b01fd1666f41d1a766"
+    },
+    {
+      "packet": "runs/hwkey-preflight-receipts-final-20261107.json",
+      "external": "R:\\d3-evidence\\hwkey-preflight-receipts-final-20261107.json",
+      "sha256": "b9c207aa7bcf6c7b7703dacb8509b8ea3e98d2470102f0ceeda15fd178f7db66"
+    },
+    {
+      "packet": "runs/q1-fmt-check.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q1-fmt-check.json",
+      "sha256": "37b08df262e90de52b5fc68bacdd91adf4e5335fb6b239de7df61fb542bbc315"
+    },
+    {
+      "packet": "runs/q1-fmt-check.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q1-fmt-check.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "packet": "runs/q1-fmt-check.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q1-fmt-check.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "packet": "runs/q10-sector-height-original.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q10-sector-height-original.json",
+      "sha256": "08585a773d2b7c2de3dd96a304ff6d8b56c66d994315c39cb30fafdee2ffe752"
+    },
+    {
+      "packet": "runs/q10-sector-height-original.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q10-sector-height-original.stderr.log",
+      "sha256": "79aeed3ce760ede7c713296c46d149aaa988a11afa04afc82231640563e1d3c3"
+    },
+    {
+      "packet": "runs/q10-sector-height-original.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q10-sector-height-original.stdout.log",
+      "sha256": "fe7ce24f745917b693d3ad74710e09c6767954e273e018e2490a6400160df7d3"
+    },
+    {
+      "packet": "runs/q11-build-dc.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q11-build-dc.json",
+      "sha256": "f31a88bc50f8d388691826f7ad172b97a51158d3d45c1d6edf5b79fd8befd603"
+    },
+    {
+      "packet": "runs/q11-build-dc.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q11-build-dc.stderr.log",
+      "sha256": "da8db938fc8d49248071b3128f7d45d7cbaac039f8c4ec1f7a4c0b1b8e0b1c87"
+    },
+    {
+      "packet": "runs/q11-build-dc.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q11-build-dc.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/q12-world-all.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q12-world-all.json",
+      "sha256": "f484d5405b81cbf7e69183d18dae58c3bd47a7a8db22dc77dfde1690dd1c4adb"
+    },
+    {
+      "packet": "runs/q12-world-all.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q12-world-all.stderr.log",
+      "sha256": "2abcb78ba2b4e94fa2971db20c901c2f0a358e6e587dfb965ba29454e6d38b15"
+    },
+    {
+      "packet": "runs/q12-world-all.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q12-world-all.stdout.log",
+      "sha256": "d2c7b80aecb1a55264b2d15bc9bdce85824a6f80cd968646c8e74b10e768ec4c"
+    },
+    {
+      "packet": "runs/q13-engine-dc.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q13-engine-dc.json",
+      "sha256": "4f791444dc4a15338e84d7b577572b904211503614d1eb3e299f05370cecb0fe"
+    },
+    {
+      "packet": "runs/q13-engine-dc.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q13-engine-dc.stderr.log",
+      "sha256": "008ab086b2f182d08fc6e363df5a6e01a678ed93cdfc77421c75cc387a549059"
+    },
+    {
+      "packet": "runs/q13-engine-dc.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q13-engine-dc.stdout.log",
+      "sha256": "128789fdb668a7835aa9beefa12e73d0483f94474558d4453c1918850f958292"
+    },
+    {
+      "packet": "runs/q2-clippy-engine-sys-default.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q2-clippy-engine-sys-default.json",
+      "sha256": "8d66fd2e771b7e1619eafb8807db6410d6a9a563459bd89d91198917a63e7d5a"
+    },
+    {
+      "packet": "runs/q2-clippy-engine-sys-default.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q2-clippy-engine-sys-default.stderr.log",
+      "sha256": "9f18c4ce5bad4db81215ee3948640e3b7d985a0d82155a4cb564bab5c25e4414"
+    },
+    {
+      "packet": "runs/q2-clippy-engine-sys-default.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q2-clippy-engine-sys-default.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "packet": "runs/q3-clippy-engine-sys-flag-features.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q3-clippy-engine-sys-flag-features.json",
+      "sha256": "37f2403673c6bb8648d4becfe00c0ae4642d7b97f84e72fcde9336c9c87ebf5f"
+    },
+    {
+      "packet": "runs/q3-clippy-engine-sys-flag-features.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q3-clippy-engine-sys-flag-features.stderr.log",
+      "sha256": "904a963e3158b1624f3fea9c1b928f4c0f6f78147d751f5135978e3a679e6b3d"
+    },
+    {
+      "packet": "runs/q3-clippy-engine-sys-flag-features.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q3-clippy-engine-sys-flag-features.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/q4-clippy-engine-sys-original.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q4-clippy-engine-sys-original.json",
+      "sha256": "53596259cd093a289124946ac38d9e196065f951950706bb0f3b924ee56b863a"
+    },
+    {
+      "packet": "runs/q4-clippy-engine-sys-original.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q4-clippy-engine-sys-original.stderr.log",
+      "sha256": "cb9c7930c152b17de952c5f51462f241469432eb3ea2d08abf58e98b907a8a6a"
+    },
+    {
+      "packet": "runs/q4-clippy-engine-sys-original.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q4-clippy-engine-sys-original.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/q5-clippy-world-engine-dc.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q5-clippy-world-engine-dc.json",
+      "sha256": "c2356ab573ee3911d9335646a74b864eeec894aa8ef85b3ce4c547aa21bce897"
+    },
+    {
+      "packet": "runs/q5-clippy-world-engine-dc.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q5-clippy-world-engine-dc.stderr.log",
+      "sha256": "25cea9aca11bb537302bcc9be8cc30a208b3c89d31020503ef5152ff0477fb89"
+    },
+    {
+      "packet": "runs/q5-clippy-world-engine-dc.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q5-clippy-world-engine-dc.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/q6-engine-sys-default.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q6-engine-sys-default.json",
+      "sha256": "a27faa999760cf53a3efe2371f018b09c466e73fc352c2b08ec0b8fb8fe3fe00"
+    },
+    {
+      "packet": "runs/q6-engine-sys-default.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q6-engine-sys-default.stderr.log",
+      "sha256": "c396d1d5410d2a348cb526ab3d03060018e7abf0866c230ca316383070f1b79b"
+    },
+    {
+      "packet": "runs/q6-engine-sys-default.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q6-engine-sys-default.stdout.log",
+      "sha256": "fad69a55d05dc92da6b76a5c8323d2350e28796798e017cf1aa1640c05960460"
+    },
+    {
+      "packet": "runs/q7-flags-hosted-controls.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q7-flags-hosted-controls.json",
+      "sha256": "7fd717a62ee733f16b8f4b7aa1f1389fdb26e3355a6be0987db0bffc635648ae"
+    },
+    {
+      "packet": "runs/q7-flags-hosted-controls.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q7-flags-hosted-controls.stderr.log",
+      "sha256": "102250b52a0f00153d06860ed735a0d4443b3b99c6f61a4fd0ad96c51f8073f1"
+    },
+    {
+      "packet": "runs/q7-flags-hosted-controls.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q7-flags-hosted-controls.stdout.log",
+      "sha256": "8969f4dc6742a87cdb1f022ad6c2ccd36a68c7ce1a22168d9fdd5af8a3d0026d"
+    },
+    {
+      "packet": "runs/q8-flags-original-profile.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q8-flags-original-profile.json",
+      "sha256": "c99d3b790d1e485151421471a9a451f0c7975b49b36483f291934561e7444120"
+    },
+    {
+      "packet": "runs/q8-flags-original-profile.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q8-flags-original-profile.stderr.log",
+      "sha256": "4c0f65b4ac04aae29b286f17645f35eab45cff3b00f07c284c8ba125baed9272"
+    },
+    {
+      "packet": "runs/q8-flags-original-profile.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q8-flags-original-profile.stdout.log",
+      "sha256": "858529b59faa6c6455b18a9cf9685cecb0c1efdeae6139a38a8df57d34245d52"
+    },
+    {
+      "packet": "runs/q9-sector-height-hosted.json",
+      "external": "R:\\d3-evidence\\flags-keyfix-q9-sector-height-hosted.json",
+      "sha256": "bbed7716effe38b247ef9fab745138f350859faf18a2abb14842774378ebc515"
+    },
+    {
+      "packet": "runs/q9-sector-height-hosted.stderr.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q9-sector-height-hosted.stderr.log",
+      "sha256": "0a832bc2aeb76729fcd0e728ec1cb517426b27b87f45c789aeed1fe603ed4c62"
+    },
+    {
+      "packet": "runs/q9-sector-height-hosted.stdout.log",
+      "external": "R:\\d3-evidence\\flags-keyfix-q9-sector-height-hosted.stdout.log",
+      "sha256": "64796feafa5105e44b12df1374e73f6ed653cbd30abc93fc39e119a353fc17f7"
+    },
+    {
+      "packet": "scripts/check-physical-flags-keyfix-linux-20261107.sh",
+      "external": "R:\\d3-evidence\\check-physical-flags-keyfix-linux-20261107.sh",
+      "sha256": "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65"
+    },
+    {
+      "packet": "scripts/freeze-hwkey-20261107.PRE-version.py",
+      "external": "R:\\d3-evidence\\freeze-hwkey-20261107.PRE-version.py",
+      "sha256": "993c840a3570c6af6c9d1d74693f53e598b653ff2e717c8e669dcec47c99f2fa"
+    },
+    {
+      "packet": "scripts/freeze-hwkey-20261107.py",
+      "external": "R:\\d3-evidence\\freeze-hwkey-20261107.py",
+      "sha256": "010288d36d1b9fd27d9fd4a18fcbe62d90a15648a619e2e871322d277296bf72"
+    },
+    {
+      "packet": "scripts/hwkey-extra-identity-20261107.py",
+      "external": "R:\\d3-evidence\\hwkey-extra-identity-20261107.py",
+      "sha256": "a6ba3f742ca22be6b723b2ccec38983b700902a6ad7bc18f0c1285213e376a5c"
+    },
+    {
+      "packet": "scripts/hwkey-feedback-files-20261107.json",
+      "external": "R:\\d3-evidence\\hwkey-feedback-files-20261107.json",
+      "sha256": "4b7b794b0c428c76e9ae1d8f4018589cf9609e76cbb9e3df7e53643e22a891ec"
+    },
+    {
+      "packet": "scripts/hwkey-freeze-attempt1-20261107.stderr.txt",
+      "external": "R:\\d3-evidence\\hwkey-freeze-attempt1-20261107.stderr.txt",
+      "sha256": "7e7b1a1b7be91e0ac648ddd11cbc013234ede7ff030c81aa4b0685ba1ecff7d5"
+    },
+    {
+      "packet": "scripts/hwkey-inputmap-DRY-20261107.json",
+      "external": "R:\\d3-evidence\\hwkey-inputmap-DRY-20261107.json",
+      "sha256": "4199fd798a25844ce6a64d3a6296c45a6d14ca8896857a96781eca2e9870113a"
+    },
+    {
+      "packet": "scripts/hwkey-join-20261107.py",
+      "external": "R:\\d3-evidence\\hwkey-join-20261107.py",
+      "sha256": "30487bce345e182a401f1ac277c4c91c2969dfac5572843cfb957baf79199ffa"
+    },
+    {
+      "packet": "scripts/hwkey-join-DRY-20261107.json",
+      "external": "R:\\d3-evidence\\hwkey-join-DRY-20261107.json",
+      "sha256": "ac6cc38a8ec1511cc5efc06801a18cb5d1a288dddb36a6cce28a9ab4d60a93b6"
+    },
+    {
+      "packet": "scripts/hwkey-readers-PRE-20261107.json",
+      "external": "R:\\d3-evidence\\hwkey-readers-PRE-20261107.json",
+      "sha256": "d2c773ccc1b7a51a54e4f7f9d512b6b4f90ec00070b7f3b0835e2b38b1158cb2"
+    },
+    {
+      "packet": "scripts/hwkey-retained-dev-runs-20261107.json",
+      "external": "R:\\d3-evidence\\hwkey-retained-dev-runs-20261107.json",
+      "sha256": "9b28933fdff5a48331fbe6eaa21dbc2e25ed718c9fe93fe0077f83baa16e70e4"
+    },
+    {
+      "packet": "scripts/make-hwkey-join-20261107.py",
+      "external": "R:\\d3-evidence\\make-hwkey-join-20261107.py",
+      "sha256": "b04d8e597f41d6c4046c757a245d169bb80caa97cfa94b587f5acf7e30392f73"
+    },
+    {
+      "packet": "scripts/preflight-receipts-20261107.py",
+      "external": "R:\\d3-evidence\\preflight-receipts-20261107.py",
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+    },
+    {
+      "packet": "scripts/run-hwkey-final-set-20261107.sh",
+      "external": "R:\\d3-evidence\\run-hwkey-final-set-20261107.sh",
+      "sha256": "7a841f165cc16eb7d66469b0e859a5a0c03347bc52d6d2a33e4ef438f5849005"
+    },
+    {
+      "packet": "scripts/run-physical-flags-keyfix-direct-20261107.py",
+      "external": "R:\\d3-evidence\\run-physical-flags-keyfix-direct-20261107.py",
+      "sha256": "b41837e6568d80a876680900e1b553d7bda6ae18103c542d49c95579752c06fa"
+    },
+    {
+      "packet": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "external": "R:\\d3-evidence\\sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "packet": "scripts/sho-compare-maps-20261107.py",
+      "external": "R:\\d3-evidence\\sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    }
+  ],
+  "metadata_only_since_code": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json"
+  ],
+  "source_binding": "physical-flags-keyfix-020-Root-binding-20261107.json SHA5fe5f8e4d28194182dd52c498c0d73d816c15de5dc73ba61762437c73b7ba919",
+  "reader_recovery": "Initial Root reader guessed nonexistent hwkey-join-vs-reference name. Original attempt1.py retained; actual frozen join is hwkey-join-vs-0d0-20261107.json. Attempt2 retained: expected163 from prepublication freeze, actual published manifest165 after README/literalcheck. Corrected read-only mapping/count only; no source, test, build or campaign change/replay.",
+  "scope": "Two key fixes and collision consumer candidate; SAME source review pending. Qualified post-POST publisher-only correction preserved; all ten D3 requirements/native/fullpack/merge open."
+}

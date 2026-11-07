@@ -1,0 +1,114 @@
+{
+  "schema": "independent-bounded-diagnostic-selection-review-v1",
+  "reviewed_utc": "2026-11-03T03:30:40.199274+00:00",
+  "source": {
+    "commit": "3619cea4d0c2f8589e6038b74c2fbed57d8fbab2",
+    "compared_to": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+    "changed_paths": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/crates/eech-world/lua/tree-authority.lua",
+      "eech-campaign/crates/eech-world/tests/tree_authority.rs",
+      "eech-campaign/docs/d3-tree-collision-provider.md",
+      "eech-campaign/reference/d3-tree-collision-production/f0-native-identities-and-first-control-20261103.json"
+    ],
+    "all_other_entries_modes_and_blobs_exact": 9067,
+    "production_C_Rust_ABI_build_and_ordinary_scripts_unchanged": true,
+    "new_witness_lua_sha256": "86bd0b2704146f99e15a39658e5457cd8397b24a08dea38c6ef5fe88db59cff2"
+  },
+  "decision": {
+    "source_review_no_blocking_findings": true,
+    "findings": [],
+    "diagnostic_native_launch_clearance": true,
+    "native_launch_clearance": true,
+    "scope": "One corrected literal Git-blob diagnostic control on the already built f0 hosted native and one fresh verified-unused root, with identities kept separate.",
+    "tree_authority_accepted": false,
+    "whole_Task49_or_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "conclusions": [
+    "Changed selector reads actual live roster state and existing C-guarded weapon-package information, without entity placement, physics, precision-rule or launch-implementation changes. It constructs neighboring spatial cells, orders candidate pairs by 3D distance then deterministic roster tie order, and skips launchers without a qualifying stock weapon.",
+    "Target side is explicitly a controlled test precondition rather than campaign targeting policy. The existing real launch call still establishes/restores its temporary target link, and the previously closed report/restoration and checked-output/poison guards are retained.",
+    "Current source wn_flight.c2541..2639 confirms that high precision and an entity-collision MISS gate the TREE lookup. Nearness is measured between launcher and target at selection; it does not prove the weapon NEW position will be within range or that entity collision will miss. Both script and document acknowledge this; actual contact_trees_tests and provider counters remain decisive.",
+    "No available near armed pair produces named setup failure. A completed projectile cohort with zero TREE calls remains UNREACHED, not authority or Original capability evidence. Same selector is used in hosted and Original profiles; no forced precision, fake miss or Core solver fallback is introduced.",
+    "The spatial-cell approach retains all nearby candidate pairs; it is not a universal constant-memory or worst-case nonquadratic guarantee for arbitrary dense rosters. This does not change the finite source-safety decision for the declared retail diagnostic; failed setup/processing never becomes a pass."
+  ],
+  "focused_actuals": {
+    "logs": [
+      {
+        "path": "D:/EECH-Migration-Evidence/tree-select-20261103-e/q1-red.log",
+        "bytes": 4510,
+        "sha256": "3c88c950af2eb4c03dc74aa5e06b432480bdb779360a390e0ae2800804372be4"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/tree-select-20261103-e/q2-fmt.log",
+        "bytes": 24,
+        "sha256": "811df0065f32d37391ba07a8d77cf679a9a747442866c2054bb8de9f09d2f78b"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/tree-select-20261103-e/q3-final.log",
+        "bytes": 5645,
+        "sha256": "caff0a9efe9dfa809f36272d78170e98e7358de328a6aad5ea9b000ac2e6054f"
+      }
+    ],
+    "old_selector_red": {
+      "actual_exit": 101,
+      "passed": 14,
+      "failed": 1,
+      "scope": "Meaningful new selector guard against the old f0 witness, not a production-kernel failure."
+    },
+    "new_selector_green": {
+      "actual_exit": 0,
+      "passed": 15,
+      "failed": 0,
+      "other_child_exits": {
+        "tree_authority-green": "0",
+        "fmt-check": "0",
+        "clippy-world": "0",
+        "progress-fix-blocker": "0"
+      },
+      "stable_fingerprint": "4f8ff4a660f80d2ee750bd15e5e422dfa47eff89c92e00319aa04bddac6cd534"
+    },
+    "qualification": "Scripted real-Lua controls, formatting and World all-target strict. No reviewer tests, no new Windows/native build, and no new TREE query coverage follows from these tests."
+  },
+  "first_real_control_retained": {
+    "evidence": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-actual-f0f928147f-20261103/control-result.json",
+      "bytes": 1655,
+      "sha256": "3427f33598f441a93bf291408070428d6ca8583d4ef9170b98720a35715c2949"
+    },
+    "runtime_source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+    "native_actual_exit": 1,
+    "controller_actual_exit": 1,
+    "cohort_size": 1,
+    "case_weapons_ended": 1,
+    "tests_delta": 0,
+    "tree_begin_after": 0,
+    "classification": "UNREACHED setup blocker, correctly rejected. It is not a passing original/candidate authority or a physical regression. No other mode is inferred complete."
+  },
+  "safe_publication_scope": {
+    "file": "eech-campaign/reference/d3-tree-collision-production/f0-native-identities-and-first-control-20261103.json",
+    "git_blob_sha256": "09aec81b466af162ee1cce4dcfa882a594b236fd2d2b3d6967150dc13c7d9e59",
+    "format": "Explicit safe fieldwise projection, not literal raw transcript or independent native approval.",
+    "private_build_receipt": {
+      "path": "R:/d3-evidence/tree-f0-builds-and-payloads-20261103.json",
+      "bytes": 3097,
+      "sha256": "5890e13d2ae0cac0f2265b03a5ab72458daeed9c2a5b15b50ed1691a62e8ace6"
+    },
+    "private_short_comparison": {
+      "path": "R:/d3-evidence/tree-ordinary-short-comparison-f0f928147f-20261103.json",
+      "bytes": 1903,
+      "sha256": "bb0dd20699708851c69e3fc826c26607f9dc7b7b87f5a1890a734bf7ab8c3964"
+    },
+    "selected_field_join": "Build profile identities/counts/exits and first-control zero-TREE/failed verdict agree with private receipts; short metadata records COMPLETE literal comparisons at f0, without relabeling these measurements as 3619.",
+    "privacy": "No raw retail positions, geometry, terminal transcript, pointers or private paths imported. Named terminal code, counts and source/build hashes are safe scope summaries.",
+    "limit": "This narrow review checks publication selection/provenance, not a new full independent audit of every binary payload or runtime byte. Prior source clearance remains separately bound."
+  },
+  "runtime_identity_for_next_run": {
+    "native_source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+    "external_diagnostic_source": "3619cea4d0c2f8589e6038b74c2fbed57d8fbab2",
+    "required": "Use the literal reviewed Lua and verified unchanged helper/payloads; keep controller input/hash checks. Do not label native binary 3619 or convert UNREACHED into a pass. Reuse original f0 binary/builds only under the exact unchanged production-source mapping."
+  },
+  "remaining_gates": "Actual healthy TREE call reachability, changed real consequence, endpoint/refusal controls and Original capability RED remain OPEN; raw Core loader/constructor/cloud RNG, object/entity collision, concrete DCS mapping and whole Task49/D3 remain required. Both long packs remain outside this pass; no acceptance from partial prefixes.",
+  "execution": "Same sole reviewer; read-only committed diff, completed logs and safe projection/provenance inspection only. No edits, builds, native launches, cache/VM/auth/external app operations or subagents."
+}

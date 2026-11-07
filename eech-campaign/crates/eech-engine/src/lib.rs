@@ -56,21 +56,59 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the report text of a controlled combat case when the engine rejected its arguments. The case driver writes its reason
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
+/// The collision probe (feature `collision-fixture`, EEDCS-49) writes `col-refused reason=...` the same way and uses it too.
 /// The ground-contact probe (feature `ground-fixture`, EEDCS-48) writes `ground-refused reason=...` the same way and uses it too.
 #[cfg(any(
     feature = "weapon-fixture",
     feature = "env-fixture",
     feature = "ground-fixture",
-    feature = "target-point-fixture"
+    feature = "target-point-fixture",
+    feature = "collision-fixture",
+    feature = "sector-height-witness"
 ))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
-    // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
-    let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
+    // a fatal error, a poisoned engine or a state error never has its output buffer inspected: the engine stopped or refused before it wrote one, and nothing it may hold is a result
+    if let Err(error @ (EngineError::Fatal(_) | EngineError::Poisoned | EngineError::State)) = status {
+        return Err(error);
+    }
+    let report = case_report(text);
     match status {
         Ok(()) => Ok(report),
         Err(EngineError::BadArgument(_)) if !report.trim().is_empty() => Err(EngineError::BadArgument(report.trim().to_string())),
         Err(error) => Err(error),
     }
+}
+
+/// The report a case wrote: the bytes up to the first NUL inside the buffer (the buffer was zero-filled and the engine NUL-terminates anything it writes within it), never read past its length.
+#[cfg(any(
+    feature = "weapon-fixture",
+    feature = "env-fixture",
+    feature = "ground-fixture",
+    feature = "target-point-fixture",
+    feature = "collision-fixture",
+    feature = "sector-height-witness"
+))]
+fn case_report(text: &[std::os::raw::c_char]) -> String {
+    #[cfg(test)]
+    CASE_REPORT_READS.with(|reads| reads.set(reads.get() + 1));
+    let bytes: Vec<u8> = text.iter().take_while(|&&c| c != 0).map(|&c| c as u8).collect();
+    String::from_utf8_lossy(&bytes).into_owned()
+}
+
+// Test seam: how many times this thread read a case report buffer (defined wherever `case_report`, which increments it, is compiled for a test).
+#[cfg(all(
+    test,
+    any(
+        feature = "weapon-fixture",
+        feature = "env-fixture",
+        feature = "ground-fixture",
+        feature = "target-point-fixture",
+        feature = "collision-fixture",
+        feature = "sector-height-witness"
+    )
+))]
+thread_local! {
+    static CASE_REPORT_READS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
 }
 
 fn cstring(s: &str) -> Result<CString, EngineError> {
@@ -303,6 +341,8 @@ pub enum MovementMode {
     /// an infantry member with a target turns to face it (EEDCS-44): the host forms the heading from its own record of the person's position
     /// and the target position sent, turns its record and answers the attitude and the heading (`angles[0]`)
     PersonFace,
+    /// a routed vehicle's motion vector where the legacy code derived it without a step (EEDCS-49): the host evaluates attitude row 2 times the speed from its own record, retains it and answers it
+    RoutedVector,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -973,6 +1013,22 @@ const TERRAIN_REPORT_CAPACITY: usize = 192 * 1024;
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
 
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): room for one collision report; a report that does not fit is refused, never cut short.
+#[cfg(feature = "collision-fixture")]
+const COLLISION_REPORT_CAPACITY: usize = 128 * 1024;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): room for one chunk of the tree-query transcript or its facts block; a text that does not fit is refused, never cut short.
+#[cfg(feature = "collision-fixture")]
+const COLLISION_TRACE_CAPACITY: usize = 256 * 1024;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): the most transcript records one read returns.
+#[cfg(feature = "collision-fixture")]
+pub const COLLISION_TRACE_CHUNK_MAX: i32 = 256;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): the most random entity cases or random tree cases one probe is asked for.
+#[cfg(feature = "collision-fixture")]
+pub const COLLISION_PROBE_CASES_MAX: i32 = 20_000;
+
 /// TEST-ONLY (feature `model-fixture`): room for one model report; a report that does not fit is refused, never cut short.
 #[cfg(any(feature = "model-fixture", feature = "model-host-fixture"))]
 const MODEL_REPORT_CAPACITY: usize = 192 * 1024;
@@ -990,6 +1046,67 @@ const GROUND_REPORT_CAPACITY: usize = 192 * 1024;
 /// TEST-ONLY (feature `ground-fixture`, EEDCS-48): the most point cases or impact cases one probe is asked for.
 #[cfg(feature = "ground-fixture")]
 pub const GROUND_PROBE_CASES_MAX: i32 = 100_000;
+
+/// TEST-ONLY (feature `sector-height-observer`, EEDCS-49 D3): room for one report line; a report that does not fit is refused, never cut short.
+#[cfg(feature = "sector-height-observer")]
+const SHO_REPORT_CAPACITY: usize = 4096;
+
+/// TEST-ONLY (feature `sector-height-observer`): the bounds of the C tables (csrc/eech_sho.c SHO_EVENTS, SHO_CLEARANCES, SHO_SCAN_SIDE squared).
+#[cfg(feature = "sector-height-observer")]
+pub const SHO_EVENTS_MAX: i32 = 524_288;
+#[cfg(feature = "sector-height-observer")]
+pub const SHO_CLEARANCES_MAX: i32 = 4096;
+#[cfg(feature = "sector-height-observer")]
+pub const SHO_SCAN_MAX: i32 = 65_536;
+
+/// TEST-ONLY (feature `sector-height-observer`): the converter of the observer's summary report: a bounded zeroed buffer, the status checked before the NUL-terminated text is read. `entry`
+/// is the engine's public entry (which also checks the engine state) or, in a control that holds no booted engine, the C report function behind it; both share this code.
+#[cfg(feature = "sector-height-observer")]
+pub fn sector_height_summary_text(entry: unsafe extern "C" fn(*mut std::os::raw::c_char, i32) -> i32) -> Result<String, EngineError> {
+    let mut text = vec![0 as std::os::raw::c_char; SHO_REPORT_CAPACITY * 4];
+    // SAFETY: the buffer outlives the call and the capacity passed is its length; the entry NUL-terminates it.
+    check(unsafe { entry(text.as_mut_ptr(), text.len() as i32) })?;
+    // SAFETY: the entry wrote a NUL-terminated string within the buffer.
+    Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+}
+
+/// TEST-ONLY (feature `sector-height-observer`): the converter of one indexed observer row; the index is checked against the table bound here, before the entry is called, and again by the entry.
+#[cfg(feature = "sector-height-observer")]
+pub fn sector_height_row_text(
+    what: &str,
+    index: i32,
+    max: i32,
+    entry: unsafe extern "C" fn(i32, *mut std::os::raw::c_char, i32) -> i32,
+) -> Result<String, EngineError> {
+    if !(0..max).contains(&index) {
+        return Err(EngineError::BadArgument(format!("{what}: index {index} must be within 0..{max}")));
+    }
+    let mut text = vec![0 as std::os::raw::c_char; SHO_REPORT_CAPACITY];
+    // SAFETY: the buffer outlives the call and the capacity passed is its length; the entry NUL-terminates it.
+    check(unsafe { entry(index, text.as_mut_ptr(), text.len() as i32) })?;
+    // SAFETY: the entry wrote a NUL-terminated string within the buffer.
+    Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+}
+
+/// TEST-ONLY (feature `sector-height-witness`, EEDCS-49 D3): room for the one report line of the session save; a report that does not fit is refused, never cut short.
+#[cfg(feature = "sector-height-witness")]
+const SH_WITNESS_REPORT_CAPACITY: usize = 1024;
+
+/// TEST-ONLY (feature `sector-height-witness`): the longest saved-file name (the same bound as `csrc/eech_hw_witness.c` HW_NAME_MAX).
+#[cfg(feature = "sector-height-witness")]
+pub const SH_WITNESS_NAME_MAX: usize = 24;
+
+/// TEST-ONLY (feature `sector-height-witness`): the name of a saved session is 1 to 24 of `A-Z a-z 0-9 _ -`; nothing else reaches a path. Refused here, before the engine is entered.
+#[cfg(feature = "sector-height-witness")]
+pub fn sector_height_witness_name(name: &str) -> Result<(), EngineError> {
+    if name.is_empty() || name.len() > SH_WITNESS_NAME_MAX || !name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-') {
+        return Err(EngineError::BadArgument(format!(
+            "sector_height_witness_save: the name must be 1 to {SH_WITNESS_NAME_MAX} characters of A-Z a-z 0-9 _ -, got {} bytes",
+            name.len()
+        )));
+    }
+    Ok(())
+}
 
 /// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): room for one route report (the summary, or one recorded parser call); a report that does not fit is refused, never cut short.
 #[cfg(feature = "route-fixture")]
@@ -1018,6 +1135,14 @@ pub const TARGET_POINT_GENERATIONS_MAX: i32 = 4;
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
 const WPN_REPORT_CAPACITY: usize = 160 * 1024;
+
+/// The controlled moving entity query case's report buffer (EEDCS-49, D3): the engine proves, before its first query, that the worst-case report of every record it can produce fits the capacity it is
+/// given (csrc/eech_mq_report.h), and refuses by name otherwise.
+#[cfg(feature = "weapon-fixture")]
+const WPN_MOVING_QUERY_REPORT_CAPACITY: usize = 4096;
+/// The report capacity of the CITY box lifecycle witness: the C entry refuses a smaller buffer, and its worst-case report (selection, two answers, relink and result lines) is well inside it.
+#[cfg(feature = "weapon-fixture")]
+const WPN_CITY_LIFECYCLE_REPORT_CAPACITY: usize = 4096;
 
 /// TEST-ONLY (feature `env-fixture`): room for one case of the session environment characterisation; a report that does not fit is refused by the engine, never cut short.
 #[cfg(feature = "env-fixture")]
@@ -1106,6 +1231,30 @@ pub enum ModelQuery {
     /// the world position of that sub-object for the campaign's CURRENT placement: the instance's world position (3), attitude (9, row-major) and relative scale (3), then for each level
     /// of the chain the host named the live relative position (3), heading, pitch, roll and relative scale (3), all as exact float bit patterns
     TargetPointWorld { scene: i32, pose: Vec<u32> },
+    /// whether the segment meets ONE collision candidate (EEDCS-49): `scene` is the candidate's scene, and `pose` the floats of mb_hostmodel.h's ENTITY_COLLISION as exact bit patterns: the
+    /// segment's old end (3) and new end (3), then a stationary candidate's position (3) and attitude (9) (18 floats) or a moving candidate's old position (3), new position (3),
+    /// attitude (9) and speed (1) (22 floats). The caller's intercept point and normal are outputs and are not part of the question
+    EntityCollision { scene: i32, pose: Vec<u32> },
+    /// what the host decides about ONE candidate of the entity scan (EEDCS-49, mb_hostmodel.h ENTITY_CANDIDATE): `scene` is the candidate's scene (0 for a city, which has none of its own)
+    /// and `facts` the 44 floats the campaign read from the entity it is visiting, as exact bit patterns (the segment, the collision flags, the sector's tallest structure, the live position,
+    /// motion, heading and attitude, a city's box, and the answers of the two services the host asks for: the UPDATED flag and the terrain face normal)
+    /// `host_id` is a MOBILE candidate's semantic host identity (empty for any other candidate): the host decides its pose from its own record of it, never from the position, motion and attitude words of `facts`
+    EntityCandidate { scene: i32, facts: Vec<u32>, host_id: String },
+    /// the ENUMERATION of the entity scan (EEDCS-49, mb_hostmodel.h ENTITY_SCAN): the sector window, the traversal order, the exclusions and the first-hit end are the host's. `facts` are the 16 floats
+    /// of the question as exact bit patterns (the segment, the campaign's world map, the phase and the cursor the host last gave, and what the campaign reports about the entry it served)
+    /// `identity` is the host-issued key of the entry the campaign is standing at (the question after a served entry), of the entry that left its sector list (a removal), or the semantic identity of a hosted
+    /// mobile (an insertion); empty otherwise. The same question also carries the roster's own events of the sector lists (the phase fact: 4 an insertion, 5 a removal, 6 a new boot)
+    EntityScan { facts: Vec<u32>, identity: String },
+    /// an OBSERVATION of a mobile candidate's pose (EEDCS-49, mb_hostmodel.h ENTITY_POSE): the campaign names the candidate by its semantic host identity (`host_id`, empty when the roster has none) and
+    /// offers the words it read (`words`, 15 floats as exact bit patterns: the position (3), the motion vector (3) and, for `stage` 1 only, the attitude (9)), with the entity's type and whether it is alive.
+    /// The host reports its own record of the identity; NOTHING DECIDES FROM THE ANSWER
+    EntityPose {
+        stage: i32,
+        entity_type: i32,
+        alive: i32,
+        host_id: String,
+        words: Vec<u32>,
+    },
     /// a FIXED object's target point: the entity position the original had copied (3) and, only when the cached host offset has a horizontal part, the heading (1), as bit patterns
     TargetPointFixed { scene: i32, pose: Vec<u32> },
     /// one step of the campaign's ANNOUNCEMENT of the order in which it walks the custom scene files: file number `position` is the scene `scene`'s file in the directory named
@@ -1183,6 +1332,58 @@ pub enum ModelAnimation {
     Absent,
 }
 
+/// What the host decided about one candidate of the entity scan: nothing to do (`Skip`), a service the campaign must perform first and then ask again (`NeedUpdated`: its destructive
+/// UPDATED getter; `NeedNormal`: the terrain's face normal at the candidate's position), a city whose box the segment meets (`Buildings`) or the narrow phase's pose of the candidate
+/// (`Test`: 12 floats for a stationary candidate, 16 for a moving one).
+#[derive(Clone, Debug, PartialEq)]
+pub enum CandidateDecision {
+    Skip,
+    NeedUpdated,
+    NeedNormal,
+    Buildings,
+    Test(Vec<f32>),
+    /// the host needs the facts the fixed branch reads (the fixed flag, whether it is a city or a city building, the shape, position and city box), which the campaign had not read yet
+    NeedFixed,
+    /// the host needs the placement facts (a mobile candidate's attitude, a fixed one's heading and align flag), asked for once the broad phase has passed
+    NeedPlacement,
+}
+
+/// What the host decided about the enumeration of the entity scan: the TAIL of the list of a sector (`First`, with the sector's two indices), the predecessor of the entry the campaign is at (`Next`),
+/// to offer that entry for its decisions (`Offer`), or the end of the scan with no hit (`DoneNone`) or with the hit of the entry offered last (`DoneHit`). The host's roster events are answered with
+/// `Placed` (the key it issued is the answer's `key`), `Removed` and `Cleared`; a city's box expansion with `Expanded` (the six words of the box the host built, minimum then maximum, and the city's key as `key`).
+/// A sector's high-water height is answered with `Height` and its restore with `Restored`: three words, the sector's x and z as asked and then the word the host holds, each kept as the 32 bits it came in (the
+/// height word is never classified, so a negative, infinite or NaN word crosses exactly).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum ScanDecision {
+    First([f32; 2]),
+    Expanded([f32; 6]),
+    Height([f32; 3]),
+    Restored([f32; 3]),
+    /// the physical flag store's answers (phases 19 to 22): three words each, kept as the 32 bits they came in (a read's raw word is the lane's mask, 0x80000000 for lane 31, and is never normalised); a group's answer is the host's key as `key`
+    FlagGroup([f32; 3]),
+    FlagSet([f32; 3]),
+    FlagRead([f32; 3]),
+    FlagReset([f32; 3]),
+    Next,
+    Offer,
+    DoneNone,
+    DoneHit,
+    Placed,
+    Removed,
+    Cleared,
+}
+
+/// How the host classifies the identity of a mobile candidate it was asked to observe (ENTITY_POSE): it keeps a record of it (`Recorded`), it issued the identity to a member it keeps no movement record for
+/// (`Unrecorded`), it retired it (`Retired`), it never issued it or keeps no movers (`Unknown`), or the campaign has no identity for the candidate (`NoId`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PoseClass {
+    Recorded,
+    Unrecorded,
+    Retired,
+    Unknown,
+    NoId,
+}
+
 /// The host's answer to a step of the campaign's walk announcement: it has that file, it has none, or (to the closing step) the announcement is accepted.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ModelOrder {
@@ -1230,6 +1431,33 @@ pub enum ModelAnswer {
         scene_name: String,
         offsets: Option<Vec<i32>>,
     },
+    /// the host's answer to an entity collision question: whether the segment hit the candidate, which of the six output components the original's arithmetic assigned (`write_mask`:
+    /// bits 0 to 2 the intercept point, bits 3 to 5 the face normal) and the computed words of the point then the normal (zero for a component that was not assigned), with the scene's
+    /// compiled name (the echo). The mask's domain is the campaign's to check (mb_hostentity.h); it is carried as given
+    EntityCollision {
+        scene_name: String,
+        hit: bool,
+        write_mask: u32,
+        words: [f32; 6],
+    },
+    /// the host's decision about one candidate of the entity scan, with the scene's compiled name (the echo; empty for a city, which has no scene of its own)
+    EntityCandidate {
+        scene_name: String,
+        decision: CandidateDecision,
+    },
+    /// the host's decision about the enumeration of the entity scan
+    /// `key` is the host-issued key of the entry to serve (`First` and `Next`; empty when the sector's list has no more) or of the entry just placed (`Placed`), and empty otherwise
+    EntityScan {
+        decision: ScanDecision,
+        key: String,
+    },
+    /// the host's observation of a mobile candidate's pose: the class, the kind of its record (0 none, 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing aircraft, 5 helicopter) and the differences between
+    /// the campaign's words and the record (bit 0 position, 1 attitude, 2 motion against a held vector, 3 no held motion vector, 4 motion against the record's attitude row 2 times its speed)
+    EntityPose {
+        class: PoseClass,
+        kind: u32,
+        difference: u32,
+    },
     /// a target point's world position (exact `f32` values), for either a live instance or a fixed object, with the scene's compiled name (the echo)
     TargetPointPosition {
         scene_name: String,
@@ -1260,6 +1488,25 @@ fn put_name(reply: &mut sys::eech_model_reply, name: &str, operation: &str) -> R
         *slot = *byte as c_char;
     }
     Ok(())
+}
+
+/// the fact of an ENTITY_SCAN question that holds its phase, and the bits of phase 12 (a city NAME: the identity place is a placement key, one space and an object identity)
+const SCAN_PHASE_FACT: usize = 11;
+const SCAN_PHASE_NAME_BITS: u32 = 0x4140_0000;
+
+/// The NUL-terminated identity of a request's `host_id` field, refused by its operation's own marker before the provider is asked when it is not terminated, is longer than `limit` (the operation's own domain,
+/// which the field can be larger than: the field is sized for a city NAME's whole identity place) or is not text. An empty identity is the caller's own optional/required rule, not decided here.
+fn request_identity(field: &[c_char], limit: usize, marker: &str, what: &str) -> Result<String, String> {
+    let Some(length) = field.iter().position(|c| *c == 0) else {
+        return Err(format!("[model-provider:{marker}.request] the {what} is not NUL-terminated"));
+    };
+    if length > limit {
+        return Err(format!(
+            "[model-provider:{marker}.request] the {what} is {length} bytes, outside its domain of at most {limit}"
+        ));
+    }
+    let bytes: Vec<u8> = field[..length].iter().map(|c| *c as u8).collect();
+    String::from_utf8(bytes).map_err(|_| format!("[model-provider:{marker}.request] the {what} is not text"))
 }
 
 /// The C side's model callback (mb_hostmodel.h). It runs the installed provider; a missing provider, a refusal, an answer of the wrong kind and a panic all become an error
@@ -1320,6 +1567,63 @@ unsafe extern "C" fn model_callback(
                         ModelQuery::TargetPointWorld { scene: source.scene, pose }
                     } else {
                         ModelQuery::TargetPointFixed { scene: source.scene, pose }
+                    },
+                )
+            }
+            sys::EECH_MODEL_ENTITY_COLLISION => {
+                let count = usize::try_from(source.pose_count)
+                    .ok()
+                    .filter(|count| matches!(*count, 18 | 22))
+                    .ok_or_else(|| format!("[model-provider:entity_collision.request] the pose has {} floats", source.pose_count))?;
+                let pose = source.pose[..count].iter().map(|float| float.to_bits()).collect();
+                ("entity_collision", ModelQuery::EntityCollision { scene: source.scene, pose })
+            }
+            sys::EECH_MODEL_ENTITY_CANDIDATE => {
+                let count = usize::try_from(source.pose_count)
+                    .ok()
+                    .filter(|count| *count == 44)
+                    .ok_or_else(|| format!("[model-provider:entity_candidate.request] the facts have {} floats", source.pose_count))?;
+                let facts = source.pose[..count].iter().map(|float| float.to_bits()).collect();
+                let host_id = request_identity(&source.host_id, sys::EECH_MODEL_HOST_ID_MAX, "entity_candidate", "host identity")?;
+                (
+                    "entity_candidate",
+                    ModelQuery::EntityCandidate {
+                        scene: source.scene,
+                        facts,
+                        host_id,
+                    },
+                )
+            }
+            sys::EECH_MODEL_ENTITY_SCAN => {
+                let count = usize::try_from(source.pose_count)
+                    .ok()
+                    .filter(|count| *count == 16)
+                    .ok_or_else(|| format!("[model-provider:entity_scan.request] the facts have {} floats", source.pose_count))?;
+                let facts: Vec<u32> = source.pose[..count].iter().map(|float| float.to_bits()).collect();
+                // the field holds a city NAME's key, space and object identity whole; every other phase's identity (a key, a hosted mobile's identity) is within the host identity's domain
+                let limit = if facts[SCAN_PHASE_FACT] == SCAN_PHASE_NAME_BITS {
+                    sys::EECH_MODEL_SCAN_IDENTITY_MAX
+                } else {
+                    sys::EECH_MODEL_HOST_ID_MAX
+                };
+                let identity = request_identity(&source.host_id, limit, "entity_scan", "identity")?;
+                ("entity_scan", ModelQuery::EntityScan { facts, identity })
+            }
+            sys::EECH_MODEL_ENTITY_POSE => {
+                let count = usize::try_from(source.pose_count)
+                    .ok()
+                    .filter(|count| *count == sys::EECH_MODEL_POSE_FACTS)
+                    .ok_or_else(|| format!("[model-provider:entity_pose.request] the words have {} floats", source.pose_count))?;
+                let host_id = request_identity(&source.host_id, sys::EECH_MODEL_HOST_ID_MAX, "entity_pose", "host identity")?;
+                let words = source.pose[..count].iter().map(|float| float.to_bits()).collect();
+                (
+                    "entity_pose",
+                    ModelQuery::EntityPose {
+                        stage: source.depth,
+                        entity_type: source.kind,
+                        alive: source.definition,
+                        host_id,
+                        words,
                     },
                 )
             }
@@ -1450,6 +1754,101 @@ unsafe extern "C" fn model_callback(
                     }
                 }
             }
+            (
+                "entity_collision",
+                ModelAnswer::EntityCollision {
+                    scene_name,
+                    hit,
+                    write_mask,
+                    words,
+                },
+            ) => {
+                put_name(&mut reply, &scene_name, "entity_collision")?;
+                reply.result = if hit { sys::EECH_MODEL_TRIANGLE_FOUND } else { sys::EECH_MODEL_TRIANGLE_END };
+                reply.write_mask =
+                    c_int::try_from(write_mask).map_err(|_| "[model-provider:entity_collision.answer] the write mask is out of range".to_string())?;
+                reply.points[..6].copy_from_slice(&words);
+            }
+            ("entity_candidate", ModelAnswer::EntityCandidate { scene_name, decision }) => {
+                put_name(&mut reply, &scene_name, "entity_candidate")?;
+                reply.candidate_state = match decision {
+                    CandidateDecision::Skip => sys::EECH_MODEL_CANDIDATE_SKIP,
+                    CandidateDecision::NeedUpdated => sys::EECH_MODEL_CANDIDATE_NEED_UPDATED,
+                    CandidateDecision::NeedFixed => sys::EECH_MODEL_CANDIDATE_NEED_FIXED,
+                    CandidateDecision::NeedPlacement => sys::EECH_MODEL_CANDIDATE_NEED_PLACEMENT,
+                    CandidateDecision::NeedNormal => sys::EECH_MODEL_CANDIDATE_NEED_NORMAL,
+                    CandidateDecision::Buildings => sys::EECH_MODEL_CANDIDATE_BUILDINGS,
+                    CandidateDecision::Test(pose) => {
+                        if pose.len() != 12 && pose.len() != 16 {
+                            return Err(format!(
+                                "[model-provider:entity_candidate.answer] a candidate pose has 12 or 16 floats, not {}",
+                                pose.len()
+                            ));
+                        }
+                        reply.candidate_count = pose.len() as c_int;
+                        reply.candidate[..pose.len()].copy_from_slice(&pose);
+                        sys::EECH_MODEL_CANDIDATE_TEST
+                    }
+                };
+            }
+            ("entity_scan", ModelAnswer::EntityScan { decision, key }) => {
+                put_name(&mut reply, &key, "entity_scan")?;
+                reply.candidate_state = match decision {
+                    ScanDecision::First(cursor) => {
+                        reply.candidate[..2].copy_from_slice(&cursor);
+                        sys::EECH_MODEL_SCAN_FIRST
+                    }
+                    ScanDecision::Expanded(words) => {
+                        reply.candidate[..6].copy_from_slice(&words);
+                        reply.candidate_count = 6;
+                        sys::EECH_MODEL_SCAN_EXPANDED
+                    }
+                    ScanDecision::Height(words) => {
+                        reply.candidate[..3].copy_from_slice(&words);
+                        reply.candidate_count = 3;
+                        sys::EECH_MODEL_SCAN_HEIGHT
+                    }
+                    ScanDecision::Restored(words) => {
+                        reply.candidate[..3].copy_from_slice(&words);
+                        reply.candidate_count = 3;
+                        sys::EECH_MODEL_SCAN_RESTORED
+                    }
+                    ScanDecision::FlagGroup(words) | ScanDecision::FlagSet(words) | ScanDecision::FlagRead(words) | ScanDecision::FlagReset(words) => {
+                        reply.candidate[..3].copy_from_slice(&words);
+                        reply.candidate_count = 3;
+                        match decision {
+                            ScanDecision::FlagGroup(_) => sys::EECH_MODEL_SCAN_FLAG_GROUP,
+                            ScanDecision::FlagSet(_) => sys::EECH_MODEL_SCAN_FLAG_SET,
+                            ScanDecision::FlagRead(_) => sys::EECH_MODEL_SCAN_FLAG_READ,
+                            _ => sys::EECH_MODEL_SCAN_FLAG_RESET,
+                        }
+                    }
+                    ScanDecision::Next => sys::EECH_MODEL_SCAN_NEXT,
+                    ScanDecision::Offer => sys::EECH_MODEL_SCAN_OFFER,
+                    ScanDecision::DoneNone => sys::EECH_MODEL_SCAN_DONE_NONE,
+                    ScanDecision::DoneHit => sys::EECH_MODEL_SCAN_DONE_HIT,
+                    ScanDecision::Placed => sys::EECH_MODEL_SCAN_PLACED,
+                    ScanDecision::Removed => sys::EECH_MODEL_SCAN_REMOVED,
+                    ScanDecision::Cleared => sys::EECH_MODEL_SCAN_CLEARED,
+                };
+            }
+            ("entity_pose", ModelAnswer::EntityPose { class, kind, difference }) => {
+                // the shape is the contract's: a kind outside the five and a mask outside the five bits are refused here, before the campaign sees them
+                if kind > 5 || difference > 31 {
+                    return Err(format!(
+                        "[model-provider:entity_pose.answer] the record kind {kind} or the difference mask {difference} is outside 0 to 5 and 0 to 31"
+                    ));
+                }
+                reply.candidate_state = match class {
+                    PoseClass::Recorded => sys::EECH_MODEL_POSE_RECORDED,
+                    PoseClass::Unrecorded => sys::EECH_MODEL_POSE_UNRECORDED,
+                    PoseClass::Retired => sys::EECH_MODEL_POSE_RETIRED,
+                    PoseClass::Unknown => sys::EECH_MODEL_POSE_UNKNOWN,
+                    PoseClass::NoId => sys::EECH_MODEL_POSE_NO_ID,
+                };
+                reply.candidate_count = kind as c_int;
+                reply.write_mask = difference as c_int;
+            }
             (operation @ ("target_point_world" | "target_point_fixed"), ModelAnswer::TargetPointPosition { scene_name, position }) => {
                 put_name(&mut reply, &scene_name, operation)?;
                 reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
@@ -1511,6 +1910,10 @@ unsafe extern "C" fn model_callback(
                     ModelAnswer::TargetPointOffset { .. } => "a target point offset",
                     ModelAnswer::TargetPointChain { .. } => "a target point chain",
                     ModelAnswer::TargetPointPosition { .. } => "a target point position",
+                    ModelAnswer::EntityCollision { .. } => "an entity collision answer",
+                    ModelAnswer::EntityCandidate { .. } => "an entity candidate decision",
+                    ModelAnswer::EntityScan { .. } => "an entity scan decision",
+                    ModelAnswer::EntityPose { .. } => "an entity pose observation",
                 };
                 return Err(format!(
                     "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -1584,6 +1987,35 @@ pub enum TerrainQuery {
         hint: Option<String>,
         winter: bool,
     },
+    /// EEDCS-49 (D3): does the segment from `old` to `new` meet a forest tree (`get_line_of_sight_collision_tree`)? Every float is its 32-bit PATTERN, never converted: the caller's own
+    /// `point` and `normal` buffers may hold anything and a miss gives them back as the original leaves them.
+    TreeBegin {
+        old: [u32; 3],
+        new: [u32; 3],
+        point: [u32; 3],
+        normal: [u32; 3],
+        ignore_forest_edge_trees: bool,
+        skip_tree_top_test: bool,
+        winter: bool,
+    },
+    /// the campaign's terrain elevation (its pattern) for the lookup the host last asked for
+    TreeTerrain { elevation: u32, winter: bool },
+}
+
+/// Which end of a tree query's segment a terrain elevation is wanted for (the original reads the old end, then the new end).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TreeEnd {
+    Old,
+    New,
+}
+
+/// What the host says next in a tree query (the answer of `TreeBegin` and of `TreeTerrain`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TreeStep {
+    /// the terrain elevation at (`x`, `z`), given as patterns, for `end`; answer with `TerrainQuery::TreeTerrain`
+    NeedTerrain { end: TreeEnd, x: u32, z: u32 },
+    /// the query's answer: whether a tree was hit and the final intercept point and face normal patterns, as the original leaves them
+    Done { hit: bool, point: [u32; 3], normal: [u32; 3] },
 }
 
 /// One terrain ambient sound child of an [`TerrainQuery::Ambient`] question: its class (`0` sea, `1` jungle, `2` amb1, `3` amb2, `4` amb3, `5` amb4: `EECH_TERRAIN_AMBIENT_CLASSES` of them) and the
@@ -1651,6 +2083,8 @@ pub enum TerrainAnswer {
         impact: [f32; 3],
         record: TerrainRecord,
     },
+    /// the answer of `TreeBegin` and `TreeTerrain`
+    Tree(TreeStep),
 }
 
 /// The record a ground-contact question left, by value: what a point answer stores (the legacy "a face is stored" test reads `stored`, never the hint).
@@ -1828,6 +2262,34 @@ unsafe extern "C" fn terrain_callback(
                     winter,
                 },
             ),
+            sys::EECH_TERRAIN_TREE_BEGIN => {
+                let flag = |name: &str, value: c_int| match value {
+                    0 => Ok(false),
+                    1 => Ok(true),
+                    other => Err(format!(
+                        "[terrain-provider:tree.request] the tree query's {name} flag is {other}, neither 0 nor 1"
+                    )),
+                };
+                (
+                    "tree_begin",
+                    TerrainQuery::TreeBegin {
+                        old: source.tree_old,
+                        new: source.tree_new,
+                        point: source.tree_point,
+                        normal: source.tree_normal,
+                        ignore_forest_edge_trees: flag("ignore_forest_edge_trees", source.tree_ignore_forest_edge_trees)?,
+                        skip_tree_top_test: flag("skip_tree_top_test", source.tree_skip_tree_top_test)?,
+                        winter,
+                    },
+                )
+            }
+            sys::EECH_TERRAIN_TREE_TERRAIN => (
+                "tree_terrain",
+                TerrainQuery::TreeTerrain {
+                    elevation: source.tree_elevation,
+                    winter,
+                },
+            ),
             other => return Err(format!("[terrain-provider:point.callback] terrain received unknown operation {other}")),
         };
         let answer = TERRAIN.with(|slot| -> Result<TerrainAnswer, String> {
@@ -1923,8 +2385,26 @@ unsafe extern "C" fn terrain_callback(
                 reply.impact = impact;
                 terrain_record_into(&mut reply, &record)?;
             }
+            ("tree_begin" | "tree_terrain", TerrainAnswer::Tree(step)) => match step {
+                TreeStep::NeedTerrain { end, x, z } => {
+                    reply.tree_state = sys::EECH_TERRAIN_TREE_NEED_TERRAIN;
+                    reply.tree_end = match end {
+                        TreeEnd::Old => sys::EECH_TERRAIN_TREE_END_OLD,
+                        TreeEnd::New => sys::EECH_TERRAIN_TREE_END_NEW,
+                    };
+                    reply.tree_x = x;
+                    reply.tree_z = z;
+                }
+                TreeStep::Done { hit, point, normal } => {
+                    reply.tree_state = sys::EECH_TERRAIN_TREE_DONE;
+                    reply.tree_hit = c_int::from(hit);
+                    reply.tree_result_point = point;
+                    reply.tree_result_normal = normal;
+                }
+            },
             (operation, answer) => {
                 let given = match answer {
+                    TerrainAnswer::Tree(_) => "a tree answer",
                     TerrainAnswer::Map(_) => "map facts",
                     TerrainAnswer::Point { .. } => "a point answer",
                     TerrainAnswer::Fast { .. } => "a fast elevation",
@@ -3361,7 +3841,7 @@ where
         } else {
             None
         };
-        let motion_vector = matches!(movement_kind, Some(MovementKind::FixedWing | MovementKind::Helicopter)).then_some(descriptor.motion_vector);
+        let motion_vector = movement_kind.is_some().then_some(descriptor.motion_vector);
         if motion_vector.is_some_and(|vector| vector.iter().any(|value| !value.is_finite())) {
             return Err("bind_mobile received a non-finite motion vector".into());
         }
@@ -5370,6 +5850,7 @@ where
             sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
             sys::EECH_MOVEMENT_DEPENDENT_CARRY => MovementMode::DependentCarry,
             sys::EECH_MOVEMENT_PERSON_FACE => MovementMode::PersonFace,
+            sys::EECH_MOVEMENT_ROUTED_VECTOR => MovementMode::RoutedVector,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
@@ -5479,6 +5960,7 @@ where
                 | MovementMode::FixedWingLookahead
                 | MovementMode::DependentCarry
                 | MovementMode::PersonFace
+                | MovementMode::RoutedVector
                 | MovementMode::Retire
                 | MovementMode::CreatePlace
                 | MovementMode::Expire
@@ -6135,6 +6617,71 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): one probe of the original `get_line_of_sight_collision_entity` and `get_line_of_sight_collision_tree` against the
+    /// loaded world (see `csrc/eech_collision_fixture.c`): a finite structured case set from the real sector lists and tree data, plus `entity_cases` and `tree_cases` seeded
+    /// random cases. It returns the report as `key=value` text lines. The probe requires all six floating-point exceptions masked in both the x87 control word and the SSE MXCSR (read, never
+    /// written). The shared terrain point record is restored byte for byte, the game's random stream is compared before and after, and a sector-list fingerprint (not a proof of purity: it
+    /// covers sector-list entities' type, flags, position, mobile motion and the raw updated bit, not city buildings or identities) is compared before and after, the second time after the
+    /// update-flag arrays (which the original moving collision itself clears) were copied back from the copy taken first; the original queries' effect on them is reported as legacy diagnostics. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps
+    /// the engine's reason (`col-refused reason=...`).
+    ///
+    /// A probe that was entered consumes any arming of the controlled geometry witness (`collision_geometry_arm`) whatever happens to it: a refusal here, before the engine is
+    /// called, clears the arming exactly as the engine's own refusals and a completed probe do, so the next probe is never unexpectedly controlled.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_probe(&self, seed: u32, entity_cases: i32, tree_cases: i32) -> Result<String, EngineError> {
+        let result = self.collision_probe_entered(seed, entity_cases, tree_cases);
+        if result.is_err() {
+            // idempotent; its own failure (an engine that is not running) leaves nothing armed that this could clear
+            let _ = self.collision_geometry_arm(false);
+        }
+        result
+    }
+
+    #[cfg(feature = "collision-fixture")]
+    fn collision_probe_entered(&self, seed: u32, entity_cases: i32, tree_cases: i32) -> Result<String, EngineError> {
+        if !(0..=COLLISION_PROBE_CASES_MAX).contains(&entity_cases) || !(0..=COLLISION_PROBE_CASES_MAX).contains(&tree_cases) {
+            return Err(EngineError::BadArgument(format!(
+                "collision_probe: entity_cases and tree_cases must each be 0 to {COLLISION_PROBE_CASES_MAX}, got {entity_cases} and {tree_cases}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; COLLISION_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_collision_probe(seed, entity_cases, tree_cases, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): arms (or disarms) the private tree-query transcript of the collision probe; arming clears it. The probe's report is
+    /// identical either way.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_trace_arm(&self, on: bool) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_collision_trace_arm(c_int::from(on)) })
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): arms (or disarms) the controlled forest geometry witness for the NEXT `collision_probe` only; the probe consumes the arming
+    /// whatever its outcome. Armed, the probe gives the forest tree object a small fixture-owned collision model for its duration (see `csrc/eech_collision_fixture.c`), runs the unchanged
+    /// original queries, restores everything it replaced and appends a `col-geometry-witness` row that states the restoration. Unarmed, the probe and its report are unchanged.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_geometry_arm(&self, on: bool) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_collision_geometry_arm(c_int::from(on)) })
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): reads the transcript back. `kind` 0 returns the state row and the facts block; `kind` 1 returns the records
+    /// `offset` to `offset + count` (`count` 1 to 256). The second value is the number of records the transcript holds. A text that does not fit is refused.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_trace_read(&self, kind: i32, offset: i32, count: i32) -> Result<(String, i32), EngineError> {
+        if !(0..=1).contains(&kind) || offset < 0 || !(1..=COLLISION_TRACE_CHUNK_MAX).contains(&count) {
+            return Err(EngineError::BadArgument(format!(
+                "collision_trace_read: kind must be 0 or 1, offset 0 or more and count 1 to {COLLISION_TRACE_CHUNK_MAX}, got {kind}, {offset}, {count}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; COLLISION_TRACE_CAPACITY];
+        let mut total: c_int = 0;
+        // SAFETY: the buffer and the total outlive the call and the capacity passed is the buffer's length; the engine NUL-terminates the text.
+        let status = check(unsafe { sys::eech_engine_collision_trace_read(kind, offset, count, text.as_mut_ptr(), text.len() as i32, &mut total) });
+        Ok((keep_case_reason(status, &text)?, total))
+    }
     /// TEST-ONLY (feature `ground-fixture`, EEDCS-48): one read-only probe of the original `point_above_ground`, `point_below_ground` and
     /// `get_ground_impact_point` against the loaded terrain (see `csrc/eech_ground_fixture.c`): `points` point cases and `impacts` impact cases from
     /// a private generator seeded with `seed`. It returns the report as `key=value` text lines. The shared terrain point record is restored byte for
@@ -6151,6 +6698,57 @@ impl Engine {
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
         let status = check(unsafe { sys::eech_engine_ground_probe(seed, points, impacts, text.as_mut_ptr(), text.len() as i32) });
         keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `sector-height-observer`, EEDCS-49 D3): the counters, table bounds and completeness verdict of the read-only sector tallest-structure observer, as `key=value` text
+    /// lines (see `csrc/eech_sho.c`). Read-only; a report that does not fit fails.
+    #[cfg(feature = "sector-height-observer")]
+    pub fn sector_height_summary(&self) -> Result<String, EngineError> {
+        sector_height_summary_text(sys::eech_engine_sho_summary)
+    }
+
+    /// TEST-ONLY (feature `sector-height-observer`): one recorded insert, link, statement or pack event by its zero-based index. `index` is checked here before the engine is entered, and
+    /// again by the engine, which refuses an index it did not record.
+    #[cfg(feature = "sector-height-observer")]
+    pub fn sector_height_event(&self, index: i32) -> Result<String, EngineError> {
+        self.sector_height_row("sector_height_event", index, SHO_EVENTS_MAX, sys::eech_engine_sho_event)
+    }
+
+    /// TEST-ONLY (feature `sector-height-observer`): one recorded fixed-wing clearance read by its zero-based index.
+    #[cfg(feature = "sector-height-observer")]
+    pub fn sector_height_clearance(&self, index: i32) -> Result<String, EngineError> {
+        self.sector_height_row("sector_height_clearance", index, SHO_CLEARANCES_MAX, sys::eech_engine_sho_clearance)
+    }
+
+    /// TEST-ONLY (feature `sector-height-observer`): one sector's aggregate of FIRST reads, by its zero-based index in first-read order.
+    #[cfg(feature = "sector-height-observer")]
+    pub fn sector_height_scan(&self, index: i32) -> Result<String, EngineError> {
+        self.sector_height_row("sector_height_scan", index, SHO_SCAN_MAX, sys::eech_engine_sho_scan)
+    }
+
+    /// TEST-ONLY (feature `sector-height-witness`, EEDCS-49 D3, ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1): the campaign's own server-session save of the live session, by the original
+    /// `store_session` (the saved script and the saved data, `csrc/eech_hw_witness.c`), under a name of 1 to 24 of `A-Z a-z 0-9 _ -`. The name is checked here before the engine is entered and again
+    /// by the engine, which also refuses a name whose saved files exist (nothing is overwritten, rotated or deleted). Returns the one report line (`sh-witness-save name= bytes= version=`); a refusal keeps the
+    /// engine's reason. The matching load is the campaign's own: a later boot of the saved script, which unpacks it.
+    #[cfg(feature = "sector-height-witness")]
+    pub fn sector_height_witness_save(&self, name: &str) -> Result<String, EngineError> {
+        sector_height_witness_name(name)?;
+        let name = std::ffi::CString::new(name).map_err(|_| EngineError::BadArgument("sector_height_witness_save: the name contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; SH_WITNESS_REPORT_CAPACITY];
+        // SAFETY: the name and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates anything it writes.
+        let status = check(unsafe { sys::eech_engine_sh_witness_save(name.as_ptr(), text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
+    }
+
+    #[cfg(feature = "sector-height-observer")]
+    fn sector_height_row(
+        &self,
+        what: &str,
+        index: i32,
+        max: i32,
+        entry: unsafe extern "C" fn(i32, *mut std::os::raw::c_char, i32) -> i32,
+    ) -> Result<String, EngineError> {
+        sector_height_row_text(what, index, max, entry)
     }
 
     /// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): what the ORIGINAL airfield route parser read and produced while the campaign loaded, as `key=value` text lines: the
@@ -6882,6 +7480,39 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3): latches three finite segments about one routed vehicle (by roster host id) from the collision fixture's structured moving-target recipe, as
+    /// `key=value` text. A target or model that is not supported is an error and latches nothing.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_moving_query_prepare(&self, host_id: &str) -> Result<String, EngineError> {
+        let host_id = std::ffi::CString::new(host_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; WPN_MOVING_QUERY_REPORT_CAPACITY];
+        // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_wpn_moving_query_prepare(host_id.as_ptr(), text.as_mut_ptr(), text.len() as i32) });
+        // the case's named refusal (`wpn-case-error reason=...`) survives the bridge; a fatal or poisoned engine is reported without its buffer being read
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3): asks the production entity query for the latched segments (one-shot) and reports each result as `key=value` text.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_moving_query_run(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; WPN_MOVING_QUERY_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_wpn_moving_query_run(text.as_mut_ptr(), text.len() as i32) });
+        // the case's named refusal survives the bridge; a fatal or poisoned engine is reported without its buffer being read
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): drives ONE real bound city through the campaign's own shared services (drain, empty relink and restore, relist) with the
+    /// production entity query before and after (see `csrc/eech_wpn_fixture.c`), as `key=value` text. A prerequisite that does not hold is `wpn-city-lifecycle-unreached reason=...` (returned normally, never a pass); the
+    /// witness is terminal and is never followed by a physical run. The host's answers are the model provider's own; a refusal stops the engine by name.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_city_lifecycle(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; WPN_CITY_LIFECYCLE_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_wpn_city_lifecycle(text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
+    }
+
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the entity kind of a roster host id from its type field alone, as `key=value` text (`found=0` for an unknown id).
     #[cfg(feature = "weapon-fixture")]
     pub fn wpn_case_kind(&self, host_id: &str) -> Result<String, EngineError> {
@@ -7456,6 +8087,7 @@ mod tests {
             sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
             sys::EECH_MOVEMENT_DEPENDENT_CARRY => MovementMode::DependentCarry,
             sys::EECH_MOVEMENT_PERSON_FACE => MovementMode::PersonFace,
+            sys::EECH_MOVEMENT_ROUTED_VECTOR => MovementMode::RoutedVector,
             _ => MovementMode::Place,
         }
     }
@@ -10697,6 +11329,16 @@ mod tests {
     }
 
     #[test]
+    fn a_routed_vector_step_is_a_known_mode_the_host_answers_and_an_unknown_mode_is_refused() {
+        let mut step = place_step([0.0; 3]);
+        step.mode = sys::EECH_MOVEMENT_ROUTED_VECTOR;
+        assert_eq!(received(&step).mode, MovementMode::RoutedVector);
+        step.mode = sys::EECH_MOVEMENT_ROUTED_VECTOR + 1;
+        let (outcome, _) = crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(outcome.is_err(), "a mode beyond the protocol never reaches the host");
+    }
+
+    #[test]
     fn a_person_face_step_carries_the_target_position_and_a_non_finite_target_is_refused() {
         let mut step = place_step([0.0; 3]);
         step.mode = sys::EECH_MOVEMENT_PERSON_FACE;
@@ -10741,6 +11383,7 @@ mod tests {
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
             pose_count: 0,
             pose: [0.0; sys::EECH_MODEL_POSE_MAX],
+            host_id: [0; sys::EECH_MODEL_SCAN_IDENTITY_MAX + 1],
         }
     }
 
@@ -10756,6 +11399,7 @@ mod tests {
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
             pose_count: 0,
             pose: [0.0; sys::EECH_MODEL_POSE_MAX],
+            host_id: [0; sys::EECH_MODEL_SCAN_IDENTITY_MAX + 1],
         }
     }
 
@@ -10883,6 +11527,747 @@ mod tests {
         let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the provider must not be asked"))), request);
         assert_eq!(code, 1);
         assert!(error.contains("[model-provider:custom_order.request]"), "{error}");
+    }
+
+    #[test]
+    fn the_model_callback_carries_an_entity_collision_pose_and_its_write_mask_and_computed_words_exactly() {
+        // the question holds only the segment and the pose; the answer's words and mask cross untouched. A negative zero, a subnormal, a signalling NaN pattern and an infinity are
+        // computed words here, and the mask says the point was not assigned (a miss that assigned the normal only)
+        let words = [0.0_f32, 0.0, 0.0, f32::from_bits(0x7fa0_0001), f32::INFINITY, -0.0];
+        for (count, hit, mask) in [(18_usize, true, 0x3f_u32), (22, false, 0x38)] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
+            request.pose_count = count as c_int;
+            for (at, slot) in request.pose[..count].iter_mut().enumerate() {
+                *slot = f32::from_bits(0x3f80_0000 + at as u32);
+            }
+            let sent: Vec<u32> = request.pose[..count].iter().map(|float| float.to_bits()).collect();
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityCollision { scene, pose } => {
+                        *record.borrow_mut() = Some((scene, pose));
+                        Ok(ModelAnswer::EntityCollision {
+                            scene_name: "CANDIDATE".to_string(),
+                            hit,
+                            write_mask: mask,
+                            words,
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{count} floats: {error}");
+            assert_eq!(
+                seen.borrow().clone(),
+                Some((9, sent)),
+                "{count} floats: the scene and every pose float arrive as the campaign sent them, and nothing else does"
+            );
+            assert_eq!(reply.result, if hit { sys::EECH_MODEL_TRIANGLE_FOUND } else { sys::EECH_MODEL_TRIANGLE_END });
+            assert_eq!(reply.write_mask, mask as c_int);
+            assert_eq!(
+                reply.points[..6].iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
+                words.map(f32::to_bits)
+            );
+            // SAFETY: the callback NUL-terminated the name within its array, which began zeroed.
+            assert_eq!(unsafe { std::ffi::CStr::from_ptr(reply.name.as_ptr()) }.to_str(), Ok("CANDIDATE"));
+        }
+    }
+
+    #[test]
+    fn the_model_callback_refuses_an_entity_collision_pose_of_another_size_and_an_answer_of_another_kind() {
+        for count in [0, 6, 12, 17, 19, 21, 23, 24, 28, 96] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
+            request.pose_count = count;
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "{count} floats were accepted");
+            assert!(error.contains("[model-provider:entity_collision.request]"), "{count} floats: {error}");
+        }
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
+        request.pose_count = 18;
+        let (code, _, error) = model_crossing(Some(Box::new(|_| Ok(ModelAnswer::Triangle(ModelTriangle::End)))), request);
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_collision.answer]"), "{error}");
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
+        request.pose_count = 18;
+        let (code, _, error) = model_crossing(
+            Some(Box::new(|_| Err("[model-provider:entity_collision.refused] no model".to_string()))),
+            request,
+        );
+        assert_ne!(code, 0, "a refusal is never a miss");
+        assert!(error.contains("no model"), "{error}");
+        // a mask that cannot be a C int is not carried
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
+        request.pose_count = 18;
+        let (code, _, error) = model_crossing(
+            Some(Box::new(|_| {
+                Ok(ModelAnswer::EntityCollision {
+                    scene_name: "CANDIDATE".to_string(),
+                    hit: false,
+                    write_mask: u32::MAX,
+                    words: [0.0; 6],
+                })
+            })),
+            request,
+        );
+        assert_ne!(code, 0);
+        assert!(error.contains("write mask"), "{error}");
+    }
+
+    #[test]
+    fn the_model_callback_carries_an_entity_candidate_question_and_every_decision_exactly() {
+        // the question is the 44 facts, bit for bit, and the scene; each decision crosses with its state, and only a test carries the pose of 12 or 16 floats
+        let sent: Vec<f32> = (0..44).map(|at| f32::from_bits(0x3f80_0000 + at as u32)).collect();
+        let pose12: Vec<f32> = [-0.0_f32, f32::from_bits(1), 3.5].iter().cycle().take(12).copied().collect();
+        let pose16: Vec<f32> = (0..16).map(|at| at as f32 - 0.5).collect();
+        let decisions = [
+            (CandidateDecision::Skip, sys::EECH_MODEL_CANDIDATE_SKIP, 0),
+            (CandidateDecision::NeedUpdated, sys::EECH_MODEL_CANDIDATE_NEED_UPDATED, 0),
+            (CandidateDecision::NeedFixed, sys::EECH_MODEL_CANDIDATE_NEED_FIXED, 0),
+            (CandidateDecision::NeedPlacement, sys::EECH_MODEL_CANDIDATE_NEED_PLACEMENT, 0),
+            (CandidateDecision::NeedNormal, sys::EECH_MODEL_CANDIDATE_NEED_NORMAL, 0),
+            (CandidateDecision::Buildings, sys::EECH_MODEL_CANDIDATE_BUILDINGS, 0),
+            (CandidateDecision::Test(pose12.clone()), sys::EECH_MODEL_CANDIDATE_TEST, 12),
+            (CandidateDecision::Test(pose16.clone()), sys::EECH_MODEL_CANDIDATE_TEST, 16),
+        ];
+        for (decision, state, count) in decisions {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
+            request.pose_count = 44;
+            for (slot, float) in request.pose.iter_mut().zip(&sent) {
+                *slot = *float;
+            }
+            let expected: Vec<u32> = sent.iter().map(|float| float.to_bits()).collect();
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let given = decision.clone();
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityCandidate { scene, facts, .. } => {
+                        *record.borrow_mut() = Some((scene, facts));
+                        Ok(ModelAnswer::EntityCandidate {
+                            scene_name: "CANDIDATE".to_string(),
+                            decision: given.clone(),
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{decision:?}: {error}");
+            assert_eq!(
+                seen.borrow().clone(),
+                Some((9, expected)),
+                "{decision:?}: the scene and every fact arrive as the campaign sent them"
+            );
+            assert_eq!((reply.candidate_state, reply.candidate_count), (state, count), "{decision:?}");
+            if let CandidateDecision::Test(pose) = &decision {
+                assert_eq!(
+                    reply.candidate[..pose.len()].iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
+                    pose.iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
+                    "the pose crosses exactly: a negative zero and a subnormal included"
+                );
+            }
+            // SAFETY: the callback NUL-terminated the name within its array, which began zeroed.
+            assert_eq!(unsafe { std::ffi::CStr::from_ptr(reply.name.as_ptr()) }.to_str(), Ok("CANDIDATE"));
+        }
+    }
+
+    #[test]
+    fn the_model_callback_refuses_entity_candidate_facts_of_another_size_a_pose_of_another_size_and_an_answer_of_another_kind() {
+        for count in [0, 6, 18, 22, 42, 43, 45, 96] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
+            request.pose_count = count;
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "{count} floats were accepted");
+            assert!(error.contains("[model-provider:entity_candidate.request]"), "{count} floats: {error}");
+        }
+        for size in [0_usize, 11, 13, 15, 17] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
+            request.pose_count = 44;
+            let (code, _, error) = model_crossing(
+                Some(Box::new(move |_| {
+                    Ok(ModelAnswer::EntityCandidate {
+                        scene_name: String::new(),
+                        decision: CandidateDecision::Test(vec![0.0; size]),
+                    })
+                })),
+                request,
+            );
+            assert_ne!(code, 0, "a pose of {size} floats was carried");
+            assert!(error.contains("[model-provider:entity_candidate.answer]"), "{size} floats: {error}");
+        }
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
+        request.pose_count = 44;
+        let (code, _, error) = model_crossing(Some(Box::new(|_| Ok(ModelAnswer::Triangle(ModelTriangle::End)))), request);
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_candidate.answer]"), "{error}");
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
+        request.pose_count = 44;
+        let (code, _, error) = model_crossing(
+            Some(Box::new(|_| Err("[model-provider:entity_candidate.refused] no model".to_string()))),
+            request,
+        );
+        assert_ne!(code, 0, "a refusal is never a skip");
+        assert!(error.contains("no model"), "{error}");
+    }
+
+    #[test]
+    fn the_model_callback_carries_an_entity_scan_question_and_every_decision_exactly() {
+        // the question is the 16 facts, bit for bit, with scene 0; each decision crosses with its state, and only FIRST carries the sector (two whole numbers in the first two floats)
+        let sent: Vec<f32> = (0..16).map(|at| f32::from_bits(0x3f80_0000 + at as u32)).collect();
+        for (decision, state, cursor) in [
+            (ScanDecision::First([2.0, 3.0]), sys::EECH_MODEL_SCAN_FIRST, [2.0, 3.0]),
+            (ScanDecision::Next, sys::EECH_MODEL_SCAN_NEXT, [0.0, 0.0]),
+            (ScanDecision::Offer, sys::EECH_MODEL_SCAN_OFFER, [0.0, 0.0]),
+            (ScanDecision::DoneNone, sys::EECH_MODEL_SCAN_DONE_NONE, [0.0, 0.0]),
+            (ScanDecision::DoneHit, sys::EECH_MODEL_SCAN_DONE_HIT, [0.0, 0.0]),
+            (ScanDecision::Placed, sys::EECH_MODEL_SCAN_PLACED, [0.0, 0.0]),
+            (ScanDecision::Removed, sys::EECH_MODEL_SCAN_REMOVED, [0.0, 0.0]),
+            (ScanDecision::Cleared, sys::EECH_MODEL_SCAN_CLEARED, [0.0, 0.0]),
+            (
+                ScanDecision::Expanded([2.0, 3.0, 4.0, 5.0, 6.0, 7.0]),
+                sys::EECH_MODEL_SCAN_EXPANDED,
+                [2.0, 3.0],
+            ),
+        ] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            for (slot, float) in request.pose.iter_mut().zip(&sent) {
+                *slot = *float;
+            }
+            let expected: Vec<u32> = sent.iter().map(|float| float.to_bits()).collect();
+            // the identity place carries a key or a semantic identity whole, and the answer's key comes back in the reply's name place
+            for (at, byte) in "eech-world:42".bytes().enumerate() {
+                request.host_id[at] = byte as c_char;
+            }
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { facts, identity } => {
+                        assert_eq!(identity, "eech-world:42");
+                        *record.borrow_mut() = Some(facts);
+                        Ok(ModelAnswer::EntityScan {
+                            decision,
+                            key: "1234567".to_string(),
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{decision:?}: {error}");
+            let name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+            assert_eq!(name, b"1234567", "{decision:?}: the key crosses in the name place");
+            assert_eq!(
+                seen.borrow().clone(),
+                Some(expected),
+                "{decision:?}: every fact arrives as the campaign sent it"
+            );
+            assert_eq!(reply.candidate_state, state, "{decision:?}");
+            assert_eq!(
+                reply.candidate[..2].iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
+                cursor.map(f32::to_bits).to_vec(),
+                "{decision:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_expanded_decision_crosses_with_its_six_words_bit_for_bit_and_their_count() {
+        // a city's box expansion: the six words of the box (minimum then maximum, signed zeros and the inverted-box magnitudes included) come back in the candidate place with a count of six
+        let words = [-0.0f32, 1.0e6, -1.0e6, f32::from_bits(1), 3.5, -4.25];
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+        request.pose_count = 16;
+        for (at, byte) in "17 18".bytes().enumerate() {
+            request.host_id[at] = byte as c_char;
+        }
+        let (code, reply, error) = model_crossing(
+            Some(Box::new(move |query| match query {
+                ModelQuery::EntityScan { identity, .. } => {
+                    assert_eq!(identity, "17 18");
+                    Ok(ModelAnswer::EntityScan {
+                        decision: ScanDecision::Expanded(words),
+                        key: "17".to_string(),
+                    })
+                }
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            request,
+        );
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(reply.candidate_state, sys::EECH_MODEL_SCAN_EXPANDED);
+        assert_eq!(reply.candidate_count, 6);
+        assert_eq!(
+            reply.candidate[..6].iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
+            words.map(f32::to_bits).to_vec()
+        );
+        assert!(reply.candidate[6..].iter().all(|float| float.to_bits() == 0), "no word beyond the six");
+        let name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+        assert_eq!(name, b"17");
+    }
+
+    #[test]
+    fn a_sector_height_question_and_its_answer_cross_every_raw_word_bit_for_bit_and_with_their_count() {
+        // a sector's high-water height (phases 17 and 18): the question states the sector in the cursor facts and, for a restore, the saved word RAW in fact 0; the answer carries the sector as asked and the word the host holds.
+        // Every word the original could have saved is valid history: zero and negative zero, the subnormal and normal edges, both extremes, both infinities, a negative word and quiet NaNs with payloads
+        let words: [u32; 17] = [
+            0x0000_0000,
+            0x8000_0000,
+            0x0000_0001,
+            0x007f_ffff,
+            0x0080_0000,
+            0x3f80_0000,
+            0x42dc_0000,
+            0x461c_4000,
+            0x7f7f_ffff,
+            0xff7f_ffff,
+            0x7f80_0000,
+            0xff80_0000,
+            0x7fc0_0000,
+            0xbf80_0000,
+            0xc2dc_0000,
+            0x7fc0_f00d,
+            0xffc0_0001,
+        ];
+        for (index, word) in words.iter().enumerate() {
+            for (phase_bits, decision, state) in [
+                (
+                    0x4188_0000u32,
+                    ScanDecision::Height([5.0, 9.0, f32::from_bits(*word)]),
+                    sys::EECH_MODEL_SCAN_HEIGHT,
+                ),
+                (
+                    0x4190_0000u32,
+                    ScanDecision::Restored([5.0, 9.0, f32::from_bits(*word)]),
+                    sys::EECH_MODEL_SCAN_RESTORED,
+                ),
+            ] {
+                let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+                request.pose_count = 16;
+                request.pose[SCAN_PHASE_FACT] = f32::from_bits(phase_bits);
+                request.pose[12] = 5.0;
+                request.pose[13] = 9.0;
+                request.pose[0] = f32::from_bits(*word);
+                let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+                let record = std::rc::Rc::clone(&seen);
+                let (code, reply, error) = model_crossing(
+                    Some(Box::new(move |query| match query {
+                        ModelQuery::EntityScan { facts, identity } => {
+                            assert_eq!(identity, "");
+                            *record.borrow_mut() = Some(facts);
+                            Ok(ModelAnswer::EntityScan { decision, key: String::new() })
+                        }
+                        other => Err(format!("unexpected {other:?}")),
+                    })),
+                    request,
+                );
+                assert_eq!(code, 0, "word {index} {word:#010x}: {error}");
+                // the question arrived as the campaign sent it: the phase, the sector and the word, as bit patterns
+                let facts = seen.borrow().clone().unwrap_or_default();
+                let fact = |at: usize| facts.get(at).copied();
+                assert_eq!(
+                    (fact(SCAN_PHASE_FACT), fact(12), fact(13), fact(0)),
+                    (Some(phase_bits), Some(5.0f32.to_bits()), Some(9.0f32.to_bits()), Some(*word)),
+                    "{word:#010x}"
+                );
+                assert_eq!(reply.candidate_state, state, "{word:#010x}");
+                assert_eq!(reply.candidate_count, 3, "{word:#010x}");
+                assert_eq!(
+                    reply.candidate[..3].iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
+                    vec![5.0f32.to_bits(), 9.0f32.to_bits(), *word],
+                    "the sector as asked and the word as held, bit for bit"
+                );
+                assert!(reply.candidate[3..].iter().all(|float| float.to_bits() == 0), "no word beyond the three");
+            }
+        }
+    }
+
+    #[test]
+    fn the_physical_flag_stores_questions_and_answers_cross_every_phase_with_the_group_key_and_the_raw_words_bit_for_bit() {
+        // phases 19 to 22 (group, set, read, reset), each with its state; a group's key is the host's answer's name, a set and a read name the group in the identity place, and every reply word crosses as the bits it came in
+        // (a read's raw word is the lane's mask, 0x80000000 for lane 31, a negative int in C, never normalised)
+        for (phase_bits, decision, state, identity, name) in [
+            (
+                0x4198_0000u32,
+                ScanDecision::FlagGroup([f32::from_bits(0x3f80_0000), 0.0, 0.0]),
+                sys::EECH_MODEL_SCAN_FLAG_GROUP,
+                "",
+                "f12",
+            ),
+            (
+                0x41a0_0000u32,
+                ScanDecision::FlagSet([2.0, 31.0, f32::from_bits(0x8000_0000)]),
+                sys::EECH_MODEL_SCAN_FLAG_SET,
+                "f12",
+                "",
+            ),
+            (
+                0x41a8_0000u32,
+                ScanDecision::FlagRead([2.0, 31.0, f32::from_bits(0x8000_0000)]),
+                sys::EECH_MODEL_SCAN_FLAG_READ,
+                "f12",
+                "",
+            ),
+            (
+                0x41b0_0000u32,
+                ScanDecision::FlagReset([2.0, 7.0, 0.0]),
+                sys::EECH_MODEL_SCAN_FLAG_RESET,
+                "",
+                "",
+            ),
+        ] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            request.pose[SCAN_PHASE_FACT] = f32::from_bits(phase_bits);
+            request.pose[12] = 2.0;
+            request.pose[13] = 31.0;
+            for (slot, byte) in request.host_id.iter_mut().zip(identity.bytes()) {
+                *slot = byte as c_char;
+            }
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { facts, identity } => {
+                        *record.borrow_mut() = Some((facts, identity));
+                        Ok(ModelAnswer::EntityScan {
+                            decision,
+                            key: name.to_string(),
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "phase {phase_bits:#010x}: {error}");
+            let (facts, seen_identity) = seen.borrow().clone().unwrap_or_default();
+            assert_eq!(
+                (
+                    facts.get(SCAN_PHASE_FACT).copied(),
+                    facts.get(12).copied(),
+                    facts.get(13).copied(),
+                    seen_identity.as_str()
+                ),
+                (Some(phase_bits), Some(2.0f32.to_bits()), Some(31.0f32.to_bits()), identity),
+                "the question arrived as the campaign sent it"
+            );
+            assert_eq!(reply.candidate_state, state, "{phase_bits:#010x}");
+            assert_eq!(reply.candidate_count, 3, "{phase_bits:#010x}");
+            let words: Vec<u32> = reply.candidate[..3].iter().map(|float| float.to_bits()).collect();
+            let expected: Vec<u32> = match decision {
+                ScanDecision::FlagGroup(w) | ScanDecision::FlagSet(w) | ScanDecision::FlagRead(w) | ScanDecision::FlagReset(w) => {
+                    w.iter().map(|f| f.to_bits()).collect()
+                }
+                _ => unreachable!(),
+            };
+            assert_eq!(words, expected, "the words as the host answered them, bit for bit: {phase_bits:#010x}");
+            assert!(reply.candidate[3..].iter().all(|float| float.to_bits() == 0), "no word beyond the three");
+            let reply_name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+            assert_eq!(reply_name, name.as_bytes(), "only a group's answer names a key");
+        }
+    }
+
+    #[test]
+    fn a_flag_group_key_name_crosses_the_callback_untruncated_over_the_whole_generic_name_domain_and_is_refused_beyond_it() {
+        // ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1: the callback's name domain is the generic 127 bytes of every family and is NOT narrowed here; the flag key's own 20-byte bound is decided by the campaign's C before it copies a byte
+        // (csrc/eech_entity_dialogue_check.c, tests/physical_flags_identity.rs). What is shown: an exactly 20-byte, a 21-byte and a 127-byte name reach the reply as the bytes the host gave, and 128 bytes are refused by the callback itself.
+        for length in [20usize, 21, 127, 128] {
+            let name = format!("f{}", "1".repeat(length - 1));
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            request.pose[SCAN_PHASE_FACT] = f32::from_bits(0x4198_0000);
+            request.pose[0] = f32::from_bits(0x3f80_0000);
+            let given = name.clone();
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { .. } => Ok(ModelAnswer::EntityScan {
+                        decision: ScanDecision::FlagGroup([f32::from_bits(0x3f80_0000), 0.0, 0.0]),
+                        key: given.clone(),
+                    }),
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            if length <= sys::EECH_MODEL_NAME_MAX {
+                assert_eq!(code, 0, "{length} bytes: {error}");
+                let reply_name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+                assert_eq!(reply_name, name.as_bytes(), "{length} bytes: the name crosses untruncated");
+            } else {
+                assert_ne!(code, 0, "{length} bytes: a name beyond the generic domain is refused");
+                assert!(error.contains("entity_scan"), "{error}");
+            }
+        }
+    }
+
+    #[test]
+    fn the_model_callback_carries_a_city_name_identity_place_of_its_whole_domain_untruncated() {
+        // a NAME's identity place is a placement key (20 digits at most), one space and an object identity of its own 1 to 128 bytes: 149 bytes in all, valid multi-byte text included
+        assert_eq!(sys::EECH_MODEL_SCAN_IDENTITY_MAX, 20 + 1 + sys::EECH_MODEL_OBJECT_ID_MAX);
+        let key = "18446744073709551615";
+        for object in ["y".repeat(sys::EECH_MODEL_OBJECT_ID_MAX), format!("{}zz", "é".repeat(63))] {
+            assert_eq!(object.len(), sys::EECH_MODEL_OBJECT_ID_MAX);
+            let place = format!("{key} {object}");
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            // a real NAME: phase 12 (the sixteen facts are otherwise zero, as the campaign sends them) and the whole identity place
+            request.pose[SCAN_PHASE_FACT] = f32::from_bits(SCAN_PHASE_NAME_BITS);
+            for (slot, byte) in request.host_id.iter_mut().zip(place.bytes()) {
+                *slot = byte as c_char;
+            }
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { identity, .. } => {
+                        *record.borrow_mut() = Some(identity);
+                        Ok(ModelAnswer::EntityScan {
+                            decision: ScanDecision::Placed,
+                            key: "18446744073709551615".to_string(),
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{error}");
+            assert_eq!(
+                seen.borrow().clone(),
+                Some(place.clone()),
+                "the whole identity place arrives, not a shortened one"
+            );
+            assert_eq!(place.len(), sys::EECH_MODEL_SCAN_IDENTITY_MAX);
+            let name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+            assert_eq!(name, key.as_bytes());
+        }
+    }
+
+    #[test]
+    fn the_model_callback_bounds_every_identity_by_its_own_operations_domain_before_the_host_is_asked() {
+        // the request field is sized for a city NAME's whole identity place (149 bytes); the identities of every other operation stay in the host identity's domain of 128, which the larger field must not widen
+        assert_eq!((sys::EECH_MODEL_HOST_ID_MAX, sys::EECH_MODEL_SCAN_IDENTITY_MAX), (128, 149));
+        let fill = |field: &mut [c_char], length: usize| {
+            for slot in field.iter_mut().take(length) {
+                *slot = b'y' as c_char;
+            }
+        };
+        for length in [sys::EECH_MODEL_HOST_ID_MAX + 1, sys::EECH_MODEL_SCAN_IDENTITY_MAX] {
+            // NUL-terminated inside the field, valid text: only its length is outside the domain
+            let mut request = pose_request(0, 4, 1, "");
+            fill(&mut request.host_id, length);
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "a {length} byte pose identity was accepted");
+            assert!(
+                error.contains("[model-provider:entity_pose.request]") && error.contains("outside its domain of at most 128"),
+                "{length}: {error}"
+            );
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
+            request.pose_count = 44;
+            fill(&mut request.host_id, length);
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "a {length} byte candidate identity was accepted");
+            assert!(
+                error.contains("[model-provider:entity_candidate.request]") && error.contains("outside its domain of at most 128"),
+                "{length}: {error}"
+            );
+            // a scan question of any phase but NAME: an INSERT states a hosted mobile's identity, a REMOVE a key
+            for phase in [4.0_f32, 5.0, 0.0, 1.0, 10.0, 11.0] {
+                let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+                request.pose_count = 16;
+                request.pose[SCAN_PHASE_FACT] = phase;
+                fill(&mut request.host_id, length);
+                let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+                assert_ne!(code, 0, "a {length} byte identity was accepted for phase {phase}");
+                assert!(
+                    error.contains("[model-provider:entity_scan.request]") && error.contains("outside its domain of at most 128"),
+                    "{phase} {length}: {error}"
+                );
+            }
+        }
+        // the full legal 128 bytes and an empty identity still cross whole (the optional or required rule belongs to the operation's host), for the candidate as for the pose and a hosted mobile's scan identity
+        for length in [0, sys::EECH_MODEL_HOST_ID_MAX] {
+            let expected = "y".repeat(length);
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
+            request.pose_count = 44;
+            fill(&mut request.host_id, length);
+            let (code, _, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityCandidate { host_id, .. } => {
+                        *record.borrow_mut() = Some(host_id);
+                        Ok(ModelAnswer::EntityCandidate {
+                            scene_name: "CANDIDATE".to_string(),
+                            decision: CandidateDecision::Skip,
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{length}: {error}");
+            assert_eq!(seen.borrow().clone(), Some(expected.clone()), "{length}: the candidate identity arrives whole");
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            request.pose[SCAN_PHASE_FACT] = 4.0;
+            fill(&mut request.host_id, length);
+            let (code, _, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { identity, .. } => {
+                        *record.borrow_mut() = Some(identity);
+                        Ok(ModelAnswer::EntityScan {
+                            decision: ScanDecision::Placed,
+                            key: "1".to_string(),
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{length}: {error}");
+            assert_eq!(seen.borrow().clone(), Some(expected), "{length}: the scan identity arrives whole");
+        }
+    }
+
+    #[test]
+    fn the_model_callback_refuses_entity_scan_facts_of_another_size_and_an_answer_of_another_kind() {
+        for count in [0, 6, 15, 17, 44, 96] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = count;
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "{count} floats were accepted");
+            assert!(error.contains("[model-provider:entity_scan.request]"), "{count} floats: {error}");
+        }
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+        request.pose_count = 16;
+        let (code, _, error) = model_crossing(Some(Box::new(|_| Ok(ModelAnswer::Triangle(ModelTriangle::End)))), request);
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_scan.answer]"), "{error}");
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+        request.pose_count = 16;
+        let (code, _, error) = model_crossing(Some(Box::new(|_| Err("[model-provider:entity_scan.refused] no host".to_string()))), request);
+        assert_ne!(code, 0, "a refusal is never the end of a scan");
+        assert!(error.contains("no host"), "{error}");
+    }
+
+    fn pose_request(stage: c_int, entity_type: c_int, alive: c_int, host_id: &str) -> sys::eech_model_request {
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_POSE, 0, stage);
+        request.kind = entity_type;
+        request.definition = alive;
+        request.pose_count = 15;
+        for (at, slot) in request.pose.iter_mut().take(15).enumerate() {
+            *slot = f32::from_bits(0x7fa0_0001 + at as u32);
+        }
+        for (slot, byte) in request.host_id.iter_mut().zip(host_id.bytes()) {
+            *slot = byte as c_char;
+        }
+        request
+    }
+
+    #[test]
+    fn the_model_callback_carries_an_entity_pose_observation_and_every_class_exactly() {
+        // the question is the 15 words bit for bit (a signalling NaN and its neighbours included: nothing is loaded as a value), the stage, the entity's type, whether it is alive and the host identity;
+        // each class crosses with the kind of the record and the difference bits
+        for (class, state) in [
+            (PoseClass::Recorded, sys::EECH_MODEL_POSE_RECORDED),
+            (PoseClass::Unrecorded, sys::EECH_MODEL_POSE_UNRECORDED),
+            (PoseClass::Retired, sys::EECH_MODEL_POSE_RETIRED),
+            (PoseClass::Unknown, sys::EECH_MODEL_POSE_UNKNOWN),
+            (PoseClass::NoId, sys::EECH_MODEL_POSE_NO_ID),
+        ] {
+            let longest = "y".repeat(sys::EECH_MODEL_HOST_ID_MAX);
+            for (stage, host_id) in [
+                (0, "eech-world:12"),
+                (1, ""),
+                (1, "id with a space"),
+                (0, longest.as_str()),
+                (1, "\u{e9}\u{4e16}"),
+            ] {
+                let request = pose_request(stage, 4, 1, host_id);
+                let expected: Vec<u32> = (0..15).map(|at| 0x7fa0_0001 + at).collect();
+                let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+                let record = std::rc::Rc::clone(&seen);
+                let (code, reply, error) = model_crossing(
+                    Some(Box::new(move |query| match query {
+                        ModelQuery::EntityPose {
+                            stage,
+                            entity_type,
+                            alive,
+                            host_id,
+                            words,
+                        } => {
+                            *record.borrow_mut() = Some((stage, entity_type, alive, host_id, words));
+                            Ok(ModelAnswer::EntityPose {
+                                class,
+                                kind: 5,
+                                difference: 21,
+                            })
+                        }
+                        other => Err(format!("unexpected {other:?}")),
+                    })),
+                    request,
+                );
+                assert_eq!(code, 0, "{class:?}: {error}");
+                assert_eq!(
+                    seen.borrow().clone(),
+                    Some((stage, 4, 1, host_id.to_string(), expected)),
+                    "{class:?} {host_id:?}: everything arrives as the campaign sent it"
+                );
+                assert_eq!((reply.candidate_state, reply.candidate_count, reply.write_mask), (state, 5, 21), "{class:?}");
+            }
+        }
+    }
+
+    #[test]
+    fn the_model_callback_refuses_an_entity_pose_question_of_another_size_or_identity_and_an_answer_of_another_kind_or_range() {
+        for count in [0, 6, 14, 16, 44, 96] {
+            let mut request = pose_request(0, 4, 1, "eech-world:1");
+            request.pose_count = count;
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "{count} floats were accepted");
+            assert!(error.contains("[model-provider:entity_pose.request]"), "{count} floats: {error}");
+        }
+        // an identity that is not NUL-terminated within the field, and one that is not text
+        let mut request = pose_request(0, 4, 1, "");
+        request.host_id = [b'x' as c_char; sys::EECH_MODEL_SCAN_IDENTITY_MAX + 1];
+        let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_pose.request]") && error.contains("NUL"), "{error}");
+        let mut request = pose_request(0, 4, 1, "");
+        request.host_id[0] = 0xffu8 as c_char;
+        let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_pose.request]") && error.contains("not text"), "{error}");
+        // an answer of another kind, a kind outside the five and a difference mask outside the five bits
+        let (code, _, error) = model_crossing(
+            Some(Box::new(|_| Ok(ModelAnswer::Triangle(ModelTriangle::End)))),
+            pose_request(0, 4, 1, "eech-world:1"),
+        );
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_pose.answer]"), "{error}");
+        for (kind, difference) in [(6, 0), (0, 32), (u32::MAX, 0), (0, u32::MAX)] {
+            let (code, _, error) = model_crossing(
+                Some(Box::new(move |_| {
+                    Ok(ModelAnswer::EntityPose {
+                        class: PoseClass::Recorded,
+                        kind,
+                        difference,
+                    })
+                })),
+                pose_request(0, 4, 1, "eech-world:1"),
+            );
+            assert_ne!(code, 0, "kind {kind} difference {difference} was accepted");
+            assert!(error.contains("[model-provider:entity_pose.answer]"), "{error}");
+        }
+        let (code, _, error) = model_crossing(
+            Some(Box::new(|_| Err("[model-provider:entity_pose.refused] no host".to_string()))),
+            pose_request(0, 4, 1, "eech-world:1"),
+        );
+        assert_ne!(code, 0, "a refusal is never an observation");
+        assert!(error.contains("no host"), "{error}");
     }
 
     #[test]
@@ -11023,6 +12408,7 @@ mod tests {
             key: request.key,
             pose_count: request.pose_count,
             pose: request.pose,
+            host_id: request.host_id,
         }
     }
 
@@ -11215,7 +12601,7 @@ mod tests {
     fn a_terrain_answer_of_the_wrong_kind_is_refused_before_anything_is_written() {
         // an operation name and the answer a provider gives (of a kind that is right for only one of the operations; the above and below predicates share one kind of answer)
         type GivenAnswer = (&'static str, fn() -> TerrainAnswer);
-        let answers: [GivenAnswer; 5] = [
+        let answers: [GivenAnswer; 6] = [
             ("map", || TerrainAnswer::Map(terrain_facts())),
             ("point", || terrain_point(None, true)),
             ("fast", || TerrainAnswer::Fast { elevation: 2.0 }),
@@ -11226,6 +12612,13 @@ mod tests {
                 impact: [0.0; 3],
                 record: ground_record(),
             }),
+            ("tree", || {
+                TerrainAnswer::Tree(TreeStep::Done {
+                    hit: false,
+                    point: [0; 3],
+                    normal: [0; 3],
+                })
+            }),
         ];
         let operations = [
             ("map", sys::EECH_TERRAIN_MAP),
@@ -11234,13 +12627,18 @@ mod tests {
             ("ground_above", sys::EECH_TERRAIN_GROUND_ABOVE),
             ("ground_below", sys::EECH_TERRAIN_GROUND_BELOW),
             ("ground_impact", sys::EECH_TERRAIN_GROUND_IMPACT),
+            ("tree_begin", sys::EECH_TERRAIN_TREE_BEGIN),
+            ("tree_terrain", sys::EECH_TERRAIN_TREE_TERRAIN),
         ];
         let mut refused = 0;
         for (asked, operation) in operations {
             for (given, answer) in &answers {
                 let answer = *answer;
                 let (code, reply, error) = terrain_crossing(operation, 0, "", move |_| Ok(answer()));
-                if asked == *given || (*given == "ground_predicate" && (asked == "ground_above" || asked == "ground_below")) {
+                if asked == *given
+                    || (*given == "ground_predicate" && (asked == "ground_above" || asked == "ground_below"))
+                    || (*given == "tree" && (asked == "tree_begin" || asked == "tree_terrain"))
+                {
                     assert_eq!(code, 0, "{asked} answered with {given}: {error}");
                     continue;
                 }
@@ -11255,8 +12653,111 @@ mod tests {
                 );
             }
         }
-        // six operations by five kinds of answer: thirty pairings, of which six are right
-        assert_eq!(refused, 24, "every wrong pairing was exercised");
+        // eight operations by six kinds of answer: forty-eight pairings, of which eight are right
+        assert_eq!(refused, 40, "every wrong pairing was exercised");
+    }
+
+    /// One tree question across the C boundary (EEDCS-49): the request as C would build it, the provider's answer, and what C is given back.
+    fn tree_crossing(
+        request: sys::eech_terrain_request,
+        provider: impl FnMut(TerrainQuery) -> Result<TerrainAnswer, String> + 'static,
+    ) -> (c_int, sys::eech_terrain_reply, String) {
+        TERRAIN.with(|slot| *slot.borrow_mut() = Some(Box::new(provider)));
+        // SAFETY: plain data; zero is a valid value for every field.
+        let mut reply: sys::eech_terrain_reply = unsafe { std::mem::zeroed() };
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+        let code = unsafe { terrain_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+        TERRAIN.with(|slot| *slot.borrow_mut() = None);
+        let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+        (code, reply, String::from_utf8_lossy(&text).into_owned())
+    }
+
+    fn tree_request(op: c_int) -> sys::eech_terrain_request {
+        // SAFETY: plain data; zero is a valid value for every field.
+        let mut request: sys::eech_terrain_request = unsafe { std::mem::zeroed() };
+        request.op = op;
+        request.tree_old = [1.0f32.to_bits(), 2.0f32.to_bits(), 3.0f32.to_bits()];
+        request.tree_new = [(-0.0f32).to_bits(), 5.0f32.to_bits(), 6.0f32.to_bits()];
+        // a signalling NaN and a signed zero in the caller's own buffers: the patterns must arrive as they are
+        request.tree_point = [0x7fa0_0001, (-0.0f32).to_bits(), 0];
+        request.tree_normal = [0xffc0_0123, 1, 0x8000_0001];
+        request.tree_ignore_forest_edge_trees = 1;
+        request.tree_skip_tree_top_test = 0;
+        request
+    }
+
+    #[test]
+    fn a_tree_question_reaches_the_provider_as_bit_patterns_and_its_answer_reaches_the_reply_as_bit_patterns() {
+        let (code, reply, error) = tree_crossing(tree_request(sys::EECH_TERRAIN_TREE_BEGIN), |query| {
+            assert_eq!(
+                query,
+                TerrainQuery::TreeBegin {
+                    old: [1.0f32.to_bits(), 2.0f32.to_bits(), 3.0f32.to_bits()],
+                    new: [(-0.0f32).to_bits(), 5.0f32.to_bits(), 6.0f32.to_bits()],
+                    point: [0x7fa0_0001, (-0.0f32).to_bits(), 0],
+                    normal: [0xffc0_0123, 1, 0x8000_0001],
+                    ignore_forest_edge_trees: true,
+                    skip_tree_top_test: false,
+                    winter: false,
+                }
+            );
+            Ok(TerrainAnswer::Tree(TreeStep::NeedTerrain {
+                end: TreeEnd::New,
+                x: 0x7f80_0001,
+                z: (-0.0f32).to_bits(),
+            }))
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(
+            (reply.tree_state, reply.tree_end, reply.tree_x, reply.tree_z),
+            (
+                sys::EECH_TERRAIN_TREE_NEED_TERRAIN,
+                sys::EECH_TERRAIN_TREE_END_NEW,
+                0x7f80_0001,
+                (-0.0f32).to_bits()
+            )
+        );
+        let mut terrain = tree_request(sys::EECH_TERRAIN_TREE_TERRAIN);
+        terrain.winter = 1;
+        terrain.tree_elevation = 0x4120_0000;
+        let (code, reply, error) = tree_crossing(terrain, |query| {
+            assert_eq!(
+                query,
+                TerrainQuery::TreeTerrain {
+                    elevation: 0x4120_0000,
+                    winter: true
+                }
+            );
+            Ok(TerrainAnswer::Tree(TreeStep::Done {
+                hit: true,
+                point: [0x7fa0_0001, (-0.0f32).to_bits(), 7],
+                normal: [0xffc0_0123, 8, 0x8000_0001],
+            }))
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(
+            (reply.tree_state, reply.tree_hit, reply.tree_result_point, reply.tree_result_normal),
+            (
+                sys::EECH_TERRAIN_TREE_DONE,
+                1,
+                [0x7fa0_0001, (-0.0f32).to_bits(), 7],
+                [0xffc0_0123, 8, 0x8000_0001]
+            )
+        );
+    }
+
+    #[test]
+    fn a_tree_question_with_a_flag_that_is_not_a_flag_is_refused_before_the_provider_is_asked() {
+        for (ignore, skip, name) in [(2, 0, "ignore_forest_edge_trees"), (0, -1, "skip_tree_top_test")] {
+            let mut request = tree_request(sys::EECH_TERRAIN_TREE_BEGIN);
+            request.tree_ignore_forest_edge_trees = ignore;
+            request.tree_skip_tree_top_test = skip;
+            let (code, reply, error) = tree_crossing(request, |_| panic!("the provider must not be asked about a malformed question"));
+            assert_ne!(code, 0);
+            assert!(error.starts_with("[terrain-provider:tree.request]") && error.contains(name), "{error}");
+            assert_eq!(reply.tree_state, 0, "a refused question wrote nothing");
+        }
     }
 
     #[test]
@@ -13049,5 +14550,75 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[cfg(feature = "sector-height-witness")]
+    #[test]
+    fn a_saved_session_name_is_one_to_twenty_four_safe_characters_so_no_path_or_control_byte_reaches_the_engine() {
+        for good in ["a", "alpha", "Alpha_1-b", "aaaaaaaaaaaaaaaaaaaaaaaa"] {
+            accepted(sector_height_witness_name(good));
+        }
+        for bad in ["", "aaaaaaaaaaaaaaaaaaaaaaaaa", "../x", "a b", "a\\b", "a/b", "a.b", "\u{e9}", "a\0b", "a\n"] {
+            assert!(matches!(refusal(sector_height_witness_name(bad)), EngineError::BadArgument(_)), "{bad:?}");
+        }
+        assert_eq!(SH_WITNESS_NAME_MAX, 24, "the same bound as csrc/eech_hw_witness.c HW_NAME_MAX");
+    }
+}
+
+/// The bridge of a controlled case's named refusal (EEDCS-49, D3): the report buffer is read only for a success and for the non-poison argument refusal.
+#[cfg(all(test, feature = "weapon-fixture"))]
+mod case_refusal_bridge_tests {
+    use super::*;
+
+    fn bytes(text: &str) -> Vec<std::os::raw::c_char> {
+        let mut buffer = vec![0 as std::os::raw::c_char; 256];
+        for (slot, byte) in buffer.iter_mut().zip(text.bytes()) {
+            *slot = byte as std::os::raw::c_char;
+        }
+        buffer
+    }
+
+    /// the result of the bridge and how many times it read the report buffer
+    fn bridged(status: Result<(), EngineError>, report: &str) -> (Result<String, EngineError>, usize) {
+        let before = CASE_REPORT_READS.with(|reads| reads.get());
+        let result = keep_case_reason(status, &bytes(report));
+        (result, CASE_REPORT_READS.with(|reads| reads.get()) - before)
+    }
+
+    #[test]
+    fn a_named_non_poison_refusal_survives_the_bridge_and_a_fatal_or_poisoned_engine_never_reads_the_buffer() {
+        const NAMED: &str = "wpn-case-error reason=target_not_alive host_id=a%0Ab\n";
+        // success: the report itself
+        let (result, reads) = bridged(Ok(()), "report\n");
+        assert!(matches!(result, Ok(ref text) if text == "report\n") && reads == 1);
+        // the real engine entry returns the argument status, which `check` turns into the generic text: the case's named reason replaces it, trimmed
+        let (result, reads) = bridged(check(sys::EECH_ENGINE_BAD_ARGUMENT), NAMED);
+        assert!(matches!(result, Err(EngineError::BadArgument(ref text)) if text == NAMED.trim()) && reads == 1);
+        // a refusal that wrote nothing keeps the generic text
+        let (result, _) = bridged(check(sys::EECH_ENGINE_BAD_ARGUMENT), "  \n");
+        assert!(matches!(result, Err(EngineError::BadArgument(ref text)) if text == "rejected by the engine"));
+        // a fatal error, a poisoned engine and a state error return their own error and do not inspect the buffer, whatever it holds
+        for status in [
+            Err(EngineError::Fatal("stopped".into())),
+            check(sys::EECH_ENGINE_POISONED),
+            check(sys::EECH_ENGINE_STATE),
+        ] {
+            let expected = format!("{status:?}");
+            let (result, reads) = bridged(status, NAMED);
+            assert_eq!(reads, 0, "the buffer was inspected after {expected}");
+            assert_eq!(format!("{result:?}"), expected);
+        }
+    }
+
+    #[test]
+    fn the_report_is_the_bytes_before_the_first_nul_inside_the_buffer() {
+        let mut text = vec![0 as std::os::raw::c_char; 8];
+        for (slot, byte) in text.iter_mut().zip(b"ab") {
+            *slot = *byte as std::os::raw::c_char;
+        }
+        assert!(matches!(keep_case_reason(Ok(()), &text), Ok(ref report) if report == "ab"));
+        // an unterminated buffer is bounded by its own length, never read past it
+        let full = vec![b'x' as std::os::raw::c_char; 4];
+        assert!(matches!(keep_case_reason(Ok(()), &full), Ok(ref report) if report == "xxxx"));
     }
 }
