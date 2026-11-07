@@ -102,13 +102,15 @@ fn every_writer_and_reader_of_the_three_words_is_the_known_census() {
             "entity/mobile/mb_int.c",
             &[
                 ("MOVED:get", 1),
-                ("MOVED:other", 5),
+                // the two "other" mentions the hosted branches add to each of MOVED and UPDATED (Task49): the type-selecting conditional of the hosted setter and of the hosted getter (`type == INT_TYPE_MOVED`), whose meaning is pinned by
+                // `the_hosted_build_holds_no_flag_array_and_every_access_goes_to_the_host` below; ROTATED is the else branch of the same conditional and is not named again
+                ("MOVED:other", 7),
                 ("MOVED:set", 1),
                 ("ROTATED:get", 1),
                 ("ROTATED:other", 3),
                 ("ROTATED:set", 1),
                 ("UPDATED:get", 1),
-                ("UPDATED:other", 5),
+                ("UPDATED:other", 7),
                 ("UPDATED:set", 1),
             ],
         ),
@@ -282,5 +284,120 @@ fn the_consumer_source_is_the_one_the_real_consumer_control_ran() {
             < routed
                 .find("notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, guide)")
                 .unwrap()
+    );
+}
+
+/// the build as the HOSTED profile compiles it: the lines inside `#ifndef EECH_CAMPAIGN_HOST_ENTITY` (and the `#else` of an `#ifdef EECH_CAMPAIGN_HOST_ENTITY`) are dropped, every other conditional is kept as it is
+fn hosted_view(text: &str) -> String {
+    // each open conditional: (is it the hosted macro's, is its branch active in the hosted profile)
+    let mut stack: Vec<(bool, bool)> = Vec::new();
+    let mut out = String::new();
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("#ifdef EECH_CAMPAIGN_HOST_ENTITY") {
+            stack.push((true, true));
+        } else if trimmed.starts_with("#ifndef EECH_CAMPAIGN_HOST_ENTITY") {
+            stack.push((true, false));
+        } else if trimmed.starts_with("#if") {
+            stack.push((false, true));
+        } else if trimmed.starts_with("#else") {
+            if let Some(top) = stack.last_mut() {
+                if top.0 {
+                    top.1 = !top.1;
+                }
+            }
+        } else if trimmed.starts_with("#endif") {
+            stack.pop();
+        } else if stack.iter().all(|(ours, active)| !ours || *active) {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    out
+}
+
+#[test]
+fn the_hosted_build_holds_no_flag_array_and_every_access_goes_to_the_host() {
+    // Task49: in the hosted profile (EECH_CAMPAIGN_HOST_ENTITY, the default build) the three arrays are not defined or declared, so nothing can hold a bit of them, and the setter, the destructive getter and the three resets
+    // are the host's. The ORIGINAL profile (feature collision-fixture) keeps every original line, which the other tests here and the 199 and 56 expectations of the original profile pin.
+    let mb = hosted_view(&strip_comments(&read(&aphavoc().join("entity/mobile/mb_int.c"))));
+    let up = hosted_view(&strip_comments(&read(&aphavoc().join("entity/special/update/up_update.c"))));
+    let header = hosted_view(&strip_comments(&read(&aphavoc().join("entity/special/update/up_update.h"))));
+    for (name, view) in [("mb_int.c", &mb), ("up_update.c", &up), ("up_update.h", &header)] {
+        for array in ["moved_entities", "rotated_entities", "updated_entities"] {
+            assert!(!view.contains(array), "the hosted build of {name} still names {array}");
+        }
+    }
+    // no other source of the engine names an array (the hosted view of a file that has no hosted branch is the file)
+    let root = aphavoc();
+    let mut files = Vec::new();
+    walk(&root, &mut files);
+    for path in files {
+        let rel = path.strip_prefix(&root).unwrap().to_string_lossy().replace('\\', "/");
+        if matches!(
+            rel.as_str(),
+            "entity/mobile/mb_int.c" | "entity/special/update/up_update.c" | "entity/special/update/up_update.h"
+        ) {
+            continue;
+        }
+        let view = hosted_view(&strip_comments(&read(&path)));
+        for array in ["moved_entities", "rotated_entities", "updated_entities"] {
+            assert!(!view.contains(array), "{rel} names {array}");
+        }
+    }
+    // the setter is the host's set (TRUE-only: the assertion stays) and the getter returns the raw word the host answered, for the one array each type selects
+    assert!(mb.contains("ASSERT (value == TRUE);"));
+    assert!(mb.contains("campaign_model_flag_set ((type == INT_TYPE_UPDATED) ? CAMPAIGN_FLAG_ARRAY_UPDATED : ((type == INT_TYPE_MOVED) ? CAMPAIGN_FLAG_ARRAY_MOVED : CAMPAIGN_FLAG_ARRAY_ROTATED), get_local_entity_index (en));"));
+    assert!(mb.contains("value = campaign_model_flag_read ((type == INT_TYPE_UPDATED) ? CAMPAIGN_FLAG_ARRAY_UPDATED : ((type == INT_TYPE_MOVED) ? CAMPAIGN_FLAG_ARRAY_MOVED : CAMPAIGN_FLAG_ARRAY_ROTATED), get_local_entity_index (en));"));
+    assert_eq!(
+        mb.matches("campaign_model_flag_").count(),
+        2,
+        "the hosted getter and setter each make exactly one host call"
+    );
+    // the resets, in the original's order and conditions: MOVED then ROTATED behind the Tacview frame reset, UPDATED once per update iteration before the update list is walked
+    let tacview = up.find("if (tacview_is_logging() && tacview_reset_frame())").expect("the Tacview condition");
+    let moved = up.find("campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_MOVED);").expect("the MOVED reset");
+    let rotated = up.find("campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_ROTATED);").expect("the ROTATED reset");
+    let loop_head = up.find("for (loop = 0; loop < iterations; loop ++)").expect("the iteration loop");
+    let updated = up.find("campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_UPDATED);").expect("the UPDATED reset");
+    let walk_list = up
+        .find("en = get_local_entity_first_child (get_update_entity (), LIST_TYPE_UPDATE);")
+        .expect("the update list walk");
+    let set_updated = up.find("set_local_entity_int_value (en, INT_TYPE_UPDATED, TRUE);").expect("the UPDATED set");
+    assert!(
+        tacview < moved && moved < rotated && rotated < loop_head && loop_head < updated && updated < walk_list && walk_list < set_updated,
+        "the order of the resets and the set changed"
+    );
+    assert_eq!(up.matches("campaign_model_flag_reset (").count(), 3, "exactly the three resets");
+    // the original profile still has the quarter-memsets (hosted_view of the ORIGINAL is the other branch): the reset EXTENT is not a Core constant any more but the one fact the campaign states per group
+    let model = strip_comments(&read(&aphavoc().join("entity/mobile/mb_hostmodel.c")));
+    assert!(
+        model.contains("#define CAMPAIGN_FLAG_RESET_GROUPS ((MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)) / sizeof (unsigned int))"),
+        "the reset extent is the number of WORDS the original's byte-counted memset clears"
+    );
+    assert!(
+        model.contains("(unsigned int) group < CAMPAIGN_FLAG_RESET_GROUPS"),
+        "the campaign states a group's eligibility from its word index"
+    );
+    assert!(
+        model.contains("campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_SET, array, slot & 31, flag_group_key (slot), FALSE, NULL, NULL);"),
+        "a set names the group by the host's key and the lane by the slot's five low bits, and never states the slot"
+    );
+    // the dialogue never sends a slot, a group number or an index: the only facts it states are the eligibility, the array and the lane
+    let dialogue = strip_comments(&read(&aphavoc().join("entity/mobile/mb_hostentity.h")));
+    let start = dialogue.find("static void campaign_entity_flag_exchange (").expect("the flag exchange");
+    let body = &dialogue[start..];
+    let body = &body[..body.find("\n}\n").expect("its end")];
+    for stated in ["CAMPAIGN_FLAG_ELIGIBLE", "CAMPAIGN_FLAG_ARRAY", "CAMPAIGN_FLAG_LANE"] {
+        assert!(body.contains(&format!("request.pose [{stated}]")), "{stated}");
+    }
+    assert_eq!(
+        body.matches("request.pose [").count(),
+        4,
+        "the phase and the three flag facts are the only facts stated"
+    );
+    assert!(
+        !body.contains("slot") && !body.contains(">> 5") && !body.contains("& 31"),
+        "the dialogue derives and sends no slot or group number"
     );
 }

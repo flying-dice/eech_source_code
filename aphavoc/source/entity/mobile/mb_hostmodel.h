@@ -325,7 +325,13 @@ enum campaign_model_scan_phase
 	/* the sector's HIGH-WATER HEIGHT (Task49, the host-owned sector height): the campaign asks the host for the word of a sector by its coordinates (every reader of the original's tallest structure height), and states a
 	   session's restored word to it (see campaign_model_sector_height and campaign_model_sector_height_restore) */
 	CAMPAIGN_SCAN_PHASE_SECTOR_HEIGHT,
-	CAMPAIGN_SCAN_PHASE_SECTOR_RESTORE
+	CAMPAIGN_SCAN_PHASE_SECTOR_RESTORE,
+	/* the PHYSICAL per-entity UPDATED / MOVED / ROTATED flag store (Task49, the host-owned flag word): the campaign opens the host's store of one word group (the entities that share one 32-bit word of the original's arrays; the host issues
+	   its key), sets one lane of one of the three words, reads one lane destructively (the original's `&=` getter) and resets one of the three words over the extent the original's quarter-memset reaches (see campaign_model_flag_set, _read and _reset) */
+	CAMPAIGN_SCAN_PHASE_FLAG_GROUP,
+	CAMPAIGN_SCAN_PHASE_FLAG_SET,
+	CAMPAIGN_SCAN_PHASE_FLAG_READ,
+	CAMPAIGN_SCAN_PHASE_FLAG_RESET
 };
 
 /* the facts of a FIXED_STATE report (the same question, phase CAMPAIGN_SCAN_PHASE_FIXED_STATE): the position (3 floats), the entity type, the heading, the shape (a whole scene index), the entity's SUB TYPE (a whole
@@ -366,6 +372,25 @@ enum campaign_model_scan_phase
 #define CAMPAIGN_SECTOR_HEIGHT_WORD 0
 #define CAMPAIGN_SECTOR_HEIGHT_REPLY_WORDS 3
 
+/* the PHYSICAL FLAG STORE (the same question, phases CAMPAIGN_SCAN_PHASE_FLAG_GROUP to _FLAG_RESET; Task49). The host holds the three per-entity words (UPDATED, MOVED, ROTATED) and the operations on them as ONE responsibility; the
+   campaign holds no flag bit of its own in a hosted build. A word is shared by the entities of one GROUP (the original's 32-bit word: entities whose heap slots agree above their five low bits), so the host cannot treat the entities
+   one by one: a destructive read of one entity clears every OTHER entity's bit of the group's word. The campaign never states a heap slot. It states, for each group it uses, an opaque GROUP KEY the HOST issued (a FLAG_GROUP
+   question: fact 0 is whether the group lies inside the extent the original's reset reaches, 0.0 or 1.0; the answer's name is the key, "f" and decimal digits, which names nothing else and is never a roster key), and then
+   names the group by that key and the entity by its LANE, a whole number 0 to 31, the bit the entity has in its group's word. The array is a whole number too: 0 UPDATED, 1 MOVED, 2 ROTATED.
+     FLAG_GROUP  fact 0 the eligibility; the identity place is empty; the reply (state FLAG_GROUP) names the new key and holds [eligibility, 0, 0].
+     FLAG_SET    facts 12 (array) and 13 (lane); the identity place is the group key; the reply holds [array, lane, the mask 1 << lane]. The word's bit is only ever set (the original's setter is TRUE-only).
+     FLAG_READ   the same facts; the destructive read (`word &= mask`); the reply holds [array, lane, the RAW word the original's getter returns]: 0, or the entity's own mask (INT_MIN for lane 31, the bit pattern 0x80000000).
+     FLAG_RESET  fact 12 (array); the identity place is empty; clears that word of every group whose eligibility is 1.0; the reply holds [array, the number of groups cleared, 0].
+   Every other fact of a question is zero. The raw word is read as bits and NEVER normalised to a boolean. */
+#define CAMPAIGN_FLAG_ELIGIBLE 0
+#define CAMPAIGN_FLAG_ARRAY 12
+#define CAMPAIGN_FLAG_LANE 13
+#define CAMPAIGN_FLAG_REPLY_WORDS 3
+#define CAMPAIGN_FLAG_ARRAYS 3
+#define CAMPAIGN_FLAG_ARRAY_UPDATED 0
+#define CAMPAIGN_FLAG_ARRAY_MOVED 1
+#define CAMPAIGN_FLAG_ARRAY_ROTATED 2
+
 enum campaign_model_scan_state
 {
 	CAMPAIGN_MODEL_SCAN_FIRST = 1,
@@ -381,7 +406,12 @@ enum campaign_model_scan_state
 	CAMPAIGN_MODEL_SCAN_EXPANDED,
 	/* the answers to the sector height read and restore: the reply's candidate holds the sector's x and z as asked, then the word the host holds (the restored word as stored) */
 	CAMPAIGN_MODEL_SCAN_HEIGHT,
-	CAMPAIGN_MODEL_SCAN_RESTORED
+	CAMPAIGN_MODEL_SCAN_RESTORED,
+	/* the answers to the physical flag store's questions: the reply's candidate holds CAMPAIGN_FLAG_REPLY_WORDS words (see above); FLAG_GROUP also names the key the host issued */
+	CAMPAIGN_MODEL_SCAN_FLAG_GROUP,
+	CAMPAIGN_MODEL_SCAN_FLAG_SET,
+	CAMPAIGN_MODEL_SCAN_FLAG_READ,
+	CAMPAIGN_MODEL_SCAN_FLAG_RESET
 };
 
 /* the roster's insertion event: the position the campaign holds (the x, y and z words; the host decides the sector and compares a hosted mobile's with its own record), the entity's type, and the
@@ -614,6 +644,16 @@ void campaign_model_sector_height (int x_sector, int z_sector, float *word);
 /* ENTITY_SCAN, the session RESTORE of a sector's height (phase CAMPAIGN_SCAN_PHASE_SECTOR_RESTORE; Task49): the saved word (`word`, the 32 raw bits) is stated to the host, which holds exactly these bits afterwards. The reply is
    checked completely: the state RESTORED, the sector echoed as asked and the word stored equal, bit for bit, to the word stated. */
 void campaign_model_sector_height_restore (int x_sector, int z_sector, const float *word);
+
+/* ENTITY_SCAN, the PHYSICAL FLAG STORE (phases CAMPAIGN_SCAN_PHASE_FLAG_GROUP to _FLAG_RESET; Task49): the host owns the three per-entity UPDATED / MOVED / ROTATED words. `slot` is the entity's heap slot, which the campaign alone
+   knows and which is never sent: the campaign derives from it the group (slot >> 5) and the lane (slot & 31) and keeps, per group, only the opaque key the host issued (the key table is identity, never a flag). `array` is
+   CAMPAIGN_FLAG_ARRAY_UPDATED, _MOVED or _ROTATED. A set only sets the lane's bit (the original's setter is TRUE-only). A read returns the RAW word of the original's destructive getter (0, or the entity's own mask, INT_MIN for
+   lane 31) after clearing every other lane of the group's word in the host. A reset clears the array's word in every group inside the original's reset extent (the quarter-memset: slots 0 to 131071). Each reply is checked completely (the state
+   the phase allows, no placement named, exactly three words, the array and lane echoed as asked, a mask that is 0 or the entity's own, nothing beyond); a refusal, a missing provider or an answer that does not hold stops the engine by
+   marker, and there is no fallback to a campaign copy of the word. */
+void campaign_model_flag_set (int array, int slot);
+int campaign_model_flag_read (int array, int slot);
+void campaign_model_flag_reset (int array);
 
 /* ENTITY_SCAN, the CITY_EXPAND question (phase CAMPAIGN_SCAN_PHASE_CITY_EXPAND; Task49): the building the key `building` names (its place in the city's list) was linked to the city the key `city` names (its sector
    placement), and the city's bounding box is to be expanded for it. The campaign states no word of it: the host holds the city's own state (its position and the box it holds) and the building's fixed state (its

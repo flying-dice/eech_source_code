@@ -1,0 +1,14 @@
+
+running 9 tests
+test flags::tests::a_group_is_opened_with_clear_words_and_a_flag_key_that_is_never_a_roster_key ... ok
+test flags::tests::a_malformed_unknown_or_out_of_domain_question_is_refused_by_name_and_changes_nothing ... ok
+test flags::tests::a_reset_clears_one_array_of_every_group_inside_the_extent_and_leaves_the_others_and_the_groups_outside ... ok
+test flags::tests::a_set_ors_the_lane_and_a_read_returns_the_raw_mask_destroying_every_other_lane_but_not_its_own ... ok
+test flags::tests::two_groups_and_three_arrays_never_touch_each_other ... ok
+test models::animation_tests::the_animation_flags_are_the_bits_the_compiled_surface_description_puts_them_at ... ok
+test reference_arithmetic::tests::the_selection_takes_effect_keeps_the_flags_and_is_idempotent ... ok
+test roster::tests::a_states_flags_follow_its_sub_type_and_a_cities_box_does_not ... ok
+test movement::tests::an_observation_leaves_the_floating_point_state_exactly_as_it_found_it_whatever_the_rounding_the_flags_and_the_masks ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 371 filtered out; finished in 0.00s
+

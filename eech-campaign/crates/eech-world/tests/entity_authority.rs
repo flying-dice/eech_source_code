@@ -204,6 +204,18 @@ local function reference (op, scene, depth, kind, definition, key)
 			-- the host's restatement of a record's sub type (UNKNOWN, no withdrawal word) the provider FAILS to answer at all (the real provider never does)
 			if phase == FIXED_PHASE and scenario.bad_real_fixed == "restatement_error" and words [10] == ZERO and words [11] == ZERO then error ("the real provider refuses the restatement", 0) end
 			answer = REAL_HOST.model (op, scene, depth, kind, definition, key)
+			-- the PHYSICAL FLAG store (phases 19 to 22) is the real provider's own; a reply fault forced after its real answer is a single change of one field
+			local bad_flag = scenario.bad_real_flag
+			if bad_flag and (phase == "0x41980000" or phase == "0x41a00000" or phase == "0x41a80000" or phase == "0x41b00000") and type (answer) == "table" and answer.result ~= "refused" then
+				if bad_flag == "state" then answer.result = "flag_read" end
+				if bad_flag == "group_key" and phase == "0x41980000" then answer.name = "7" end
+				if bad_flag == "name_on_set" and phase == "0x41a00000" then answer.name = "f1" end
+				if bad_flag == "short" and phase == "0x41a80000" then answer.p = string.match (answer.p, "^[^,]+,[^,]+") end
+				if bad_flag == "echo" and phase == "0x41a80000" then answer.p = "0x3f800000," .. string.match (answer.p, "^[^,]+,(.*)$") end
+				if bad_flag == "mask" and phase == "0x41a00000" then answer.p = string.match (answer.p, "^([^,]+,[^,]+),") .. ",0x40000000" end
+				if bad_flag == "raw" and phase == "0x41a80000" then answer.p = string.match (answer.p, "^([^,]+,[^,]+),") .. ",0x00000001" end
+				if bad_flag == "reset_tail" and phase == "0x41b00000" then answer.p = string.match (answer.p, "^([^,]+,[^,]+),") .. ",0x3f800000" end
+			end
 		elseif phase == "0x40800000" then
 			ROSTER.issued = ROSTER.issued + 1
 			ROSTER.live = tostring (ROSTER.issued)
@@ -621,7 +633,7 @@ package.preload.eech_dc = function ()
 					identity = roster_key
 				end
 				local fault = scenario.bad_roster_request
-				if fault == "phase7" then words [12] = "0x41980000"
+				if fault == "phase7" then words [12] = "0x41b80000"
 				elseif fault == "insert_stray_word" and kind == "insert" then words [8] = "0x3f800000"
 				elseif fault == "remove_no_key" and kind == "remove" then identity = ""
 				elseif fault == "remove_text" and kind == "remove" then identity = "eech-world:1"
@@ -736,6 +748,42 @@ package.preload.eech_dc = function ()
 				height_event ("restore", "0x7fc0f00d")
 				local again = height_event ("read")
 				if string.match (again.p, "[^,]+$") ~= "0x7fc0f00d" then stop ("entity_scan.sector_height", "the word restored is not the word read back") end
+			end
+			-- the PHYSICAL FLAG store (phases 19 to 22, Task49): the campaign opens a word group (eligibility 1.0), sets lane 31 of UPDATED, reads lane 31 (the raw mask 0x80000000), reads lane 30 (0: it destroys lane 31) and resets UPDATED. Each answer
+			-- is the REAL provider's and comes back unaltered; the driver under test checks it. A refusal is the bridge's own fatal with the host's reason
+			local FLAG_PHASES = { group = "0x41980000", set = "0x41a00000", read = "0x41a80000", reset = "0x41b00000" }
+			local flag_key
+			local function flag_event (kind, lane_pattern)
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [12] = FLAG_PHASES [kind]
+				local identity = ""
+				if kind == "group" then words [1] = "0x3f800000" end
+				if kind == "set" or kind == "read" then words [13], words [14], identity = ZERO, lane_pattern, flag_key or "f1" end
+				if kind == "reset" then words [13] = ZERO end
+				local fault = scenario.bad_flag_request
+				if fault == "phase23" and kind == "set" then words [12] = "0x41b80000"
+				elseif fault == "stray_fact" and kind == "set" then words [6] = "0x3f800000"
+				elseif fault == "roster_key" and kind == "set" then identity = "5"
+				elseif fault == "lane_32" and kind == "set" then words [14] = "0x42000000"
+				elseif fault == "array_3" and kind == "set" then words [13] = "0x40400000"
+				elseif fault == "key_on_reset" and kind == "reset" then identity = "f1"
+				elseif fault == "eligible_half" and kind == "group" then words [1] = "0x3f000000"
+				elseif fault == "key_on_group" and kind == "group" then identity = "f1" end
+				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. (identity ~= "" and (" " .. identity) or ""), true)
+				if not ok then stop ("entity_scan.callback", tostring (answer)) end
+				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
+				if type (answer) ~= "table" then stop ("entity_scan.answer", "result") end
+				if kind == "group" and type (answer.name) == "string" and answer.name ~= "" then flag_key = answer.name end
+				return answer
+			end
+			local function flag_events ()
+				if not scenario.real_scan then error ("the flag store needs the real provider (real_scan)", 0) end
+				flag_event ("group")
+				flag_event ("set", "0x41f80000")
+				flag_event ("read", "0x41f80000")
+				flag_event ("read", "0x41f00000")
+				flag_event ("reset")
 			end
 			-- the city's own state at its insertion with the original's INVERTED initial box (minimum 1.0e6, maximum -1.0e6): the statement a city makes before its first building links
 			local function sentinel_city_report (key_of)
@@ -1036,6 +1084,7 @@ package.preload.eech_dc = function ()
 				if scenario.fixed_state then fixed_report (roster_key) end
 				if scenario.city_state then city_state_report (roster_key) end
 				if scenario.sector_height then sector_height_events () end
+				if scenario.flags then flag_events () end
 				-- a SECOND live placement the real provider also holds a state for (stated after the served one; the scan serves the first): a candidate that names it names a placement the host did not serve
 				if (scenario.fixed_state or scenario.city_state) and scenario.second_held then
 					scenario.second_key = roster_event ("insert", true).name
@@ -2673,7 +2722,7 @@ fn each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_questi
         (", bad_scan_request = 'begin_key'", "scan request:", "carries no standing key"),
         (", bad_scan_request = 'other_key'", "scan request:", "is not the entry the host last served"),
         (", questions = 2, bad_scan_request = 'ended_key'", "scan request:", "has ended"),
-        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 18"),
+        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 22"),
         (
             ", bad_roster_request = 'insert_stray_word'",
             "scan request:",
@@ -6623,4 +6672,64 @@ fn a_released_city_drains_after_the_launch_without_a_fault_and_is_never_continue
     assert!(row["request_faults"].as_i64().unwrap() >= 1, "{row}");
     assert!(row["first_fault"].as_str().unwrap().contains("released record"), "{row}");
     assert!(driven.result.is_err(), "a continuation of a released record is never a pass");
+}
+
+// ---- the PHYSICAL FLAG store (phases 19 to 22, Task49): the host owns the three per-entity words, so the campaign asks the host on every update iteration and every set. The driver must PASS the questions through (a hosted native
+// run asks them at once) and check them against the contract: it is a boundary check of the driver with the real provider over the real store, not native campaign authority. The scripted engine asks one group, one set, two reads and one reset per walk.
+
+#[test]
+fn the_flag_questions_of_a_walk_cross_the_public_driver_to_the_real_store_and_are_counted_and_checked_with_nothing_altered() {
+    let (driven, row) = scan_row(&format!("{FIXED_STATE}, flags = true"), "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    for (field, expected) in [
+        ("request_faults", 0),
+        ("reply_faults", 0),
+        // one group, one set, two reads and one reset, each answered well-formed (the report's own counters of the pass-through)
+        ("flag_total", 5),
+        ("flag_answered", 5),
+        ("candidate_altered", 0),
+        ("fixed_total", 1),
+    ] {
+        assert_eq!(row[field], expected, "{field}: {row}");
+    }
+}
+
+#[test]
+fn each_single_fault_of_the_flag_grammar_is_counted_at_its_question_and_is_never_a_pass() {
+    for (fault, expected) in [
+        ("phase23", "is not 0 to 22"),
+        ("stray_fact", "states nothing but its phase and the facts of its grammar"),
+        ("roster_key", "is not a flag key"),
+        ("lane_32", "which is not a whole number from 0 to 31"),
+        ("array_3", "which is not 0.0, 1.0 or 2.0"),
+        ("key_on_reset", "a flag reset names no group"),
+        ("eligible_half", "an eligibility that is not 0.0 or 1.0"),
+        ("key_on_group", "a flag group names no group"),
+    ] {
+        let (driven, row) = scan_row(&format!("{FIXED_STATE}, flags = true, bad_flag_request = '{fault}'"), "scan_real");
+        assert!(driven.result.is_err(), "{fault}: {:?}", driven.result);
+        assert!(row["request_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
+        let first = row["first_fault"].as_str().unwrap();
+        assert!(first.starts_with("scan request:") && first.contains(expected), "{fault}: {first}");
+    }
+}
+
+#[test]
+fn each_single_fault_of_a_real_flag_reply_is_counted_at_its_question_and_is_never_a_pass() {
+    for (fault, expected) in [
+        ("state", "answered flag_read, not flag_"),
+        ("group_key", "which is not a flag key"),
+        ("name_on_set", "named the key"),
+        ("short", "are not three 0x%08x patterns"),
+        ("echo", "for another flag word than the one asked about"),
+        ("mask", "not the lane's mask"),
+        ("raw", "neither 0 nor the lane's mask"),
+        ("reset_tail", "another array than the one named, or a third word"),
+    ] {
+        let (driven, row) = scan_row(&format!("{FIXED_STATE}, flags = true, bad_real_flag = '{fault}'"), "scan_real");
+        assert!(driven.result.is_err(), "{fault}: {:?}", driven.result);
+        assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
+        let first = row["first_fault"].as_str().unwrap();
+        assert!(first.starts_with("scan reply:") && first.contains(expected), "{fault}: {first}");
+    }
 }

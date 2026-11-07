@@ -4187,6 +4187,14 @@ return function(op, scene, depth, kind, definition, key)
 			if key ~= '' then return nil, 'name is only for first, next and placed' end
 			return result, p, nil, nil, nil, nil, nil, key
 		end
+		-- the physical flag store (phases 19 to 22): three BIT PATTERNS only (a number would be a float, and a read's raw word is the lane's mask, 0x80000000 for lane 31: never a number here); only a group's answer names a key
+		if result == 'flag_group' or result == 'flag_set' or result == 'flag_read' or result == 'flag_reset' then
+			if type(a.p) ~= 'string' then return nil, 'p must be three bit patterns' end
+			local p, why = list(a.p, 3)
+			if not p then return nil, 'p ' .. why end
+			if result ~= 'flag_group' and key ~= '' then return nil, 'name is only for a flag group' end
+			return result, p, nil, nil, nil, nil, nil, key
+		end
 		if result == 'next' or result == 'placed' then
 			if a.p ~= nil then return nil, 'p is only for first' end
 			return result, nil, nil, nil, nil, nil, nil, key
@@ -4201,7 +4209,7 @@ return function(op, scene, depth, kind, definition, key)
 			if key ~= '' then return nil, 'name is only for first, next and placed' end
 			return result
 		end
-		return nil, 'result must be first, expanded, height, restored, next, offer, done_none, done_hit, placed, removed, cleared or refused'
+		return nil, 'result must be first, expanded, height, restored, flag_group, flag_set, flag_read, flag_reset, next, offer, done_none, done_hit, placed, removed, cleared or refused'
 	end
 	if op == 'target_point_world' or op == 'target_point_fixed' then
 		local name, result = a.name, a.result
@@ -4685,6 +4693,19 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
                     ScanDecision::Height(words)
                 } else {
                     ScanDecision::Restored(words)
+                },
+                key: g.unwrap_or_default(),
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "flag_group" | "flag_set" | "flag_read" | "flag_reset") => {
+            // the physical flag store (phases 19 to 22): three words kept as the bits they came in (a read's raw word is never normalised); a group's answer is the host's key
+            let words = bridged_words::<3>(&a.ok_or_else(missing)?, "p", operation)?;
+            Ok(ModelAnswer::EntityScan {
+                decision: match tag.as_str() {
+                    "flag_group" => ScanDecision::FlagGroup(words),
+                    "flag_set" => ScanDecision::FlagSet(words),
+                    "flag_read" => ScanDecision::FlagRead(words),
+                    _ => ScanDecision::FlagReset(words),
                 },
                 key: g.unwrap_or_default(),
             })
@@ -6406,6 +6427,144 @@ mod tests {
             };
             assert!(error.contains("entity_scan"), "pick {pick}: {error}");
         }
+        Ok(())
+    }
+
+    #[test]
+    fn a_physical_flag_answer_carries_three_bit_patterns_and_a_groups_key_and_every_raw_word_comes_back_exactly_and_a_number_or_a_short_list_is_refused() -> Test
+    {
+        let lua = Lua::new();
+        // the provider picks its answer by the last digit of the first fact: the three words are bit patterns, never numbers (a read's raw word is the lane's mask: 0x80000000 for lane 31, and it is never normalised)
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_scan' and scene == 0)
+               local pick = tonumber (key:sub (10, 10))
+               if pick == 1 then return { result = 'flag_group', name = 'f12', p = '0x3f800000,0x00000000,0x00000000' } end
+               if pick == 2 then return { result = 'flag_set', p = '0x40000000,0x41f80000,0x80000000' } end
+               if pick == 3 then return { result = 'flag_read', p = '0x40000000,0x41f80000,0x80000000' } end
+               if pick == 4 then return { result = 'flag_reset', p = '0x40000000,0x40e00000,0x00000000' } end
+               if pick == 5 then return { result = 'flag_read', p = { 2, 31, 1 } } end
+               if pick == 6 then return { result = 'flag_read', p = '0x40000000,0x41f80000' } end
+               if pick == 7 then return { result = 'flag_set', p = '0x40000000,0x41f80000,0x80000000,0x00000000' } end
+               if pick == 8 then return { result = 'flag_set' } end
+             end",
+        )?;
+        let mut ask_pick = |pick: u32| {
+            let facts: Vec<u32> = std::iter::once(0x3f80_0000 + pick).chain((1..16).map(|_| 0)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
+        };
+        let shape = |answer: ModelAnswer| match answer {
+            ModelAnswer::EntityScan { decision, key } => match decision {
+                ScanDecision::FlagGroup(words) => Some(("group", words.map(f32::to_bits), key)),
+                ScanDecision::FlagSet(words) => Some(("set", words.map(f32::to_bits), key)),
+                ScanDecision::FlagRead(words) => Some(("read", words.map(f32::to_bits), key)),
+                ScanDecision::FlagReset(words) => Some(("reset", words.map(f32::to_bits), key)),
+                _ => None,
+            },
+            _ => None,
+        };
+        assert_eq!(shape(ask_pick(1)?), Some(("group", [0x3f80_0000, 0, 0], "f12".to_string())));
+        assert_eq!(shape(ask_pick(2)?), Some(("set", [0x4000_0000, 0x41f8_0000, 0x8000_0000], String::new())));
+        // a negative zero as a word keeps its bit: the raw mask of lane 31 is never converted
+        assert_eq!(shape(ask_pick(3)?), Some(("read", [0x4000_0000, 0x41f8_0000, 0x8000_0000], String::new())));
+        assert_eq!(shape(ask_pick(4)?), Some(("reset", [0x4000_0000, 0x40e0_0000, 0], String::new())));
+        for pick in [5, 6, 7, 8] {
+            let Err(error) = ask_pick(pick) else {
+                return Err(format!("pick {pick}: a malformed flag answer was accepted").into());
+            };
+            assert!(error.contains("entity_scan"), "pick {pick}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn the_real_host_providers_flag_store_answers_through_this_bridge_what_the_campaign_asks_and_refuses_what_it_must() -> Test {
+        // the REAL provider (`host.model`, eech-world) over the REAL store, behind THIS bridge's request encoding and its reply parse: the questions are the campaign's own (phases 19 to 22), the answers come back as the decisions
+        // the native callback carries, bit for bit, and a refusal is the bridge's named error. A scripted provider is not involved.
+        let lua = Lua::new();
+        let host = lua.create_table()?;
+        host.set("args", lua.create_table()?)?;
+        eech_world::model_host::register(&lua, &host)?;
+        lua.globals().set("host", host)?;
+        lua.set_app_data(eech_world::movement::SharedMovers(std::rc::Rc::new(std::cell::RefCell::new(
+            eech_world::movement::Movers::default(),
+        ))));
+        lua.set_app_data(eech_world::roster::SharedRoster(std::rc::Rc::new(std::cell::RefCell::new(
+            eech_world::roster::SectorRoster::default(),
+        ))));
+        let mut provider = model_under_test(&lua, "return host.model")?;
+        let mut flag = |phase: f32, array: f32, lane: f32, eligible: f32, identity: &str| {
+            let facts: Vec<u32> = (0..16)
+                .map(|at| match at {
+                    0 => eligible.to_bits(),
+                    11 => phase.to_bits(),
+                    12 => array.to_bits(),
+                    13 => lane.to_bits(),
+                    _ => 0,
+                })
+                .collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: identity.to_string(),
+                },
+            )
+        };
+        let words = |answer: ModelAnswer| match answer {
+            ModelAnswer::EntityScan { decision, key } => match decision {
+                ScanDecision::FlagGroup(w) => Some(("group", w.map(f32::to_bits), key)),
+                ScanDecision::FlagSet(w) => Some(("set", w.map(f32::to_bits), key)),
+                ScanDecision::FlagRead(w) => Some(("read", w.map(f32::to_bits), key)),
+                ScanDecision::FlagReset(w) => Some(("reset", w.map(f32::to_bits), key)),
+                _ => None,
+            },
+            _ => None,
+        };
+        // POSITIVE FIRST: a group is opened (the key is the host's), lane 31 of UPDATED is set, its read answers the raw mask 0x80000000, the second lane of the word reads 0 and destroys it, a reset of an eligible group clears the word
+        assert_eq!(words(flag(19.0, 0.0, 0.0, 1.0, "")?), Some(("group", [0x3f80_0000, 0, 0], "f1".to_string())));
+        assert_eq!(
+            words(flag(20.0, 0.0, 31.0, 0.0, "f1")?),
+            Some(("set", [0, 0x41f8_0000, 0x8000_0000], String::new()))
+        );
+        assert_eq!(
+            words(flag(21.0, 0.0, 31.0, 0.0, "f1")?),
+            Some(("read", [0, 0x41f8_0000, 0x8000_0000], String::new()))
+        );
+        assert_eq!(words(flag(21.0, 0.0, 30.0, 0.0, "f1")?), Some(("read", [0, 0x41f0_0000, 0], String::new())));
+        assert_eq!(words(flag(21.0, 0.0, 31.0, 0.0, "f1")?), Some(("read", [0, 0x41f8_0000, 0], String::new())));
+        assert_eq!(words(flag(20.0, 0.0, 5.0, 0.0, "f1")?), Some(("set", [0, 0x40a0_0000, 0x20], String::new())));
+        let Some(("reset", [array, cleared, 0], _)) = words(flag(22.0, 0.0, 0.0, 0.0, "")?) else {
+            return Err("a reset was not answered as a reset".into());
+        };
+        assert_eq!((array, f32::from_bits(cleared)), (0, 1.0));
+        assert_eq!(
+            words(flag(21.0, 0.0, 5.0, 0.0, "f1")?),
+            Some(("read", [0, 0x40a0_0000, 0], String::new())),
+            "the reset cleared the word"
+        );
+        // the matched REFUSALS (the same question with one field changed): a group the host never issued, a roster-style key, a lane outside the word, an array outside the three
+        for (label, phase, array, lane, identity) in [
+            ("a group the host never issued", 21.0, 0.0, 5.0, "f9"),
+            ("a roster-style key", 21.0, 0.0, 5.0, "1"),
+            ("a lane outside the word", 21.0, 0.0, 32.0, "f1"),
+            ("an array outside the three", 20.0, 3.0, 5.0, "f1"),
+            ("no key at all", 21.0, 0.0, 5.0, ""),
+        ] {
+            let Err(error) = flag(phase, array, lane, 0.0, identity) else {
+                return Err(format!("{label}: a refused question was answered").into());
+            };
+            assert!(error.contains("flag."), "{label}: {error}");
+        }
+        // and the corrected question is answered: nothing was left changed by the refusals
+        assert_eq!(words(flag(21.0, 0.0, 5.0, 0.0, "f1")?), Some(("read", [0, 0x40a0_0000, 0], String::new())));
         Ok(())
     }
 

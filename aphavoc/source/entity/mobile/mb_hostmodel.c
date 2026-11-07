@@ -88,6 +88,8 @@ struct campaign_model_counters
 	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
 	/* the SECTOR HEIGHT reads and restores (the same question, phases 17 and 18): the sector words the host answered and the saved words it stored */
 	long sector_height_read, sector_height_restored;
+	/* the PHYSICAL FLAG STORE (the same question, phases 19 to 22): the groups the host opened (one per word group the campaign used), the sets, the destructive reads and the resets the host answered */
+	long flag_groups, flag_sets, flag_reads, flag_resets;
 };
 
 struct campaign_model_counters campaign_model_counts;
@@ -2110,6 +2112,112 @@ void campaign_model_sector_height_restore (int x_sector, int z_sector, const flo
 
 #ifdef EECH_MODEL_HOST_FIXTURE
 	campaign_model_counts.sector_height_restored++;
+#endif
+}
+
+// ENTITY_SCAN, the PHYSICAL FLAG STORE (mb_hostmodel.h; Task49): the host owns the three per-entity UPDATED / MOVED / ROTATED words and their set, destructive read and reset. The dialogue is mb_hostentity.h; what is here is the
+// campaign's PRIVATE binding of its heap to the host's groups, and nothing else:
+//   - the group of an entity is its heap slot's high bits (slot >> 5, the original's 32-bit word) and its lane the five low bits (slot & 31, its bit in that word); neither the slot, nor the group, nor any index is ever sent;
+//   - the table below holds, per group, only the opaque key the HOST issued for it (the empty text until the group is first used). It is identity, not a flag: no bit, mask or word of the store is kept here, and nothing
+//     answers from it;
+//   - a group lies inside the original's reset extent when its word index is below the number of words the original's quarter-memset clears (memset counts BYTES, so that is a quarter of the words: slots 0 to 131071); the
+//     campaign states that fact once, when it opens the group, and the host's reset clears the groups that have it;
+//   - the table is process lifetime and is NOT cleared by a campaign boot or a roster reset (a new roster identity must not clear the bits of a slot that is reused, as the original's static arrays are not); it is only as valid
+//     as the host binding that issued its keys, whose own lifetime is the store's: a key a replaced host never issued is refused by name, never answered as zero.
+#define CAMPAIGN_FLAG_GROUPS (MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8))
+#define CAMPAIGN_FLAG_RESET_GROUPS ((MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)) / sizeof (unsigned int))
+
+static char
+	(*flag_key_of_group) [CAMPAIGN_ROSTER_KEY_MAX + 1] = NULL;
+
+static const char *flag_group_key (int slot)
+{
+	int
+		group;
+
+	if ((slot < 0) || (slot >= MAX_NUM_ENTITIES))
+	{
+		debug_fatal ("host model: [model-provider:flag.slot] the entity heap slot %d is not a slot of a heap of %d", slot, MAX_NUM_ENTITIES);
+	}
+
+	group = slot >> 5;
+
+	if (flag_key_of_group == NULL)
+	{
+		flag_key_of_group = calloc (CAMPAIGN_FLAG_GROUPS, sizeof (*flag_key_of_group));
+
+		if (flag_key_of_group == NULL)
+		{
+			debug_fatal ("host model: [model-provider:flag.table] the table of the host's flag group keys could not be allocated");
+		}
+	}
+
+	if (flag_key_of_group [group][0] == 0)
+	{
+		campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, ((unsigned int) group < CAMPAIGN_FLAG_RESET_GROUPS), flag_key_of_group [group], NULL);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+		campaign_model_counts.flag_groups++;
+#endif
+	}
+
+	return flag_key_of_group [group];
+}
+
+#if defined(EECH_PHYSICAL_FLAGS_CHECK) || defined(EECH_PHYSICAL_FLAGS_CONSUMER_CHECK)
+
+// TEST-ONLY (features physical-flags-check and physical-flags-consumer-check; never in the shipping build): the real-C controls start every scenario from a fresh host binding, which means a fresh store in the host and no key
+// of the previous one here, and they ask which key the campaign holds for a slot's group in order to ask the host (not the campaign) what the group's words are. Neither answers a flag: the table still holds identity only.
+const char *campaign_model_flag_key_for_test (int slot)
+{
+	if ((flag_key_of_group == NULL) || (slot < 0) || (slot >= MAX_NUM_ENTITIES) || (flag_key_of_group [slot >> 5][0] == 0))
+	{
+		return NULL;
+	}
+
+	return flag_key_of_group [slot >> 5];
+}
+
+void campaign_model_flag_forget_keys_for_test (void)
+{
+	if (flag_key_of_group != NULL)
+	{
+		memset (flag_key_of_group, 0, CAMPAIGN_FLAG_GROUPS * sizeof (*flag_key_of_group));
+	}
+}
+
+#endif
+
+void campaign_model_flag_set (int array, int slot)
+{
+	campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_SET, array, slot & 31, flag_group_key (slot), FALSE, NULL, NULL);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.flag_sets++;
+#endif
+}
+
+int campaign_model_flag_read (int array, int slot)
+{
+	uint32_t
+		raw;
+
+	campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_READ, array, slot & 31, flag_group_key (slot), FALSE, NULL, &raw);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.flag_reads++;
+#endif
+
+	// the raw word of the original's getter, not a boolean: the entity's own mask, INT_MIN for lane 31
+	return (int) raw;
+}
+
+void campaign_model_flag_reset (int array)
+{
+	campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_RESET, array, 0, NULL, FALSE, NULL, NULL);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.flag_resets++;
 #endif
 }
 

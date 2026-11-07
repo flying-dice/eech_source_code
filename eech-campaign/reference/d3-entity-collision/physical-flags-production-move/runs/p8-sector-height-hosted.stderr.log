@@ -1,0 +1,3 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.56s
+     Running tests/sector_height.rs (/target/t/debug/deps/sector_height-99f9ac7f36742fb1)
+     Running tests/sector_height_guard.rs (/target/t/debug/deps/sector_height_guard-4c35bd6629c38b2f)

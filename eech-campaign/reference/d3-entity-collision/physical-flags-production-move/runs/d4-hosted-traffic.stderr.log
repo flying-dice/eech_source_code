@@ -1,0 +1,20 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+warning: function `groups_now` is never used
+  --> crates/eech-engine-sys/tests/support/flags_host.rs:31:8
+   |
+31 | pub fn groups_now() -> usize {
+   |        ^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `eech-engine-sys` (test "physical_flags") generated 1 warning
+warning: `eech-engine-sys` (test "physical_flags_consumer") generated 1 warning (1 duplicate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.35s
+     Running tests/physical_flags.rs (/target/t/debug/deps/physical_flags-3ac7bd3030d37e3b)
+
+thread 'the_per_entity_updated_moved_rotated_word_is_a_mask_the_getter_destroys_neighbours_of_and_the_reset_only_reaches_a_quarter_of' (187) panicked at crates/eech-engine-sys/tests/physical_flags.rs:59:9:
+assertion `left == right` failed: the host traffic of the scenarios changed: the words are not backed as they were
+  left: (42, 54, 64, 3, 33)
+ right: (0, 0, 0, 0, 0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-engine-sys --test physical_flags`

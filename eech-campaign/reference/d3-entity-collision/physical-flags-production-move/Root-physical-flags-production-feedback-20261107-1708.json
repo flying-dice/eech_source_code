@@ -1,0 +1,10 @@
+{
+  "scope": "Clarify one ineffective development fault, preserve lifetime contract and bounded scope",
+  "observed": "d7 detects always-mask reads (13/199 failed), always-zero reads (57/199) and ignored stores (123/199), but 'a fresh binding that keeps the old store' causes0/199 failures and the author-added sensitivity assertion fails.",
+  "instructions": [
+    "First establish that the proposed fresh-binding fault actually violates an observable contracted operation. A retained process/boot/roster flag history can be CORRECT under the original static-array lifetime; no production reset or semantic change is authorized merely to make this fault fail.",
+    "If the mutation is ineffective because newly issued group identities are still fresh/zero and no observable result changes, record that limitation or replace it with the smallest genuinely wrong operation tied to an existing invariant. Do not add an optional mutation framework, actor hunt or new speculative contract.",
+    "Keep fixture-only all-array clearing distinct from production quarter-reset and process/session lifetime. Preserve the actual failed attempt and do not present it as a production regression or old capability RED.",
+    "Positive-first meaningful changed/withheld/malformed/wrong-identity backing/refusal remains the target. Other needed native/default/lifecycle gates stay explicit; all existing764 jobs remain protected. Read this and earlier1703 feedback before final PRE/freeze/stop."
+  ]
+}

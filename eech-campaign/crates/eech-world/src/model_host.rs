@@ -1105,6 +1105,124 @@ fn sector_height_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> 
     Ok(table)
 }
 
+/// The physical flag store's phases (19.0 to 22.0, classified from their bits like the others): open a word group, set a lane, read a lane destructively, reset an array. See `flag_answer`.
+const ROSTER_FLAG_GROUP: u32 = 0x4198_0000;
+const ROSTER_FLAG_SET: u32 = 0x41a0_0000;
+const ROSTER_FLAG_READ: u32 = 0x41a8_0000;
+const ROSTER_FLAG_RESET: u32 = 0x41b0_0000;
+
+/// The host's answer to one question of the physical flag store: the result tag, the key it names (only a group's) and the three words of the reply, as bit patterns.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FlagAnswer {
+    pub result: &'static str,
+    pub name: String,
+    pub words: [u32; 3],
+}
+
+/// Answers one question of the PHYSICAL per-entity UPDATED / MOVED / ROTATED store (EEDCS-49, D3, Task49) from the host's own store (`crate::flags::FlagStore`, held by the roster state): the OPEN of a word group
+/// (phase 19: fact 0 is the group's eligibility for the original's reset extent, 0.0 or 1.0; the answer names the key the host issues and holds [eligibility, 0, 0]), the SET of a lane (20), the destructive READ of a lane
+/// (21) and the RESET of an array (22). A set or read states the array (fact 12: 0 UPDATED, 1 MOVED, 2 ROTATED) and the lane (fact 13: 0 to 31) and names the group by its key in the identity place; a reset states the array
+/// and names nothing. The answer's words are [array, lane, the lane's mask] for a set, [array, lane, the RAW word the original's `&=` getter returns] for a read and [array, the number of groups cleared, 0] for a reset,
+/// all as bit patterns, never classified or normalised. Every fact a question does not state is zero. Every refusal is named and changes nothing. This is the function the provider and the native campaign's real-C control
+/// both call, so the store the controls exercise is the store the provider serves.
+pub fn flag_answer(roster: &mut crate::roster::SectorRoster, phase: u32, words: &[u32], identity: &str) -> Result<FlagAnswer, String> {
+    if !matches!(phase, ROSTER_FLAG_GROUP | ROSTER_FLAG_SET | ROSTER_FLAG_READ | ROSTER_FLAG_RESET) {
+        return Err(format!(
+            "[flag.phase] the phase word 0x{phase:08x} is not one of the four of the physical flag store"
+        ));
+    }
+    let kind = match phase {
+        ROSTER_FLAG_GROUP => "group",
+        ROSTER_FLAG_SET => "set",
+        ROSTER_FLAG_READ => "read",
+        _ => "reset",
+    };
+    // the facts a question states; every other fact is zero
+    let stated: &[usize] = match phase {
+        ROSTER_FLAG_GROUP => &[0, 11],
+        ROSTER_FLAG_SET | ROSTER_FLAG_READ => &[11, 12, 13],
+        _ => &[11, 12],
+    };
+    for (at, word) in words.iter().enumerate() {
+        if !stated.contains(&at) && *word != 0 {
+            return Err(format!("[flag.request] fact {at} of a flag {kind} is not zero: it states nothing there"));
+        }
+    }
+    let named = matches!(phase, ROSTER_FLAG_SET | ROSTER_FLAG_READ);
+    if named && identity.is_empty() {
+        return Err(format!("[flag.key.missing] a flag {kind} names the group of the entity and none was named"));
+    }
+    if !named && !identity.is_empty() {
+        return Err(format!("[flag.key] a flag {kind} names no group"));
+    }
+    let refused = |refusal: crate::roster::Refusal| refusal.0;
+    if phase == ROSTER_FLAG_GROUP {
+        let eligible = match words[0] {
+            0x0000_0000 => false,
+            ONE_BITS => true,
+            _ => return Err("[flag.eligible] the eligibility of a flag group is 0.0 or 1.0".to_string()),
+        };
+        let key = roster.flags.open(eligible);
+        return Ok(FlagAnswer {
+            result: "flag_group",
+            name: key,
+            words: [words[0], 0, 0],
+        });
+    }
+    let Some(array) = crate::roster::word_whole(words[12], 0, 2) else {
+        return Err(format!("[flag.array] the array of a flag {kind} is not 0 (UPDATED), 1 (MOVED) or 2 (ROTATED)"));
+    };
+    let array = array as usize;
+    if phase == ROSTER_FLAG_RESET {
+        let cleared = roster.flags.reset(array).map_err(refused)?;
+        return Ok(FlagAnswer {
+            result: "flag_reset",
+            name: String::new(),
+            words: [words[12], (cleared as f32).to_bits(), 0],
+        });
+    }
+    let Some(lane) = crate::roster::word_whole(words[13], 0, 31) else {
+        return Err(format!("[flag.lane] the lane of a flag {kind} is not a whole number from 0 to 31"));
+    };
+    let lane = lane as u32;
+    let (result, raw) = if phase == ROSTER_FLAG_SET {
+        ("flag_set", roster.flags.set(identity, array, lane).map_err(refused)?)
+    } else {
+        ("flag_read", roster.flags.read(identity, array, lane).map_err(refused)?)
+    };
+    Ok(FlagAnswer {
+        result,
+        name: String::new(),
+        words: [words[12], words[13], raw],
+    })
+}
+
+/// The physical flag store's question as the provider serves it (the wrapper of `flag_answer`): the roster state is the host's, a missing or busy one is refused by name.
+fn flag_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("name", "")?;
+    let refuse = |table: &LuaTable, reason: String| -> LuaResult<LuaTable> {
+        table.set("result", "refused")?;
+        table.set("reason", reason)?;
+        Ok(table.clone())
+    };
+    let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+        return refuse(&table, "[flag.missing] the host keeps no flag store".into());
+    };
+    let Ok(mut roster) = shared.0.try_borrow_mut() else {
+        return refuse(&table, "[flag.busy] the flag store was busy".into());
+    };
+    match flag_answer(&mut roster, phase, words, identity) {
+        Ok(answer) => {
+            table.set("result", answer.result)?;
+            table.set("name", answer.name)?;
+            table.set("p", hex_list(&answer.words))?;
+            Ok(table)
+        }
+        Err(reason) => refuse(&table, reason),
+    }
+}
+
 /// The city-state report of an `entity_scan` question (phase 14, the same question as the roster's): the position, the bounding box minimum and the bounding box maximum of the city placement the key in the identity place
 /// names, as the entity holds the words (facts 0 to 8), and the city's fixed sub type (fact 10, the same fact and the same declared domain as a fixed-state report's: the host derives the city's collision flag from it).
 /// Every other fact but the phase is zero, and the host's withdrawal word is not part of it: the host retires a state with the fixed report's. The record of the
@@ -1630,6 +1748,9 @@ fn entity_scan_answer(lua: &Lua, store: &mut dyn FnMut() -> LuaResult<Arc<ModelS
     }
     if matches!(phase_word, ROSTER_SECTOR_HEIGHT | ROSTER_SECTOR_RESTORE) {
         return sector_height_event(lua, phase_word, &words, identity);
+    }
+    if matches!(phase_word, ROSTER_FLAG_GROUP | ROSTER_FLAG_SET | ROSTER_FLAG_READ | ROSTER_FLAG_RESET) {
+        return flag_event(lua, phase_word, &words, identity);
     }
     if phase_word == ROSTER_FIXED_STATE {
         return fixed_event(lua, store, &words, identity);

@@ -1,0 +1,19 @@
+   Compiling jobserver v0.1.35
+   Compiling cc v1.4.7
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling mlua v0.10.5
+warning: function `groups_now` is never used
+  --> crates/eech-engine-sys/tests/support/flags_host.rs:31:8
+   |
+31 | pub fn groups_now() -> usize {
+   |        ^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `eech-engine-sys` (test "physical_flags_consumer") generated 1 warning
+warning: `eech-engine-sys` (test "physical_flags") generated 1 warning (1 duplicate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 12s
+     Running tests/physical_flags.rs (/target/t/debug/deps/physical_flags-3ac7bd3030d37e3b)
+     Running tests/physical_flags_consumer.rs (/target/t/debug/deps/physical_flags_consumer-9ebf6a7db6475cbf)

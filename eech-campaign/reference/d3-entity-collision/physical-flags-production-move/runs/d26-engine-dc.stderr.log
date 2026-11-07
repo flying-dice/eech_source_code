@@ -1,0 +1,9 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 22s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_dc-fdb47b6c877293f7)
+     Running tests/lua_debug_layout.rs (/target/t/debug/deps/lua_debug_layout-5fb1f2ba847b64c2)
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_engine-14b00a88a2e67f0a)
+   Doc-tests eech_dc
+   Doc-tests eech_engine

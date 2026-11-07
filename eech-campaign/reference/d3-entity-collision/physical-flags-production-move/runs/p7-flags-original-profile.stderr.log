@@ -1,0 +1,5 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 11s
+     Running tests/physical_flags.rs (/target/t/debug/deps/physical_flags-8defaf85bf912ce3)
+     Running tests/physical_flags_consumer.rs (/target/t/debug/deps/physical_flags_consumer-df4704a521243755)
+     Running tests/physical_flags_guard.rs (/target/t/debug/deps/physical_flags_guard-a289040ee4d98009)

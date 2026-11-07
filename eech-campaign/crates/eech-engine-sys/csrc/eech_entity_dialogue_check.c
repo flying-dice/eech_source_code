@@ -136,6 +136,19 @@ static int height_asks, height_override, height_state, height_count;
 static const char *height_name;
 static uint32_t height_held, height_words[CAMPAIGN_MODEL_CANDIDATE_POSE_MAX];
 static campaign_model_request height_seen;
+/* the PHYSICAL FLAG STORE (phases 19 to 22, Task49): the scripted host answers coherently (the group "f1", the lane's mask for a set, `flag_raw` for a read, a count of 7 groups for a reset) unless `flag_override` forces another state, name, count and words. The phase numbers
+   are written out, like the others, so that the control pins the contract's numbers */
+#define CHECK_PHASE_FLAG_GROUP 19
+#define CHECK_PHASE_FLAG_SET 20
+#define CHECK_PHASE_FLAG_READ 21
+#define CHECK_PHASE_FLAG_RESET 22
+typedef char check_phase_flag_is_the_contracts [((CAMPAIGN_SCAN_PHASE_FLAG_GROUP == CHECK_PHASE_FLAG_GROUP) && (CAMPAIGN_SCAN_PHASE_FLAG_SET == CHECK_PHASE_FLAG_SET) && (CAMPAIGN_SCAN_PHASE_FLAG_READ == CHECK_PHASE_FLAG_READ) &&
+	(CAMPAIGN_SCAN_PHASE_FLAG_RESET == CHECK_PHASE_FLAG_RESET) && (CAMPAIGN_FLAG_ELIGIBLE == 0) && (CAMPAIGN_FLAG_ARRAY == 12) && (CAMPAIGN_FLAG_LANE == 13) && (CAMPAIGN_FLAG_REPLY_WORDS == 3) && (CAMPAIGN_FLAG_ARRAYS == 3) &&
+	(CAMPAIGN_FLAG_ARRAY_UPDATED == 0) && (CAMPAIGN_FLAG_ARRAY_MOVED == 1) && (CAMPAIGN_FLAG_ARRAY_ROTATED == 2)) ? 1 : -1];
+static int flag_asks, flag_override, flag_state, flag_count;
+static const char *flag_name;
+static uint32_t flag_raw, flag_words[CAMPAIGN_MODEL_CANDIDATE_POSE_MAX];
+static campaign_model_request flag_seen;
 static const char *city_state_name;
 static campaign_model_request city_state_seen, city_state_log[8];
 /* the identity place (the placement key of a non-mobile candidate, a hosted mobile's identity) of each candidate question, in order, since the last reset */
@@ -349,6 +362,55 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 		else
 		{
 			reply->candidate_state = CAMPAIGN_MODEL_POSE_NO_ID;
+		}
+
+		return;
+	}
+
+	if ((request->op == CAMPAIGN_MODEL_ENTITY_SCAN) && ((int) request->pose[CAMPAIGN_SCAN_PHASE] >= CHECK_PHASE_FLAG_GROUP) && ((int) request->pose[CAMPAIGN_SCAN_PHASE] <= CHECK_PHASE_FLAG_RESET))
+	{
+		const int phase = (int) request->pose[CAMPAIGN_SCAN_PHASE];
+		uint32_t coherent[3] = { 0, 0, 0 };
+		float count = 7.0f;
+
+		flag_seen = *request;
+		flag_asks++;
+
+		if (refuse_the_exchange)
+		{
+			debug_fatal ("host model: [model-provider:callback] the scripted host refused");
+		}
+
+		if (phase == CHECK_PHASE_FLAG_GROUP)
+		{
+			memcpy (&coherent[0], &request->pose[CAMPAIGN_FLAG_ELIGIBLE], sizeof (uint32_t));
+		}
+		else
+		{
+			memcpy (&coherent[0], &request->pose[CAMPAIGN_FLAG_ARRAY], sizeof (uint32_t));
+
+			if (phase == CHECK_PHASE_FLAG_RESET)
+			{
+				memcpy (&coherent[1], &count, sizeof (uint32_t));
+			}
+			else
+			{
+				memcpy (&coherent[1], &request->pose[CAMPAIGN_FLAG_LANE], sizeof (uint32_t));
+				coherent[2] = (phase == CHECK_PHASE_FLAG_SET) ? (((uint32_t) 1) << (int) request->pose[CAMPAIGN_FLAG_LANE]) : flag_raw;
+			}
+		}
+
+		reply->candidate_state = flag_override ? flag_state : (CAMPAIGN_MODEL_SCAN_FLAG_GROUP + (phase - CHECK_PHASE_FLAG_GROUP));
+		strncpy (reply->name, flag_override ? flag_name : ((phase == CHECK_PHASE_FLAG_GROUP) ? "f1" : ""), sizeof (reply->name) - 1);
+		reply->candidate_count = flag_override ? flag_count : CAMPAIGN_FLAG_REPLY_WORDS;
+
+		if (flag_override)
+		{
+			memcpy (reply->candidate, flag_words, sizeof (reply->candidate));
+		}
+		else
+		{
+			memcpy (reply->candidate, coherent, sizeof (coherent));
 		}
 
 		return;
@@ -4265,6 +4327,284 @@ static void sector_height_cases (struct tc *t)
 	height_script (0);
 }
 
+static int flag_do (int phase, int array, int lane, const char *key, int eligible, char *issued, uint32_t *raw)
+{
+	flag_asks = 0;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		campaign_entity_flag_exchange (phase, array, lane, key, eligible, issued, raw);
+
+		return (FALSE);
+	}
+
+	return (TRUE);
+}
+
+/* the question the campaign sent: the phase, the facts a question states (and every other fact zero) and the identity place */
+static int flag_request_is (const campaign_model_request *q, int phase, int stated_fact_a, float stated_a, int stated_fact_b, float stated_b, const char *identity)
+{
+	int index;
+
+	if ((q->op != CAMPAIGN_MODEL_ENTITY_SCAN) || (q->scene != 0) || (q->pose_count != CAMPAIGN_MODEL_SCAN_FACTS) || (strcmp (q->host_id, identity) != 0))
+	{
+		return (FALSE);
+	}
+
+	for (index = 0; index < CAMPAIGN_MODEL_SCAN_FACTS; index++)
+	{
+		uint32_t word, wanted = 0;
+		float wanted_float = (index == CAMPAIGN_SCAN_PHASE) ? (float) phase : (index == stated_fact_a) ? stated_a : (index == stated_fact_b) ? stated_b : 0.0f;
+
+		memcpy (&word, &q->pose[index], sizeof (word));
+		memcpy (&wanted, &wanted_float, sizeof (wanted));
+
+		if (word != wanted)
+		{
+			return (FALSE);
+		}
+	}
+
+	return (TRUE);
+}
+
+static void flag_script (void)
+{
+	flag_override = FALSE;
+	flag_state = CAMPAIGN_MODEL_SCAN_FLAG_GROUP;
+	flag_count = CAMPAIGN_FLAG_REPLY_WORDS;
+	flag_name = "";
+	flag_raw = 0;
+	memset (flag_words, 0, sizeof (flag_words));
+}
+
+/* a forced answer: `state`, the `name`, `count` words ([a, b, c], then `extra` in the first word beyond the three) */
+static void flag_force (int state, const char *name, int count, uint32_t a, uint32_t b, uint32_t c, uint32_t extra)
+{
+	flag_override = TRUE;
+	flag_state = state;
+	flag_name = name;
+	flag_count = count;
+	memset (flag_words, 0, sizeof (flag_words));
+	flag_words[0] = a;
+	flag_words[1] = b;
+	flag_words[2] = c;
+	flag_words[3] = extra;
+}
+
+static void flag_cases (struct tc *t)
+{
+	static const uint32_t ONE = 0x3f800000u;
+	uint32_t raw, before, mask, lane_word;
+	char issued[CAMPAIGN_ROSTER_KEY_MAX + 1];
+	int stopped, array, lane;
+	float f;
+
+	/* POSITIVE FIRST: a group is opened with its eligibility in fact 0 and nothing else; the host's key comes back whole and only after the answer was checked */
+	flag_script ();
+	memset (issued, 0, sizeof (issued));
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, TRUE, issued, NULL);
+	EXPECT (t, !stopped && flag_asks == 1 && strcmp (issued, "f1") == 0 && flag_request_is (&flag_seen, CAMPAIGN_SCAN_PHASE_FLAG_GROUP, CAMPAIGN_FLAG_ELIGIBLE, 1.0f, -1, 0.0f, ""));
+	memset (issued, 0, sizeof (issued));
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, FALSE, issued, NULL);
+	EXPECT (t, !stopped && strcmp (issued, "f1") == 0 && flag_request_is (&flag_seen, CAMPAIGN_SCAN_PHASE_FLAG_GROUP, CAMPAIGN_FLAG_ELIGIBLE, 0.0f, -1, 0.0f, ""));
+
+	/* a set and a read state the array and the lane (facts 12 and 13) and the group's key in the identity place, for every array and every lane; the read's raw word is the lane's mask, 0x80000000 for lane 31, or 0 */
+	for (array = 0; array < CAMPAIGN_FLAG_ARRAYS; array++)
+	{
+		for (lane = 0; lane < 32; lane++)
+		{
+			mask = ((uint32_t) 1) << lane;
+
+			flag_script ();
+			stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_SET, array, lane, "f7", FALSE, NULL, NULL);
+			EXPECT (t, !stopped && flag_asks == 1 && flag_request_is (&flag_seen, CAMPAIGN_SCAN_PHASE_FLAG_SET, CAMPAIGN_FLAG_ARRAY, (float) array, CAMPAIGN_FLAG_LANE, (float) lane, "f7"));
+
+			flag_script ();
+			flag_raw = mask;
+			raw = 0x13572468u;
+			stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, array, lane, "f7", FALSE, NULL, &raw);
+			EXPECT (t, !stopped && flag_asks == 1 && raw == mask && flag_request_is (&flag_seen, CAMPAIGN_SCAN_PHASE_FLAG_READ, CAMPAIGN_FLAG_ARRAY, (float) array, CAMPAIGN_FLAG_LANE, (float) lane, "f7"));
+
+			flag_script ();
+			flag_raw = 0;
+			raw = 0x13572468u;
+			stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, array, lane, "f7", FALSE, NULL, &raw);
+			EXPECT (t, !stopped && raw == 0);
+		}
+	}
+
+	/* a reset states the array and no key */
+	for (array = 0; array < CAMPAIGN_FLAG_ARRAYS; array++)
+	{
+		flag_script ();
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_RESET, array, 0, NULL, FALSE, NULL, NULL);
+		EXPECT (t, !stopped && flag_asks == 1 && flag_request_is (&flag_seen, CAMPAIGN_SCAN_PHASE_FLAG_RESET, CAMPAIGN_FLAG_ARRAY, (float) array, -1, 0.0f, ""));
+	}
+
+	/* every refusal is a stop with the host's marker and the caller's key and word untouched; each is the baseline above with ONE field of the answer changed. The forced answers are for the array 2 and the lane 17 the
+	   macros ask about: 2.0 and 17.0 as words, and the lane's mask 0x20000 */
+	f = 17.0f;
+	memcpy (&lane_word, &f, sizeof (lane_word));
+
+#define ARRAY_WORD 0x40000000u
+#define REFUSED_GROUP(TEXT) \
+	do { \
+		memset (issued, 0x5a, sizeof (issued)); \
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, TRUE, issued, NULL); \
+		EXPECT (t, stopped && flag_asks == 1 && strstr (fatal_text, (TEXT)) != NULL && (unsigned char) issued[0] == 0x5a && (unsigned char) issued[CAMPAIGN_ROSTER_KEY_MAX] == 0x5a); \
+	} while (0)
+#define REFUSED_READ(TEXT) \
+	do { \
+		raw = before = 0xa5a5a5a5u; \
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, 2, 17, "f7", FALSE, NULL, &raw); \
+		EXPECT (t, stopped && flag_asks == 1 && strstr (fatal_text, (TEXT)) != NULL && raw == before); \
+	} while (0)
+#define REFUSED_SET(TEXT) \
+	do { \
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_SET, 2, 17, "f7", FALSE, NULL, NULL); \
+		EXPECT (t, stopped && flag_asks == 1 && strstr (fatal_text, (TEXT)) != NULL); \
+	} while (0)
+#define REFUSED_RESET(TEXT) \
+	do { \
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_RESET, 2, 0, NULL, FALSE, NULL, NULL); \
+		EXPECT (t, stopped && flag_asks == 1 && strstr (fatal_text, (TEXT)) != NULL); \
+	} while (0)
+
+	/* the wrong state: another phase's state, a state of another question, and the sector height's */
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_SET, "f1", 3, ONE, 0, 0, 0);
+	REFUSED_GROUP ("decided state");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ARRAY_WORD, lane_word, 0x20000u, 0);
+	REFUSED_SET ("decided state");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_SET, "", 3, ARRAY_WORD, lane_word, 0x20000u, 0);
+	REFUSED_READ ("decided state");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ARRAY_WORD, 0, 0, 0);
+	REFUSED_RESET ("decided state");
+	flag_force (CAMPAIGN_MODEL_SCAN_HEIGHT, "", 3, ARRAY_WORD, lane_word, 0x20000u, 0);
+	REFUSED_READ ("decided state");
+	flag_force (CAMPAIGN_MODEL_SCAN_PLACED, "", 3, ARRAY_WORD, 0, 0, 0);
+	REFUSED_RESET ("decided state");
+
+	/* the identity the host issues for a group: a flag key only ("f" and decimal digits, at most the roster key length), and none at all for a question that opens no group; a roster key is not one */
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "", 3, ONE, 0, 0, 0);
+	REFUSED_GROUP ("not a flag key");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "12", 3, ONE, 0, 0, 0);
+	REFUSED_GROUP ("not a flag key");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f", 3, ONE, 0, 0, 0);
+	REFUSED_GROUP ("not a flag key");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f1x", 3, ONE, 0, 0, 0);
+	REFUSED_GROUP ("not a flag key");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "F1", 3, ONE, 0, 0, 0);
+	REFUSED_GROUP ("not a flag key");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f123456789012345678901", 3, ONE, 0, 0, 0);
+	REFUSED_GROUP ("not a flag key");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_SET, "f1", 3, ARRAY_WORD, lane_word, 0x20000u, 0);
+	REFUSED_SET ("names no new key");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "f1", 3, ARRAY_WORD, lane_word, 0x20000u, 0);
+	REFUSED_READ ("names no new key");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_RESET, "f1", 3, ARRAY_WORD, 0, 0, 0);
+	REFUSED_RESET ("names no new key");
+
+	/* a short or long answer and a word beyond the three */
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f1", 2, ONE, 0, 0, 0);
+	REFUSED_GROUP ("answered 2 words");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 4, ARRAY_WORD, lane_word, 0x20000u, 0);
+	REFUSED_READ ("answered 4 words");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_RESET, "", 0, ARRAY_WORD, 0, 0, 0);
+	REFUSED_RESET ("answered 0 words");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_SET, "", 3, ARRAY_WORD, lane_word, 0x20000u, 0x00000001u);
+	REFUSED_SET ("more than 3");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_RESET, "", 3, ARRAY_WORD, 0, 0, 0x00000001u);
+	REFUSED_RESET ("more than 3");
+
+	/* an answer for another word than the one asked about: the array, the lane, and a group with another eligibility than the one stated; and what a group or a reset may not carry */
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f1", 3, 0, 0, 0, 0);
+	REFUSED_GROUP ("another eligibility");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f1", 3, ONE, ONE, 0, 0);
+	REFUSED_GROUP ("more than the eligibility");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f1", 3, ONE, 0, ONE, 0);
+	REFUSED_GROUP ("more than the eligibility");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ONE, lane_word, 0x20000u, 0);
+	REFUSED_READ ("another flag word");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_SET, "", 3, ONE, lane_word, 0x20000u, 0);
+	REFUSED_SET ("another flag word");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_RESET, "", 3, ONE, 0, 0, 0);
+	REFUSED_RESET ("another flag word");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ARRAY_WORD, lane_word + 1, 0x20000u, 0);
+	REFUSED_READ ("another flag lane");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_SET, "", 3, ARRAY_WORD, 0, 0x20000u, 0);
+	REFUSED_SET ("another flag lane");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_RESET, "", 3, ARRAY_WORD, 0, 1, 0);
+	REFUSED_RESET ("more than the array and a count");
+
+	/* the raw word: a set answers the lane's mask and nothing else; a read answers 0 or the entity's own mask and nothing else (another lane's mask, a normalised boolean, all bits, the mask's complement) */
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_SET, "", 3, ARRAY_WORD, lane_word, 0, 0);
+	REFUSED_SET ("not the lane's mask");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_SET, "", 3, ARRAY_WORD, lane_word, 0x10000u, 0);
+	REFUSED_SET ("not the lane's mask");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ARRAY_WORD, lane_word, 0x10000u, 0);
+	REFUSED_READ ("neither 0 nor the lane's mask");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ARRAY_WORD, lane_word, 1u, 0);
+	REFUSED_READ ("neither 0 nor the lane's mask");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ARRAY_WORD, lane_word, 0xffffffffu, 0);
+	REFUSED_READ ("neither 0 nor the lane's mask");
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ARRAY_WORD, lane_word, ~0x20000u, 0);
+	REFUSED_READ ("neither 0 nor the lane's mask");
+
+	/* and the matched POSITIVES of the same forced shape: the lane's own mask (or 0 for a read) is accepted, so each refusal above is the one changed field */
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ARRAY_WORD, lane_word, 0x20000u, 0);
+	raw = 0;
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, 2, 17, "f7", FALSE, NULL, &raw);
+	EXPECT (t, !stopped && raw == 0x20000u);
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_READ, "", 3, ARRAY_WORD, lane_word, 0, 0);
+	raw = 0xa5a5a5a5u;
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, 2, 17, "f7", FALSE, NULL, &raw);
+	EXPECT (t, !stopped && raw == 0);
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_SET, "", 3, ARRAY_WORD, lane_word, 0x20000u, 0);
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_SET, 2, 17, "f7", FALSE, NULL, NULL);
+	EXPECT (t, !stopped);
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f12345678901234567", 3, ONE, 0, 0, 0);
+	memset (issued, 0, sizeof (issued));
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, TRUE, issued, NULL);
+	EXPECT (t, !stopped && strcmp (issued, "f12345678901234567") == 0);
+	/* the reset's count is the host's own fact and is not judged */
+	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_RESET, "", 3, ARRAY_WORD, 0xffffffffu, 0, 0);
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_RESET, 2, 0, NULL, FALSE, NULL, NULL);
+	EXPECT (t, !stopped);
+
+	/* the question's own domain is refused BEFORE anything is asked: an array or a lane outside it, a group named by nothing the host could have issued */
+	flag_script ();
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_SET, 3, 0, "f7", FALSE, NULL, NULL);
+	EXPECT (t, stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.array]") != NULL);
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_RESET, -1, 0, NULL, FALSE, NULL, NULL);
+	EXPECT (t, stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.array]") != NULL);
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, 0, 32, "f7", FALSE, NULL, &raw);
+	EXPECT (t, stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.lane]") != NULL);
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_SET, 0, -1, "f7", FALSE, NULL, NULL);
+	EXPECT (t, stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.lane]") != NULL);
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_SET, 0, 1, NULL, FALSE, NULL, NULL);
+	EXPECT (t, stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.key]") != NULL);
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, 0, 1, "12", FALSE, NULL, &raw);
+	EXPECT (t, stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.key]") != NULL);
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, 0, 1, "", FALSE, NULL, &raw);
+	EXPECT (t, stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.key]") != NULL);
+
+	/* a host that refuses the exchange stops the engine with its own reason: nothing falls back to a flag the campaign could hold, and the caller's word is untouched */
+	flag_script ();
+	refuse_the_exchange = TRUE;
+	raw = before = 0xa5a5a5a5u;
+	stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, 2, 17, "f7", FALSE, NULL, &raw);
+	EXPECT (t, stopped && strstr (fatal_text, "the scripted host refused") != NULL && raw == before);
+	refuse_the_exchange = FALSE;
+#undef ARRAY_WORD
+#undef REFUSED_GROUP
+#undef REFUSED_READ
+#undef REFUSED_SET
+#undef REFUSED_RESET
+	flag_script ();
+}
+
 static void city_expand_cases (struct tc *t)
 {
 	static const uint32_t GOOD[6] = { 0x80000000u, 0x00000001u, 0xc9742400u, 0x00000000u, 0x00000001u, 0x49742400u };
@@ -4693,6 +5033,7 @@ int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 	city_state_cases (&t);
 	city_expand_cases (&t);
 	sector_height_cases (&t);
+	flag_cases (&t);
 
 	if (checks)
 	{

@@ -1,0 +1,222 @@
+
+running 73 tests
+test module::tests::a_backend_provider_that_raises_or_is_not_a_function_is_refused_by_name_and_a_foreign_phase_is_never_sent ... ok
+test module::tests::a_catalogue_provider_that_raises_is_refused_by_name_and_a_provider_that_is_not_a_function_is_refused_before_boot ... ok
+test module::tests::a_damage_echo_of_raw_bit_halves_is_read_exactly_and_a_not_a_number_float_is_still_refused ... ok
+test module::tests::a_catalogue_answer_of_the_wrong_kind_or_shape_is_refused_by_name ... ok
+test module::tests::a_blast_question_reaches_lua_by_value_and_the_walk_is_read_field_by_field ... ok
+test module::tests::a_health_question_reaches_lua_by_value_and_its_answer_is_read_field_by_field ... ok
+test module::tests::a_bridge_question_reaches_lua_by_value_and_each_answer_is_read_field_by_field ... ok
+test module::tests::a_physical_flag_answer_carries_three_bit_patterns_and_a_groups_key_and_every_raw_word_comes_back_exactly_and_a_number_or_a_short_list_is_refused ... ok
+test module::tests::a_removal_names_the_record_the_host_retains_for_a_citys_box_only_in_the_two_removal_phases_that_declare_it ... ok
+test module::tests::a_route_node_and_a_route_face_keep_their_numbers_and_name_their_kind ... ok
+test module::tests::a_plain_removal_and_the_release_of_a_city_come_back_without_a_name ... ok
+test module::tests::a_route_answer_that_is_malformed_refused_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_lightning_add_reaches_the_provider_by_value_and_the_whole_queue_comes_back_exactly ... ok
+test module::tests::a_ground_question_reaches_the_provider_by_value_and_its_answer_comes_back_exactly ... ok
+test module::tests::a_name_on_a_removal_outside_its_declared_domain_is_a_malformed_answer ... ok
+test module::tests::a_scene_answer_keeps_tiny_subnormal_and_negative_zero_numbers_exactly ... ok
+test module::tests::a_retained_record_name_is_a_roster_key_and_a_city_child_removal_names_the_list_it_was_asked_about ... ok
+test module::tests::a_server_expiry_without_the_draw_is_refused_and_a_client_expiry_needs_none ... ok
+test module::tests::a_sector_height_answer_carries_three_bit_patterns_and_every_raw_word_comes_back_exactly_and_a_number_or_a_short_list_or_a_name_is_refused ... ok
+test module::tests::a_structure_identity_question_reaches_lua_by_value_and_the_identities_of_offered_objects_are_read ... ok
+test module::tests::a_target_point_chain_crosses_as_sibling_positions_or_an_absence_with_the_scenes_name ... ok
+test module::tests::a_malformed_environment_answer_is_refused_by_operation_and_nothing_falls_back ... ok
+test module::tests::a_completed_step_must_say_explicitly_whether_it_expired_and_a_draw_needs_an_expiry ... ok
+test module::tests::a_provider_that_edits_the_request_cannot_change_what_the_campaign_asked ... ok
+test module::tests::a_target_point_chain_that_is_withheld_too_deep_empty_fractional_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_target_point_offset_crosses_as_three_exact_bit_patterns_with_the_scenes_name ... ok
+test module::tests::a_target_point_pose_reaches_the_provider_as_exact_bits_and_the_position_comes_back_as_exact_bits ... ok
+test module::tests::a_target_point_offset_that_is_withheld_malformed_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_terrain_point_answer_reaches_the_campaign_exactly_and_the_request_reaches_the_provider_by_value ... ok
+test module::tests::a_target_point_position_that_is_withheld_non_finite_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_sound_lifetime_init_reaches_the_provider_by_value_and_one_finite_lifetime_comes_back_exactly ... ok
+test module::tests::a_vehicle_lifecycle_answer_without_its_vector_is_an_error ... ok
+test module::tests::a_sound_pause_resume_reaches_the_provider_by_value_and_its_decision_comes_back_exactly ... ok
+test module::tests::a_tree_question_reaches_the_provider_as_bit_patterns_and_its_answers_reach_the_campaign_as_bit_patterns ... ok
+test module::tests::an_answer_that_decides_on_bits_must_carry_its_flags ... ok
+test module::tests::an_entity_collision_question_carries_only_the_segment_and_the_pose_and_the_computed_words_and_the_write_mask_come_back_exactly ... ok
+test module::tests::an_entity_collision_answer_that_is_refused_short_unnamed_masked_out_of_range_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::an_entity_candidate_answer_that_is_refused_malformed_unnamed_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::an_entity_pose_answer_that_is_refused_malformed_or_out_of_range_stops_with_its_marker ... ok
+test module::tests::an_entity_scan_answer_that_is_refused_malformed_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_sector_answer_keeps_the_original_return_value_apart_from_the_flags_and_a_malformed_one_is_refused_by_marker ... ok
+test module::tests::an_entity_pose_question_carries_the_words_by_bit_pattern_and_the_identity_and_every_class_comes_back ... ok
+test module::tests::an_entity_candidate_question_carries_the_facts_by_bit_pattern_and_every_decision_comes_back_with_its_state_and_exact_pose ... ok
+test module::tests::a_tree_answer_that_is_not_a_well_formed_step_is_refused_with_its_marker ... ok
+test module::tests::an_entity_scan_question_carries_a_roster_key_or_identity_after_the_facts_and_the_key_comes_back_in_the_name ... ok
+test module::tests::an_entity_scan_question_carries_the_facts_by_bit_pattern_and_every_decision_comes_back_with_its_state_and_cursor ... ok
+test module::tests::an_environment_weather_answer_reaches_the_campaign_exactly_and_the_request_reaches_the_provider_by_value ... ok
+test module::tests::an_environment_step_that_needs_the_draw_is_answered_once_and_a_second_ask_for_it_is_refused ... ok
+test module::tests::an_environment_step_reaches_the_provider_with_its_signed_zero_camera_and_draw_and_its_answer_is_read_whole ... ok
+test module::tests::an_ambient_environment_answer_is_four_levels_read_exactly_and_a_malformed_one_is_refused_by_marker ... ok
+test module::tests::a_sound_lifetime_update_reaches_the_provider_by_value_and_its_decision_comes_back_exactly ... ok
+test module::tests::an_expanded_scan_answer_carries_six_bit_patterns_and_the_citys_key_and_a_short_or_non_finite_list_is_refused ... ok
+test module::tests::a_malformed_point_answer_is_refused_with_the_marker_of_what_is_wrong ... ok
+test module::tests::a_triangle_is_a_table_or_a_text_of_exactly_nine_and_nothing_longer_or_sparser ... ok
+test module::tests::an_explicit_zero_vector_and_zero_flags_are_accepted ... ok
+test module::tests::the_backend_question_reaches_the_hosts_lua_by_value_and_only_a_boolean_answer_is_read ... ok
+test module::tests::an_ambient_terrain_question_reaches_the_provider_by_value_and_its_amplitudes_are_one_finite_number_per_child ... ok
+test module::tests::the_catalogue_question_reaches_the_hosts_lua_by_value_and_its_answer_is_read_entry_by_entry ... ok
+test module::tests::an_object_or_animation_answer_that_is_malformed_numeric_or_refused_stops_with_its_marker ... ok
+test module::tests::the_campaigns_walk_announcement_reaches_the_provider_with_its_directory_and_its_answers_come_back ... ok
+test module::tests::a_rotor_sound_question_reaches_the_provider_by_value_and_its_whole_answer_comes_back_exactly ... ok
+test module::tests::the_kinds_of_triangle_answer_and_the_failures_of_the_provider_are_each_named ... ok
+test module::tests::an_object_table_an_object_and_an_animation_name_cross_as_counts_exact_bits_and_logical_names ... ok
+test module::tests::a_malformed_ground_answer_is_refused_before_the_campaign_reads_any_of_it ... ok
+test module::tests::bit_patterns_are_exact_and_a_non_finite_number_or_pattern_is_refused ... ok
+test module::tests::the_real_host_providers_flag_store_answers_through_this_bridge_what_the_campaign_asks_and_refuses_what_it_must ... ok
+test module::tests::an_impact_question_reaches_lua_by_value_and_its_plan_is_read_field_by_field ... ok
+test module::tests::every_field_of_an_answer_is_read_from_a_stateful_getter_exactly_once ... ok
+test module::tests::a_lightning_update_may_ask_for_the_frame_count_once_and_a_malformed_queue_is_refused_by_marker ... ok
+test module::tests::the_whole_numbers_and_the_declarations_of_an_answer_reject_what_is_not_exactly_what_they_name ... ok
+test module::tests::the_fast_and_map_operations_are_read_and_refused_the_same_way ... ok
+test module::tests::whether_a_surface_is_stored_is_the_providers_word_by_value_and_not_its_hint ... ok
+test module::tests::an_environment_state_that_is_not_a_field_is_refused_with_the_state_marker ... ok
+
+test result: ok. 73 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 2 tests
+test lua_debug_holds_the_dcs_world_record ... ok
+test lua_debug_short_src_starts_where_dcs_world_writes_it ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 122 tests
+test tests::a_backend_request_that_is_not_the_campaigns_never_reaches_the_host ... ok
+test tests::a_bridge_question_carries_the_facts_by_value_and_each_answer_comes_back_whole ... ok
+test tests::a_blast_question_carries_the_explosion_and_the_window_by_value_and_the_hosts_walk_comes_back ... ok
+test tests::a_bridge_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample ... ok
+test tests::a_catalogue_question_reaches_the_provider_by_value_and_a_valid_answer_reaches_the_arrays_exactly ... ok
+test tests::a_blast_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample ... ok
+test tests::a_bridge_vehicles_walk_carries_its_window_and_the_hosts_walk_comes_back ... ok
+test tests::a_coherent_answer_stays_accepted_a_present_empty_header_a_zero_length_match_and_repeated_identical_questions ... ok
+test tests::a_damage_echo_of_raw_bit_halves_reaches_the_campaigns_room_unchanged ... ok
+test tests::a_create_place_step_carries_the_constructor_inputs_across_the_callback ... ok
+test tests::a_damage_request_refuses_what_has_no_defined_answer_and_never_takes_a_lookup ... ok
+test tests::a_damage_request_carries_the_hit_by_value_takes_the_one_sample_and_the_hosts_answer_comes_back ... ok
+test tests::a_decoy_update_and_a_seduction_are_weapon_steps_with_their_own_kind_and_the_seductions_settings_cross_exactly ... ok
+test tests::a_dependent_carry_step_carries_the_parent_and_both_of_its_positions_across_the_callback ... ok
+test tests::a_dependent_carry_step_without_a_parent_or_with_a_non_finite_position_is_refused ... ok
+test tests::a_forecast_request_carries_its_figures_by_value_and_the_hosts_capability_comes_back ... ok
+test tests::a_forecast_refuses_what_has_no_defined_answer_and_never_takes_a_draw_or_a_lookup ... ok
+test tests::a_generic_hosts_timed_roll_for_a_person_or_an_aircraft_in_no_class_crosses_the_engine_boundary ... ok
+test tests::a_ground_question_reaches_the_provider_with_every_request_field_and_its_answer_reaches_the_reply_exactly ... ok
+test tests::a_group_leaders_plan_does_not_read_the_member_list_and_an_invalid_list_is_refused_before_the_host_runs ... ok
+test tests::a_guide_step_with_bad_lists_is_refused_before_the_host_runs ... ok
+test tests::a_guided_end_step_names_the_leader_by_host_id_and_carries_the_steering_intent ... ok
+test tests::a_guide_step_carries_every_structure_of_the_sector_and_the_getter_returns_in_call_order ... ok
+test tests::a_health_question_crosses_by_value_a_timed_roll_takes_its_one_sample_and_the_answer_comes_back ... ok
+test tests::a_health_question_refuses_what_has_no_defined_answer_and_never_takes_a_lookup ... ok
+test tests::a_leader_is_not_asked_for_what_it_never_reads ... ok
+test tests::a_lead_flight_time_travels_only_when_the_host_produced_one_and_only_a_lead_or_ballistic_answer_may_carry_it ... ok
+test tests::a_leader_the_roster_lacks_crosses_the_boundary_as_unresolved_in_flight_and_landing ... ok
+test tests::a_legitimate_end_or_absence_is_distinct_from_every_refusal ... ok
+test tests::a_match_needs_a_header_that_holds_entries_and_the_distinct_matches_cannot_outnumber_them ... ok
+test tests::a_member_the_roster_lacks_crosses_the_boundary_as_unresolved_and_keeps_its_place ... ok
+test tests::a_non_finite_lifecycle_field_or_a_bad_flag_is_refused_before_the_host_runs ... ok
+test tests::a_malformed_catalogue_answer_is_refused_by_name_before_anything_is_written ... ok
+test tests::a_missing_refusing_or_panicking_backend_provider_is_a_named_boundary_and_writes_no_answer ... ok
+test tests::a_missing_declining_or_malformed_provider_is_refused_by_name_and_writes_no_reply ... ok
+test tests::a_person_face_step_carries_the_target_position_and_a_non_finite_target_is_refused ... ok
+test tests::a_placement_reads_the_placement_field_not_the_helicopter_step_field ... ok
+test tests::a_reacquisition_is_a_weapon_step_of_its_own_kind_that_names_the_decoy_and_can_take_neither_a_sample_nor_a_lookup_answer_it_did_not_ask_for ... ok
+test tests::a_release_request_carries_the_launchers_clock_and_the_hosts_gate_comes_back_even_when_it_refuses ... ok
+test tests::a_plan_step_carries_the_campaign_facts_and_the_other_members_host_ids_in_list_order_uncapped ... ok
+test tests::a_retire_step_crosses_the_callback_with_its_identity_and_no_terrain ... ok
+test tests::a_scene_name_that_cannot_be_an_echo_is_refused_and_writes_no_reply ... ok
+test tests::a_routed_vector_step_is_a_known_mode_the_host_answers_and_an_unknown_mode_is_refused ... ok
+test tests::a_sector_answer_reaches_the_campaign_by_value_and_a_malformed_one_is_refused_before_anything_is_written ... ok
+test tests::a_sector_height_question_and_its_answer_cross_every_raw_word_bit_for_bit_and_with_their_count ... ok
+test tests::a_step_without_the_terrain_flag_carries_none_and_its_fields_are_not_read ... ok
+test tests::a_server_step_follows_the_lightning_protocol_and_a_completed_one_is_accepted ... ok
+test tests::a_step_answer_that_breaks_the_lightning_protocol_is_refused_before_the_c_side_reads_it ... ok
+test tests::a_terrain_following_flight_step_carries_the_campaigns_observation_and_no_shaped_height ... ok
+test tests::a_structure_identity_is_asked_of_the_host_by_value_and_the_one_it_issues_comes_back_whole ... ok
+test tests::a_terrain_question_reaches_the_provider_with_its_season_and_a_matching_answer_reaches_the_reply ... ok
+test tests::a_terrain_observation_is_refused_on_any_other_mode_and_when_it_is_not_finite ... ok
+test tests::a_terrain_season_flag_that_is_not_a_flag_and_a_provider_refusal_stop_the_crossing ... ok
+test tests::a_tree_question_reaches_the_provider_as_bit_patterns_and_its_answer_reaches_the_reply_as_bit_patterns ... ok
+test tests::a_terrain_answer_of_the_wrong_kind_is_refused_before_anything_is_written ... ok
+test tests::a_tree_question_with_a_flag_that_is_not_a_flag_is_refused_before_the_provider_is_asked ... ok
+test tests::a_weapon_step_carries_the_weapon_the_answers_so_far_and_the_samples_given_and_the_hosts_lookups_and_actions_come_back ... ok
+test tests::a_weapon_steps_collision_answers_are_kept_by_the_question_they_answer_so_the_host_may_choose_among_them ... ok
+test tests::a_wind_vector_the_campaign_asked_for_is_required_of_a_direct_provider ... ok
+test tests::a_withheld_or_missing_or_panicking_catalogue_provider_is_refused_by_name_and_writes_nothing ... ok
+test tests::an_absent_pair_and_an_empty_question_are_valid_answers ... ok
+test tests::an_aim_draw_is_asked_for_only_by_a_vectors_or_lead_request_and_carries_a_raw_sample_in_range ... ok
+test tests::a_weapon_step_the_campaign_cannot_hold_never_reaches_the_host_and_an_answer_it_cannot_take_is_refused ... ok
+test tests::an_aim_animate_request_carries_the_weapons_parachute_and_the_hosts_state_comes_back_and_a_state_it_cannot_hold_never_reaches_the_host ... ok
+test tests::an_aim_echo_travels_in_order_and_one_that_does_not_fit_is_refused_not_cut_short ... ok
+test tests::an_aim_range_request_hands_the_host_a_guided_weapons_figures ... ok
+test tests::an_aim_ready_update_carries_the_source_the_keyframe_and_the_time_and_returns_the_hosts_state_and_phase ... ok
+test tests::an_aim_figures_request_hands_the_host_one_weapons_figures_to_keep_and_a_weapon_that_is_not_one_never_reaches_it ... ok
+test tests::an_aim_request_with_a_non_finite_figure_or_an_unknown_mode_never_reaches_the_host_and_a_failing_host_stops_it ... ok
+test tests::an_aim_table_echo_is_written_into_the_room_the_campaign_gave_and_never_past_it ... ok
+test tests::an_aim_vectors_request_carries_a_weapon_and_a_target_or_a_tracking_point_never_both ... ok
+test tests::an_aircraft_placement_carries_its_nonzero_vector_across_the_callback_boundary ... ok
+test tests::an_ambient_terrain_question_carries_its_observations_by_value_and_a_malformed_question_or_answer_is_refused_before_anything_is_written ... ok
+test tests::an_ambient_terrain_question_of_exactly_the_transport_limit_is_carried_whole_and_in_order ... ok
+test tests::an_aim_table_request_hands_the_host_the_weapons_figures_and_no_cell_and_figures_that_cannot_be_a_weapon_never_reach_it ... ok
+test tests::an_expanded_decision_crosses_with_its_six_words_bit_for_bit_and_their_count ... ok
+test tests::an_expire_step_carries_the_wreck_timer_range_and_policy_and_answers_only_a_yes_or_no ... ok
+test tests::an_impact_question_carries_the_kill_code_and_the_targets_facts_asks_for_the_terrain_once_and_the_plan_comes_back ... ok
+test tests::an_impact_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample ... ok
+test tests::each_mode_answers_only_the_flags_it_defines ... ok
+test tests::flight_navigation_intent_crosses_the_callback_boundary_in_group_order ... ok
+test tests::every_lifecycle_mode_reads_the_helicopter_fields_and_carries_its_inputs ... ok
+test tests::invalid_flight_navigation_is_refused_at_the_boundary ... ok
+test tests::the_ambient_sound_answer_of_a_direct_environment_provider_is_four_finite_levels_and_the_wind_levels_stay_within_zero_and_one ... ok
+test tests::the_backend_callback_carries_the_phase_flags_and_intent_to_the_provider_and_the_answer_back ... ok
+test tests::the_c_backend_check_asks_once_with_the_real_request_and_returns_only_not_available ... ok
+test tests::the_c_wind_consumer_reads_a_requested_vector_and_does_not_read_one_nobody_asked_for ... ok
+test tests::the_fixed_wing_lookahead_is_a_non_mutating_fixed_wing_step_the_host_answers_with_one_sample ... ok
+test tests::the_helicopter_step_modes_read_the_helicopter_vector_not_the_placement_field ... ok
+test tests::the_host_must_answer_the_fixed_wing_lookahead_with_exactly_one_sample_and_no_flags ... ok
+test tests::the_hosted_helicopter_modes_are_helicopter_steps_and_a_plan_and_the_end_announce_the_terrain ... ok
+test tests::the_host_must_answer_the_plan_with_a_lookup_plan_and_the_guide_with_guidance_and_nothing_else_does ... ok
+test tests::groups_beyond_thirty_two_cross_the_callback_boundary_whole_and_in_order ... ok
+test tests::the_inner_layout_of_the_weapon_state_is_the_campaigns ... ok
+test tests::the_identity_of_an_offered_object_crosses_and_the_hosts_repeat_of_it_comes_back ... ok
+test tests::the_lightning_queue_answer_of_a_direct_environment_provider_is_checked_at_the_boundary_before_anything_is_written ... ok
+test tests::the_identity_of_the_object_a_damage_a_health_and_an_impact_question_is_about_crosses_and_a_bad_one_is_refused ... ok
+test tests::the_model_callback_carries_a_city_name_identity_place_of_its_whole_domain_untruncated ... ok
+test tests::the_landing_phase_carries_its_navigation_and_the_turn_intent_not_a_multiplier ... ok
+test tests::the_model_callback_carries_an_entity_candidate_question_and_every_decision_exactly ... ok
+test tests::the_model_callback_carries_an_entity_collision_pose_and_its_write_mask_and_computed_words_exactly ... ok
+test tests::the_model_callback_bounds_every_identity_by_its_own_operations_domain_before_the_host_is_asked ... ok
+test tests::the_model_callback_carries_an_entity_scan_question_and_every_decision_exactly ... ok
+test tests::the_model_callback_carries_every_answer_exactly ... ok
+test tests::the_model_callback_carries_an_entity_pose_observation_and_every_class_exactly ... ok
+test tests::the_model_callback_carries_the_campaigns_walk_announcement_with_its_directory_name ... ok
+test tests::the_model_callback_carries_the_object_family_by_role_and_cursor_and_animations_as_logical_names ... ok
+test tests::the_model_callback_refuses_an_entity_collision_pose_of_another_size_and_an_answer_of_another_kind ... ok
+test tests::the_model_callback_refuses_an_entity_pose_question_of_another_size_or_identity_and_an_answer_of_another_kind_or_range ... ok
+test tests::the_model_callback_refuses_entity_candidate_facts_of_another_size_a_pose_of_another_size_and_an_answer_of_another_kind ... ok
+test tests::the_object_identity_dtos_have_the_layout_the_campaign_compiled ... ok
+test tests::the_model_callback_refuses_entity_scan_facts_of_another_size_and_an_answer_of_another_kind ... ok
+test tests::the_physical_flag_stores_questions_and_answers_cross_every_phase_with_the_group_key_and_the_raw_words_bit_for_bit ... ok
+test tests::the_rust_mirrors_of_the_aim_exchange_have_the_layout_the_campaign_compiled ... ok
+test tests::the_other_environment_answers_are_checked_at_the_boundary_too ... ok
+test tests::the_rotor_sound_answer_of_a_direct_environment_provider_is_checked_against_the_protocol_and_the_role_before_anything_is_written ... ok
+test tests::the_sound_pause_resume_answer_of_a_direct_environment_provider_is_checked_at_the_boundary_before_anything_is_written ... ok
+test tests::the_sound_lifetime_answer_of_a_direct_environment_provider_is_checked_at_the_boundary_before_anything_is_written ... ok
+test tests::the_c_sound_initialisation_takes_every_rate_and_size_from_the_hosts_answer_and_keeps_its_own_names ... ok
+test tests::the_live_catalogue_is_still_the_previous_one_when_the_host_is_asked ... ok
+test tests::refusal::a_refused_catalogue_answer_stops_the_campaign_at_the_providers_marker_and_leaves_the_previous_catalogue_untouched ... ok
+test tests::backend_refusal::a_missing_withheld_unwritten_malformed_or_available_backend_answer_stops_the_campaign_at_a_distinct_named_boundary ... ok
+
+test result: ok. 122 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,225 @@
+{
+  "prefix": "flags-production-",
+  "label_regex": "^d\\d+-",
+  "declared_helper": "check-physical-flags-production-linux-20261107.sh",
+  "records": 27,
+  "rows": [
+    {
+      "record": "flags-production-d1-world-flags-lib.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d10-guard.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d11-guard.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d12-engine-dc-lib.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d13-dc-lib.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d14-dc-real-provider.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d15-dc-real-provider.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d16-dc-real-provider2.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d17-entity-authority.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d18-ea-flags.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d19-fmt.json",
+      "state": "terminal",
+      "actual_exit": 1,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d2-world-flags-host.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d20-fmt.json",
+      "state": "terminal",
+      "actual_exit": 1,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d21-fmt-apply.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d22-clippy.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d23-clippy2.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d24-sector-height-both.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d25-build-world.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d26-engine-dc.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d27-engine-sys-default.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d3-hosted-controls.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d4-hosted-traffic.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d5-hosted-traffic2.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d6-original-profile.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d7-hosted-faults-dialogue.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d8-faults.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-production-d9-engine-sys-default.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    }
+  ],
+  "problems": []
+}

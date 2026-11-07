@@ -1359,6 +1359,11 @@ pub enum ScanDecision {
     Expanded([f32; 6]),
     Height([f32; 3]),
     Restored([f32; 3]),
+    /// the physical flag store's answers (phases 19 to 22): three words each, kept as the 32 bits they came in (a read's raw word is the lane's mask, 0x80000000 for lane 31, and is never normalised); a group's answer is the host's key as `key`
+    FlagGroup([f32; 3]),
+    FlagSet([f32; 3]),
+    FlagRead([f32; 3]),
+    FlagReset([f32; 3]),
     Next,
     Offer,
     DoneNone,
@@ -1807,6 +1812,16 @@ unsafe extern "C" fn model_callback(
                         reply.candidate[..3].copy_from_slice(&words);
                         reply.candidate_count = 3;
                         sys::EECH_MODEL_SCAN_RESTORED
+                    }
+                    ScanDecision::FlagGroup(words) | ScanDecision::FlagSet(words) | ScanDecision::FlagRead(words) | ScanDecision::FlagReset(words) => {
+                        reply.candidate[..3].copy_from_slice(&words);
+                        reply.candidate_count = 3;
+                        match decision {
+                            ScanDecision::FlagGroup(_) => sys::EECH_MODEL_SCAN_FLAG_GROUP,
+                            ScanDecision::FlagSet(_) => sys::EECH_MODEL_SCAN_FLAG_SET,
+                            ScanDecision::FlagRead(_) => sys::EECH_MODEL_SCAN_FLAG_READ,
+                            _ => sys::EECH_MODEL_SCAN_FLAG_RESET,
+                        }
                     }
                     ScanDecision::Next => sys::EECH_MODEL_SCAN_NEXT,
                     ScanDecision::Offer => sys::EECH_MODEL_SCAN_OFFER,
@@ -11866,6 +11881,91 @@ mod tests {
                 );
                 assert!(reply.candidate[3..].iter().all(|float| float.to_bits() == 0), "no word beyond the three");
             }
+        }
+    }
+
+    #[test]
+    fn the_physical_flag_stores_questions_and_answers_cross_every_phase_with_the_group_key_and_the_raw_words_bit_for_bit() {
+        // phases 19 to 22 (group, set, read, reset), each with its state; a group's key is the host's answer's name, a set and a read name the group in the identity place, and every reply word crosses as the bits it came in
+        // (a read's raw word is the lane's mask, 0x80000000 for lane 31, a negative int in C, never normalised)
+        for (phase_bits, decision, state, identity, name) in [
+            (
+                0x4198_0000u32,
+                ScanDecision::FlagGroup([f32::from_bits(0x3f80_0000), 0.0, 0.0]),
+                sys::EECH_MODEL_SCAN_FLAG_GROUP,
+                "",
+                "f12",
+            ),
+            (
+                0x41a0_0000u32,
+                ScanDecision::FlagSet([2.0, 31.0, f32::from_bits(0x8000_0000)]),
+                sys::EECH_MODEL_SCAN_FLAG_SET,
+                "f12",
+                "",
+            ),
+            (
+                0x41a8_0000u32,
+                ScanDecision::FlagRead([2.0, 31.0, f32::from_bits(0x8000_0000)]),
+                sys::EECH_MODEL_SCAN_FLAG_READ,
+                "f12",
+                "",
+            ),
+            (
+                0x41b0_0000u32,
+                ScanDecision::FlagReset([2.0, 7.0, 0.0]),
+                sys::EECH_MODEL_SCAN_FLAG_RESET,
+                "",
+                "",
+            ),
+        ] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            request.pose[SCAN_PHASE_FACT] = f32::from_bits(phase_bits);
+            request.pose[12] = 2.0;
+            request.pose[13] = 31.0;
+            for (slot, byte) in request.host_id.iter_mut().zip(identity.bytes()) {
+                *slot = byte as c_char;
+            }
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { facts, identity } => {
+                        *record.borrow_mut() = Some((facts, identity));
+                        Ok(ModelAnswer::EntityScan {
+                            decision,
+                            key: name.to_string(),
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "phase {phase_bits:#010x}: {error}");
+            let (facts, seen_identity) = seen.borrow().clone().unwrap_or_default();
+            assert_eq!(
+                (
+                    facts.get(SCAN_PHASE_FACT).copied(),
+                    facts.get(12).copied(),
+                    facts.get(13).copied(),
+                    seen_identity.as_str()
+                ),
+                (Some(phase_bits), Some(2.0f32.to_bits()), Some(31.0f32.to_bits()), identity),
+                "the question arrived as the campaign sent it"
+            );
+            assert_eq!(reply.candidate_state, state, "{phase_bits:#010x}");
+            assert_eq!(reply.candidate_count, 3, "{phase_bits:#010x}");
+            let words: Vec<u32> = reply.candidate[..3].iter().map(|float| float.to_bits()).collect();
+            let expected: Vec<u32> = match decision {
+                ScanDecision::FlagGroup(w) | ScanDecision::FlagSet(w) | ScanDecision::FlagRead(w) | ScanDecision::FlagReset(w) => {
+                    w.iter().map(|f| f.to_bits()).collect()
+                }
+                _ => unreachable!(),
+            };
+            assert_eq!(words, expected, "the words as the host answered them, bit for bit: {phase_bits:#010x}");
+            assert!(reply.candidate[3..].iter().all(|float| float.to_bits() == 0), "no word beyond the three");
+            let reply_name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+            assert_eq!(reply_name, name.as_bytes(), "only a group's answer names a key");
         }
     }
 

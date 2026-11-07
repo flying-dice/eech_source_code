@@ -1,0 +1,10 @@
+
+running 1 test
+a read that always answers the lane's mask: 13 of 199 expectations failed
+a read that always answers 0: 57 of 199 expectations failed
+a set that is acknowledged and never stored: 123 of 199 expectations failed
+a read that answers the right raw word but destroys no neighbour: 12 of 199 expectations failed
+test the_hosted_control_fails_for_a_host_that_does_not_do_what_the_original_arrays_did_and_passes_for_the_real_store ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

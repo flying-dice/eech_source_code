@@ -66,6 +66,10 @@
 
 #include "project.h"
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+#include "entity/mobile/mb_hostmodel.h"
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,6 +159,19 @@ static void set_local_int_value (entity *en, int_types type, int value)
 		case INT_TYPE_ROTATED:
 		////////////////////////////////////////
 		{
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+			//
+			// The per-entity physical word is the HOST's (Task49): the three arrays, this set, the destructive read and the reset are one store there, and the campaign keeps no bit of it.
+			// The campaign names the entity by its heap slot, which stays private (mb_hostmodel.c turns it into the host's group key and the entity's lane). You may still only set the value to TRUE.
+			//
+
+			ASSERT (value == TRUE);
+
+			campaign_model_flag_set ((type == INT_TYPE_UPDATED) ? CAMPAIGN_FLAG_ARRAY_UPDATED : ((type == INT_TYPE_MOVED) ? CAMPAIGN_FLAG_ARRAY_MOVED : CAMPAIGN_FLAG_ARRAY_ROTATED), get_local_entity_index (en));
+
+#else
+
 			int
 				mask,
 				index,
@@ -180,6 +197,8 @@ static void set_local_int_value (entity *en, int_types type, int value)
 				moved_entities [index] |= mask;
 			else
 				rotated_entities [index] |= mask;
+
+#endif
 
 			break;
 		}
@@ -383,6 +402,13 @@ static int get_local_int_value (entity *en, int_types type)
 		case INT_TYPE_ROTATED:
 		////////////////////////////////////////
 		{
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+			// the destructive read of the HOST's word (Task49): the host clears every other entity's bit of the shared word and answers the raw word the original's `&=` getter returned (0, the entity's own mask, INT_MIN for lane 31)
+			value = campaign_model_flag_read ((type == INT_TYPE_UPDATED) ? CAMPAIGN_FLAG_ARRAY_UPDATED : ((type == INT_TYPE_MOVED) ? CAMPAIGN_FLAG_ARRAY_MOVED : CAMPAIGN_FLAG_ARRAY_ROTATED), get_local_entity_index (en));
+
+#else
+
 			int
 				mask,
 				index,
@@ -400,6 +426,8 @@ static int get_local_int_value (entity *en, int_types type)
 				value = moved_entities [index] &= mask;
 			else
 				value = rotated_entities [index] &= mask;
+
+#endif
 
 			break;
 		}

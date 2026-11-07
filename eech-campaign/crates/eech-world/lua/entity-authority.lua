@@ -703,7 +703,7 @@ local function engine_marker (err) return string.match (first_line (err), FATAL)
 -- ---------------------------------------------------------------------------------------------------------------- the host's model provider, counted, altered only when armed
 local armed = false
 local reference -- the host's own model provider (host.model), resolved inside the owned close scope (main)
-local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, sector_height = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, sector_height = 0, pose = 0 }
+local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, sector_height = 0, flag = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, sector_height = 0, flag = 0, pose = 0 }
 local altered = 0
 local cand_altered, cand_skipped = 0, 0
 local scan_altered, scan_none_answered = 0, 0
@@ -823,7 +823,8 @@ end
 -- entry the scan stands at in ENTRY and RESOLVED (a roster key: 1 to 20 decimal digits, no leading zero) and in no other scan phase; an INSERT's optional hosted-mobile identity; a REMOVE's key; nothing for a RESET.
 -- The facts an event does not state are zero.
 local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3, ["0x40800000"] = 4, ["0x40a00000"] = 5, ["0x40c00000"] = 6,
-	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12, ["0x41500000"] = 13, ["0x41600000"] = 14, ["0x41700000"] = 15, ["0x41800000"] = 16, ["0x41880000"] = 17, ["0x41900000"] = 18 }
+	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12, ["0x41500000"] = 13, ["0x41600000"] = 14, ["0x41700000"] = 15, ["0x41800000"] = 16, ["0x41880000"] = 17, ["0x41900000"] = 18,
+	["0x41980000"] = 19, ["0x41a00000"] = 20, ["0x41a80000"] = 21, ["0x41b00000"] = 22 }
 local ROSTER_EVENTS = { [4] = "insert", [5] = "remove", [6] = "reset" }
 -- the facts an INSERT states (the position's x, y and z, the entity type, the side length: facts 1 to 3, 4 and 7) and the phase (12); all others are zero
 local INSERT_STATED = { [1] = true, [2] = true, [3] = true, [4] = true, [7] = true, [12] = true }
@@ -860,6 +861,26 @@ local function city_identity (event, identity)
 	end
 	return first, second
 end
+-- the PHYSICAL FLAG STORE (phases 19 to 22, Task49; mb_hostmodel.h): GROUP opens a word group (fact 1 here, the eligibility, 0.0 or 1.0; the answer names the host's key, "f" and decimal digits), SET and READ state the array (fact 13: 0.0, 1.0 or 2.0) and the
+-- lane (fact 14: a whole number 0 to 31) and name the group by its key in the identity place, RESET states the array and names nothing. Every other fact is zero. The patterns of the whole numbers are computed, not listed
+local function whole_pattern (n)
+	if n == 0 then return ZERO end
+	local e = 0
+	while 2 ^ (e + 1) <= n do e = e + 1 end
+	return string.format ("0x%08x", (127 + e) * 8388608 + (n - 2 ^ e) * 2 ^ (23 - e))
+end
+local FLAG_ARRAYS, FLAG_LANES = {}, {}
+for n = 0, 2 do FLAG_ARRAYS [whole_pattern (n)] = n end
+for n = 0, 31 do FLAG_LANES [whole_pattern (n)] = n end
+-- the lane's mask as a pattern (never through a number above 2^31: the hex digit is placed by text)
+local function mask_pattern (lane)
+	local digits = { "0", "0", "0", "0", "0", "0", "0", "0" }
+	digits [8 - math.floor (lane / 4)] = string.format ("%x", 2 ^ (lane % 4))
+	return "0x" .. table.concat (digits)
+end
+local function is_flag_key (text) return type (text) == "string" and #text <= 20 and string.match (text, "^f[1-9]%d*$") ~= nil end
+local FLAG_EVENTS = { [19] = "group", [20] = "set", [21] = "read", [22] = "reset" }
+local FLAG_RESULTS = { [19] = "flag_group", [20] = "flag_set", [21] = "flag_read", [22] = "flag_reset" }
 local function parse_scan_request (scene, depth, kind, definition, key)
 	if scene ~= 0 then return nil, "scene " .. tostring (scene) end
 	if depth ~= nil or kind ~= nil or definition ~= nil then return nil, "an entity scan question carries only the scene 0 and the facts text" end
@@ -870,7 +891,7 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 	local words = words_of_text (text, 16)
 	if words == nil then return nil, "the facts text is not 16 comma separated 0x%08x patterns" end
 	local phase = PHASES [words [12]]
-	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 18" end
+	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 22" end
 	-- the identity place has the domain of its phase: a host identity or a key is 1 to 128 bytes, and a city NAME holds a key (20 digits at most), one space and an object identity of its own 1 to 128 bytes (149 in all)
 	local limit = phase == 12 and 20 + 1 + 128 or 128
 	if #identity > limit then
@@ -911,6 +932,26 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 		if not others_zero (words, stated) then return nil, "a sector height " .. (phase == 18 and "restore" or "read") .. " states nothing but the sector, its phase and, for a restore, the word" end
 		if identity ~= "" then return nil, "a sector height names no placement" end
 		return { kind = "sector_height", words = words, phase = phase, event = phase == 18 and "sector_restore" or "sector_height" }
+	end
+	if phase >= 19 and phase <= 22 then
+		local event = FLAG_EVENTS [phase]
+		local stated = phase == 19 and { [1] = true, [12] = true } or (phase == 22 and { [12] = true, [13] = true } or { [12] = true, [13] = true, [14] = true })
+		if not others_zero (words, stated) then return nil, "a flag " .. event .. " states nothing but its phase and the facts of its grammar" end
+		if phase == 19 then
+			if words [1] ~= ZERO and words [1] ~= "0x3f800000" then return nil, "a flag group states an eligibility that is not 0.0 or 1.0" end
+			if identity ~= "" then return nil, "a flag group names no group" end
+			return { kind = "flag", words = words, phase = phase, event = event }
+		end
+		local array = FLAG_ARRAYS [words [13]]
+		if array == nil then return nil, "a flag " .. event .. " names the array " .. words [13] .. ", which is not 0.0, 1.0 or 2.0" end
+		if phase == 22 then
+			if identity ~= "" then return nil, "a flag reset names no group" end
+			return { kind = "flag", words = words, phase = phase, event = event, array = array }
+		end
+		local lane = FLAG_LANES [words [14]]
+		if lane == nil then return nil, "a flag " .. event .. " names the lane " .. words [14] .. ", which is not a whole number from 0 to 31" end
+		if not is_flag_key (identity) then return nil, "a flag " .. event .. " names \"" .. shown (identity) .. "\", which is not a flag key" end
+		return { kind = "flag", words = words, phase = phase, event = event, array = array, lane = lane, key = identity }
 	end
 	if phase >= 7 then
 		-- a CITY event: nothing is stated but the phase (and an insertion's entity type, fact 4); the identity place holds the keys of the phase's grammar
@@ -1172,6 +1213,8 @@ end
 scan.fixed.expand_total, scan.fixed.expand_answered, scan.fixed.box_withdrawn, scan.fixed.box_withdrawn_key, scan.fixed.box_eligible = 0, 0, 0, "", 0
 -- the SECTOR HEIGHT reads and restores (phases 17 and 18, Task49), kept in the same table: the questions seen in either window and those answered well-formed. The word is the host's; this only counts and checks it
 scan.fixed.height_total, scan.fixed.height_answered, scan.fixed.restore_total, scan.fixed.restore_answered = 0, 0, 0, 0
+-- the physical flag store's questions (phases 19 to 22) the driver passed through and the replies it found complete (never altered, never credited to a control: the words are the host's)
+scan.fixed.flag_total, scan.fixed.flag_answered = 0, 0
 -- the sector height reads ATTRIBUTED to the real consumer (modes sector_height_*): the roster entity types the host stated at each INSERT (the host's candidate question compares the word for the fixed family and a city), the FIRST
 -- answer awaiting its read, every read, the reads joined to a FIRST, the ELIGIBLE ones, the reads of any other caller (the clearance, the pack), the one altered answer, and the candidate questions that carried the word back (fact 12)
 scan.height = { types = {}, pending = nil, reads = 0, scan_joined = 0, eligible = 0, other = 0, altered = 0, consumed = 0, consumed_altered = 0, mismatch = 0 }
@@ -1248,6 +1291,34 @@ function scan.fixed.height_reply_problem (answer, parsed)
 	if parsed.phase == 18 and words [3] ~= parsed.words [1] then return "the host stored a word for the restore of a sector's height that is not the word stated" end
 	return nil
 end
+-- the first problem of a REAL flag reply against the contract, or nil: the state the phase allows, a key only for a group (a flag key), exactly three patterns, the array and lane (or the group's eligibility) echoed as asked, a set's third
+-- word the lane's mask and a read's 0 or the lane's mask (never a boolean), a group's other words and a reset's third zero. Nothing is classified as a number
+function scan.fixed.flag_reply_problem (answer, parsed)
+	if type (answer) ~= "table" then return "the reply is not a table" end
+	if answer.result == "refused" then return "result refused" end
+	local wanted = FLAG_RESULTS [parsed.phase]
+	if answer.result ~= wanted then return "a flag " .. parsed.event .. " answered " .. tostring (answer.result) .. ", not " .. wanted end
+	local name = answer.name
+	if parsed.phase == 19 then
+		if not is_flag_key (name) then return "a flag group was issued the key \"" .. shown (name) .. "\", which is not a flag key" end
+	elseif name ~= nil and name ~= "" then
+		return "a flag " .. parsed.event .. " named the key \"" .. shown (name) .. "\""
+	end
+	local words = type (answer.p) == "string" and words_of_text (answer.p, 3) or nil
+	if words == nil then return "a flag " .. parsed.event .. " answered words that are not three 0x%08x patterns" end
+	if parsed.phase == 19 then
+		if words [1] ~= parsed.words [1] or words [2] ~= ZERO or words [3] ~= ZERO then return "a flag group answered another eligibility than the one stated, or more than it" end
+	elseif parsed.phase == 22 then
+		if words [1] ~= parsed.words [13] or words [3] ~= ZERO then return "a flag reset answered another array than the one named, or a third word" end
+	else
+		if words [1] ~= parsed.words [13] or words [2] ~= parsed.words [14] then return "a flag " .. parsed.event .. " answered for another flag word than the one asked about" end
+		local mask = mask_pattern (parsed.lane)
+		if words [3] ~= mask and (parsed.phase == 20 or words [3] ~= ZERO) then
+			return "a flag " .. parsed.event .. " answered the raw word " .. words [3] .. ", which is " .. (parsed.phase == 20 and "not the lane's mask" or "neither 0 nor the lane's mask")
+		end
+	end
+	return nil
+end
 -- the verdict of withdrawn_box_state (nil when credited), given the engine's stop at boot (`failure`, nil when the boot completed). The evidence row is closed FIRST and carries only what this wrapper itself kept: after a stop
 -- NOTHING is read from the engine, so every physical fact after it is unknown (-1), never a number. Credited only by (a) an ELIGIBLE question (the pair joined a city state and a building state the provider
 -- acknowledged), (b) the reached withdrawal of ONLY that building's state (acknowledged `removed`), (c) the very question delegated afterwards, unmodified, and (d) the provider's own named refusal as the only fault.
@@ -1257,7 +1328,7 @@ function scan.fixed.box_verdict (failure)
 		event = "authority", mode = mode, profile = profile, expected_marker = plan.marker or "", completed = false, incomplete = false,
 		failure_marker = failure and failure.marker or "", failure_line = failure and failure.line or "", boot_stop = failure ~= nil,
 		city_expand_before = before.city_expand, city_expand_after = after.city_expand, city_expand_total = f.expand_total, city_expand_answered = f.expand_answered,
-		sector_height_total = f.height_total, sector_height_answered = f.height_answered, sector_restore_total = f.restore_total, sector_restore_answered = f.restore_answered,
+		sector_height_total = f.height_total, sector_height_answered = f.height_answered, sector_restore_total = f.restore_total, sector_restore_answered = f.restore_answered, flag_total = f.flag_total, flag_answered = f.flag_answered,
 		height_reads = scan.height.reads, height_scan_joined = scan.height.scan_joined, height_eligible = scan.height.eligible, height_other_callers = scan.height.other, height_altered = scan.height.altered,
 		height_consumed = scan.height.consumed, height_consumed_altered = scan.height.consumed_altered, height_mismatch = scan.height.mismatch,
 		box_eligible = f.box_eligible, box_withdrawn = f.box_withdrawn, box_withdrawn_key = f.box_withdrawn_key,
@@ -1449,6 +1520,24 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 		else
 			faults.reply = faults.reply + 1
 			first_fault = first_fault or ("scan reply: " .. expand_problem)
+		end
+		return real
+	end
+	-- a PHYSICAL FLAG question (phases 19 to 22, Task49): the host owns the three per-entity words, so the campaign asks it on every update iteration and every set. Counted in either window, its reply checked against the contract, never
+	-- altered and never credited to a control (it is the host's answer and nothing is decided from it here); a malformed question or reply is a request or reply fault like any other, and stops nothing the driver itself did not cause
+	if parsed ~= nil and parsed.kind == "flag" then
+		local f = scan.fixed
+		f.flag_total = f.flag_total + 1
+		if armed and joined then
+			faults.request = faults.request + 1
+			first_fault = first_fault or ("scan request: " .. joined)
+		end
+		local flag_problem = f.flag_reply_problem (real, parsed)
+		if flag_problem == nil then
+			f.flag_answered = f.flag_answered + 1
+		else
+			faults.reply = faults.reply + 1
+			first_fault = first_fault or ("scan reply: " .. flag_problem)
 		end
 		return real
 	end
@@ -2656,7 +2745,7 @@ local function main ()
 			city_state_held_lifetime = (function () local held = 0 for _ in pairs (scan.fixed.city_held) do held = held + 1 end return held end) (),
 			city_state_withdrawn_cause = (failure and string.find (failure.line, "[candidate.city]", 1, true) and string.find (failure.line, "withdrew", 1, true)) and "city_state_withdrawn" or "",
 			city_expand_before = before.city_expand, city_expand_after = after.city_expand, city_expand_total = scan.fixed.expand_total, city_expand_answered = scan.fixed.expand_answered,
-			sector_height_total = scan.fixed.height_total, sector_height_answered = scan.fixed.height_answered, sector_restore_total = scan.fixed.restore_total, sector_restore_answered = scan.fixed.restore_answered,
+			sector_height_total = scan.fixed.height_total, sector_height_answered = scan.fixed.height_answered, sector_restore_total = scan.fixed.restore_total, sector_restore_answered = scan.fixed.restore_answered, flag_total = scan.fixed.flag_total, flag_answered = scan.fixed.flag_answered,
 			height_reads = scan.height.reads, height_scan_joined = scan.height.scan_joined, height_eligible = scan.height.eligible, height_other_callers = scan.height.other, height_altered = scan.height.altered,
 			height_consumed = scan.height.consumed, height_consumed_altered = scan.height.consumed_altered, height_mismatch = scan.height.mismatch,
 		target = watched or "", target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed,

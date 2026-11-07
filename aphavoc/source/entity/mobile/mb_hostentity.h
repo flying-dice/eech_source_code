@@ -1122,6 +1122,205 @@ static void campaign_entity_sector_height_exchange (int phase, int x_sector, int
 	memcpy (word, &reply.candidate [2], sizeof (float));
 }
 
+// The PHYSICAL FLAG STORE (phases CAMPAIGN_SCAN_PHASE_FLAG_GROUP to _FLAG_RESET, Task49; see mb_hostmodel.h): the dialogue only. The host owns the three per-entity words; the campaign names a group by the opaque key the host issued and an entity by its
+// lane. The reply of every phase is checked COMPLETELY before one word of the caller's is written: the state the phase allows, a key only for a group (and then a flag key, "f" and decimal digits, which is never a roster key), exactly
+// CAMPAIGN_FLAG_REPLY_WORDS words and none beyond, the array and lane echoed bit for bit as asked, and the raw word of a set or a read being the entity's own mask (a read: 0 or the mask). The raw word is read as bits and never
+// classified as a boolean, so lane 31's 0x80000000 is valid. Nothing here reads an entity or a heap slot.
+static int flag_key_is_valid (const char *key)
+{
+	int
+		index;
+
+	if (key [0] != 'f')
+	{
+		return FALSE;
+	}
+
+	for (index = 1; key [index] != 0; index++)
+	{
+		if ((key [index] < '0') || (key [index] > '9') || (index > CAMPAIGN_ROSTER_KEY_MAX))
+		{
+			return FALSE;
+		}
+	}
+
+	return (index >= 2);
+}
+
+static void check_flag_reply (const campaign_model_reply *reply, int phase, const float *asked, int lane)
+{
+	int
+		index,
+		wanted;
+
+	uint32_t
+		raw,
+		mask;
+
+	switch (phase)
+	{
+		case CAMPAIGN_SCAN_PHASE_FLAG_GROUP: wanted = CAMPAIGN_MODEL_SCAN_FLAG_GROUP; break;
+		case CAMPAIGN_SCAN_PHASE_FLAG_SET: wanted = CAMPAIGN_MODEL_SCAN_FLAG_SET; break;
+		case CAMPAIGN_SCAN_PHASE_FLAG_READ: wanted = CAMPAIGN_MODEL_SCAN_FLAG_READ; break;
+		default: wanted = CAMPAIGN_MODEL_SCAN_FLAG_RESET; break;
+	}
+
+	if (reply->candidate_state != wanted)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d for a flag question of phase %d, which allows only state %d", reply->candidate_state, phase, wanted);
+	}
+
+	if (memchr (reply->name, 0, sizeof (reply->name)) == NULL)
+	{
+		debug_fatal ("host model: [model-provider:flag.key] the key the host named does not end inside the reply");
+	}
+
+	if (phase == CAMPAIGN_SCAN_PHASE_FLAG_GROUP)
+	{
+		if (!flag_key_is_valid (reply->name))
+		{
+			debug_fatal ("host model: [model-provider:flag.key] the key \"%.40s\" the host issued for a flag group is not a flag key", reply->name);
+		}
+	}
+	else if (reply->name [0] != 0)
+	{
+		debug_fatal ("host model: [model-provider:flag.key] the host named \"%.40s\" for a flag question that names no new key", reply->name);
+	}
+
+	if (reply->candidate_count != CAMPAIGN_FLAG_REPLY_WORDS)
+	{
+		debug_fatal ("host model: [model-provider:flag.answer] the host answered %d words for a flag question, which carries %d", reply->candidate_count, CAMPAIGN_FLAG_REPLY_WORDS);
+	}
+
+	if (phase == CAMPAIGN_SCAN_PHASE_FLAG_GROUP)
+	{
+		if (memcmp (&reply->candidate [0], &asked [0], sizeof (float)) != 0)
+		{
+			debug_fatal ("host model: [model-provider:flag.answer] the host answered a flag group with another eligibility than the one stated");
+		}
+
+		if (!scan_word_is_zero (&reply->candidate [1]) || !scan_word_is_zero (&reply->candidate [2]))
+		{
+			debug_fatal ("host model: [model-provider:flag.answer] the host answered more than the eligibility for a flag group");
+		}
+	}
+	else
+	{
+		if (memcmp (&reply->candidate [0], &asked [0], sizeof (float)) != 0)
+		{
+			debug_fatal ("host model: [model-provider:flag.answer] the host answered for another flag word than the one asked about");
+		}
+
+		if (phase == CAMPAIGN_SCAN_PHASE_FLAG_RESET)
+		{
+			// the number of groups cleared is the host's own fact and is not judged; the third place carries nothing
+			if (!scan_word_is_zero (&reply->candidate [2]))
+			{
+				debug_fatal ("host model: [model-provider:flag.answer] the host answered more than the array and a count for a flag reset");
+			}
+		}
+		else
+		{
+			if (memcmp (&reply->candidate [1], &asked [1], sizeof (float)) != 0)
+			{
+				debug_fatal ("host model: [model-provider:flag.answer] the host answered for another flag lane than the one asked about");
+			}
+
+			memcpy (&raw, &reply->candidate [2], sizeof (raw));
+
+			mask = ((uint32_t) 1) << lane;
+
+			if ((raw != mask) && ((phase == CAMPAIGN_SCAN_PHASE_FLAG_SET) || (raw != 0)))
+			{
+				debug_fatal ("host model: [model-provider:flag.word] the host answered the raw word 0x%08x for lane %d of a flag %s, which is %s", (unsigned int) raw, lane, (phase == CAMPAIGN_SCAN_PHASE_FLAG_SET) ? "set" : "read", (phase == CAMPAIGN_SCAN_PHASE_FLAG_SET) ? "not the lane's mask" : "neither 0 nor the lane's mask");
+			}
+		}
+	}
+
+	for (index = CAMPAIGN_FLAG_REPLY_WORDS; index < CAMPAIGN_MODEL_CANDIDATE_POSE_MAX; index++)
+	{
+		if (!scan_word_is_zero (&reply->candidate [index]))
+		{
+			debug_fatal ("host model: [model-provider:flag.answer] the host answered more than %d words for a flag question", CAMPAIGN_FLAG_REPLY_WORDS);
+		}
+	}
+
+}
+
+// `key` names the group (a SET or a READ) and is NULL otherwise; `eligible` is a group's statement (FLAG_GROUP only); `lane` is 0 for a reset or a group. `issued` receives the key a FLAG_GROUP answered, `word` the raw word of a read, both
+// only after the whole answer was checked.
+static void campaign_entity_flag_exchange (int phase, int array, int lane, const char *key, int eligible, char *issued, uint32_t *word)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	float
+		asked [2];
+
+	if (phase != CAMPAIGN_SCAN_PHASE_FLAG_GROUP)
+	{
+		if ((array < 0) || (array >= CAMPAIGN_FLAG_ARRAYS))
+		{
+			debug_fatal ("host model: [model-provider:flag.array] a flag question names the array %d, which is not 0 to %d", array, CAMPAIGN_FLAG_ARRAYS - 1);
+		}
+	}
+
+	if ((phase == CAMPAIGN_SCAN_PHASE_FLAG_SET) || (phase == CAMPAIGN_SCAN_PHASE_FLAG_READ))
+	{
+		if ((lane < 0) || (lane > 31))
+		{
+			debug_fatal ("host model: [model-provider:flag.lane] a flag question names the lane %d, which is not 0 to 31", lane);
+		}
+
+		if ((key == NULL) || !flag_key_is_valid (key))
+		{
+			debug_fatal ("host model: [model-provider:flag.key] a flag question names no group the host issued");
+		}
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_SCAN;
+	request.scene = 0;
+	request.pose_count = CAMPAIGN_MODEL_SCAN_FACTS;
+	request.pose [CAMPAIGN_SCAN_PHASE] = (float) phase;
+
+	asked [0] = (phase == CAMPAIGN_SCAN_PHASE_FLAG_GROUP) ? (float) (eligible ? 1 : 0) : (float) array;
+	asked [1] = (float) lane;
+
+	if (phase == CAMPAIGN_SCAN_PHASE_FLAG_GROUP)
+	{
+		request.pose [CAMPAIGN_FLAG_ELIGIBLE] = asked [0];
+	}
+	else
+	{
+		request.pose [CAMPAIGN_FLAG_ARRAY] = asked [0];
+
+		if (phase != CAMPAIGN_SCAN_PHASE_FLAG_RESET)
+		{
+			request.pose [CAMPAIGN_FLAG_LANE] = asked [1];
+
+			memcpy (request.host_id, key, strlen (key));
+		}
+	}
+
+	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
+
+	check_flag_reply (&reply, phase, asked, lane);
+
+	if (issued != NULL)
+	{
+		memcpy (issued, reply.name, strlen (reply.name) + 1);
+	}
+
+	if (word != NULL)
+	{
+		memcpy (word, &reply.candidate [2], sizeof (uint32_t));
+	}
+}
+
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ENTITY_POSE (EEDCS-49, D3, fifth slice): an OBSERVATION of a mobile candidate's pose against the host's record of its identity. The answer chooses no pose and no result; its shape is checked and a mirror difference stops the engine (a conformance assertion, not a decision-neutral read).
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -28,6 +28,10 @@
  * STATE THE CONTROL CHANGES AND GIVES BACK: the int and list dispatch tables, the three flag arrays (copied whole), the `entities` pointer, update_entity, update_succ and locked_frame_rate are saved first and
  * restored on every path (there is no early return).
  *
+ * TWO PROFILES (Task49, the host-owned flag store). The scenarios below are the SAME text in both. In the ORIGINAL profile (feature collision-fixture, EECH_CAMPAIGN_HOST_ENTITY not defined) the words are the engine's global arrays, clear_flags () clears them and a word is read from them: this is the accepted
+ * characterisation, unchanged. In the HOSTED profile (the default build) the words are the HOST's: the getter, setter and reset ask the model provider, the arrays are not defined in the build, a scenario starts from a fresh
+ * host binding and a word is observed by asking the host (eech_physical_flags_hosted.h); the test installs the REAL store of eech-world as the provider (tests/support/flags_host.rs).
+ *
  * eech_physical_flags_check_run returns the number of failed expectations (0: all held) and writes one line per failure and a short report of the observed facts; *checks is the number of expectations made.
  */
 
@@ -43,7 +47,16 @@
 
 #include "project.h"
 
+#include "eech_physical_flags_hosted.h"
+
 #define WORDS (MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8))
+
+/* the word of an array as the profile holds it: the ORIGINAL profile's global array, the HOSTED profile's store asked of the host (eech_physical_flags_hosted.h); `WORD` is a word index, `SLOT` an entity slot */
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+#define FLAG_WORD(TYPE, WORD) hosted_word ((TYPE), (WORD) * 32)
+#else
+#define FLAG_WORD(TYPE, WORD) ((((TYPE) == INT_TYPE_UPDATED) ? updated_entities : (((TYPE) == INT_TYPE_MOVED) ? moved_entities : rotated_entities)) [(WORD)])
+#endif
 
 struct check
 {
@@ -79,6 +92,16 @@ static void note (struct check *c, const char *format, ...)
 #define EXPECT(C, CONDITION, WHAT) do { (C)->checks++; if (!(CONDITION)) { (C)->failures++; note ((C), "FAIL %s:%d %s\n", __FILE__, __LINE__, (WHAT)); } } while (0)
 #define EXPECT_INT(C, ACTUAL, WANTED, WHAT) do { long long a_ = (long long) (ACTUAL), w_ = (long long) (WANTED); (C)->checks++; if (a_ != w_) { (C)->failures++; note ((C), "FAIL %s:%d %s: got %lld, wanted %lld\n", __FILE__, __LINE__, (WHAT), a_, w_); } } while (0)
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+/* the hosted profile starts a scenario from a fresh host binding (see eech_physical_flags_hosted.h) */
+static void clear_flags (void)
+{
+	hosted_clear ();
+}
+
+#else
+
 static unsigned int
 	saved_moved [WORDS],
 	saved_rotated [WORDS],
@@ -90,6 +113,8 @@ static void clear_flags (void)
 	memset (rotated_entities, 0, sizeof (rotated_entities [0]) * WORDS);
 	memset (updated_entities, 0, sizeof (updated_entities [0]) * WORDS);
 }
+
+#endif
 
 /* the engine's own tables for the types this control sends to, written by the engine's own initialisers */
 struct saved_table
@@ -173,8 +198,6 @@ static void run_word_cases (struct check *c, entity *pool, int type, const char 
 		*a,
 		*b,
 		*other;
-	unsigned int
-		*array = (type == INT_TYPE_UPDATED) ? updated_entities : ((type == INT_TYPE_MOVED) ? moved_entities : rotated_entities);
 
 	clear_flags ();
 
@@ -182,7 +205,7 @@ static void run_word_cases (struct check *c, entity *pool, int type, const char 
 	a = slot (pool, base + 3, ENTITY_TYPE_HELICOPTER);
 
 	EXPECT_INT (c, get_local_entity_int_value (a, type), 0, "an untouched entity reads 0");
-	EXPECT_INT (c, array [word], 0, "the getter of an untouched entity leaves the word 0");
+	EXPECT_INT (c, FLAG_WORD (type, word), 0, "the getter of an untouched entity leaves the word 0");
 
 	/* one entity at every interesting bit offset: the getter returns the MASK (not 1), INT_MIN for bit 31; any non-zero value is true to a consumer */
 	for (i = 0; i < (int) (sizeof (offsets) / sizeof (offsets [0])); i++)
@@ -193,7 +216,7 @@ static void run_word_cases (struct check *c, entity *pool, int type, const char 
 
 		set_local_entity_int_value (a, type, TRUE);
 
-		EXPECT_INT (c, array [word], (long long) mask_of (offsets [i]), "the setter ORs exactly this entity's bit (the word is unsigned)");
+		EXPECT_INT (c, FLAG_WORD (type, word), (long long) mask_of (offsets [i]), "the setter ORs exactly this entity's bit (the word is unsigned)");
 
 		value = get_local_entity_int_value (a, type);
 
@@ -201,7 +224,7 @@ static void run_word_cases (struct check *c, entity *pool, int type, const char 
 		EXPECT (c, (value != 0) == TRUE, "a mask is non-zero, hence true to an if () consumer");
 		EXPECT (c, (value == TRUE) == (offsets [i] == 0), "only bit 0 equals TRUE: every other mask is not the boolean 1");
 		EXPECT (c, (offsets [i] != 31) || (value < 0), "bit 31 reads as a NEGATIVE int (INT_MIN)");
-		EXPECT_INT (c, array [word], (long long) mask_of (offsets [i]), "reading does not change the entity's own bit");
+		EXPECT_INT (c, FLAG_WORD (type, word), (long long) mask_of (offsets [i]), "reading does not change the entity's own bit");
 		EXPECT_INT (c, get_local_entity_int_value (a, type), value, "a second read returns the same mask: the getter does not consume the entity's own bit");
 	}
 
@@ -214,11 +237,11 @@ static void run_word_cases (struct check *c, entity *pool, int type, const char 
 	set_local_entity_int_value (a, type, TRUE);
 	set_local_entity_int_value (b, type, TRUE);
 
-	EXPECT_INT (c, array [word], (long long) (int) (mask_of (3) | mask_of (9)), "both bits are set");
+	EXPECT_INT (c, FLAG_WORD (type, word), (long long) (int) (mask_of (3) | mask_of (9)), "both bits are set");
 	EXPECT_INT (c, get_local_entity_int_value (a, type), (long long) (int) mask_of (3), "the first entity reads its own mask");
-	EXPECT_INT (c, array [word], (long long) (int) mask_of (3), "its getter cleared the other entity's bit in the shared word");
+	EXPECT_INT (c, FLAG_WORD (type, word), (long long) (int) mask_of (3), "its getter cleared the other entity's bit in the shared word");
 	EXPECT_INT (c, get_local_entity_int_value (b, type), 0, "the other entity now reads 0: a getter destroys its neighbours' flags");
-	EXPECT_INT (c, array [word], 0, "and the getter of the now-unset entity cleared the first entity's bit too");
+	EXPECT_INT (c, FLAG_WORD (type, word), 0, "and the getter of the now-unset entity cleared the first entity's bit too");
 	EXPECT_INT (c, get_local_entity_int_value (a, type), 0, "the first entity has lost its flag to the neighbour's read: reads are order dependent");
 
 	/* an entity in ANOTHER word is untouched by all of it */
@@ -231,7 +254,7 @@ static void run_word_cases (struct check *c, entity *pool, int type, const char 
 	set_local_entity_int_value (other, type, TRUE);
 
 	EXPECT_INT (c, get_local_entity_int_value (a, type), (long long) (int) mask_of (3), "word 5, bit 3");
-	EXPECT_INT (c, array [word + 1], (long long) (int) mask_of (3), "word 6 is another entity's and is untouched");
+	EXPECT_INT (c, FLAG_WORD (type, word + 1), (long long) (int) mask_of (3), "word 6 is another entity's and is untouched");
 	EXPECT_INT (c, get_local_entity_int_value (other, type), (long long) (int) mask_of (3), "the entity in the next word reads its own mask");
 
 	/* the key is the SLOT INDEX alone: a reused slot of another type keeps the bit, a different slot of the same word does not own it */
@@ -250,6 +273,16 @@ static void run_word_cases (struct check *c, entity *pool, int type, const char 
 
 static int sample_indices [] = { 0, 100, 131071, 131072, 400000, 524287 };
 #define SAMPLES ((int) (sizeof (sample_indices) / sizeof (sample_indices [0])))
+
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+/* the hosted profile's provider, fresh-binding and observation entries (eech_physical_flags_hosted.h), installed by the test before the run */
+void eech_physical_flags_check_set_host (campaign_model_fn model, flags_host_fresh_fn fresh, flags_host_observe_fn observe)
+{
+	hosted_install (model, fresh, observe);
+}
+
+#endif
 
 int eech_physical_flags_check_run (char *text, int capacity, int *checks)
 {
@@ -275,6 +308,17 @@ int eech_physical_flags_check_run (char *text, int capacity, int *checks)
 	c.checks = 0;
 	text [0] = 0;
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+	if ((hosted_fresh_fn == NULL) || (hosted_observe_fn == NULL))
+	{
+		note (&c, "FAIL no hosted flag provider was installed before the run\n");
+
+		*checks = 0;
+
+		return 1;
+	}
+#endif
+
 	pool = (entity *) calloc (MAX_NUM_ENTITIES, sizeof (entity));
 
 	if (!pool)
@@ -291,9 +335,11 @@ int eech_physical_flags_check_run (char *text, int capacity, int *checks)
 	saved_update_succ = update_succ;
 	saved_locked = locked_frame_rate;
 
+#ifndef EECH_CAMPAIGN_HOST_ENTITY
 	memcpy (saved_moved, moved_entities, sizeof (unsigned int) * WORDS);
 	memcpy (saved_rotated, rotated_entities, sizeof (unsigned int) * WORDS);
 	memcpy (saved_updated, updated_entities, sizeof (unsigned int) * WORDS);
+#endif
 
 	save_tables ();
 
@@ -359,7 +405,7 @@ int eech_physical_flags_check_run (char *text, int capacity, int *checks)
 
 	for (i = 0; i < SAMPLES; i++)
 	{
-		EXPECT_INT (&c, updated_entities [sample_indices [i] >> 5] & mask_of (sample_indices [i]), mask_of (sample_indices [i]), "before the reset every sampled UPDATED bit is set");
+		EXPECT_INT (&c, FLAG_WORD (INT_TYPE_UPDATED, sample_indices [i] >> 5) & mask_of (sample_indices [i]), mask_of (sample_indices [i]), "before the reset every sampled UPDATED bit is set");
 	}
 
 	update_client_server_entities ();
@@ -367,12 +413,12 @@ int eech_physical_flags_check_run (char *text, int capacity, int *checks)
 	for (i = 0; i < SAMPLES; i++)
 	{
 		int
-			bit_set = (updated_entities [sample_indices [i] >> 5] & mask_of (sample_indices [i])) != 0;
+			bit_set = (FLAG_WORD (INT_TYPE_UPDATED, sample_indices [i] >> 5) & mask_of (sample_indices [i])) != 0;
 
 		/* the memset count is MAX_NUM_ENTITIES / 32 BYTES = a quarter of the array: indices below 131072 are reset, the rest never are */
 		EXPECT (&c, bit_set == (sample_indices [i] >= 131072), "the reset clears indices below 131072 and never the rest (quarter-memset)");
-		EXPECT (&c, (moved_entities [sample_indices [i] >> 5] & mask_of (sample_indices [i])) != 0, "MOVED is not reset by the call with Tacview logging off");
-		EXPECT (&c, (rotated_entities [sample_indices [i] >> 5] & mask_of (sample_indices [i])) != 0, "ROTATED is not reset by the call with Tacview logging off");
+		EXPECT (&c, (FLAG_WORD (INT_TYPE_MOVED, sample_indices [i] >> 5) & mask_of (sample_indices [i])) != 0, "MOVED is not reset by the call with Tacview logging off");
+		EXPECT (&c, (FLAG_WORD (INT_TYPE_ROTATED, sample_indices [i] >> 5) & mask_of (sample_indices [i])) != 0, "ROTATED is not reset by the call with Tacview logging off");
 	}
 
 	/* a flag above the reset extent SURVIVES the resets (a second reset does not clear it) and the getter keeps reading its own bit; it is NOT permanent: a getter read of another entity of its word clears it (measured by the consumer control) */
@@ -405,9 +451,11 @@ int eech_physical_flags_check_run (char *text, int capacity, int *checks)
 	update_succ = saved_update_succ;
 	entities = saved_entities;
 
+#ifndef EECH_CAMPAIGN_HOST_ENTITY
 	memcpy (moved_entities, saved_moved, sizeof (unsigned int) * WORDS);
 	memcpy (rotated_entities, saved_rotated, sizeof (unsigned int) * WORDS);
 	memcpy (updated_entities, saved_updated, sizeof (unsigned int) * WORDS);
+#endif
 
 	restore_tables ();
 

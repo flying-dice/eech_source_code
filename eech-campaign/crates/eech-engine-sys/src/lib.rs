@@ -1162,6 +1162,11 @@ pub const EECH_MODEL_SCAN_EXPANDED: c_int = 9;
 /// the answers to the sector height read and restore (the scan question's phases 17 and 18): `candidate_count` (3) words of `candidate` are the sector's x and z as asked, then the word the host holds (the restored word as stored)
 pub const EECH_MODEL_SCAN_HEIGHT: c_int = 10;
 pub const EECH_MODEL_SCAN_RESTORED: c_int = 11;
+/// the answers to the physical flag store's questions (the scan question's phases 19 to 22): `candidate_count` (3) words of `candidate`, kept as bits: a group's eligibility, then a set or read's array, lane and raw word, or a reset's array and count; a group's answer names its key
+pub const EECH_MODEL_SCAN_FLAG_GROUP: c_int = 12;
+pub const EECH_MODEL_SCAN_FLAG_SET: c_int = 13;
+pub const EECH_MODEL_SCAN_FLAG_READ: c_int = 14;
+pub const EECH_MODEL_SCAN_FLAG_RESET: c_int = 15;
 /// ENTITY_POSE (EEDCS-49): an OBSERVATION of a mobile candidate's pose against the host's record of its identity (`depth` the stage, `kind` the entity's type, `definition` whether it is alive, `host_id` its
 /// host identity, 15 floats of `pose`); the answer's `candidate_state` is the class, `candidate_count` the kind of the host's record and `write_mask` the differences. Nothing decides from it
 pub const EECH_MODEL_ENTITY_POSE: c_int = 18;

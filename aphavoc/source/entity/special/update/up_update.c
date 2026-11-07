@@ -68,6 +68,10 @@
 
 #include "entity/tacview/tacview.h"
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+#include "entity/mobile/mb_hostmodel.h"
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,10 +86,15 @@ entity
 	*update_entity = NULL,
 	*update_succ = NULL;
 
+#ifndef EECH_CAMPAIGN_HOST_ENTITY
+
+// the three per-entity physical words (UPDATED, MOVED, ROTATED) are the HOST's in a hosted build (Task49): they are not defined there, and nothing in the campaign can hold a bit of them
 unsigned int
 	moved_entities[MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)],
 	rotated_entities[MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)],
 	updated_entities [MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)];
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,8 +147,13 @@ void update_client_server_entities (void)
 	if (tacview_is_logging() && tacview_reset_frame())
 	{
 		write_tacview_frame_header();
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+		campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_MOVED);
+		campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_ROTATED);
+#else
 		memset (moved_entities, 0, MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8));
 		memset (rotated_entities, 0, MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8));
+#endif
 	}
 
 	for (loop = 0; loop < iterations; loop ++)
@@ -154,7 +168,11 @@ void update_client_server_entities (void)
 		// memset below.
 		//
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+		campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_UPDATED);
+#else
 		memset (updated_entities, 0, MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8));
+#endif
 
 		//
 		// replaces....

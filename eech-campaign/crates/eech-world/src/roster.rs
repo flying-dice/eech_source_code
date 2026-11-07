@@ -297,6 +297,9 @@ pub struct SectorRoster {
     /// the sectors' high-water heights, as the bits of the float word the host holds (the ONE physical word of each sector: `sector_height`); a sector with no entry holds the all-zero word, which is
     /// what a fresh sector starts from. Nothing lowers it; only an arrival (`raise_sector_height`) and a session restore (`restore_sector_height`) write it, and a boot's clear ends it
     heights: HashMap<(i32, i32), u32>,
+    /// the PHYSICAL per-entity UPDATED / MOVED / ROTATED store (Task49): the host's, kept beside the roster because it is reached through the same provider state, but NOT the roster's: `clear` (a boot) never touches it, because the
+    /// original's static arrays are not cleared by a boot and a reused slot inherits its history
+    pub flags: crate::flags::FlagStore,
 }
 
 impl SectorRoster {

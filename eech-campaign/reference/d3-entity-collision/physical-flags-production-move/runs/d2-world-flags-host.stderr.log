@@ -1,0 +1,3 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.86s
+     Running tests/physical_flags_host.rs (/target/t/debug/deps/physical_flags_host-5e792bc00d99df08)

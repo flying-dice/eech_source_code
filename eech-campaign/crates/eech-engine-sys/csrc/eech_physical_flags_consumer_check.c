@@ -28,6 +28,9 @@
  *
  * STATE THE CONTROL CHANGES AND GIVES BACK: the int, float, vec3d, list and message tables, the three flag arrays (copied whole), `entities`, update_entity, update_succ, locked_frame_rate, system_delta_time and the comms model are saved first and restored on every path (no early return).
  *
+ * TWO PROFILES (Task49, the host-owned flag store): the SAME scenarios run in the ORIGINAL profile (feature collision-fixture: the words are the engine's global arrays, unchanged) and in the HOSTED profile (the default build: the words are
+ * the HOST's, a scenario starts from a fresh host binding and a word is observed by asking the host; eech_physical_flags_hosted.h, tests/support/flags_host.rs).
+ *
  * eech_physical_flags_consumer_run returns the number of failed expectations and writes one line per failure and the observed facts; *checks is the number of expectations made.
  */
 
@@ -43,6 +46,8 @@
 #include <string.h>
 
 #include "project.h"
+
+#include "eech_physical_flags_hosted.h"
 
 #define WORDS (MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8))
 
@@ -80,6 +85,16 @@ static void note (struct check *c, const char *format, ...)
 #define EXPECT(C, CONDITION, WHAT) do { (C)->checks++; if (!(CONDITION)) { (C)->failures++; note ((C), "FAIL %s:%d %s\n", __FILE__, __LINE__, (WHAT)); } } while (0)
 #define EXPECT_INT(C, ACTUAL, WANTED, WHAT) do { long long a_ = (long long) (ACTUAL), w_ = (long long) (WANTED); (C)->checks++; if (a_ != w_) { (C)->failures++; note ((C), "FAIL %s:%d %s: got %lld, wanted %lld\n", __FILE__, __LINE__, (WHAT), a_, w_); } } while (0)
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+/* the hosted profile starts a scenario from a fresh host binding and observes a word by asking the HOST (see eech_physical_flags_hosted.h) */
+static void clear_flags (void)
+{
+	hosted_clear ();
+}
+
+#else
+
 static unsigned int
 	saved_moved [WORDS],
 	saved_rotated [WORDS],
@@ -91,6 +106,8 @@ static void clear_flags (void)
 	memset (rotated_entities, 0, sizeof (rotated_entities [0]) * WORDS);
 	memset (updated_entities, 0, sizeof (updated_entities [0]) * WORDS);
 }
+
+#endif
 
 struct saved_table
 {
@@ -228,7 +245,11 @@ static unsigned int mask_of (int index)
 
 static unsigned int word_of_index (int index)
 {
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+	return hosted_word (INT_TYPE_UPDATED, index);
+#else
 	return updated_entities [index >> 5];
+#endif
 }
 
 static void set_updated (entity *en)
@@ -431,6 +452,16 @@ static void run_cases (struct check *c, entity *pool, entity *update_en)
 	(void) update_en;
 }
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+/* the hosted profile's provider, fresh-binding and observation entries (eech_physical_flags_hosted.h), installed by the test before the run */
+void eech_physical_flags_consumer_set_host (campaign_model_fn model, flags_host_fresh_fn fresh, flags_host_observe_fn observe)
+{
+	hosted_install (model, fresh, observe);
+}
+
+#endif
+
 int eech_physical_flags_consumer_run (char *text, int capacity, int *checks)
 {
 	struct check
@@ -457,6 +488,17 @@ int eech_physical_flags_consumer_run (char *text, int capacity, int *checks)
 	c.checks = 0;
 	text [0] = 0;
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+	if ((hosted_fresh_fn == NULL) || (hosted_observe_fn == NULL))
+	{
+		note (&c, "FAIL no hosted flag provider was installed before the run\n");
+
+		*checks = 0;
+
+		return 1;
+	}
+#endif
+
 	pool = (entity *) calloc (MAX_NUM_ENTITIES, sizeof (entity));
 
 	if (!pool)
@@ -475,9 +517,11 @@ int eech_physical_flags_consumer_run (char *text, int capacity, int *checks)
 	saved_dt = system_delta_time;
 	saved_comms = get_comms_model ();
 
+#ifndef EECH_CAMPAIGN_HOST_ENTITY
 	memcpy (saved_moved, moved_entities, sizeof (unsigned int) * WORDS);
 	memcpy (saved_rotated, rotated_entities, sizeof (unsigned int) * WORDS);
 	memcpy (saved_updated, updated_entities, sizeof (unsigned int) * WORDS);
+#endif
 
 	save_tables ();
 
@@ -547,9 +591,11 @@ int eech_physical_flags_consumer_run (char *text, int capacity, int *checks)
 	update_succ = saved_update_succ;
 	entities = saved_entities;
 
+#ifndef EECH_CAMPAIGN_HOST_ENTITY
 	memcpy (moved_entities, saved_moved, sizeof (unsigned int) * WORDS);
 	memcpy (rotated_entities, saved_rotated, sizeof (unsigned int) * WORDS);
 	memcpy (updated_entities, saved_updated, sizeof (unsigned int) * WORDS);
+#endif
 
 	restore_tables ();
 
