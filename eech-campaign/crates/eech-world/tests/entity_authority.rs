@@ -328,7 +328,7 @@ local function reference (op, scene, depth, kind, definition, key)
 			record.answer = answer
 			return answer
 		end
-		if scenario.height_scan and identity ~= "" and cw [11] == ZERO and ROSTER_HEIGHT (identity) ~= nil and ROSTER_HEIGHT (identity) ~= cw [13] then
+		if scenario.height_scan and not scenario.height_scan_late and identity ~= "" and cw [11] == ZERO and ROSTER_HEIGHT (identity) ~= nil and ROSTER_HEIGHT (identity) ~= cw [13] then
 			answer = { result = "refused", reason = "[candidate.sector_height] the campaign offers " .. cw [13] .. " as the tallest structure of its sector, but the host holds " .. ROSTER_HEIGHT (identity) .. ": the word is the host's and the campaign only passes it on" }
 			ANSWERS [#ANSWERS + 1] = answer
 			record.answer = answer
@@ -1102,6 +1102,24 @@ package.preload.eech_dc = function ()
 					for _, state in ipairs ({ ... }) do if answer.result == state then return end end
 					stop ("entity_scan.state", "state " .. answer.result .. " is not allowed here")
 				end
+				-- the campaign's getter asks the host for the sector's height (scan phase 17: the sector in the cursor facts), checks the whole reply as the shared C does (the state, three patterns, the sector echoed) and carries
+				-- the word into every candidate question of the scan as fact 12. A SCRIPTED boundary check of the driver, not a native campaign read. `height_stray_request` makes the question itself malformed (a stray fact)
+				local function height_read ()
+					local cursor = HEIGHT_CURSOR
+					local hw = {}
+					for index = 1, 16 do hw [index] = ZERO end
+					hw [12], hw [13], hw [14] = "0x41880000", cursor [1], cursor [2]
+					if scenario.height_stray_request then hw [6] = "0x3f800000" end
+					local hok, hanswer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (hw, ","), not height_altering [MODE])
+					if not hok then stop ("entity_scan.callback", tostring (hanswer)) end
+					if type (hanswer) == "table" and hanswer.result == "refused" then stop ("entity_scan.refused", tostring (hanswer.reason)) end
+					if type (hanswer) ~= "table" or hanswer.result ~= "height" then stop (scenario.height_wrong_marker and "entity_scan.cursor" or "entity_scan.state", "a sector height read allows only height") end
+					local hp = {}
+					for token in string.gmatch (hanswer.p or "", "[^,]+") do hp [#hp + 1] = token end
+					if #hp ~= 3 then stop ("entity_scan.answer", "p must be three bit patterns") end
+					if hp [1] ~= cursor [1] or hp [2] ~= cursor [2] then stop ("entity_scan.sector_height", "another sector than the one asked about") end
+					CAND_FACT12 = hp [3]
+				end
 				local answer, standing
 				if scenario.scan_from_entry then
 					-- a scan the wrapper first sees mid-way (armed between two of its questions): it stands at the key of the entry placed first, or, for `ended`, at that key after the entry was relinked under a new one
@@ -1127,25 +1145,20 @@ package.preload.eech_dc = function ()
 					standing = answer.name
 					-- the campaign's getter asks the host for the sector's height at a FIRST (scan phase 17: the sector in the cursor facts), checks the whole reply as the shared C does (the state, three patterns,
 					-- the sector echoed) and carries the word into every candidate question of the scan as fact 12. A SCRIPTED boundary check of the driver: it is not a native campaign read
-					if scenario.height_scan then
-						local hw = {}
-						for index = 1, 16 do hw [index] = ZERO end
-						hw [12], hw [13], hw [14] = "0x41880000", cursor [1], cursor [2]
-						local hok, hanswer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (hw, ","), not height_altering [MODE])
-						if not hok then stop ("entity_scan.callback", tostring (hanswer)) end
-						if type (hanswer) == "table" and hanswer.result == "refused" then stop ("entity_scan.refused", tostring (hanswer.reason)) end
-						if type (hanswer) ~= "table" or hanswer.result ~= "height" then stop ("entity_scan.state", "a sector height read allows only height") end
-						local hp = {}
-						for token in string.gmatch (hanswer.p or "", "[^,]+") do hp [#hp + 1] = token end
-						if #hp ~= 3 then stop ("entity_scan.answer", "p must be three bit patterns") end
-						if hp [1] ~= cursor [1] or hp [2] ~= cursor [2] then stop ("entity_scan.sector_height", "another sector than the one asked about") end
-						CAND_FACT12 = hp [3]
-					end
+					HEIGHT_CURSOR = cursor
+					if scenario.height_scan and not scenario.height_scan_late then height_read () end
 				end
 				answer = ask ("entry", false, false, standing)
 				allowed (answer, "offer")
 				last_hit = false
 				offer ()
+				-- LATE: the read comes after the offer, so that the configured narrow-phase hit has been answered before it (the order of the control that injects an unrelated fatal between the two)
+				-- an unrelated fatal of the scripted engine AFTER the configured narrow-phase hit was answered, whether or not a height read follows
+				if scenario.inject_fatal_after_offer then stop (scenario.inject_fatal_after_offer, "an unrelated fatal of the scripted engine") end
+				if scenario.height_scan and scenario.height_scan_late then
+					if scenario.inject_fatal_before_height then stop (scenario.inject_fatal_before_height, "an unrelated fatal of the scripted engine") end
+					height_read ()
+				end
 				answer = ask ("resolved", false, last_hit, standing)
 				allowed (answer, last_hit and "done_hit" or "next")
 				if answer.result == "done_hit" then return end
@@ -4991,6 +5004,101 @@ fn every_altered_sector_height_answer_stops_the_engine_at_its_own_named_marker_a
         let consumed = if mode == "sector_height_wrong_word" { 1 } else { 0 };
         assert_eq!(row["height_consumed_altered"], consumed, "{mode}: {row}");
     }
+}
+
+// ---- ENV-SECTOR-HEIGHT-REFUSAL-INTERVENTION-1: a height refusal is credited only with EXACTLY the one actual eligible height intervention, whatever the configured secondary input altered and whatever marker stopped the
+// engine; any fatal before it is a FAILURE, only a clean run with no eligible read is UNREACHED
+
+const HEIGHT_MODES: [(&str, &str); 5] = [
+    ("sector_height_withheld", "entity_scan.callback"),
+    ("sector_height_malformed", "entity_scan.answer"),
+    ("sector_height_wrong_state", "entity_scan.state"),
+    ("sector_height_wrong_sector", "entity_scan.sector_height"),
+    ("sector_height_wrong_word", "entity_candidate.refused"),
+];
+
+#[test]
+fn an_unrelated_fatal_bearing_a_height_modes_own_marker_before_any_eligible_intervention_is_a_failure_never_a_credit_or_unreached() {
+    for (mode, marker) in HEIGHT_MODES {
+        // the coherent positive first (the read at the scan FIRST is the eligible intervention and credits the mode)
+        let positive = drive(&healthy(&format!("{FIXED_STATE}{HEIGHT_SCAN}")), &[("mode", mode)]);
+        assert!(
+            positive.result.is_ok(),
+            "{mode}: the positive is credited: {:?}\n{}",
+            positive.result,
+            positive.rows
+        );
+        let row = authority(&positive);
+        assert_eq!(
+            (row["height_altered"].clone(), row["failure_marker"].clone()),
+            (Value::from(1), Value::from(marker)),
+            "{mode}: {row}"
+        );
+        // the single fault: AFTER the valid configured secondary hit (the narrow phase was answered a hit) and with NO eligible read, an unrelated fatal that bears this mode's expected marker
+        let injected = drive(&healthy(&format!("{FIXED_STATE}, inject_fatal_after_offer = '{marker}'")), &[("mode", mode)]);
+        let row = authority(&injected);
+        assert_eq!(row["height_altered"], 0, "{mode}: {row}");
+        assert!(
+            row["altered"].as_i64().unwrap() >= 1,
+            "{mode}: the configured secondary hit was answered before the fatal: {row}"
+        );
+        assert_eq!(row["failure_marker"], marker, "{mode}: {row}");
+        let error = error_of(injected);
+        assert!(error.contains("before an eligible sector height read was altered"), "{mode}: {error}");
+        assert!(!error.contains("UNREACHED"), "{mode}: {error}");
+    }
+    // the same for the four modes that stop at the read itself, with the eligible read STILL TO COME: the late read is the intervention (positive), and a fatal between the hit and the read is a failure
+    for (mode, marker) in HEIGHT_MODES.iter().filter(|(mode, _)| *mode != "sector_height_wrong_word") {
+        let positive = drive(&healthy(&format!("{FIXED_STATE}{HEIGHT_SCAN}, height_scan_late = true")), &[("mode", mode)]);
+        assert!(
+            positive.result.is_ok(),
+            "{mode}: the late positive is credited: {:?}\n{}",
+            positive.result,
+            positive.rows
+        );
+        assert_eq!(authority(&positive)["height_altered"], 1, "{mode}");
+        let injected = drive(
+            &healthy(&format!(
+                "{FIXED_STATE}{HEIGHT_SCAN}, height_scan_late = true, inject_fatal_before_height = '{marker}'"
+            )),
+            &[("mode", mode)],
+        );
+        let row = authority(&injected);
+        assert_eq!(
+            (row["height_altered"].clone(), row["failure_marker"].clone()),
+            (Value::from(0), Value::from(*marker)),
+            "{mode}: {row}"
+        );
+        let error = error_of(injected);
+        assert!(
+            error.contains("before an eligible sector height read was altered") && !error.contains("UNREACHED"),
+            "{mode}: {error}"
+        );
+    }
+}
+
+#[test]
+fn a_height_refusal_run_that_fails_for_another_reason_or_stops_at_another_marker_after_the_intervention_is_not_credited() {
+    // a clean run with no eligible read is UNREACHED (the scripted engine never reads)
+    for (mode, _) in HEIGHT_MODES {
+        let error = error_of(drive(&healthy(FIXED_STATE), &[("mode", mode)]));
+        assert!(error.contains(&format!("UNREACHED: {mode}: no ELIGIBLE sector height read")), "{mode}: {error}");
+    }
+    // a request fault at the read (a stray fact) means no read was attributed: the run failed first, never UNREACHED and never credited
+    let error = error_of(drive(
+        &healthy(&format!("{FIXED_STATE}{HEIGHT_SCAN}, height_stray_request = true")),
+        &[("mode", "sector_height_withheld")],
+    ));
+    assert!(error.contains("no sector height answer was altered because the run failed first"), "{error}");
+    // the ACTUAL intervention, then the engine stops at another marker than the mode's: a failure naming both
+    let error = error_of(drive(
+        &healthy(&format!("{FIXED_STATE}{HEIGHT_SCAN}, height_wrong_marker = true")),
+        &[("mode", "sector_height_wrong_state")],
+    ));
+    assert!(
+        error.contains("stopped at [model-provider:entity_scan.cursor], not at [model-provider:entity_scan.state]"),
+        "{error}"
+    );
 }
 
 #[test]

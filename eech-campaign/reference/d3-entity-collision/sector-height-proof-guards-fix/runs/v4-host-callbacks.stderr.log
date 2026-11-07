@@ -1,0 +1,3 @@
+wsl: Failed to translate 'R:\d3-evidence'
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.34s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)

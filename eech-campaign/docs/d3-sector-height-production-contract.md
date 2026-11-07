@@ -124,16 +124,20 @@ rounded, extended or searched), a fresh verified root per run and an immutable o
 (the accepted report is the retained f01 observation, read and never copied; the wrapper never terminates a process). The driver `lua/sector-height-baseline.lua` writes the identity line with `scope=hosted-scan`, the observer's summary
 lines, the clearance guard records (`tallest=uncaptured`) and the per-sector `sho-scan` rows, then `sho-compare` and `sho-verdict scope=hosted-scan scan_whole=<0|1> status=<...>`. **Compared, by sector (sx, sz) and at the same window
 identity:** `reads`, `first_word`, `last_word`, `changes`, `fact_offers`, `fact_equal_first`, `fact_differ_first`, `fact_first_word`, `fact_last_word`, `fact_changes` and the totals of the `sho-scan` summary line (the accepted
-evidence reused at its true scope: 63 FIRST reads over 2 sectors and 27615 fact-12 offers, each equal to its FIRST). **Not compared:** sequence numbers, INSERT/LINK/statement joins, shape states, the original raise, the original
+evidence reused at its true scope: 63 FIRST reads over 2 sectors and 27615 fact-12 offers, each equal to its FIRST). **Both sides are validated as a WHOLE scoped scan before anything is compared:** the accepted original must carry
+exactly one identity, one `sho-scan` summary, one `sho-tables` and one terminal `sho-verdict whole=1 ... sectors=N` (the real f01 report does: 2 sectors, 63 reads, 27615 offers, checked by an independent port of the same rules); both
+sides need the exact scoped fields and domains, unique contiguous row indices, unique sector keys, the declared sector count and totals and words consistent with the rows; the hosted side is NOT asked for the original-link
+`sho-complete=1`, events, raise or session. Damaged input is `INVALID_ACCEPTED` or `INVALID_HOSTED` (never EQUAL_AT_SCOPE, SCAN_ONLY or `scan_whole=1`). **Not compared:** sequence numbers, INSERT/LINK/statement joins, shape states, the original raise, the original
 save and restore, the clearance word (not captured) and the accepted 304811-event original-LINK diagnostics. Credited only with exit 0 and `status=EQUAL_AT_SCOPE` (every compared field equal); `DIFFERENT` lists each field
-(`sho-compare-diff`) and fails; `NOT_COMPARABLE` (another window or an unreadable report) and `UNREACHED` (no scan FIRST) are not passes. A hosted run that is equal shows the Host's word reached the campaign's scan at every
+(`sho-compare-diff`) and fails; `NOT_COMPARABLE` (another window or an unreadable report), `INVALID_ACCEPTED`, `INVALID_HOSTED` and `UNREACHED` (a clean, whole scan with no FIRST) are not passes. A hosted run that is equal shows the Host's word reached the campaign's scan at every
 read of the window as the original's did; it does not show the Host's raise at every one of the 77531 arrivals, and it is not a native save, a clearance or a natural weapon engagement.
 
 **B. Authority and refusal witnesses (the public driver, modes of `lua/entity-authority.lua`; hosted `weapon-fixture` build, one fresh root per mode).**
 `eech-world.exe <literal lua/entity-authority.lua> root=<fresh root> mode=<mode> out=<new .jsonl>` (the established command of the public authority witnesses). Eligibility, credited only for a REAL consuming campaign request: a phase-17
 read that is ARMED (after the case launch), joined to the real scan FIRST that just named that very sector (the cursor words equal, once), whose served entry is a NON-MOBILE placement of the Host's roster (the fixed family or a city),
 with a complete reply (the state, three patterns, no name). The healthy `sector_height_control` is credited only when a candidate question of that served entry then carried the answered word back as fact 12 (consumption), no word
-differed (`height_mismatch=0`) and nothing was altered; the changed-input and refusal modes each alter ONE eligible read and credit the NAMED outcome:
+differed (`height_mismatch=0`) and nothing was altered; the changed-input and refusal modes each alter ONE eligible read and credit the NAMED outcome, **only with exactly that one intervention (`height_altered=1`), independent of the configured secondary hit and of marker
+equality: any fatal before it is FAILURE (the mode's own marker included) and only a clean run with no eligible read is UNREACHED**:
 
 | mode | the host's answer at the first eligible read | expected stop (`failure_marker`) | what else is credited |
 |---|---|---|---|

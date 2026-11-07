@@ -1,0 +1,454 @@
+{
+  "kind": "D3 sector-height PROOF-GUARDS-FIX CODE_FROZEN (two false-pass diagnostics of the SAME review 409a2622; test-only Lua diagnostics and driver tests; UNREVIEWED; native UNRUN)",
+  "frozen_utc": "2026-11-07T09:20:43.947056+00:00",
+  "task": "EEDCS-49",
+  "stage": "required bounded correction inside the height extraction (not a preparation batch; the count stays 2); no production C, protocol or kernel change",
+  "source_before": "fe1bf67239164e10c7e70676e6014faba6c73551",
+  "previous_correction_code": "5aae2256f02ca3d79e762d71c9b79c20dc34856b",
+  "findings": {
+    "ENV-SECTOR-HEIGHT-SCOPED-REPORT-COMPLETE-1": "OPEN until the SAME reviewer; registered OPEN at fe1bf6723",
+    "ENV-SECTOR-HEIGHT-REFUSAL-INTERVENTION-1": "OPEN until the SAME reviewer; registered OPEN at fe1bf6723",
+    "ENV-SECTOR-HEIGHT-PUBLIC-PROOF-PLAN-1": "partially addressed, stays OPEN until the SAME reviewer closes all"
+  },
+  "sealed_inputs": {
+    "independent-sector-height-proofplan-5aae-source-20261107.json": {
+      "sha256": "409a2622b5314d82c02dc7710dcf3528f8390678e5b11162108847bcb83aa27b"
+    },
+    "sector-height-proofplan-3f-CI-readback-20261107.json": {
+      "sha256": "bb46f014e64e3fc3b0d5100e1879b015eed60ed797418f4c5719424711af7ce3"
+    },
+    "sector-height-proofplan-Root-binding-5aae-20261107.json": {
+      "sha256": "6ec510ae1c6c492e8cca6308aa14f98d84f4200de17692670af408b0533aaf2f"
+    }
+  },
+  "root_feedback_files_present": [
+    "Root-city-relist-ack-review-feedback-20261106.json",
+    "Root-needed-consumer-api-disposition-feedback-20261107.json",
+    "Root-sector-height-production-feedback-20261107.json",
+    "Root-sector-height-public-baseline-fix-feedback-20261107.json",
+    "Root-sector-height-public-baseline-join-fix-feedback-20261107.json",
+    "Root-sector-height-review-feedback-20261106.json"
+  ],
+  "root_feedback_note": "no new Root feedback file exists since the production feedback (06:40Z); all review and CI material was available before the PRE map",
+  "ci_note": "the exact 3f CI read-back (all nine jobs success) arrived after the reviewer's exclusive seal, so the review's own 8/9 observation stays historical; green CI is no physical or native acceptance",
+  "correction": {
+    "scoped_report_complete": "sector-height-baseline.lua validates BOTH sides as a whole scoped scan before comparing (the accepted original: exactly one identity/sho-scan/sho-tables/sho-verdict, the verdict last with whole=1 and the sector count; both: exact fields and domains, unique contiguous indices, unique sectors, declared count, totals and words consistent with the rows; hosted not asked for original-link completeness); statuses INVALID_ACCEPTED and INVALID_HOSTED; UNREACHED only for a clean whole scan with no read; positive-first matrices of 29 accepted and 17 live hosted single faults",
+    "refusal_intervention": "entity-authority.lua: a height refusal is credited only with height_altered=1 (exactly the one eligible intervention), independent of the secondary-input counters and marker equality; any fatal before it is FAILURE (the mode's own marker included); clean absence is UNREACHED; per-mode positive then an injected unrelated fatal bearing the mode's marker after a configured hit; wrong-marker and request-fault controls",
+    "real_accepted_report": {
+      "check": "check-real-accepted-shape-20261107.py (an independent port of the same rules) over the retained accepted report",
+      "output": "counts identity/totals/tables/verdicts/rows: 1 1 1 1 2\nVALID by the same rules: sectors 2 reads 63 fact_offers 27615 identity window {'scenario': 'lebanon_retail', 'seed': '1', 'frame_ms': '100', 'hours': '0.001', 'frames': '35'}",
+      "report_sha256": "ffa21b5120b8dd9b1b096cb899e5bd63ece3664033ddc1bb92ef81def7a7284a"
+    }
+  },
+  "changed_paths": [
+    {
+      "status": "M",
+      "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "sha256": "05114748fde8ea883eeb36f15723897fc9b90fc10458124275713419d7660a89",
+      "git_blob_of_bytes": "fb08dd32b3218b93979d2077688433111743f2a2"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "sha256": "c2103583607278edfecaec4e6314a22e842690e8f069f0ce130b377bc5df6019",
+      "git_blob_of_bytes": "8c62ac472b588c66ef0c2acdbd41b281774b15b3"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua",
+      "sha256": "7a2a3dd8c0c55a624ec65f99b6aafb83aac0effcd987d35a8559fe5a0420b93c",
+      "git_blob_of_bytes": "87a0dcd469bb3331ffb8ef0f23a14df9c3f548d2"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "sha256": "0f7be7a6db485e34ce6c01c5486b7b47296634f82eaeaccb4054f41ef7d022ae",
+      "git_blob_of_bytes": "fdc4af2af01d53135b3ffd6f85db79dc79079882"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+      "sha256": "23055244d2d3bff10b7ff9f95b27e2ebf7b9b37c79a7d4808257891d8eaca340",
+      "git_blob_of_bytes": "5684bbde0627e0b2fceccde9bdcb30cd55336f77"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+      "sha256": "640165786771eef97c7090a25178de6fab94d318287db554a85cb701e62aa1fc",
+      "git_blob_of_bytes": "f3dc93ec53cbf862bdd3ac74f6d2dcea31a7f86e"
+    }
+  ],
+  "tracked_lines_deleted_by_file": {},
+  "guards": {
+    "generic": 0,
+    "production-cutover": 0,
+    "fix-blocker sector-height-host-move-open-facts": 0,
+    "fix-blocker ENV-SECTOR-HEIGHT-SCOPED-REPORT-COMPLETE-1": 0,
+    "fix-blocker ENV-SECTOR-HEIGHT-REFUSAL-INTERVENTION-1": 0,
+    "deliver (expected unmet)": 1
+  },
+  "runs": [
+    {
+      "label": "g1-red-old-baseline",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_baseline_driver --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T09:11:11.008247+00:00",
+      "completed_utc": "2026-11-07T09:11:13.860952+00:00",
+      "tests_passed": 11,
+      "tests_failed": 2,
+      "stdout_sha256": "8625ee7e04f3f0b6edb7b53d5c8f78bcf775c915a051616f5b223cf9fac1ed59",
+      "stderr_sha256": "25c495fc509b93c963258dec17944c54a8fc4a890bc8e07555b36df8241644d4"
+    },
+    {
+      "label": "g2-baseline",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test sector_height_baseline_driver --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T09:11:21.255604+00:00",
+      "completed_utc": "2026-11-07T09:11:22.776857+00:00",
+      "tests_passed": 13,
+      "tests_failed": 0,
+      "stdout_sha256": "6079ab9eea285ae5d9bf8e901f25b964d332c73d15872d9698beeb76442cf22c",
+      "stderr_sha256": "4d88747771fec4e3813d012a1b2fe024a36fa8549cd8dec3b8e1f012e3d7bc6b"
+    },
+    {
+      "label": "g3-red-old-driver",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test entity_authority --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T09:12:34.423130+00:00",
+      "completed_utc": "2026-11-07T09:12:37.908438+00:00",
+      "tests_passed": 115,
+      "tests_failed": 1,
+      "stdout_sha256": "73d81e315234e02963edf7cb9daa416e43bd8e0b608516c7995cdc62592cdef9",
+      "stderr_sha256": "6d6f4cd0a2b3ee5e2528b9bad234477d3034197fa06096135cf345d7daba6674"
+    },
+    {
+      "label": "g4-red-old-driver",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test entity_authority --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T09:13:08.024002+00:00",
+      "completed_utc": "2026-11-07T09:13:11.425150+00:00",
+      "tests_passed": 115,
+      "tests_failed": 1,
+      "stdout_sha256": "43b50f0749873757b7bf93cd261ed0b5e5ce710e8c36a3e23e2a9338cb34a1b0",
+      "stderr_sha256": "d93a573e931c8a5c4298caf66a85e1ad6320565a0be4c505f1909b67e27ad08a"
+    },
+    {
+      "label": "g5-driver",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test entity_authority --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T09:13:29.393843+00:00",
+      "completed_utc": "2026-11-07T09:13:32.071202+00:00",
+      "tests_passed": 113,
+      "tests_failed": 3,
+      "stdout_sha256": "916005e0ca8a92944b00a2038a7692b6b0a76ed43855c97367448237cf6b9716",
+      "stderr_sha256": "7d8ab68aead6849957ba03bcedcc6e4c554acdb443fec91db38813e3fe12af6c"
+    },
+    {
+      "label": "g6-driver",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test entity_authority --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T09:13:44.825416+00:00",
+      "completed_utc": "2026-11-07T09:13:48.163085+00:00",
+      "tests_passed": 116,
+      "tests_failed": 0,
+      "stdout_sha256": "02117fee2b41cdc4070e5f78bd7f2f1ba09616c025ba2e37c4591e92e3445e30",
+      "stderr_sha256": "ba4f8dd07052bf794595d9499c8cd6378868badb46e5c32a832b1e007124c314"
+    },
+    {
+      "label": "g7-red-previous-verdict",
+      "final": false,
+      "command": "cargo test --locked -p eech-world --test entity_authority an_unrelated_fatal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T09:14:03.879595+00:00",
+      "completed_utc": "2026-11-07T09:14:06.097651+00:00",
+      "tests_passed": 0,
+      "tests_failed": 1,
+      "stdout_sha256": "176af4a8cb770c419af524cbf9ddcff7f818300b5ef3c1d0e70aa2022a6a5146",
+      "stderr_sha256": "ea8a758696ce4763047786eea864b053a637c0f2cbdd05cb492f2898909a027f"
+    },
+    {
+      "label": "g8-fmt-apply",
+      "final": false,
+      "command": "cargo fmt",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T09:17:59.924746+00:00",
+      "completed_utc": "2026-11-07T09:18:05.087876+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "v1-fmt-check",
+      "final": true,
+      "command": "cargo fmt --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T09:18:39.079351+00:00",
+      "completed_utc": "2026-11-07T09:18:43.763082+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "v2-clippy-world",
+      "final": true,
+      "command": "cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T09:18:43.852688+00:00",
+      "completed_utc": "2026-11-07T09:18:53.940278+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7c6ac372ff4067337079315820efc33c400988bb7c1cf8c0096321b12591acac"
+    },
+    {
+      "label": "v3-driver-tests",
+      "final": true,
+      "command": "cargo test --locked -p eech-world --test entity_authority --test sector_height_baseline_driver --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T09:18:54.023006+00:00",
+      "completed_utc": "2026-11-07T09:18:57.142903+00:00",
+      "tests_passed": 129,
+      "tests_failed": 0,
+      "stdout_sha256": "fa28bd78cd1145e46b7773c8b51ed5c10f2f5b78f7063189ebb8d301239d7c72",
+      "stderr_sha256": "54639253e53669184bbc90360286e849f45a42eaf93381d4a3380fe4a25ebbcf"
+    },
+    {
+      "label": "v4-host-callbacks",
+      "final": true,
+      "command": "cargo test --locked -p eech-world --test host_callbacks --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T09:18:57.223105+00:00",
+      "completed_utc": "2026-11-07T09:19:00.323780+00:00",
+      "tests_passed": 82,
+      "tests_failed": 0,
+      "stdout_sha256": "351b109e0c4f859609e611447ba9ed725c3ec0024c035c5966f8c067cae2e7b6",
+      "stderr_sha256": "c824e63905498642a9dbadf9f47873c1cb49966f0439dfccc6655d0f55571992"
+    }
+  ],
+  "retained_failures_and_recoveries": {
+    "g1-red-old-baseline": {
+      "actual_exit": 101,
+      "why": "RED: the single-fault matrices of the scoped-report validation against the PREVIOUS comparator: the damaged accepted and live hosted inputs were not refused"
+    },
+    "g3-red-old-driver": {
+      "actual_exit": 101,
+      "why": "the first run of the injection controls: the late scripted read of wrong_word is incoherent (a candidate question before the read refuses a stale fact 12); the control was restructured"
+    },
+    "g4-red-old-driver": {
+      "actual_exit": 101,
+      "why": "RED: the injection controls against the verdict as it was at 5aae2256f (wrong_word stopped for another reason)"
+    },
+    "g5-driver": {
+      "actual_exit": 101,
+      "why": "after the verdict fix: the clean-UNREACHED branch was hit by the exactly-once check placed before it, and the late scripted read refused a stale fact 12; both fixed"
+    },
+    "g7-red-previous-verdict": {
+      "actual_exit": 101,
+      "why": "RED: with the previous driver verdict an unrelated fatal bearing sector_height_withheld's own marker, after a configured hit and before any eligible read, was CREDITED"
+    }
+  },
+  "input_maps": {
+    "files": {
+      "sector-height-proofguards-inputmap-PRE-20261107.json": {
+        "bytes": 2039210,
+        "sha256": "49527770cab8a597e06733c42c4d7f38049b636ede061412f4c31025253d4b56",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-proofguards-inputmap-POST-20261107.json": {
+        "bytes": 2039210,
+        "sha256": "49527770cab8a597e06733c42c4d7f38049b636ede061412f4c31025253d4b56",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-proofguards-extra-identity-PRE-20261107.json": {
+        "bytes": 3613,
+        "sha256": "2991c1ef23f87661223af97ce24582a1d9033d34df822a6235ff961b890b2003",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-proofguards-extra-identity-POST-20261107.json": {
+        "bytes": 3613,
+        "sha256": "2991c1ef23f87661223af97ce24582a1d9033d34df822a6235ff961b890b2003",
+        "location": "external (full per-file rows)"
+      }
+    },
+    "compare_pre_post": {
+      "pre_fingerprint": "b917be35298b085b3833e8822463f88e143c18b8b073671e22cbeb85052157ee",
+      "post_fingerprint": "b917be35298b085b3833e8822463f88e143c18b8b073671e22cbeb85052157ee",
+      "file_count_pre": 3971,
+      "file_count_post": 3971,
+      "rows_only_in_pre": [],
+      "rows_only_in_post": [],
+      "rows_that_differ": [],
+      "all_rows_equal": true,
+      "head_sha": "fe1bf67239164e10c7e70676e6014faba6c73551",
+      "changed_from_head_count": [
+        7,
+        7
+      ],
+      "deleted_from_head": [
+        [],
+        []
+      ],
+      "raw_vs_git_filtered_disagreements": {
+        "pre": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ],
+        "post": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ]
+      },
+      "extra_identity_equal": true,
+      "extra_identity_aggregate": [
+        "19feddb8be9b86f5ce7e30704f1be1cb54416b16636b2308fd9e3131629758ea",
+        "19feddb8be9b86f5ce7e30704f1be1cb54416b16636b2308fd9e3131629758ea"
+      ]
+    },
+    "pre_utc": "2026-11-07T09:18:33Z",
+    "post_utc": "2026-11-07T09:19:05Z",
+    "post_utc_note": "recorded by `date -u` immediately before the POST capture; not reconstructed from a file time",
+    "no_source_write_between": "the final set v1-v5 ran between the maps; the packet files under reference/, STATUS and the card are not inputs of any check and were written after the POST capture",
+    "join_vs_5aae_final_post": {
+      "kind": "explicit actual-input join of the proof-guards correction against the previous correction (5aae2256f) final POST map",
+      "old_map": "R:\\d3-evidence\\sector-height-proofplan-inputmap-POST-20261107.json",
+      "new_map": "R:\\d3-evidence\\sector-height-proofguards-inputmap-POST-20261107.json",
+      "rows_identical": 3967,
+      "rows_changed": 4,
+      "rows_added": 0,
+      "rows_removed": 0,
+      "rows": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+          "status": "changed",
+          "class": "host Lua driver run by eech-world (not compiled into the campaign DLL); its tests are in this change"
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua",
+          "status": "changed",
+          "class": "host Lua driver run by eech-world (not compiled into the campaign DLL); its tests are in this change"
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+          "status": "changed",
+          "class": "not compiled into the DLL (test source or documentation)"
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+          "status": "changed",
+          "class": "not compiled into the DLL (test source or documentation)"
+        }
+      ],
+      "problems": [],
+      "conclusion": "the ordinary hosted DLL's compiled inputs are unchanged (no aphavoc/ or modules/ path, no non-test crate source, only observer- or check-gated translation units, test sources, host Lua drivers and documentation changed): the 0be1dd846 matrices of the ordinary build (workspace tests, clippy of the unchanged crate sources, shared kernel and original-solver control) are reused at their own scope, and every changed row has its own affected check in this batch"
+    }
+  },
+  "audit_reader_timing": "this freeze script, the join, the extra-identity script, the final-set script and the real-report check were FINAL before the PRE identity capture (contrast the 5aae batch, where the join reader was corrected 08:54:55Z after its POST: a post-processing audit reader, not a test or source input, no replay was demanded); the old 4836-byte PRE/POST extra-identity files of that batch (SHA 2dd277db...) and the final 4852-byte reader (SHA ca27dda8...) are not all literal-current, and are kept as stated",
+  "reused_unchanged_matrices": "the 0be1dd846 matrices (16 final checks, 190 files, 49 runs) and the 5aae2256f u1-u11 (19 runs) are reused only through the explicit joins: no aphavoc/ or modules/ path, no C, no non-test crate source and no Cargo change; every changed row has its own affected check here",
+  "scripts": [
+    {
+      "name": "run-shp3-final-set-20261107.sh",
+      "sha256": "d4e45047eab89056d7040edcfec1ea28942689b515526b5491e6b4e51e2c12d3"
+    },
+    {
+      "name": "shp3-extra-identity-20261107.py",
+      "sha256": "be5129b8f24e53c1dcbc39d06adec3a919c30fb9047ef12a88f99968d8c571a0"
+    },
+    {
+      "name": "shp3-join-20261107.py",
+      "sha256": "cf3e02032fafa0d1400977aec405edc75f14593ee50be193c3fa40df2ab407ef"
+    },
+    {
+      "name": "check-real-accepted-shape-20261107.py",
+      "sha256": "a503f148820acf3bb5e866acf74a8fcd84ddbec0c8fcca819b1008bad8f7106d"
+    },
+    {
+      "name": "freeze-sector-height-proofguards-20261107.py",
+      "sha256": "f0892afd1eab48387de4c417337db7cc9674c5ad46556a8839f52fdda701beec"
+    },
+    {
+      "name": "patch-card-register-proof-guards-findings-20261107.py",
+      "sha256": "28ce8c9e85f8a6c7373a86b294e60ad08abc1815182ea4ab915539df467a466b"
+    },
+    {
+      "name": "patch-card-status-proofguards-20261107.py",
+      "sha256": "66a19a2823003db42bcbad9973dfe77e4a07f2d48bfad7a1337ddd4635709c85"
+    },
+    {
+      "name": "sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "name": "check-sho-windows-wrapper-ast-20261107.ps1",
+      "sha256": "92993e1b2d5be7e656d18fcbafdd036ba3bc0f9e4f59e64d905f341f0e4c41b9"
+    },
+    {
+      "name": "patch_baseline_complete.py",
+      "sha256": "3563c7834f29371d9d5948f8c1afea54d8131502cb9a85a209bae59cce7a69f0"
+    },
+    {
+      "name": "patch_baseline_tests3.py",
+      "sha256": "2cec872d63efce870984b99dc8ceb0c1fedbee05b862c33f204f94f4972ba927"
+    },
+    {
+      "name": "patch_driver_tests3.py",
+      "sha256": "6aaf884a9cb88dcd594604da07c1c2f80c54164f9d8d103a8839994bb8945de2"
+    },
+    {
+      "name": "patch_driver_tests3b.py",
+      "sha256": "7d586fc191a38dd57992ecf3ddd1ba5fbca13fd5a60d4466852346e0e9ef439a"
+    },
+    {
+      "name": "patch_fivewhys3.py",
+      "sha256": "140ebfe6b65709530cee4f3f88d188f4c3779749352311d8920313fc392380b2"
+    },
+    {
+      "name": "patch_prose3.py",
+      "sha256": "a75f25c05d20347fbac155f5dcf69cbd49c9d7d451270adfa223a660035575d1"
+    }
+  ],
+  "cache": {
+    "volume": "eech-linux-d3-collision-driver-5416adb3b-20261029",
+    "owners": "one (this lane); no container before or after",
+    "cleanup": "none performed; the Root-prepared 3f snapshot was not touched"
+  },
+  "not_run": [
+    "Windows build",
+    "native, campaign or war launch",
+    "retail data (only the retained accepted report was READ by the shape check)",
+    "C, x87, legacy workspace or whole-World reruns",
+    "the full 16-check, 49-run or 11-check matrices",
+    "agents/MCP/authentication/model change",
+    "cache or process deletion",
+    "merge"
+  ],
+  "limits": [
+    "source and Linux checks only; nothing here is a native result or clearance; the scripted tests are boundary checks of the diagnostics, not native campaign authority",
+    "the real accepted report was checked by an independent Python port of the Lua rules, not by running the Lua loader over it (the host Lua tests use scripted reports); the first native comparison is Root's",
+    "ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1 and ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1 stay required OPEN; no baseline, input, seed, frame, duration or tolerance changed"
+  ],
+  "state": {
+    "findings": "OPEN until the SAME reviewer",
+    "sector-height-host-move-open-facts": "OPEN",
+    "claims": "no self-review, approval, native clearance, finding closure, whole Task49 or D3, delivery",
+    "D3-CURRENT.json": "not edited (Root owns it)"
+  },
+  "hygiene_problems_at_freeze": []
+}

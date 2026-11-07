@@ -1,0 +1,6 @@
+v1-fmt-check exit=0
+v2-clippy-world exit=0
+v3-driver-tests exit=0
+v4-host-callbacks exit=0
+v5-real-accepted-shape exit=0
+DONE
