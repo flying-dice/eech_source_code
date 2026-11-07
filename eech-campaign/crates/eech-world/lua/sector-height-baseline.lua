@@ -8,8 +8,9 @@
 -- whether a save or restore happens are the OBSERVATION. A case that did not happen is reported with its counter at zero (UNREACHED), never credited. A configured query is not a natural
 -- engagement and none is made here.
 --
--- host.args: root (installation root), scenario (georgia, georgia_retail, lebanon_retail), map, campaign, hours (default 1, as campaign.lua), frame_ms (default 100), seed (default 1),
---            out (the observation file, required and opened BEFORE the boot, which changes the working directory)
+-- host.args: root (installation root), scenario (georgia, georgia_retail, lebanon_retail), map, campaign, hours (default 0.001: the established finite ordinary short window, 3.6 simulated seconds;
+--            a larger value needs its own named, bounded plan and is never chosen by what the observation reached), frame_ms (default 100), seed (default 1),
+--            out (the observation file, required; created EXCLUSIVELY before the boot, which changes the working directory)
 --
 -- Output: one `key=value` line grammar. The first line is the run's identity; then the observer's summary lines, every recorded event, every fixed-wing clearance record and every sector
 -- aggregate, then one verdict line. The driver REFUSES (non-zero exit) an observation that is not whole: the observer's own completeness verdict, one row per counted record, increasing
@@ -18,7 +19,7 @@
 local args = host.args
 local root = assert (args.root, "root=<installation root>")
 local out_path = assert (args.out, "out=<observation file>")
-local hours = tonumber (args.hours or "1")
+local hours = tonumber (args.hours or "0.001")
 local frame_ms = tonumber (args.frame_ms or "100")
 local seed = tonumber (args.seed or "1")
 assert (hours and hours >= 0 and frame_ms and frame_ms > 0 and seed, "hours, frame_ms and seed must be numbers")
@@ -31,10 +32,13 @@ local scenarios = {
 local scenario_name = args.scenario or "georgia"
 local scenario = assert (scenarios[scenario_name], "scenario=georgia|georgia_retail|lebanon_retail")
 
-local out = assert (io.open (out_path, "wb"))
+-- the observation is created exclusively (src/exclusive_output.rs): an existing observation, partial report or log of any kind is never overwritten or truncated
+if type (host.create_exclusive) ~= "function" then error ("this host has no create_exclusive: an output that may never overwrite anything cannot be made safely", 0) end
+local out, why = host.create_exclusive (out_path)
+if not out then error ("sector-height-baseline: cannot create " .. out_path .. " exclusively: " .. tostring (why), 0) end
 
 local function emit (line)
-	assert (out:write (line, "\n"))
+	assert (out:write (line .. "\n"))
 end
 
 local function field (line, key)

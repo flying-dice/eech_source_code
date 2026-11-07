@@ -2544,7 +2544,7 @@ pub fn target_point_host_files() -> Vec<&'static str> {
 
 /// TEST-ONLY patches of the `sector-height-observer` feature (EEDCS-49, D3, the sector-height public baseline): observation hooks at the real places the sector's tallest-structure
 /// high-water value is raised, stated to the host, read by the hosted scan and candidate questions, used by the fixed-wing clearance and packed/unpacked by the session, applied by
-/// main.rs ONLY when that feature is on, to the staged copies. None of these seven files has a shipping patch. Each patch ADDS one call that records values the original statement
+/// main.rs ONLY when that feature is on, to the staged copies. None of these eight files has a shipping patch. Each patch ADDS one call that records values the original statement
 /// next to it already reads or computes (csrc/eech_sho_hooks.h, csrc/eech_sho.c); it changes no original statement, argument, order or value. Floats cross as pointers (never by
 /// value). With the feature off none of this exists in the build and the in-tree sources are never edited. Same strict count check as PATCHES. Plan:
 /// docs/d3-sector-height-public-baseline-plan.md.
@@ -2664,6 +2664,22 @@ pub const SECTOR_HEIGHT_OBSERVER_PATCHES: &[Patch] = &[
             "\tfacts [CAMPAIGN_CANDIDATE_TALLEST] = sector_tallest_structure_height;\n",
             "\teech_sho_candidate_fact (&sector_tallest_structure_height); /* EECH sector-height observer (SH11) */\n"
         ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/system/en_funcs/en_list.c",
+        id: "SH12-sector-remove",
+        why: "closes the observer's record of a placement when the roster is told of its removal from a sector list",
+        original: "\t\t\tcampaign_place_remove (en);\n",
+        replacement: "\t\t\tcampaign_place_remove (en);\n\t\t\teech_sho_sector_remove (en); /* EECH sector-height observer (SH12) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/system/en_main/en_heap.c",
+        id: "SH13-entity-release",
+        why: "closes an open observer record when an entity's slot is freed, so a reused heap index never joins an old placement",
+        original: "\tcampaign_place_release_entity (en);\n",
+        replacement: "\tcampaign_place_release_entity (en);\n\teech_sho_entity_release (en); /* EECH sector-height observer (SH13) */\n",
         count: 1,
     },
 ];

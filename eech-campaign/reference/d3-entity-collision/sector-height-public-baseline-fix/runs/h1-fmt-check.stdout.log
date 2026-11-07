@@ -1,0 +1,422 @@
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs:41:
+     // SAFETY (the whole loop): plain integers.
+     unsafe {
+         for i in 0..bound {
+-            c::eech_sho_core_session(if i % 2 == 0 { 1 } else { 0 }, patterns[(i % 4) as usize], (i % 200) as i32, (i / 200 % 200) as i32);
++            c::eech_sho_core_session(
++                if i % 2 == 0 { 1 } else { 0 },
++                patterns[(i % 4) as usize],
++                (i % 200) as i32,
++                (i / 200 % 200) as i32,
++            );
+         }
+     }
+     let at_bound = summary();
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs:48:
+     let session = line_of(&at_bound, "sho-session");
+     assert_eq!(field(session, "pack_total") + field(session, "unpack_total"), u64::from(bound), "{session}");
+-    assert_eq!((field(session, "pack_omitted"), field(session, "unpack_omitted")), (0, 0), "exactly at the bound nothing is omitted: {session}");
+-    assert!(at_bound.contains("sho-complete value=1"), "a table filled exactly to its bound is still whole:\n{at_bound}");
++    assert_eq!(
++        (field(session, "pack_omitted"), field(session, "unpack_omitted")),
++        (0, 0),
++        "exactly at the bound nothing is omitted: {session}"
++    );
++    assert!(
++        at_bound.contains("sho-complete value=1"),
++        "a table filled exactly to its bound is still whole:\n{at_bound}"
++    );
+ 
+     // the raw words are stored as bits: the first four events carry the four patterns
+     for (i, bits) in patterns.iter().enumerate() {
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs:64:
+     unsafe { c::eech_sho_core_session(1, 0x3f80_0000, 1, 1) };
+     let over = summary();
+     let session = line_of(&over, "sho-session");
+-    assert_eq!((field(session, "pack_total") - field(session, "pack_stored"), field(session, "unpack_total") - field(session, "unpack_stored")), (1, 0), "{session}");
++    assert_eq!(
++        (
++            field(session, "pack_total") - field(session, "pack_stored"),
++            field(session, "unpack_total") - field(session, "unpack_stored")
++        ),
++        (1, 0),
++        "{session}"
++    );
+     assert_eq!(field(session, "pack_omitted"), 1, "{session}");
+     assert_eq!(field(line_of(&over, "sho-tables"), "events_overflow"), 1, "the overflow must latch");
+-    assert!(over.contains("sho-complete value=0"), "an omitted word must make the report incomplete:\n{over}");
++    assert!(
++        over.contains("sho-complete value=0"),
++        "an omitted word must make the report incomplete:\n{over}"
++    );
+ 
+     // an unpack word after the overflow cannot restore completeness
+     // SAFETY: plain integers.
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs:74:
+     unsafe { c::eech_sho_core_session(0, 0x3f80_0000, 2, 2) };
+     let later = summary();
+-    assert!(later.contains("sho-complete value=0") && field(line_of(&later, "sho-session"), "unpack_omitted") == 1, "{later}");
++    assert!(
++        later.contains("sho-complete value=0") && field(line_of(&later, "sho-session"), "unpack_omitted") == 1,
++        "{later}"
++    );
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_chain.rs:86:
+     // SAFETY: pos holds three words; the pointer is only read.
+     unsafe {
+         c::eech_sho_core_link_begin(before);
+-        c::eech_sho_core_link_end(ent, etype, family, 1, shape_state, shape, if shape_state == VALID { pos.as_ptr() } else { std::ptr::null() }, ymax, after, sx, sz);
++        c::eech_sho_core_link_end(
++            ent,
++            etype,
++            family,
++            1,
++            shape_state,
++            shape,
++            if shape_state == VALID { pos.as_ptr() } else { std::ptr::null() },
++            ymax,
++            after,
++            sx,
++            sz,
++        );
+     }
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_chain.rs:144:
+     assert_eq!(number(join, "stmt_child"), 1, "{join}");
+     assert_eq!(number(join, "link_mobile"), 0, "{join}");
+     let shape = line_of(&report, "sho-shape");
+-    assert_eq!((number(shape, "fixed_valid"), number(shape, "city_unobserved"), number(shape, "city_invalid")), (2, 1, 1), "an unread city shape is UNOBSERVED, not invalid: {shape}");
++    assert_eq!(
++        (number(shape, "fixed_valid"), number(shape, "city_unobserved"), number(shape, "city_invalid")),
++        (2, 1, 1),
++        "an unread city shape is UNOBSERVED, not invalid: {shape}"
++    );
+     let scan = line_of(&report, "sho-scan");
+-    assert_eq!((number(scan, "fact_offers"), number(scan, "fact_equal_first"), number(scan, "fact_differ_first"), number(scan, "fact_without_first")), (4, 3, 1, 0), "{scan}");
++    assert_eq!(
++        (
++            number(scan, "fact_offers"),
++            number(scan, "fact_equal_first"),
++            number(scan, "fact_differ_first"),
++            number(scan, "fact_without_first")
++        ),
++        (4, 3, 1, 0),
++        "{scan}"
++    );
+     let session = line_of(&report, "sho-session");
+-    assert_eq!((number(session, "pack_total"), number(session, "pack_stored"), number(session, "pack_omitted")), (70, 70, 0), "the pack record must not stop at 64: {session}");
+-    assert_eq!((number(session, "unpack_total"), number(session, "unpack_stored"), number(session, "unpack_omitted")), (70, 70, 0), "{session}");
++    assert_eq!(
++        (number(session, "pack_total"), number(session, "pack_stored"), number(session, "pack_omitted")),
++        (70, 70, 0),
++        "the pack record must not stop at 64: {session}"
++    );
++    assert_eq!(
++        (
++            number(session, "unpack_total"),
++            number(session, "unpack_stored"),
++            number(session, "unpack_omitted")
++        ),
++        (70, 70, 0),
++        "{session}"
++    );
+ 
+     // ---- the rows: every record of a placement carries ITS record identity, not one guessed from the family or the sector
+     let events = number(line_of(&report, "sho-tables"), "events_used") as i32;
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_chain.rs:160:
+         by_ent.entry(number(&e, "ent")).or_default().push((field(&e, "kind"), number(&e, "rec")));
+         text.push_str(&e);
+     }
+-    let kinds = |ent: u64| by_ent.get(&ent).map(|v| v.iter().map(|(k, r)| format!("{k}:{r}")).collect::<Vec<_>>()).unwrap_or_default();
++    let kinds = |ent: u64| {
++        by_ent
++            .get(&ent)
++            .map(|v| v.iter().map(|(k, r)| format!("{k}:{r}")).collect::<Vec<_>>())
++            .unwrap_or_default()
++    };
+     assert_eq!(kinds(100), ["insert:1", "link:1", "stmt_fixed:1"], "{:?}", by_ent);
+-    assert_eq!(kinds(101), ["insert:2", "link:2", "stmt_fixed:2"], "interleaved statements must stay with their own record: {:?}", by_ent);
++    assert_eq!(
++        kinds(101),
++        ["insert:2", "link:2", "stmt_fixed:2"],
++        "interleaved statements must stay with their own record: {:?}",
++        by_ent
++    );
+     assert_eq!(kinds(200), ["insert:3", "link:3"]);
+     let link_200 = (0..events).map(event).find(|e| field(e, "kind") == "link" && number(e, "ent") == 200);
+     assert!(link_200.is_some_and(|e| field(&e, "shape_state") == "unobserved"));
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_chain.rs:177:
+         pinned.push_str(&row("scan", i, SHO_SCAN_MAX, c::eech_sho_scan_run));
+     }
+     println!("-----BEGIN SHO REPORT-----\n{pinned}-----END SHO REPORT-----");
+-    assert_eq!(pinned, FIXTURE, "the real C report changed: regenerate eech-world/tests/data/sector-height-observer-report.txt from the stdout block above");
++    assert_eq!(
++        pinned, FIXTURE,
++        "the real C report changed: regenerate eech-world/tests/data/sector-height-observer-report.txt from the stdout block above"
++    );
+ 
+     // ---- the converter refuses an index the table cannot hold or the C side did not record
+-    assert!(matches!(sector_height_row_text("event", -1, SHO_EVENTS_MAX, c::eech_sho_event_run), Err(EngineError::BadArgument(_))));
+-    assert!(matches!(sector_height_row_text("event", SHO_EVENTS_MAX, SHO_EVENTS_MAX, c::eech_sho_event_run), Err(EngineError::BadArgument(_))));
+-    assert!(matches!(sector_height_row_text("event", events, SHO_EVENTS_MAX, c::eech_sho_event_run), Err(EngineError::BadArgument(_))), "an unrecorded index is refused by the C report");
++    assert!(matches!(
++        sector_height_row_text("event", -1, SHO_EVENTS_MAX, c::eech_sho_event_run),
++        Err(EngineError::BadArgument(_))
++    ));
++    assert!(matches!(
++        sector_height_row_text("event", SHO_EVENTS_MAX, SHO_EVENTS_MAX, c::eech_sho_event_run),
++        Err(EngineError::BadArgument(_))
++    ));
++    assert!(
++        matches!(
++            sector_height_row_text("event", events, SHO_EVENTS_MAX, c::eech_sho_event_run),
++            Err(EngineError::BadArgument(_))
++        ),
++        "an unrecorded index is refused by the C report"
++    );
+ 
+     // ---- join failures are counted and break completeness: a removal closes a record; the same entity's later statement, a link with no record and a second insert cannot join
+     // SAFETY: plain integers.
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_chain.rs:190:
+     assert!(summary().contains("sho-complete value=1"), "a removal alone keeps the report whole");
+     statement(100, OBJECT, FIXED, "2001", 0x4300_0000);
+     let after = summary();
+-    assert!(after.contains("sho-complete value=0") && number(line_of(&after, "sho-join"), "stmt_unjoined") == 1, "{after}");
++    assert!(
++        after.contains("sho-complete value=0") && number(line_of(&after, "sho-join"), "stmt_unjoined") == 1,
++        "{after}"
++    );
+     link(900, OBJECT, FIXED, VALID, 3, 0, 0, 1, 1);
+     // SAFETY: plain integers.
+     unsafe {
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_observer_chain.rs:201:
+     let join = summary();
+     let join = line_of(&join, "sho-join");
+     assert_eq!(number(join, "links_unjoined"), 1, "{join}");
+-    assert_eq!(number(join, "double_insert"), 1, "the first insert of 101 was never removed; the release then lets the reused index join a new record: {join}");
++    assert_eq!(
++        number(join, "double_insert"),
++        1,
++        "the first insert of 101 was never removed; the release then lets the reused index join a new record: {join}"
++    );
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs:47:
+     let mut summary = vec![0 as c_char; 16384];
+     assert_eq!(unsafe { eech_sho_summary_run(summary.as_mut_ptr(), summary.len() as c_int) }, 0);
+     let summary = text_of(&summary);
+-    let line = |prefix: &str| summary.lines().find(|l| l.starts_with(prefix)).unwrap_or_else(|| panic!("no {prefix} line in\n{summary}")).to_string();
++    let line = |prefix: &str| {
++        summary
++            .lines()
++            .find(|l| l.starts_with(prefix))
++            .unwrap_or_else(|| panic!("no {prefix} line in\n{summary}"))
++            .to_string()
++    };
+ 
+     // the control never inserts through en_list: every fixed or city link has no open record and the observer says so, instead of guessing one from a family or a sector
+     let join = line("sho-join");
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs:87:
+                 assert_eq!(field(&row, "rec"), "0", "no record was open, so none may be claimed: {row}");
+                 let (before, after) = (word(&row, "before"), word(&row, "after"));
+                 // the source never lowers the held word through a link: equal bits, or a strictly larger value
+-                assert!(before == after || f32::from_bits(after) > f32::from_bits(before), "a link lowered or reshaped the word: {row}");
++                assert!(
++                    before == after || f32::from_bits(after) > f32::from_bits(before),
++                    "a link lowered or reshaped the word: {row}"
++                );
+             }
+             "pack" => packed.push(word(&row, "after")),
+             "unpack" => unpacked.push(word(&row, "after")),
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs:95:
+         }
+     }
+     assert_eq!(seen_links, fixed + city, "every fixed or city link is a recorded event");
+-    assert!(!packed.is_empty() && packed.len() == unpacked.len(), "the control packed {} and unpacked {} words", packed.len(), unpacked.len());
++    assert!(
++        !packed.is_empty() && packed.len() == unpacked.len(),
++        "the control packed {} and unpacked {} words",
++        packed.len(),
++        unpacked.len()
++    );
+     // the control saves every pattern it restores: each restored raw word is one that was packed
+     for w in &unpacked {
+         assert!(packed.contains(w), "a restored word {w:#010x} was never packed");
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:28:
+ }
+ 
+ fn healthy() -> Case {
+-    Case { summary: SUMMARY_WHOLE.to_string(), second_seq: 5, observer: true, args: "root = 'x', scenario = 'georgia', out = '@OUT@'", existing: None, real_rows: false }
++    Case {
++        summary: SUMMARY_WHOLE.to_string(),
++        second_seq: 5,
++        observer: true,
++        args: "root = 'x', scenario = 'georgia', out = '@OUT@'",
++        existing: None,
++        real_rows: false,
++    }
+ }
+ 
+ struct Outcome {
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:39:
+ 
+ fn run(case: &Case) -> Outcome {
+     static SERIAL: AtomicUsize = AtomicUsize::new(0);
+-    let out = std::env::temp_dir().join(format!("sector-height-baseline-{}-{}.txt", std::process::id(), SERIAL.fetch_add(1, Ordering::Relaxed)));
++    let out = std::env::temp_dir().join(format!(
++        "sector-height-baseline-{}-{}.txt",
++        std::process::id(),
++        SERIAL.fetch_add(1, Ordering::Relaxed)
++    ));
+     let _ = std::fs::remove_file(&out);
+     if let Some(text) = case.existing {
+         std::fs::write(&out, text).unwrap();
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:118:
+     o.result.expect("a whole observation completes");
+     let written = o.written.expect("the observation file exists");
+     let lines: Vec<&str> = written.lines().collect();
+-    assert!(lines[0].starts_with("sho-baseline schema=1 scenario=georgia seed=1 frame_ms=100 hours=0.001 frames=36 "), "{}", lines[0]);
++    assert!(
++        lines[0].starts_with("sho-baseline schema=1 scenario=georgia seed=1 frame_ms=100 hours=0.001 frames=36 "),
++        "{}",
++        lines[0]
++    );
+     assert!(lines.contains(&"sho-complete value=1"));
+     let at = |prefix: &str| lines.iter().position(|l| l.starts_with(prefix)).unwrap_or_else(|| panic!("no {prefix} line"));
+-    assert!(at("sho-summary") < at("sho-event") && at("sho-event i=1") < at("sho-clearance i=0") && at("sho-clearance i=0") < at("sho-scan i=0") && at("sho-scan i=0") < at("sho-verdict"), "{written}");
++    assert!(
++        at("sho-summary") < at("sho-event")
++            && at("sho-event i=1") < at("sho-clearance i=0")
++            && at("sho-clearance i=0") < at("sho-scan i=0")
++            && at("sho-scan i=0") < at("sho-verdict"),
++        "{written}"
++    );
+     assert_eq!(lines.last().copied(), Some("sho-verdict whole=1 events=2 clearances=1 sectors=1"));
+-    assert_eq!(o.log.iter().take(3).map(String::as_str).collect::<Vec<_>>(), ["prepare", "select", "boot"], "{:?}", o.log);
++    assert_eq!(
++        o.log.iter().take(3).map(String::as_str).collect::<Vec<_>>(),
++        ["prepare", "select", "boot"],
++        "{:?}",
++        o.log
++    );
+ }
+ 
+ #[test]
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:130:
+ fn an_observation_that_is_not_whole_is_refused_after_the_file_is_closed() {
+-    let o = run(&Case { summary: SUMMARY_WHOLE.replace("sho-complete value=1", "sho-complete value=0"), ..healthy() });
++    let o = run(&Case {
++        summary: SUMMARY_WHOLE.replace("sho-complete value=1", "sho-complete value=0"),
++        ..healthy()
++    });
+     assert!(o.result.expect_err("an incomplete observation must fail").contains("not whole"));
+     let written = o.written.expect("the partial record is kept, closed");
+     assert!(written.contains("sho-complete value=0") && !written.contains("sho-verdict"), "{written}");
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:143:
+ #[test]
+ fn a_module_built_without_the_observer_is_refused() {
+     let o = run(&Case { observer: false, ..healthy() });
+-    assert!(o.result.expect_err("a module without the observer must fail").contains("without feature eech-dc/sector-height-observer"));
++    assert!(o
++        .result
++        .expect_err("a module without the observer must fail")
++        .contains("without feature eech-dc/sector-height-observer"));
+ }
+ 
+ #[test]
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:150:
+ fn the_arguments_are_checked_before_any_side_effect() {
+-    let o = run(&Case { args: "root = 'x', scenario = 'georgia'", ..healthy() });
++    let o = run(&Case {
++        args: "root = 'x', scenario = 'georgia'",
++        ..healthy()
++    });
+     assert!(o.result.expect_err("a missing out must fail").contains("out=<observation file>"));
+-    assert!(o.written.is_none() && o.log.is_empty(), "no side effect before the arguments are accepted: {:?}", o.log);
+-    let o = run(&Case { args: "root = 'x', scenario = 'nowhere', out = '@OUT@'", ..healthy() });
++    assert!(
++        o.written.is_none() && o.log.is_empty(),
++        "no side effect before the arguments are accepted: {:?}",
++        o.log
++    );
++    let o = run(&Case {
++        args: "root = 'x', scenario = 'nowhere', out = '@OUT@'",
++        ..healthy()
++    });
+     assert!(o.result.expect_err("an unknown scenario must fail").contains("scenario="));
+     assert!(o.written.is_none() && o.log.is_empty(), "{:?}", o.log);
+ }
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:158:
+ 
+ #[test]
+ fn an_existing_output_is_never_overwritten_and_nothing_boots() {
+-    let o = run(&Case { existing: Some("a previous partial observation\n"), ..healthy() });
++    let o = run(&Case {
++        existing: Some("a previous partial observation\n"),
++        ..healthy()
++    });
+     assert!(o.result.expect_err("an existing output must be refused").contains("exclusively"));
+-    assert_eq!(o.written.as_deref(), Some("a previous partial observation\n"), "the earlier bytes must be untouched");
++    assert_eq!(
++        o.written.as_deref(),
++        Some("a previous partial observation\n"),
++        "the earlier bytes must be untouched"
++    );
+     assert!(o.log.is_empty(), "no prepare or boot before the output is secured: {:?}", o.log);
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:167:
+ #[test]
+ fn the_real_c_report_is_replayed_through_the_driver_line_for_line() {
+     // the summary is every report line that is not an indexed row; the scripted engine answers the indexed rows from the same real text
+-    let summary: String =
+-        REAL_REPORT.lines().filter(|l| !["sho-event i=", "sho-clearance i=", "sho-scan i="].iter().any(|p| l.starts_with(p))).map(|l| format!("{l}\n")).collect();
+-    let o = run(&Case { summary, real_rows: true, ..healthy() });
++    let summary: String = REAL_REPORT
++        .lines()
++        .filter(|l| !["sho-event i=", "sho-clearance i=", "sho-scan i="].iter().any(|p| l.starts_with(p)))
++        .map(|l| format!("{l}\n"))
++        .collect();
++    let o = run(&Case {
++        summary,
++        real_rows: true,
++        ..healthy()
++    });
+     o.result.expect("the real C report is a whole observation");
+     let written = o.written.expect("the observation file exists");
+     let lines: Vec<&str> = written.lines().collect();
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:176:
+     assert!(lines[0].starts_with("sho-baseline schema=1 "), "{}", lines[0]);
+-    assert!(lines.last().is_some_and(|l| l.starts_with("sho-verdict whole=1 events=151 clearances=1 sectors=2")), "{:?}", lines.last());
++    assert!(
++        lines
++            .last()
++            .is_some_and(|l| l.starts_with("sho-verdict whole=1 events=151 clearances=1 sectors=2")),
++        "{:?}",
++        lines.last()
++    );
+     let body: String = lines[1..lines.len() - 1].iter().map(|l| format!("{l}\n")).collect();
+     assert_eq!(body, REAL_REPORT, "the driver must write the real C report unchanged, in order");
+ }
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs:182:
+ #[test]
+ fn the_driver_grammar_is_the_emitters() {
+     // every key the driver reads from the summary is written by the observer's C emitter under the same line name
+-    for needle in ["sho-tables", "events_used=", "sho-clearance", "stored=", "sho-scan", "sectors=", "sho-complete value=%d", "sho-event i=%d seq=%llu", "sho-clearance i=%d seq=%llu", "sho-scan i=%d sx="] {
++    for needle in [
++        "sho-tables",
++        "events_used=",
++        "sho-clearance",
++        "stored=",
++        "sho-scan",
++        "sectors=",
++        "sho-complete value=%d",
++        "sho-event i=%d seq=%llu",
++        "sho-clearance i=%d seq=%llu",
++        "sho-scan i=%d sx=",
++    ] {
+         assert!(EMITTER.contains(needle), "the emitter does not write {needle}");
+     }
+ }

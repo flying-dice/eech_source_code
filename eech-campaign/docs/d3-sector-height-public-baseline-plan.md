@@ -12,12 +12,12 @@ public funnel. Still unobserved, and observed by this substage:
 
 | # | missing fact | observed by (hook, staged copy only) | where |
 |---|---|---|---|
-| M1 | the ACTUAL order of sector-list INSERT (roster), LINK_CHILD (the raise) and the fixed-state statement to the host, for each fixed family | `eech_sho_sector_insert`, `eech_sho_link_begin/end`, `eech_sho_statement_fixed/city`, one global sequence number | `en_list.c` after `campaign_place_insert`; `sc_msgs.c` around the tallest block; `mb_hostplacemap.h` `place_fixed_state` |
+| M1 | the ACTUAL order of sector-list INSERT (roster), LINK_CHILD (the raise), the fixed-state statement to the host and the removal, JOINED per placement by the observer's own record identity (never guessed from a family or a sector) | `eech_sho_sector_insert`, `eech_sho_sector_remove`, `eech_sho_entity_release`, `eech_sho_link_begin/end`, `eech_sho_statement_fixed/city`, one global sequence number | `en_list.c` after `campaign_place_insert` and `campaign_place_remove`; `en_heap.c` `set_free_entity`; `sc_msgs.c` around the tallest block; `mb_hostplacemap.h` `place_fixed_state` |
 | M2 | the words each raise used (shape, position y, box top) against the shape and position the host is told in the fixed-state statement, and the sector word before and after | the same link and statement records (raw bit patterns, never arithmetic) | same |
-| M3 | whether a REAL city arrives at the sector list with a valid shape (its state carries no shape) | the link record carries entity type, the fixed flag, the shape index and its validity; the city statement is recorded beside it | `sc_msgs.c`, `mb_hostplacemap.h` |
-| M4 | fact 12 and the FIRST-sector reads of the scan | `eech_sho_scan_first` (per sector: reads, first and last word, changes, first/last sequence) and `eech_sho_candidate_fact` (offers, non-zero words) | `mb_hostscan.h`, `mb_hostoffer.h` |
+| M3 | whether a REAL city arrives at the sector list with a valid shape (its state carries no shape) | the link record carries entity type, the fixed flag, the shape index and an explicit shape state: `valid`, `invalid` (both read at the original's own gate) or `unobserved` (the gate was false and nothing was read; never counted as invalid) | `sc_msgs.c`, `mb_hostplacemap.h` |
+| M4 | fact 12 and the FIRST-sector reads of the scan | `eech_sho_scan_first` (per sector: reads, first and last word, changes) and `eech_sho_candidate_fact`, which relates each candidate question's RAW word to the raw word of the last FIRST read by bit equality (equal and differing offers counted per sector; an offer with no FIRST before it is a join failure) | `mb_hostscan.h`, `mb_hostoffer.h` |
 | M5 | whether the guarded fixed-wing clearance consumer is reached, with which words | `eech_sho_clearance_leader`, `eech_sho_clearance_follow` (the two runtime guards), `eech_sho_clearance_tallest`, `eech_sho_clearance_final` (the sector word, the terrain elevation and `min_height` after each statement) | `fw_move.c` |
-| M6 | whether a save or restore of the word is reached by the public scenario | `eech_sho_pack`, `eech_sho_unpack` (counts and the raw words) | `sc_pack.c` |
+| M6 | whether a save or restore of the word is reached by the public scenario | `eech_sho_pack`, `eech_sho_unpack`: EVERY raw word is stored in the event table (no sample cap); a word that does not fit is counted as omitted and makes the report incomplete | `sc_pack.c` |
 
 An unreached case is reported with its counter at zero and stays named UNREACHED. A configured query is never credited as a natural engagement, and no actor, ray, seed, frame or duration is
 tuned: the scenario is the ordinary campaign driver's own boot and frame loop with the established defaults, observed.
@@ -32,14 +32,15 @@ record's coordinates). State: bounded private tables in `csrc/eech_sho.c` (event
 
 | hook | inputs | state effect |
 |---|---|---|
-| `eech_sho_sector_insert (en, parent)` | the entity, its sector | counts every insert; records an event for a fixed-flagged entity or a city |
+| `eech_sho_sector_insert (en, parent)` | the entity, its sector, the entity's heap index | counts every insert; for a fixed-flagged entity or a city opens the observer record under the heap index and records an event |
+| `eech_sho_sector_remove (en)` / `eech_sho_entity_release (en)` | the entity's heap index (and, at removal, its type and fixed flag) | closes the open record; a removal with no record is a join failure, a release of an open record is only counted |
 | `eech_sho_link_begin (sector, sender, word)` | the sector entity, the sender, a pointer to the held word | remembers the word's bits |
 | `eech_sho_link_end (sector, sender, word)` | the same | counts; for a fixed sender or a city records type, fixed flag, shape and validity, position and box-top bits when the original read them, before and after bits |
 | `eech_sho_statement_fixed (en, type, key, state)` / `_city (en, key, city)` | the statement the host is about to receive | records the key and the raw state words |
 | `eech_sho_scan_first (x, z, word)` | the sector the host named and its word | per-sector aggregate |
 | `eech_sho_candidate_fact (word)` | fact 12 of one candidate question | two counters |
 | `eech_sho_clearance_*` | the guard reached, the sector entity, `terrain_elevation`, `min_height` | two counters; up to 4096 records |
-| `eech_sho_pack / unpack (word, x, z)` | the raw word and the sector coordinates | counters; up to 64 events in the event table |
+| `eech_sho_pack / unpack (word, x, z)` | the raw word and the sector coordinates | every word is stored in the event table; a word that does not fit is counted as omitted and makes the report incomplete |
 
 The report is read through three read-only entries (`eech_engine_sho_summary`, `_event`, `_clearance`, `_scan`) in the same pattern as the route and target-point fixtures, through the
 public Lua module methods of the same names (feature builds only).
@@ -61,11 +62,23 @@ case reach. The observer DLL is not the shipping DLL: the staged `fw_move.c` hoo
 for them, so the observer is NOT assumed result-neutral by construction. Root's control is the ordinary short check run with the observer DLL against the three accepted short artifacts; a
 difference is a finding about the observer, not a baseline change.
 
+The first window is the ESTABLISHED finite ordinary short window (`hours=0.001`, 3.6 simulated seconds, `frame_ms=100`, `seed=1`: the window of the accepted ordinary short checks), the driver's default. The wrapper never terminates a native process: a wait that ends while the process runs returns 'still running' (exit 2) with the process receipt (pid, birth, argument hash) already on disk, and every output is created new and atomically. A larger window needs its own named, bounded plan with a specific unresolved fact before launch, and is never chosen by what the observation reached.
+
 ## Checks prepared (focused, Linux)
 
 A real-C control of the observer itself (feature combination `sector-height-check` + `sector-height-observer`): the existing control's real `response_to_link_child`, float getter and pack/unpack
 run with the staged hooks, and the observer's records are compared with the control's own known words (before/after, raised or not, the raw saved and restored words). It proves the
 RECORDER, not the funnel: the funnel observation is the native run. Plus `cargo fmt`, strict clippy for the feature set, and the existing sector-height guards unchanged.
+
+## Correction after the SAME review of 9dad1b635 (7 November 2026)
+
+The review (`CHANGES_REQUIRED`: `ENV-SECTOR-HEIGHT-OBSERVER-JOIN-1`, `-COMPLETE-1`, `ENV-SECTOR-HEIGHT-BASELINE-RUN-1`) is corrected here, in the observer source, and in the sibling packet `reference/d3-entity-collision/sector-height-public-baseline-fix`. The first source commit and its packet are kept literally and are historical.
+
+1. **Join.** Every INSERT of a fixed entity or city opens an observer record under the entity's heap index (a private bookkeeping number; no production semantic identifier is allocated or changed); LINK, the host statement and the REMOVAL of the same placement find it; a freed slot closes an open record. A LINK or sector-placed statement with no open record, a second INSERT of an open record, a statement of another type and a removal with no record are COUNTED and make the report incomplete. A city building's statement (placed in a city's list) is counted apart. The shape is `unobserved` where the original block does not read it. Fact 12 keeps its raw word and is related to the sector's FIRST word per sector.
+2. **Completeness.** The pack/unpack sample cap is removed: every word is stored in the event table, the table bound is the only bound, an omitted word is counted (`pack_omitted`, `unpack_omitted`) and makes `sho-complete` 0. The raw words (negative, infinite, quiet NaN) are stored as bits; nothing is refused or clamped.
+3. **Orchestration.** No timeout kill; process and completion receipts; every output created new; the first window is the established finite short window.
+
+The recorder core takes plain data, so the controls drive it with a known coherent sequence (two same-family records in one sector with interleaved statements, an unread city shape, distinct nonzero FIRST and fact-12 words) and read the report through the REAL Rust converters (`sector_height_summary_text`, `sector_height_row_text`); the real C text is pinned as the fixture the Lua driver's guard replays. These controls do not run the public funnel, the entity heap or the host; the Lua binding is pinned by compilation and lint until the native run.
 
 ## Not claimed
 

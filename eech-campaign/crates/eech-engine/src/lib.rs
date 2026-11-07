@@ -1056,6 +1056,35 @@ pub const SHO_CLEARANCES_MAX: i32 = 4096;
 #[cfg(feature = "sector-height-observer")]
 pub const SHO_SCAN_MAX: i32 = 65_536;
 
+/// TEST-ONLY (feature `sector-height-observer`): the converter of the observer's summary report: a bounded zeroed buffer, the status checked before the NUL-terminated text is read. `entry`
+/// is the engine's public entry (which also checks the engine state) or, in a control that holds no booted engine, the C report function behind it; both share this code.
+#[cfg(feature = "sector-height-observer")]
+pub fn sector_height_summary_text(entry: unsafe extern "C" fn(*mut std::os::raw::c_char, i32) -> i32) -> Result<String, EngineError> {
+    let mut text = vec![0 as std::os::raw::c_char; SHO_REPORT_CAPACITY * 4];
+    // SAFETY: the buffer outlives the call and the capacity passed is its length; the entry NUL-terminates it.
+    check(unsafe { entry(text.as_mut_ptr(), text.len() as i32) })?;
+    // SAFETY: the entry wrote a NUL-terminated string within the buffer.
+    Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+}
+
+/// TEST-ONLY (feature `sector-height-observer`): the converter of one indexed observer row; the index is checked against the table bound here, before the entry is called, and again by the entry.
+#[cfg(feature = "sector-height-observer")]
+pub fn sector_height_row_text(
+    what: &str,
+    index: i32,
+    max: i32,
+    entry: unsafe extern "C" fn(i32, *mut std::os::raw::c_char, i32) -> i32,
+) -> Result<String, EngineError> {
+    if !(0..max).contains(&index) {
+        return Err(EngineError::BadArgument(format!("{what}: index {index} must be within 0..{max}")));
+    }
+    let mut text = vec![0 as std::os::raw::c_char; SHO_REPORT_CAPACITY];
+    // SAFETY: the buffer outlives the call and the capacity passed is its length; the entry NUL-terminates it.
+    check(unsafe { entry(index, text.as_mut_ptr(), text.len() as i32) })?;
+    // SAFETY: the entry wrote a NUL-terminated string within the buffer.
+    Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+}
+
 /// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): room for one route report (the summary, or one recorded parser call); a report that does not fit is refused, never cut short.
 #[cfg(feature = "route-fixture")]
 const ROUTE_REPORT_CAPACITY: usize = 1024 * 1024;
@@ -6623,11 +6652,7 @@ impl Engine {
     /// lines (see `csrc/eech_sho.c`). Read-only; a report that does not fit fails.
     #[cfg(feature = "sector-height-observer")]
     pub fn sector_height_summary(&self) -> Result<String, EngineError> {
-        let mut text = vec![0 as std::os::raw::c_char; SHO_REPORT_CAPACITY * 4];
-        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
-        check(unsafe { sys::eech_engine_sho_summary(text.as_mut_ptr(), text.len() as i32) })?;
-        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
-        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+        sector_height_summary_text(sys::eech_engine_sho_summary)
     }
 
     /// TEST-ONLY (feature `sector-height-observer`): one recorded insert, link, statement or pack event by its zero-based index. `index` is checked here before the engine is entered, and
@@ -6657,14 +6682,7 @@ impl Engine {
         max: i32,
         entry: unsafe extern "C" fn(i32, *mut std::os::raw::c_char, i32) -> i32,
     ) -> Result<String, EngineError> {
-        if !(0..max).contains(&index) {
-            return Err(EngineError::BadArgument(format!("{what}: index {index} must be within 0..{max}")));
-        }
-        let mut text = vec![0 as std::os::raw::c_char; SHO_REPORT_CAPACITY];
-        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
-        check(unsafe { entry(index, text.as_mut_ptr(), text.len() as i32) })?;
-        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
-        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+        sector_height_row_text(what, index, max, entry)
     }
 
     /// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): what the ORIGINAL airfield route parser read and produced while the campaign loaded, as `key=value` text lines: the

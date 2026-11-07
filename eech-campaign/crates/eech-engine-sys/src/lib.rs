@@ -1925,6 +1925,47 @@ extern "C" {
     pub fn eech_engine_ground_probe(seed: u32, points: c_int, impacts: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
+/// TEST SUPPORT (feature `sector-height-observer`): the observer's recorder core (plain data) and its un-locked report functions, so that a control can drive the recorder with a known sequence
+/// and read the C report through the real converters without a booted engine. Not part of the shipping module.
+#[cfg(feature = "sector-height-observer")]
+pub mod sho_support {
+    use std::os::raw::{c_char, c_int};
+
+    extern "C" {
+        pub fn eech_sho_core_insert(ent: c_int, etype: c_int, family: c_int, sx: c_int, sz: c_int);
+        pub fn eech_sho_core_insert_mobile();
+        pub fn eech_sho_core_remove(ent: c_int, etype: c_int, family: c_int, fixed_or_city: c_int);
+        pub fn eech_sho_core_release(ent: c_int);
+        pub fn eech_sho_core_link_begin(before: u32);
+        #[allow(clippy::too_many_arguments)]
+        pub fn eech_sho_core_link_end(
+            ent: c_int,
+            etype: c_int,
+            family: c_int,
+            fixed_or_city: c_int,
+            shape_state: c_int,
+            shape: c_int,
+            pos: *const u32,
+            ymax: u32,
+            after: u32,
+            sx: c_int,
+            sz: c_int,
+        );
+        pub fn eech_sho_core_statement(ent: c_int, etype: c_int, family: c_int, key: *const c_char, words: *const u32, count: c_int);
+        pub fn eech_sho_core_scan_first(x_sector: c_int, z_sector: c_int, word: u32);
+        pub fn eech_sho_core_candidate_fact(word: u32);
+        pub fn eech_sho_core_clearance_leader();
+        pub fn eech_sho_core_clearance_follow();
+        pub fn eech_sho_core_clearance_tallest(sx: c_int, sz: c_int, tallest: u32, terrain: u32, after_tallest: u32);
+        pub fn eech_sho_core_clearance_final(final_word: u32);
+        pub fn eech_sho_core_session(pack: c_int, word: u32, x_sector: c_int, z_sector: c_int);
+        pub fn eech_sho_summary_run(text: *mut c_char, capacity: c_int) -> c_int;
+        pub fn eech_sho_event_run(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+        pub fn eech_sho_clearance_run(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+        pub fn eech_sho_scan_run(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    }
+}
+
 #[cfg(feature = "sector-height-observer")]
 extern "C" {
     pub fn eech_engine_sho_summary(text: *mut c_char, capacity: c_int) -> c_int;

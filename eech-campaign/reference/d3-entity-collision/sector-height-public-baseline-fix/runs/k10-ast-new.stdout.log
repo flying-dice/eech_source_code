@@ -1,0 +1,1 @@
+AST check passed: parses; no process termination or truncating call; the still-running branch exits 2 without a receipt or a throw; CreateNew only; the process receipt precedes the wait

@@ -217,7 +217,7 @@ fn main() {
     }
 
     // 1a3b. TEST-ONLY (feature sector-height-observer, EEDCS-49 D3): read-only observation hooks at the places the sector's tallest-structure word is raised, stated to the host, read,
-    //      used by the fixed-wing clearance and packed (patches.rs SECTOR_HEIGHT_OBSERVER_PATCHES, docs/d3-sector-height-public-baseline-plan.md). None of the seven files has a
+    //      used by the fixed-wing clearance and packed (patches.rs SECTOR_HEIGHT_OBSERVER_PATCHES, docs/d3-sector-height-public-baseline-plan.md). None of the eight files has a
     //      shipping patch; with the feature off the staged files are exactly the shipping ones and the in-tree sources are never edited.
     if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_OBSERVER").is_some() {
         for file in patches::sector_height_observer_files() {

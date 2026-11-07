@@ -1,0 +1,31 @@
+{
+  "created_utc": "2026-11-07T04:39:00Z",
+  "source": "ba3ad01c3fbbaddbb0ec6725f211b933019ad3a5",
+  "run": 42338676317,
+  "status": "FAILURE",
+  "same_failure_all_five_jobs": [
+    {
+      "job_id": 128301351722,
+      "excerpt": null
+    },
+    {
+      "job_id": 128301351755,
+      "excerpt": null
+    },
+    {
+      "job_id": 128301351806,
+      "excerpt": null
+    },
+    {
+      "job_id": 128301351810,
+      "excerpt": null
+    },
+    {
+      "job_id": 128301351822,
+      "excerpt": null
+    }
+  ],
+  "required_correction": "New script expands the actual reference-script inventory63, while host_callbacks pinned62. Characterize semantic guard and newscript referencearithmetic behavior, update exact inventory only for legitimate addedscript (no dropping guard). Include focused host_callbacks affectedtest and defaultclippy in the SAME currentlane/final PREPOST checks. No broad matrix/native rerun to repair this inventory.",
+  "reviewer": "SAME ad7source review already sealed; CI result newly available. Include this concrete changed material in planned next ONE review. No extra lane/restart.",
+  "limits": "No production arithmetic difference inferred. FiveactualCI failures retained; otherfourchecks success. No nativeclearance."
+}

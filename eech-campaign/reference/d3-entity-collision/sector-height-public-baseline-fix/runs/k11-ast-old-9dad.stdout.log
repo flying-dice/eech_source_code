@@ -1,0 +1,4 @@
+FAIL: forbidden call at line 30: $process.Kill()
+FAIL: expected exactly one not-finished branch, found 0
+FAIL: the only file open must be CreateNew
+FAIL: the process receipt must be written before the wait

@@ -53,3 +53,13 @@ unsafe_op_in_unsafe_fn = "deny"
 [lints.clippy]
 unwrap_used = "deny"
 expect_used = "deny"
+
+[[test]]
+name = "sector_height_observer_chain"
+path = "tests/sector_height_observer_chain.rs"
+required-features = ["sector-height-observer"]
+
+[[test]]
+name = "sector_height_observer_cap"
+path = "tests/sector_height_observer_cap.rs"
+required-features = ["sector-height-observer"]
