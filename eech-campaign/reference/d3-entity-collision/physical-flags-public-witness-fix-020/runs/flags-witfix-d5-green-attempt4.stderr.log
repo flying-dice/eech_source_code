@@ -1,0 +1,3 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.72s
+     Running tests/physical_flags_witness_driver.rs (/target/t/debug/deps/physical_flags_witness_driver-156c1f77030291d2)

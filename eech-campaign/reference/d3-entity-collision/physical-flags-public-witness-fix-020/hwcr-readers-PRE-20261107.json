@@ -1,0 +1,12 @@
+{
+  "run-physical-flags-witfix-direct-20261107.py": "a04d76679f16a1fdb10e75c1e0ad78837144512ca6ebd71d33828eaf096e3e97",
+  "check-physical-flags-witfix-linux-20261107.sh": "57173f31bdb60c0f388cd883fb310d091900b582b28e3cfe8203c4842873face",
+  "run-hwcr-final-set-20261107.sh": "5d5e7a5cba2b7c0c749ce634393c4fe2c2b442536f988ecda07807fe2e4e0abb",
+  "hwcr-extra-identity-20261107.py": "46aa4939ecdcfc1fa6d7fb40605ad7866efafa8ebb204e1db5ff5991a5c09172",
+  "freeze-hwcr-20261107.py": "15761c823a7456753940f23348afbbc4115ec46cc2de253ea8dd90cda6dd1025",
+  "publish-hwcr-20261107.py": "f9249bc751c4b52732d0aa03e8ff990f9b066ca83a855e0f4da65a40a5041c23",
+  "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+  "sho-compare-maps-20261107.py": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+  "preflight-receipts-20261107.py": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf",
+  "hwcr-name-check-20261107.py": "bda76b550f3dde455788679753e6bf5d43d1124f054d76af7c86acf2356480f0"
+}

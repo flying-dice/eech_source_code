@@ -71,8 +71,7 @@ end
 
 local CACHE, BOUND = {}, {}
 -- the reply as the module's Lua-side validator and the C bridge check it
-local function ask (config, event, array, lane, key, eligible, group)
-	ASKED = ASKED + 1
+local function ask_checked (config, event, array, lane, key, eligible, group)
 	local ok, answer = pcall (config.model, "entity_scan", 0, nil, nil, nil, question (event, array, lane, key, eligible))
 	if not ok then fatal ("entity_scan.callback", tostring (answer)) end
 	if type (answer) ~= "table" or type (answer.result) ~= "string" then fatal ("entity_scan.answer", "the answer is not a table with a result") end
@@ -99,6 +98,24 @@ local function ask (config, event, array, lane, key, eligible, group)
 	if p [2] ~= whole_pattern (lane) then fatal ("flag.answer", "another flag lane than the one asked about") end
 	if p [3] ~= mask_pattern (lane) and (event == "set" or p [3] ~= ZERO) then fatal ("flag.word", "the raw word " .. p [3] .. " is not allowed for lane " .. tostring (lane) .. ", whose mask is " .. mask_pattern (lane)) end
 	return p [3]
+end
+-- the engine entry returns normally (a campaign that went on after an answer it should have refused): the frame and boot functions turn this sentinel into a normal return
+local RETURN = {}
+-- P.ignore_fault: a campaign that IGNORES the refused answer instead of stopping at once: "continue" makes another host callback and THEN raises the very same fatal, "return" returns normally from the engine entry,
+-- "other" raises a different marker later. Without it the first failed check is the immediate fatal of the real engine.
+local function ask (config, event, array, lane, key, eligible, group)
+	ASKED = ASKED + 1
+	local ok, result = pcall (ask_checked, config, event, array, lane, key, eligible, group)
+	if ok then return result end
+	local ignore = P.ignore_fault
+	if ignore == nil or string.match (tostring (result), "%[model%-provider:") == nil then error (result, 0) end
+	if ignore == "continue" then
+		config.bind_mobile ({})
+		error (result, 0)
+	elseif ignore == "return" then
+		error (RETURN)
+	end
+	fatal ("entity_scan.cursor", "an unrelated failure later in the entry")
 end
 
 local ENTITY = {}
@@ -150,15 +167,20 @@ package.preload ["eech_dc"] = function ()
 		boot = function (config)
 			note ("boot " .. tostring (config.campaign))
 			CONFIG = config
+			-- P.boot_actions: flag traffic of the engine's own boot (an update iteration while the campaign is created)
+			local function run_actions (actions)
+				for _, action in ipairs (actions or {}) do
+					-- the original-solver profile keeps its own arrays: nothing about a flag reaches the host
+					if not P.original or action == "bind" then act (CONFIG, action) end
+				end
+			end
+			local booted, why = pcall (run_actions, P.boot_actions)
+			if not booted and why ~= RETURN then error (why, 0) end
 			return {
 				frame = function ()
 					frame_number = frame_number + 1
-					local actions = P.frames [frame_number]
-					if actions == nil then return end
-					for _, action in ipairs (actions) do
-						-- the original-solver profile keeps its own arrays: nothing about a flag reaches the host
-						if not P.original or action == "bind" then act (CONFIG, action) end
-					end
+					local ran, failure = pcall (run_actions, P.frames [frame_number])
+					if not ran and failure ~= RETURN then error (failure, 0) end
 				end,
 			}
 		end,
@@ -534,9 +556,16 @@ fn an_original_report_must_be_the_hosts_never_asked_and_of_the_same_setup() {
     assert_refused_before_any_effect(&wrong_role, "not a successful schema 1 flags_original report");
     // a host that WAS asked in an edited original report
     let text = std::fs::read_to_string(&pair.original).unwrap();
-    let asked = write_temp(&text.replace("attempts_set=0", "attempts_set=3"));
+    // a coherent edit (every count of the set agrees at 3): the host WAS asked, which an Original report can never say
+    let asked = write_temp(
+        &["attempts_set", "answered_set", "accepted_set", "oracle_sets"]
+            .iter()
+            .fold(text.replace("sets=0 reads=0", "sets=3 reads=0"), |text, key| {
+                text.replace(&format!("{key}=0"), &format!("{key}=3"))
+            }),
+    );
     let edited = run(&format!("{ARGS}, mode = 'flags_control', original = '{}'", path_text(&asked)), &pair.p);
-    assert_refused_before_any_effect(&edited, "WAS asked a flag set");
+    assert_refused_before_any_effect(&edited, "saw flag traffic");
     let _ = std::fs::remove_file(&asked);
 }
 
@@ -553,9 +582,9 @@ fn an_intervention_accepts_only_a_whole_successful_paired_control_of_the_same_se
     assert_refused_before_any_effect(&damaged("paired=1", "paired=0"), "not a PAIRED control");
     assert_refused_before_any_effect(&damaged("hours=0.0003", "hours=0.0004"), "another setup");
     assert_refused_before_any_effect(&damaged("status=PASS", "status=FAILURE"), "not a successful schema 1 flags_control report");
-    assert_refused_before_any_effect(&damaged("altered=0", "altered=1"), "altered an answer");
-    assert_refused_before_any_effect(&damaged("oracle_mismatches=0", "oracle_mismatches=2"), "backing difference");
-    assert_refused_before_any_effect(&damaged(" accepted_reset=", " accepted_reset=0 x="), "never had a flag reset accepted");
+    assert_refused_before_any_effect(&damaged("altered=0", "altered=1"), "altered 1");
+    assert_refused_before_any_effect(&damaged("oracle_mismatches=0", "oracle_mismatches=2"), "backing check found a difference");
+    assert_refused_before_any_effect(&damaged(" accepted_reset=", " accepted_reset=0 x="), "unknown key x");
     let with_fault = write_temp(&control_text.replace("pf-witness-verdict", "pf-witness-reply-fault x\npf-witness-verdict"));
     let o = run(&format!("{ARGS}, mode = 'set_withheld', control = '{}'", path_text(&with_fault)), &pair.p);
     assert_refused_before_any_effect(&o, "reply-fault");
@@ -782,4 +811,488 @@ return whole_pattern, mask_pattern"
     );
     // one text in both drivers: the helper is not allowed to drift between the public driver and this witness
     assert_eq!(flag_pattern_block(DRIVER), flag_pattern_block(ENTITY_AUTHORITY));
+}
+
+// ---------------------------------------------------------------------------------------------------------------- ENV-PHYSICAL-FLAGS-WITNESS-REFERENCE-COMPLETE-1
+
+/// the text of a report with the `key=value` token of the first line that starts with `prefix` set to `value` (the token must exist)
+fn set_token(text: &str, prefix: &str, key: &str, value: &str) -> String {
+    let wanted = format!("{key}=");
+    let mut done = false;
+    let lines: Vec<String> = text
+        .lines()
+        .map(|line| {
+            if done || !line.starts_with(prefix) {
+                return line.to_string();
+            }
+            done = true;
+            line.split(' ')
+                .map(|token| {
+                    if token.starts_with(&wanted) {
+                        format!("{key}={value}")
+                    } else {
+                        token.to_string()
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .collect();
+    assert!(done, "no line starts with {prefix}");
+    format!("{}\n", lines.join("\n"))
+}
+
+fn token_of(text: &str, prefix: &str, key: &str) -> String {
+    field(
+        text.lines().find(|line| line.starts_with(prefix)).unwrap_or_else(|| panic!("no line {prefix}")),
+        key,
+    )
+}
+
+fn remove_line(text: &str, prefix: &str) -> String {
+    let kept: Vec<&str> = text.lines().filter(|line| !line.starts_with(prefix)).collect();
+    format!("{}\n", kept.join("\n"))
+}
+
+fn remove_token(text: &str, prefix: &str, key: &str) -> String {
+    let wanted = format!("{key}=");
+    let lines: Vec<String> = text
+        .lines()
+        .map(|line| {
+            if line.starts_with(prefix) {
+                line.split(' ').filter(|token| !token.starts_with(&wanted)).collect::<Vec<_>>().join(" ")
+            } else {
+                line.to_string()
+            }
+        })
+        .collect();
+    format!("{}\n", lines.join("\n"))
+}
+
+fn insert_before_verdict(text: &str, line: &str) -> String {
+    text.replace("pf-witness-verdict", &format!("{line}\npf-witness-verdict"))
+}
+
+fn number(text: &str, prefix: &str, key: &str) -> i64 {
+    token_of(text, prefix, key).parse().unwrap()
+}
+
+/// a damaged reference is refused for its own field BEFORE the report, the boot, any provider call or any alteration
+fn refused_before_any_effect_for(outcome: &Outcome, needle: &str) -> bool {
+    outcome.report.is_none() && outcome.asked == 0 && outcome.result.as_ref().is_err_and(|error| error.contains(needle))
+}
+
+fn run_with_original(pair_p: &str, original: &str) -> Outcome {
+    let path = write_temp(original);
+    let outcome = run(&format!("{ARGS}, mode = 'flags_control', original = '{}'", path_text(&path)), pair_p);
+    let _ = std::fs::remove_file(&path);
+    outcome
+}
+
+fn run_with_control(pair_p: &str, mode: &str, control: &str) -> Outcome {
+    let path = write_temp(control);
+    let outcome = run(&format!("{ARGS}, mode = '{mode}', control = '{}'", path_text(&path)), pair_p);
+    let _ = std::fs::remove_file(&path);
+    outcome
+}
+
+fn describe(outcome: &Outcome) -> String {
+    format!(
+        "{:?} (report {}, asked {})",
+        outcome.result.as_ref().err().map(|e| e.lines().next().unwrap_or("")),
+        outcome.report.is_some(),
+        outcome.asked
+    )
+}
+
+#[test]
+fn a_damaged_original_report_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_pairs() {
+    let pair = paired("");
+    let original = std::fs::read_to_string(&pair.original).unwrap();
+    // positive first: the genuine report pairs a control (the pair itself was generated and passed by `paired`)
+    passed(&run_with_original(&pair.p, &original));
+    let counts = "pf-witness-counts";
+    let zero_row = "pf-witness-first event=group ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0";
+    let swapped = {
+        let oracle = original.lines().find(|l| l.starts_with("pf-witness-oracle")).unwrap().to_string();
+        let counts_line = original.lines().find(|l| l.starts_with(counts)).unwrap().to_string();
+        original.replace(&format!("{counts_line}\n{oracle}\n"), &format!("{oracle}\n{counts_line}\n"))
+    };
+    let cases: Vec<(&str, String, &str)> = vec![
+        ("no oracle row", remove_line(&original, "pf-witness-oracle"), "oracle"),
+        (
+            "answered_set with no attempt",
+            set_token(&original, counts, "answered_set", "2"),
+            "answered_set",
+        ),
+        (
+            "accepted_group with no attempt",
+            set_token(&original, counts, "accepted_group", "1"),
+            "accepted_group",
+        ),
+        ("keys issued with no attempt", set_token(&original, counts, "keys_issued", "1"), "keys_issued"),
+        ("oracle_sets with no attempt", set_token(&original, counts, "oracle_sets", "1"), "oracle_sets"),
+        ("reads_zero with no attempt", set_token(&original, counts, "reads_zero", "1"), "reads_zero"),
+        (
+            "resets_cleared with no attempt",
+            set_token(&original, counts, "resets_cleared", "1"),
+            "resets_cleared",
+        ),
+        ("changed_accepted", set_token(&original, counts, "changed_accepted", "1"), "changed_accepted"),
+        ("oracle row sets", set_token(&original, "pf-witness-oracle", "sets", "1"), "oracle"),
+        (
+            "oracle row without mismatches",
+            remove_token(&original, "pf-witness-oracle", "mismatches"),
+            "mismatches",
+        ),
+        ("a first-event row", insert_before_verdict(&original, zero_row), "first"),
+        ("counts without oracle_reads", remove_token(&original, counts, "oracle_reads"), "oracle_reads"),
+        (
+            "counts with an unknown key",
+            original.replace("pf-witness-counts ", "pf-witness-counts extra=1 "),
+            "extra",
+        ),
+        ("oracle before counts", swapped, "order"),
+        ("no frame run", set_token(&original, counts, "frames", "0"), "frames"),
+        ("paired original", set_token(&original, "pf-witness-identity", "paired", "1"), "paired"),
+        ("non-canonical count", set_token(&original, counts, "attempts_set", "00"), "attempts_set"),
+    ];
+    let mut wrongly_accepted = Vec::new();
+    for (what, damaged, needle) in &cases {
+        if damaged == &original {
+            wrongly_accepted.push(format!("{what}: the damage changed nothing"));
+            continue;
+        }
+        let outcome = run_with_original(&pair.p, damaged);
+        if !refused_before_any_effect_for(&outcome, needle) {
+            wrongly_accepted.push(format!(
+                "{what}: expected a refusal naming {needle} before any effect, got {}",
+                describe(&outcome)
+            ));
+        }
+    }
+    assert!(
+        wrongly_accepted.is_empty(),
+        "{} damaged Original reports were not refused for their field:\n{wrongly_accepted:#?}",
+        wrongly_accepted.len()
+    );
+}
+
+#[test]
+fn a_damaged_paired_control_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_unlocks_its_cases() {
+    let pair = paired("");
+    let control = std::fs::read_to_string(&pair.control).unwrap();
+    // positive first: the genuine control unlocks every mode the damaged cases below use
+    for mode in ["set_withheld", "read_withheld", "group_duplicate_key", "read_changed"] {
+        passed(&pair.mode(mode));
+    }
+    let counts = "pf-witness-counts";
+    let attempts_set = number(&control, counts, "attempts_set");
+    let total = ["group", "set", "read", "reset"]
+        .iter()
+        .map(|e| number(&control, counts, &format!("attempts_{e}")))
+        .sum::<i64>();
+    let frames = number(&control, counts, "frames");
+    let set_row = "pf-witness-first event=set ";
+    let consume = "pf-witness-consume";
+    let wrong_host = if token_of(&control, consume, "host") == "0x40000000" {
+        "0x3f800000"
+    } else {
+        "0x40000000"
+    };
+    let out_of_order = {
+        let group = control.lines().find(|l| l.starts_with("pf-witness-first event=group ")).unwrap().to_string();
+        let set = control.lines().find(|l| l.starts_with(set_row)).unwrap().to_string();
+        control
+            .replace(&format!("{group}\n"), "")
+            .replace(&format!("{set}\n"), &format!("{set}\n{group}\n"))
+    };
+    let both_zero = set_token(&set_token(&control, consume, "fact", "0x00000000"), consume, "expected", "0x00000000");
+    let cases: Vec<(&str, &str, String, &str)> = vec![
+        ("no oracle row", "set_withheld", remove_line(&control, "pf-witness-oracle"), "oracle"),
+        (
+            "accepted above attempted",
+            "set_withheld",
+            set_token(&control, counts, "accepted_set", &(attempts_set + 1).to_string()),
+            "accepted_set",
+        ),
+        (
+            "accepted below attempted (a healthy control accepts every answered reply)",
+            "set_withheld",
+            set_token(&control, counts, "accepted_set", &(attempts_set - 1).to_string()),
+            "accepted_set",
+        ),
+        (
+            "answered above attempted",
+            "set_withheld",
+            set_token(
+                &control,
+                counts,
+                "answered_group",
+                &(number(&control, counts, "attempts_group") + 1).to_string(),
+            ),
+            "answered_group",
+        ),
+        (
+            "oracle_sets differs from answered_set",
+            "set_withheld",
+            set_token(&control, counts, "oracle_sets", &(number(&control, counts, "oracle_sets") + 1).to_string()),
+            "oracle_sets",
+        ),
+        (
+            "oracle row differs from the counts",
+            "set_withheld",
+            set_token(
+                &control,
+                "pf-witness-oracle",
+                "sets",
+                &(number(&control, counts, "oracle_sets") + 1).to_string(),
+            ),
+            "oracle",
+        ),
+        (
+            "reads_zero plus reads_mask differs from the oracle reads",
+            "set_withheld",
+            set_token(&control, counts, "reads_mask", &(number(&control, counts, "reads_mask") + 1).to_string()),
+            "reads_mask",
+        ),
+        (
+            "keys_issued differs from the answered groups",
+            "set_withheld",
+            set_token(&control, counts, "keys_issued", &(number(&control, counts, "keys_issued") + 1).to_string()),
+            "keys_issued",
+        ),
+        (
+            "changed_accepted in a healthy control",
+            "set_withheld",
+            set_token(&control, counts, "changed_accepted", "1"),
+            "changed_accepted",
+        ),
+        (
+            "resets_cleared beyond what the groups allow",
+            "set_withheld",
+            set_token(&control, counts, "resets_cleared", "999999"),
+            "resets_cleared",
+        ),
+        ("no frame run", "set_withheld", set_token(&control, counts, "frames", "0"), "frames"),
+        (
+            "first set ordinal beyond the traffic",
+            "set_withheld",
+            set_token(&control, set_row, "ordinal", &(total + 5).to_string()),
+            "ordinal",
+        ),
+        (
+            "first set frame beyond the run",
+            "set_withheld",
+            set_token(&control, set_row, "frame", &(frames + 3).to_string()),
+            "frame",
+        ),
+        (
+            "first set before_set beyond its attempts",
+            "set_withheld",
+            set_token(&control, set_row, "before_set", &(attempts_set + 1).to_string()),
+            "before_set",
+        ),
+        (
+            "first set before any group",
+            "set_withheld",
+            set_token(&control, set_row, "before_group", "0"),
+            "before_group",
+        ),
+        (
+            "first group row with a group before it",
+            "group_duplicate_key",
+            set_token(&control, "pf-witness-first event=group ", "before_group", "1"),
+            "before_group",
+        ),
+        (
+            "a first-event row twice",
+            "set_withheld",
+            {
+                let line = control.lines().find(|l| l.starts_with(set_row)).unwrap().to_string();
+                control.replace(&format!("{line}\n"), &format!("{line}\n{line}\n"))
+            },
+            "twice",
+        ),
+        ("an unknown event", "set_withheld", set_token(&control, set_row, "event", "bogus"), "event"),
+        ("first rows out of order", "set_withheld", out_of_order, "order"),
+        (
+            "the consumable-read row removed while a consumable read was counted",
+            "read_changed",
+            remove_line(&control, "pf-witness-first event=read_consumable "),
+            "read_consumable",
+        ),
+        (
+            "reads_consumable zero with a consumable row",
+            "read_changed",
+            set_token(&control, counts, "reads_consumable", "0"),
+            "reads_consumable",
+        ),
+        ("consumption fact and expectation 0.0", "read_changed", both_zero, "consume"),
+        (
+            "consumption without a host field",
+            "read_changed",
+            remove_token(&control, consume, "host"),
+            "host",
+        ),
+        (
+            "consumption host against the raw word",
+            "read_changed",
+            set_token(&control, consume, "host", wrong_host),
+            "host",
+        ),
+        (
+            "consumption marked changed in a control",
+            "read_changed",
+            set_token(&control, consume, "changed", "1"),
+            "changed",
+        ),
+        (
+            "consumption answered word differs from the raw word",
+            "read_changed",
+            set_token(&control, consume, "answered_word", "0x00000008"),
+            "answered_word",
+        ),
+        (
+            "consumption raw word that is no lane mask",
+            "read_changed",
+            set_token(&control, consume, "real_word", "0x00000003"),
+            "real_word",
+        ),
+        (
+            "consumption fact that is neither 1.0 nor 2.0",
+            "read_changed",
+            set_token(&control, consume, "fact", "0x3f800001"),
+            "fact",
+        ),
+        ("no consumption record", "read_changed", remove_line(&control, consume), "consum"),
+    ];
+    let mut wrongly_accepted = Vec::new();
+    for (what, mode, damaged, needle) in &cases {
+        if damaged == &control {
+            wrongly_accepted.push(format!("{what}: the damage changed nothing"));
+            continue;
+        }
+        let outcome = run_with_control(&pair.p, mode, damaged);
+        if !refused_before_any_effect_for(&outcome, needle) {
+            wrongly_accepted.push(format!(
+                "{what} ({mode}): expected a refusal naming {needle} before any effect, got {}",
+                describe(&outcome)
+            ));
+        }
+    }
+    assert!(
+        wrongly_accepted.is_empty(),
+        "{} damaged paired controls were not refused for their field:\n{wrongly_accepted:#?}",
+        wrongly_accepted.len()
+    );
+}
+
+#[test]
+fn a_group_set_reset_only_control_unlocks_only_the_cases_its_positive_reached() {
+    // no candidate is ever asked: no consumable read, no consumption; plain reads (frames 4 and 5) exist
+    let pair = paired("candidate_skip = true");
+    let control = std::fs::read_to_string(&pair.control).unwrap();
+    assert!(!control.contains("pf-witness-consume") && !control.contains("event=read_consumable"));
+    for mode in ["set_withheld", "group_duplicate_key", "reset_wrong_array", "read_wrong_word"] {
+        passed(&pair.mode(mode));
+    }
+    assert!(refused_before_any_effect_for(&pair.mode("read_changed"), "read_consumable"));
+}
+
+// ---------------------------------------------------------------------------------------------------------------- ENV-PHYSICAL-FLAGS-WITNESS-REFUSAL-CAUSAL-1
+
+fn status_or_none(text: &str) -> Option<String> {
+    text.lines().find(|l| l.starts_with("pf-witness-verdict")).map(|l| field(l, "status"))
+}
+
+fn verdict_text(text: &str) -> String {
+    text.lines().find(|l| l.starts_with("pf-witness-verdict")).unwrap_or("").to_string()
+}
+
+/// the three ways an engine can IGNORE an injected fault: (a) another host callback and then the very same marker, (b) a normal return from the entry, (c) a different marker later
+const IGNORES: [(&str, &str); 3] = [
+    ("continue", "followed the altered answer"),
+    ("return", "accepted the single fault"),
+    ("other", "stopped at entity_scan.cursor"),
+];
+
+#[test]
+fn a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards() {
+    let pair = paired("");
+    let mut wrong = Vec::new();
+    for (mode, marker, _event) in REFUSALS {
+        // positive first: the genuine immediate refusal of this mode
+        if status_or_none(&report(&pair.mode(mode))) != Some("PASS".to_string()) {
+            wrong.push(format!("{mode}: the genuine direct refusal did not pass"));
+            continue;
+        }
+        for (ignore, needle) in IGNORES {
+            let outcome = pair.mode_with(mode, &format!("ignore_fault = '{ignore}'"));
+            let text = report(&outcome);
+            if status_or_none(&text) != Some("FAILURE".to_string()) || !verdict_text(&text).contains(needle) || outcome.result.is_ok() {
+                wrong.push(format!(
+                    "{mode} ignoring ({ignore}) to a {marker}: expected FAILURE naming {needle}, got {}",
+                    verdict_text(&text)
+                ));
+            }
+        }
+    }
+    assert!(wrong.is_empty(), "{} ignored faults were credited or mis-judged:\n{wrong:#?}", wrong.len());
+}
+
+/// the first eligible events of group, group_second, set and reset happen DURING the engine's own boot
+const BOOT_P: &str = "boot_actions = { 'iter' }, frames = {}";
+
+#[test]
+fn a_refusal_made_during_boot_is_captured_at_the_boot_entry_and_credited_only_for_an_immediate_stop() {
+    let pair = paired(BOOT_P);
+    let control = std::fs::read_to_string(&pair.control).unwrap();
+    assert!(
+        line_of(&control, "pf-witness-first event=set ").contains("frame=0"),
+        "the control's first set is during boot: {control}"
+    );
+    let mut wrong = Vec::new();
+    for (mode, marker, event) in REFUSALS {
+        if event == "read" {
+            // the boot reaches no read: the mode is refused before any boot, never credited
+            if !refused_before_any_effect_for(&pair.mode(mode), "never reached the event read") {
+                wrong.push(format!("{mode}: a read mode without a read in the control was not refused before boot"));
+            }
+            continue;
+        }
+        let direct = pair.mode(mode);
+        let text = report(&direct);
+        if direct.result.is_err() || !text.contains(&format!("pf-witness-fatal where=boot marker={marker} ")) {
+            wrong.push(format!(
+                "{mode}: the genuine direct refusal during boot was not credited at the boot entry: {} {}",
+                describe(&direct),
+                verdict_text(&text)
+            ));
+            continue;
+        }
+        for (ignore, needle) in IGNORES {
+            let outcome = pair.mode_with(mode, &format!("ignore_fault = '{ignore}'"));
+            let text = report(&outcome);
+            if status_or_none(&text) != Some("FAILURE".to_string()) || !verdict_text(&text).contains(needle) {
+                wrong.push(format!(
+                    "{mode} during boot ignoring ({ignore}): expected FAILURE naming {needle}, got {}",
+                    verdict_text(&text)
+                ));
+            }
+        }
+    }
+    assert!(wrong.is_empty(), "{} boot-time cases were credited or mis-judged:\n{wrong:#?}", wrong.len());
+    // an unrelated fatal during boot BEFORE the eligible event is a failure even at the mode's own marker
+    let before = pair.mode_with("set_withheld", "boot_actions = { { 'fatal', 'entity_scan.callback' } }");
+    assert_failed(&before, "FAILURE", "a fatal before any intervention");
+    assert!(line_of(&report(&before), "pf-witness-fatal").contains("where=boot"));
+}
+
+#[test]
+fn a_fatal_in_another_entry_than_the_one_that_made_the_altered_answer_is_not_credited() {
+    // the fault is made during boot, the boot returns normally (the engine accepted it) and a LATER frame raises the very same marker: not an immediate refusal
+    let pair = paired(BOOT_P);
+    let o = pair.mode_with("set_withheld", "ignore_fault = 'return', frames = { { { 'fatal', 'entity_scan.callback' } } }");
+    assert_failed(&o, "FAILURE", "accepted the single fault");
 }

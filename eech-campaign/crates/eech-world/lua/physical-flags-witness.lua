@@ -164,19 +164,44 @@ local function whole_number (text)
 	if tostring (n) ~= text then return nil end
 	return n
 end
-local function whole_fields (record, names, role, what)
-	local out = {}
+-- the COMPLETE schema 1 of each record, in the exact key sets the report emits; a reference with a missing or an extra key, a non-canonical number or a record out of its place is not a positive reference
+local RANK = { ["pf-witness-identity"] = 1, ["pf-witness-counts"] = 2, ["pf-witness-oracle"] = 3, ["pf-witness-first"] = 4, ["pf-witness-consume"] = 5, ["pf-witness-verdict"] = 6 }
+local IDENTITY_SCHEMA = { "schema", "mode", "profile", "scenario", "seed", "frame_ms", "hours", "campaign", "map", "paired" }
+local COUNT_SCHEMA = { "frames", "attempts_group", "attempts_set", "attempts_read", "attempts_reset", "answered_group", "answered_set", "answered_read", "answered_reset", "accepted_group", "accepted_set", "accepted_read", "accepted_reset",
+	"altered", "changed_accepted", "keys_issued", "reads_zero", "reads_mask", "reads_consumable", "resets_cleared", "oracle_sets", "oracle_reads", "oracle_resets", "oracle_mismatches" }
+local ORACLE_SCHEMA = { "sets", "reads", "resets", "mismatches" }
+local FIRST_FIELDS = { "ordinal", "frame", "before_group", "before_set", "before_read", "before_reset" }
+local FIRST_SCHEMA = { "event", "ordinal", "frame", "before_group", "before_set", "before_read", "before_reset" }
+local CONSUME_SCHEMA = { "fact", "expected", "host", "real_word", "answered_word", "changed" }
+local FIRST_EVENTS = { group = true, group_second = true, set = true, read = true, read_consumable = true, reset = true }
+-- the words a READ can return: 0 or exactly one lane's mask
+local LEGAL_RAW = { [ZERO] = true }
+for lane = 0, 31 do LEGAL_RAW [mask_pattern (lane)] = true end
+
+local function exact_keys (record, names, role, what)
+	local allowed = {}
 	for _, name in ipairs (names) do
-		if whole_number (record [name]) == nil then refuse ("the " .. role .. " report's " .. what .. " record has no whole " .. name) end
-		out [name] = record [name]
+		allowed [name] = true
+		if record [name] == nil then refuse ("the " .. role .. " report's " .. what .. " record lacks " .. name) end
 	end
-	return out
+	for key in pairs (record) do
+		if not allowed [key] then refuse ("the " .. role .. " report's " .. what .. " record has the unknown key " .. key) end
+	end
 end
--- the whole successful report of this driver at `path` for `role`, or a refusal naming what is missing or inconsistent with THIS run's setup
+local function whole_counts (record, names, role, what)
+	local n = {}
+	for _, name in ipairs (names) do
+		n [name] = whole_number (record [name])
+		if n [name] == nil then refuse ("the " .. role .. " report's " .. what .. " record has no canonical whole " .. name .. " (" .. tostring (record [name]) .. ")") end
+	end
+	return n
+end
+
+-- the whole successful report of this driver at `path` for `role`, or a refusal naming what is missing, malformed or inconsistent with THIS run's setup. Only the records and their order are read here; the schema is judged by validate_positive
 local function read_reference (path, role, expected_mode)
 	local file = io.open (path, "rb")
 	if file == nil then refuse ("cannot read the " .. role .. " report " .. path) end
-	local rec, last, first_name = {}, nil, nil
+	local rec, last, first_name, rank = {}, nil, nil, 0
 	for line in file:lines () do
 		line = string.gsub (line, "\r$", "")
 		local name = string.match (line, "^(%S+)")
@@ -184,6 +209,8 @@ local function read_reference (path, role, expected_mode)
 		if REFUSED_RECORD [name] then file:close () refuse ("the " .. role .. " report holds a " .. name .. " record: it is not a successful report") end
 		local kind = KNOWN [name]
 		if kind == nil then file:close () refuse ("the " .. role .. " report holds the unknown record " .. name) end
+		if RANK [name] < rank then file:close () refuse ("the " .. role .. " report's records are out of order at " .. name .. " (identity, counts, oracle, first-event rows, consume, verdict)") end
+		rank = RANK [name]
 		local fields
 		if name == "pf-witness-verdict" then
 			local m, s, detail = string.match (line, "^pf%-witness%-verdict mode=(%S+) status=(%S+) detail=(.+)$")
@@ -206,6 +233,9 @@ local function read_reference (path, role, expected_mode)
 	end
 	file:close ()
 	if first_name ~= "pf-witness-identity" or last ~= "pf-witness-verdict" then refuse ("the " .. role .. " report does not begin with its identity and end with its verdict") end
+	for _, needed in ipairs ({ "pf-witness-counts", "pf-witness-oracle" }) do
+		if rec [needed] == nil then refuse ("the " .. role .. " report has no " .. needed .. " record") end
+	end
 	local id, verdict_record = rec ["pf-witness-identity"], rec ["pf-witness-verdict"]
 	if id.schema ~= "1" or id.mode ~= expected_mode or verdict_record.mode ~= expected_mode or verdict_record.status ~= "PASS" then
 		refuse ("the " .. role .. " report is not a successful schema 1 " .. expected_mode .. " report (mode " .. tostring (id.mode) .. ", verdict " .. tostring (verdict_record.status) .. ")")
@@ -216,44 +246,133 @@ local function read_reference (path, role, expected_mode)
 	for key, mine in pairs (setup) do
 		if id [key] ~= mine then refuse ("the " .. role .. " report is of another setup: " .. key .. "=" .. tostring (id [key]) .. ", this run " .. mine) end
 	end
-	if rec ["pf-witness-counts"] == nil then refuse ("the " .. role .. " report has no counts record") end
 	return rec
 end
 
-local COUNT_FIELDS = { "frames", "attempts_group", "attempts_set", "attempts_read", "attempts_reset", "answered_group", "answered_set", "answered_read", "answered_reset",
-	"accepted_group", "accepted_set", "accepted_read", "accepted_reset", "altered", "keys_issued", "reads_consumable", "oracle_mismatches" }
-local FIRST_FIELDS = { "ordinal", "frame", "before_group", "before_set", "before_read", "before_reset" }
+-- a COMPLETE healthy positive: every record of its role in its exact schema, canonical numbers, and the relationships between the records that an actual run of that role cannot violate. Returns the numbers and the first-event rows by event
+local function validate_positive (rec, role)
+	local original = role == "original"
+	exact_keys (rec ["pf-witness-identity"], IDENTITY_SCHEMA, role, "identity")
+	local paired = rec ["pf-witness-identity"].paired
+	if paired ~= "0" and paired ~= "1" then refuse ("the " .. role .. " report's identity record has no paired flag of 0 or 1") end
+	if original and paired ~= "0" then refuse ("the original report is paired: the characterisation has nothing to pair with") end
+	exact_keys (rec ["pf-witness-counts"], COUNT_SCHEMA, role, "counts")
+	local n = whole_counts (rec ["pf-witness-counts"], COUNT_SCHEMA, role, "counts")
+	if n.frames < 1 then refuse ("the " .. role .. " report ran no frames (frames " .. n.frames .. ")") end
+	local total = 0
+	for _, event in ipairs (EVENTS) do
+		local attempts, answered, accepted = n ["attempts_" .. event], n ["answered_" .. event], n ["accepted_" .. event]
+		total = total + attempts
+		-- a healthy run has no reply fault and every answered reply was gone on from (the loop settles the last one): the three counts are one number
+		if answered ~= attempts then refuse ("the " .. role .. " report's counts: answered_" .. event .. " " .. answered .. " differs from attempts_" .. event .. " " .. attempts) end
+		if accepted ~= answered then refuse ("the " .. role .. " report's counts: accepted_" .. event .. " " .. accepted .. " differs from answered_" .. event .. " " .. answered .. ": a healthy report accepts every answered reply") end
+	end
+	if n.altered ~= 0 then refuse ("the " .. role .. " report's counts: altered " .. n.altered .. ": it is not an unaltered report") end
+	if n.changed_accepted ~= 0 then refuse ("the " .. role .. " report's counts: changed_accepted " .. n.changed_accepted .. " in an unaltered report") end
+	if n.oracle_mismatches ~= 0 then refuse ("the " .. role .. " report's counts: oracle_mismatches " .. n.oracle_mismatches .. ": the backing check found a difference") end
+	if n.keys_issued ~= n.answered_group then refuse ("the " .. role .. " report's counts: keys_issued " .. n.keys_issued .. " differs from answered_group " .. n.answered_group) end
+	if n.oracle_sets ~= n.answered_set then refuse ("the " .. role .. " report's counts: oracle_sets " .. n.oracle_sets .. " differs from answered_set " .. n.answered_set) end
+	if n.oracle_reads ~= n.answered_read then refuse ("the " .. role .. " report's counts: oracle_reads " .. n.oracle_reads .. " differs from answered_read " .. n.answered_read) end
+	if n.oracle_resets ~= n.answered_reset then refuse ("the " .. role .. " report's counts: oracle_resets " .. n.oracle_resets .. " differs from answered_reset " .. n.answered_reset) end
+	if n.reads_zero + n.reads_mask ~= n.oracle_reads then refuse ("the " .. role .. " report's counts: reads_zero " .. n.reads_zero .. " plus reads_mask " .. n.reads_mask .. " differs from oracle_reads " .. n.oracle_reads) end
+	if n.reads_consumable > n.answered_read then refuse ("the " .. role .. " report's counts: reads_consumable " .. n.reads_consumable .. " exceeds answered_read " .. n.answered_read) end
+	if n.resets_cleared > n.oracle_resets * n.keys_issued then refuse ("the " .. role .. " report's counts: resets_cleared " .. n.resets_cleared .. " exceeds what " .. n.oracle_resets .. " resets of " .. n.keys_issued .. " groups can clear") end
+	-- the oracle record is the counts' own oracle values
+	local oracle = rec ["pf-witness-oracle"]
+	exact_keys (oracle, ORACLE_SCHEMA, role, "pf-witness-oracle")
+	local o = whole_counts (oracle, ORACLE_SCHEMA, role, "pf-witness-oracle")
+	if o.sets ~= n.oracle_sets or o.reads ~= n.oracle_reads or o.resets ~= n.oracle_resets or o.mismatches ~= n.oracle_mismatches then
+		refuse ("the " .. role .. " report's pf-witness-oracle record (sets " .. o.sets .. ", reads " .. o.reads .. ", resets " .. o.resets .. ", mismatches " .. o.mismatches .. ") differs from the oracle values of its counts record")
+	end
+	local rows, consume = rec ["pf-witness-first"] or {}, rec ["pf-witness-consume"]
+	if original then
+		-- the original-solver profile keeps its own arrays: NOTHING reaches the host, so every traffic, key, oracle and consumption number is zero and no first-event row exists
+		for _, name in ipairs (COUNT_SCHEMA) do
+			if name ~= "frames" and n [name] ~= 0 then refuse ("the original report's host saw flag traffic: " .. name .. " is " .. n [name] .. ", not 0: it is not the original-solver profile") end
+		end
+		if #rows > 0 then refuse ("an original report holds first-event rows: the host was never asked") end
+		if consume ~= nil then refuse ("an original report holds a pf-witness-consume record: no candidate read reaches the host") end
+		return n, {}
+	end
+	-- the first-event rows: each in its exact schema and bounds, unique, present exactly when the counts say the event happened, in the order they happened, joined to the counts around them
+	local by_event, previous = {}, nil
+	for _, row in ipairs (rows) do
+		exact_keys (row, FIRST_SCHEMA, role, "first-event")
+		if not FIRST_EVENTS [row.event] then refuse ("the " .. role .. " report holds a first-event row of the unknown event " .. tostring (row.event)) end
+		if by_event [row.event] ~= nil then refuse ("the " .. role .. " report holds the first-event row " .. row.event .. " twice") end
+		local f = whole_counts (row, FIRST_FIELDS, role, "first-event " .. row.event)
+		local own = (row.event == "group" or row.event == "group_second") and "group" or ((row.event == "read_consumable") and "read" or row.event)
+		-- a set or a read names a key the host issued, so a group came before it; the first group has none before it, the second exactly one
+		if (row.event == "set" or own == "read") and f.before_group < 1 then refuse ("the " .. role .. " report's first-event row " .. row.event .. " has before_group 0: a set or a read names a key a group opened before") end
+		if row.event == "group" and f.before_group ~= 0 then refuse ("the " .. role .. " report's first-event row group has before_group " .. f.before_group .. ", not 0") end
+		if row.event == "group_second" and f.before_group ~= 1 then refuse ("the " .. role .. " report's first-event row group_second has before_group " .. f.before_group .. ", not 1") end
+		if (row.event == "set" or row.event == "read" or row.event == "reset") and f ["before_" .. row.event] ~= 0 then refuse ("the " .. role .. " report's first-event row " .. row.event .. " has before_" .. row.event .. " " .. f ["before_" .. row.event] .. ", not 0") end
+		for _, event in ipairs (EVENTS) do
+			local limit = n ["attempts_" .. event] - ((own == event) and 1 or 0)
+			if f ["before_" .. event] > limit then refuse ("the " .. role .. " report's first-event row " .. row.event .. " has before_" .. event .. " " .. f ["before_" .. event] .. " beyond the " .. n ["attempts_" .. event] .. " attempts of the whole run") end
+		end
+		if f.ordinal < 1 or f.ordinal > total then refuse ("the " .. role .. " report's first-event row " .. row.event .. " has ordinal " .. f.ordinal .. " outside the " .. total .. " questions of the run") end
+		if f.frame > n.frames then refuse ("the " .. role .. " report's first-event row " .. row.event .. " has frame " .. f.frame .. " beyond the " .. n.frames .. " frames of the run (frame 0 is the engine's boot)") end
+		if f.before_group + f.before_set + f.before_read + f.before_reset ~= f.ordinal - 1 then refuse ("the " .. role .. " report's first-event row " .. row.event .. ": the before_ counts do not add up to ordinal - 1") end
+		if previous ~= nil then
+			if f.ordinal < previous.ordinal or f.frame < previous.frame or f.before_group < previous.before_group or f.before_set < previous.before_set or f.before_read < previous.before_read or f.before_reset < previous.before_reset then
+				refuse ("the " .. role .. " report's first-event rows are out of order at " .. row.event .. ": they must follow the order the events happened in")
+			end
+			if f.ordinal == previous.ordinal and (f.frame ~= previous.frame or f.before_group ~= previous.before_group or f.before_set ~= previous.before_set or f.before_read ~= previous.before_read or f.before_reset ~= previous.before_reset) then
+				refuse ("the " .. role .. " report's first-event rows " .. previous.event .. " and " .. row.event .. " share an ordinal but not their prefix")
+			end
+		end
+		f.event = row.event
+		previous = f
+		by_event [row.event] = f
+	end
+	for _, check in ipairs ({ { "group", "attempts_group", 1 }, { "group_second", "attempts_group", 2 }, { "set", "attempts_set", 1 }, { "read", "attempts_read", 1 }, { "reset", "attempts_reset", 1 } }) do
+		local happened = n [check [2]] >= check [3]
+		if happened and by_event [check [1]] == nil then refuse ("the " .. role .. " report's counts say " .. check [1] .. " happened (" .. check [2] .. " " .. n [check [2]] .. ") but it holds no " .. check [1] .. " first-event row") end
+		if not happened and by_event [check [1]] ~= nil then refuse ("the " .. role .. " report holds a " .. check [1] .. " first-event row but " .. check [2] .. " is " .. n [check [2]]) end
+	end
+	if (n.reads_consumable >= 1) ~= (by_event.read_consumable ~= nil) then
+		refuse ("the " .. role .. " report's reads_consumable " .. n.reads_consumable .. " and its read_consumable first-event row disagree (a consumable read is counted exactly when its row exists)")
+	end
+	for _, pair in ipairs ({ { "group", "set" }, { "group", "read" }, { "group", "group_second" } }) do
+		local a, b = by_event [pair [1]], by_event [pair [2]]
+		if a ~= nil and b ~= nil and a.ordinal >= b.ordinal then refuse ("the " .. role .. " report's first-event row " .. pair [1] .. " (ordinal " .. a.ordinal .. ") is not before " .. pair [2] .. " (ordinal " .. b.ordinal .. ")") end
+	end
+	if consume ~= nil then
+		-- the consumption tuple of an UNALTERED control: the raw word the host answered, the UPDATED fact the campaign carried (1.0 not updated, 2.0 updated) and what the host's own word says, all one relationship
+		exact_keys (consume, CONSUME_SCHEMA, role, "pf-witness-consume")
+		local function updated_fact (word) return word == ZERO and ONE or TWO end
+		for _, name in ipairs ({ "fact", "expected", "host" }) do
+			if consume [name] ~= ONE and consume [name] ~= TWO then refuse ("the " .. role .. " report's pf-witness-consume record: " .. name .. " " .. tostring (consume [name]) .. " is neither 1.0 (0x3f800000) nor 2.0 (0x40000000)") end
+		end
+		for _, name in ipairs ({ "real_word", "answered_word" }) do
+			if strict_patterns (consume [name], 1) == nil or not LEGAL_RAW [string.lower (consume [name])] then refuse ("the " .. role .. " report's pf-witness-consume record: " .. name .. " " .. tostring (consume [name]) .. " is neither 0 nor one lane's mask") end
+		end
+		if consume.changed ~= "0" then refuse ("the " .. role .. " report's pf-witness-consume record: changed " .. tostring (consume.changed) .. ": a healthy control alters nothing") end
+		if consume.answered_word ~= consume.real_word then refuse ("the " .. role .. " report's pf-witness-consume record: answered_word " .. consume.answered_word .. " differs from real_word " .. consume.real_word .. " in an unaltered control") end
+		if consume.host ~= updated_fact (consume.real_word) then refuse ("the " .. role .. " report's pf-witness-consume record: host " .. consume.host .. " is not the UPDATED fact of real_word " .. consume.real_word) end
+		if consume.expected ~= updated_fact (consume.answered_word) or consume.fact ~= consume.expected then refuse ("the " .. role .. " report's pf-witness-consume record: fact " .. consume.fact .. " is not the expected " .. consume.expected .. " of answered_word " .. consume.answered_word) end
+		if by_event.read_consumable == nil then refuse ("the " .. role .. " report holds a pf-witness-consume record but no read_consumable first-event row") end
+	end
+	return n, by_event
+end
+
 local reference = {}
 if mode == "flags_control" and args.original ~= nil then
-	-- the original-profile characterisation: whole, successful, of this setup, and the host never asked for any flag
-	local rec = read_reference (args.original, "original", "flags_original")
-	local counts = whole_fields (rec ["pf-witness-counts"], COUNT_FIELDS, "original", "counts")
-	for _, event in ipairs (EVENTS) do
-		if counts ["attempts_" .. event] ~= "0" then refuse ("the original report's host WAS asked a flag " .. event .. ": it is not the original-solver profile") end
-	end
-	if counts.altered ~= "0" or tonumber (counts.frames) < 1 then refuse ("the original report altered an answer or ran no frame") end
+	-- the original-profile characterisation: a COMPLETE healthy Original report of this setup, the host never asked for anything
+	validate_positive (read_reference (args.original, "original", "flags_original"), "original")
 elseif intervening then
-	-- the whole PAIRED control BEFORE any output, boot or intervention: its counts, the first event this mode intervenes at, and (a changed read) its consumption record, all present and well formed
+	-- the COMPLETE PAIRED control BEFORE any output, preparation, boot or intervention; it supports ONLY the cases its own positive reached
 	local rec = read_reference (args.control, "control", "flags_control")
-	local counts = whole_fields (rec ["pf-witness-counts"], COUNT_FIELDS, "control", "counts")
+	local n, by_event = validate_positive (rec, "control")
 	if rec ["pf-witness-identity"].paired ~= "1" then refuse ("the control report is not a PAIRED control (an unpaired control makes no parity and unlocks no intervention)") end
-	if counts.altered ~= "0" or counts.oracle_mismatches ~= "0" then refuse ("the control report altered an answer or holds a backing difference: it is not an unaltered control") end
 	for _, event in ipairs ({ "group", "set", "reset" }) do
-		if tonumber (counts ["accepted_" .. event]) < 1 then refuse ("the control report's host never had a flag " .. event .. " accepted: it is not the hosted control") end
+		if n ["accepted_" .. event] < 1 then refuse ("the control report's host never had a flag " .. event .. " accepted: it is not the hosted control") end
 	end
-	local at
-	for _, row in ipairs (rec ["pf-witness-first"] or {}) do
-		if row.event == plan.at then
-			if at ~= nil then refuse ("the control report holds the first-event record " .. plan.at .. " twice") end
-			at = whole_fields (row, FIRST_FIELDS, "control", "first-event " .. plan.at)
-		end
-	end
+	local at = by_event [plan.at]
 	if at == nil then refuse ("the control never reached the event " .. plan.at .. " this mode intervenes at: the case is UNREACHED on this setup, no intervention is made") end
-	if plan.changed then
-		local c = rec ["pf-witness-consume"]
-		if c == nil or c.fact == nil or c.fact ~= c.expected or strict_patterns (c.fact, 1) == nil then refuse ("the control report holds no consumption of a read by its candidate question (the campaign must carry the host's own word first)") end
-	end
-	reference.first = at
+	if plan.changed and rec ["pf-witness-consume"] == nil then refuse ("the control report holds no pf-witness-consume record: the campaign's carrying of the host's own word into its candidate question must be seen first") end
+	reference.first = { ordinal = tostring (at.ordinal), frame = tostring (at.frame), before_group = tostring (at.before_group), before_set = tostring (at.before_set), before_read = tostring (at.before_read), before_reset = tostring (at.before_reset) }
 end
 
 if type (host.create_exclusive) ~= "function" then refuse ("this host has no create_exclusive: an output that may never overwrite anything cannot be made safely") end
@@ -273,6 +392,7 @@ local state = {
 	reads_zero = 0, reads_mask = 0, resets_cleared = 0,
 	oracle = { sets = 0, reads = 0, resets = 0, mismatches = 0 },
 	reply_faults = {}, request_faults = {},
+	entry = "none", refusal = nil,
 }
 local function note_reply_problem (what, problem) state.reply_faults [#state.reply_faults + 1] = what .. ": " .. problem end
 local function note_request_fault (what) state.request_faults [#state.request_faults + 1] = what end
@@ -282,6 +402,13 @@ local function settle ()
 	if state.unsettled == "changed" then state.changed_accepted = 1
 	elseif state.unsettled ~= nil then state.accepted [state.unsettled] = state.accepted [state.unsettled] + 1 end
 	state.unsettled = nil
+end
+
+-- the REFUSAL LATCH: once an eligible fault is injected, the engine entry that received it must stop at once. ANY later host callback before its fatal ends the refusal credit (the first one is kept and named), even if
+-- a later fatal carries the very same marker: that fatal would not show the altered answer was refused
+local function note_callback (what)
+	local r = state.refusal
+	if r ~= nil and r.callback == nil then r.callback = what end
 end
 
 -- the flag question as the contract states it (mb_hostentity.h; entity-authority.lua's parser): nil and no problem for any other scan question, else the question or the first problem
@@ -470,6 +597,7 @@ end
 
 -- the host's model provider: every question is delegated unchanged except the ONE eligible intervention of the mode
 local function model (op, scene, depth, kind, definition, key)
+	note_callback ("model " .. tostring (op))
 	settle ()
 	local prior_need = state.need_updated
 	state.need_updated = nil
@@ -519,6 +647,7 @@ local function model (op, scene, depth, kind, definition, key)
 			state.unsettled = "changed"
 			return { result = "flag_read", p = p [1] .. "," .. p [2] .. "," .. flipped }
 		end
+		state.refusal = { event = event, entry = state.entry, callback = nil, returned = false }
 		return fault_reply (plan.fault, real, parsed)
 	end
 	if consumable then
@@ -532,6 +661,7 @@ end
 
 local function settling (name)
 	return function (...)
+		note_callback (name)
 		settle ()
 		state.need_updated, state.pending_consume = nil, nil
 		return host [name] (...)
@@ -548,7 +678,7 @@ local engine
 local fatal -- the first fatal the engine raised: { marker =, line =, where = }
 local function guarded (where, fn)
 	local ok, err = pcall (fn)
-	if not ok then fatal = { marker = engine_marker (err), line = first_line (err), where = where } end
+	if not ok then fatal = { marker = engine_marker (err), line = first_line (err), where = where, entry = state.entry } end
 	return ok, err
 end
 
@@ -576,13 +706,24 @@ local status, detail = "FAILURE", "no verdict was reached"
 local function verdict (s, d) status, detail = s, d end
 
 local function run ()
-	engine = dc.boot (boot_config ())
+	-- the engine's BOOT is an entry like a frame: its fatal is captured here, at the entry (nothing is read, counted or closed through a poisoned engine afterwards), and flag traffic during boot is observed like any other
+	state.entry = "boot"
+	local booted = guarded ("boot", function () engine = dc.boot (boot_config ()) end)
+	if not booted then return end
+	settle ()
+	if state.refusal ~= nil then
+		-- the boot returned normally after an altered answer: it was not refused, and nothing further is run after it
+		state.refusal.returned = true
+		return
+	end
 	local frames = math.floor (hours * 3600 * 1000 / frame_ms)
 	for _ = 1, frames do
 		state.frame = state.frame + 1
+		state.entry = "frame:" .. state.frame
 		local ok = guarded ("frame", function () engine:frame (frame_ms) end)
 		state.frames_run = state.frames_run + 1
 		if not ok then break end
+		if state.refusal ~= nil then state.refusal.returned = true end
 		settle ()
 		if state.abort ~= nil then break end
 		if state.consumed ~= nil and plan.changed then break end
@@ -624,9 +765,14 @@ local function decide ()
 		if fatal ~= nil then return verdict ("FAILURE", "a fatal before any intervention: " .. fatal.line) end
 		return verdict ("UNREACHED", "the event " .. plan.at .. " was not reached in " .. state.frames_run .. " frames")
 	end
-	if fatal == nil then return verdict ("FAILURE", "the engine accepted the single fault made at " .. state.intervention) end
+	local r = state.refusal
+	if fatal == nil then return verdict ("FAILURE", "the engine accepted the single fault made at " .. state.intervention .. (r and r.callback and (" and went on with a host callback (" .. r.callback .. ")") or "") .. (r and r.returned and " and returned normally from its entry" or "")) end
 	if fatal.marker ~= plan.marker then return verdict ("FAILURE", "the engine stopped at " .. tostring (fatal.marker) .. ", not " .. plan.marker .. ": " .. fatal.line) end
-	return verdict ("PASS", "the engine refused the single fault made at " .. state.intervention .. " at " .. plan.marker)
+	-- the causal boundary: the fatal must be the immediate refusal of the altered answer, in the entry that received it, with no host callback in between
+	if r == nil then return verdict ("FAILURE", "the refusal latch was not set at " .. state.intervention) end
+	if r.callback ~= nil then return verdict ("FAILURE", "a host callback (" .. r.callback .. ") followed the altered answer made at " .. state.intervention .. " before the engine stopped at " .. plan.marker .. ": that fatal does not show an immediate refusal") end
+	if fatal.entry ~= r.entry then return verdict ("FAILURE", "the fatal came from the engine entry " .. tostring (fatal.entry) .. ", not the entry " .. tostring (r.entry) .. " that received the altered answer made at " .. state.intervention) end
+	return verdict ("PASS", "the engine refused the single fault made at " .. state.intervention .. " at " .. plan.marker .. " immediately, in its entry " .. r.entry)
 end
 
 local function report ()
@@ -642,8 +788,8 @@ local function report ()
 	end
 	local c = state.consumed
 	if c ~= nil then emit (string.format ("pf-witness-consume fact=%s expected=%s host=%s real_word=%s answered_word=%s changed=%d", c.fact, c.expected, c.host, c.real_word, c.answered_word, c.changed)) end
-	if state.intervention ~= nil then emit ("pf-witness-intervention at=" .. string.gsub (state.intervention, "%s+", "_")) end
-	if fatal ~= nil then emit (string.format ("pf-witness-fatal where=%s marker=%s line=%s", fatal.where, tostring (fatal.marker), string.gsub (fatal.line, "%s+", " "))) end
+	if state.intervention ~= nil then emit (string.format ("pf-witness-intervention at=%s entry=%s callback_after=%s", string.gsub (state.intervention, "%s+", "_"), state.refusal and state.refusal.entry or "none", state.refusal and state.refusal.callback and string.gsub (state.refusal.callback, "%s+", "_") or "none")) end
+	if fatal ~= nil then emit (string.format ("pf-witness-fatal where=%s marker=%s entry=%s line=%s", fatal.where, tostring (fatal.marker), tostring (fatal.entry), string.gsub (fatal.line, "%s+", " "))) end
 	for _, fault in ipairs (state.reply_faults) do emit ("pf-witness-reply-fault " .. string.gsub (fault, "%s+", " ")) end
 	for _, fault in ipairs (state.request_faults) do emit ("pf-witness-request-fault " .. string.gsub (fault, "%s+", " ")) end
 	emit (string.format ("pf-witness-verdict mode=%s status=%s detail=%s", mode, status, string.gsub (detail, "%s+", " ")))

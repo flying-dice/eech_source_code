@@ -1,0 +1,400 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-PHYSICAL-FLAGS-PUBLIC-WITNESS-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 17192,
+      "sha256": "d6454f50d7bd711b841f7c11c3c5e13d3cc3f3cbb4db79934ed19e7b859fc58e"
+    },
+    {
+      "path": "hwcr-extra-identity-POST-20261107.json",
+      "bytes": 11563,
+      "sha256": "6e13498409659ac373a845d07b5b85a5b7345536b77a59644be062bfebf2f457"
+    },
+    {
+      "path": "hwcr-extra-identity-PRE-20261107.json",
+      "bytes": 11563,
+      "sha256": "6e13498409659ac373a845d07b5b85a5b7345536b77a59644be062bfebf2f457"
+    },
+    {
+      "path": "hwcr-feedback-files-20261107.json",
+      "bytes": 397,
+      "sha256": "1b7f5988cc505a18fa4d11f8b0fcb784acd86d1d45e2e20e4c0fc5ffc7577226"
+    },
+    {
+      "path": "hwcr-final-set-20261107.progress",
+      "bytes": 135,
+      "sha256": "59de0d46c1fd5119e05c1e1cc93977ec30dbdf7a8530b43873c3bcef1f05e338"
+    },
+    {
+      "path": "hwcr-final-set-lease-after-20261107.txt",
+      "bytes": 40,
+      "sha256": "c80e0ad4cdbd0c85d0a12972f8b26c17410094608aa4136a3931ba3562735d4c"
+    },
+    {
+      "path": "hwcr-final-set-lease-before-20261107.txt",
+      "bytes": 252,
+      "sha256": "df850aeae484999ed5fe700ba8935b01d8cd95bb91ddde912d163f79da20866d"
+    },
+    {
+      "path": "hwcr-inputmaps-compare-20261107.json",
+      "bytes": 1737,
+      "sha256": "fa5bb3f0a618026b820d21a2dfc1b195d540d0f875a5d12bd01a3abc557203c4"
+    },
+    {
+      "path": "hwcr-name-check-negative-control-20261107.json",
+      "bytes": 155,
+      "sha256": "5db5e890d22d9833dbdef3b404d1e6930d5e889ec8ed03b86ded5dfdcb745029"
+    },
+    {
+      "path": "hwcr-name-check-result-20261107.json",
+      "bytes": 102,
+      "sha256": "da605e14d88c0524eeced86e5f7ea72aa8e90fa9789a652ce94d152dffa59a08"
+    },
+    {
+      "path": "hwcr-name-collision-erratum-20261107.json",
+      "bytes": 1987,
+      "sha256": "3c29b2f25508695c78f67839c32e0c1aa90040418288ef9f27169661a220852e"
+    },
+    {
+      "path": "hwcr-PRE-utc-20261107.txt",
+      "bytes": 21,
+      "sha256": "224c68bcadd94cc4549483e299f29ee1d3d935f60ea7c4e24ad843ad92897ccc"
+    },
+    {
+      "path": "hwcr-preflight-negative-control-20261107.json",
+      "bytes": 228,
+      "sha256": "2175513dcb07a2ee5bc71a2e1bf5fb2bed1f8e4e1bf590530193e56f9b4be9fe"
+    },
+    {
+      "path": "hwcr-preflight-receipts-20261107.json",
+      "bytes": 1898,
+      "sha256": "5830b34f16c700716acaa5061eae08d6f66054606dfd7aa75f879988f3c04c6a"
+    },
+    {
+      "path": "hwcr-readers-PRE-20261107.json",
+      "bytes": 1067,
+      "sha256": "6b9afca87ed0347e3e9aea58d90e32729fe8e514139dfbde20dca66439fc1613"
+    },
+    {
+      "path": "hwcr-recovery-receipt-20261107.json",
+      "bytes": 5099,
+      "sha256": "2b2b5ae00b55f26ff241d4fa9d8d419388ccb420f1e7380a70c78a97a5d31d73"
+    },
+    {
+      "path": "hwcr-retained-dev-runs-20261107.json",
+      "bytes": 1950,
+      "sha256": "deefa656705f6ca1830f8c59d79a92f4f4738c9ce5c2fed060fe4fb04c9b8c80"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "bytes": 17723,
+      "sha256": "231a21d6a62b9b721f4b580afbf522d5d051150e5eeaa0a4a8d6954fc1f52a79"
+    },
+    {
+      "path": "physical-flags-public-witness-plan.json",
+      "bytes": 18071,
+      "sha256": "29ca2e719daee7607523b4bae23827862998ce4592476bbeb5cd6c224c776cd9"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5502,
+      "sha256": "0f73a35635f15a28895db602cc7fcefbf32887d2961785100b5df81f01215497"
+    },
+    {
+      "path": "recovery/derived-extra.py",
+      "bytes": 4679,
+      "sha256": "6cd536b760c294752558a7306f22b1896f9c8966fff8bb9cdf149ccff1c95bea"
+    },
+    {
+      "path": "recovery/derived-final.sh",
+      "bytes": 2830,
+      "sha256": "5d5e7a5cba2b7c0c749ce634393c4fe2c2b442536f988ecda07807fe2e4e0abb"
+    },
+    {
+      "path": "recovery/derived-freeze.py",
+      "bytes": 22893,
+      "sha256": "429c3fc868afd38f8eb0ca2c5f3649bb7178aaee98021a41b84157c4ea7893eb"
+    },
+    {
+      "path": "recovery/hwcr-recovery-receipt-20261107.json",
+      "bytes": 5099,
+      "sha256": "2b2b5ae00b55f26ff241d4fa9d8d419388ccb420f1e7380a70c78a97a5d31d73"
+    },
+    {
+      "path": "recovery/old-freeze-PRE-version.py",
+      "bytes": 25550,
+      "sha256": "f54d678fe9b0dc5ff00d6d3615db7ca9c9f3b1e7e788ad941dc241b61470b8eb"
+    },
+    {
+      "path": "recovery/restored-extra.py",
+      "bytes": 3367,
+      "sha256": "01c388b699c3e379e8039258d56561d4ef033301d294029f0d5b1c56fa2f9d6d"
+    },
+    {
+      "path": "recovery/restored-final.sh",
+      "bytes": 3334,
+      "sha256": "7c846cacf907210c6dc30e175173038ed41c7ff99b1adc6912f3a99bed5257cf"
+    },
+    {
+      "path": "recovery/restored-freeze.py",
+      "bytes": 27576,
+      "sha256": "cfc428df6fdf947117944981a53f8c189eb258af32aec7567966828947511750"
+    },
+    {
+      "path": "Root-physical-flags-witness-fix-feedback-20261107-2056.json",
+      "bytes": 2701,
+      "sha256": "407950d85f8435adad8aa261c84978c4bcc275e58e8360d18645fdbbb915e3d1"
+    },
+    {
+      "path": "runs/flags-witfix-d1-red-parent-f4d-new-tests.json",
+      "bytes": 840,
+      "sha256": "e176b8bcdac7dab54aa2a981357b852acf4481f929d612c75f2dc4de8a008baa"
+    },
+    {
+      "path": "runs/flags-witfix-d1-red-parent-f4d-new-tests.stderr.log",
+      "bytes": 352,
+      "sha256": "15c3d546c85fac5fbebbaad973610fbb8d503299017c1d08f5dcb55842208e3d"
+    },
+    {
+      "path": "runs/flags-witfix-d1-red-parent-f4d-new-tests.stdout.log",
+      "bytes": 25043,
+      "sha256": "8584886910dd17da14151c245073bbe2665a0633f163bdfc07c1e03f4c5b1d92"
+    },
+    {
+      "path": "runs/flags-witfix-d2-green-attempt1.json",
+      "bytes": 838,
+      "sha256": "1443fdf76cbabe69f81a405732e5e576af5fb72ddacea23244c3a44ae771e293"
+    },
+    {
+      "path": "runs/flags-witfix-d2-green-attempt1.stderr.log",
+      "bytes": 352,
+      "sha256": "a45c82d1ff0ee91f411a6361d44a607f2b73936209849962e57c017774014028"
+    },
+    {
+      "path": "runs/flags-witfix-d2-green-attempt1.stdout.log",
+      "bytes": 5177,
+      "sha256": "94e8c73f960869b8d25da40317cedf02ab3ed633c56a69e1fcaebc1ab583e3df"
+    },
+    {
+      "path": "runs/flags-witfix-d3-green-attempt2.json",
+      "bytes": 840,
+      "sha256": "75197f5b8cb0ca6e71451c5675352def96c15819bfb229482fa42d668aaf1784"
+    },
+    {
+      "path": "runs/flags-witfix-d3-green-attempt2.stderr.log",
+      "bytes": 352,
+      "sha256": "8eb0ddc7753c227011ab7f773f5a751a393c408fd08abae2d75290819f213d26"
+    },
+    {
+      "path": "runs/flags-witfix-d3-green-attempt2.stdout.log",
+      "bytes": 3631,
+      "sha256": "09617bad3f54cacede641d9ba87545baad0756551c19fed56d4658175fe2b5e3"
+    },
+    {
+      "path": "runs/flags-witfix-d4-green-attempt3.json",
+      "bytes": 840,
+      "sha256": "6f04d2e84b47b0eae67963a4043bbb5325b9a1e8fbf9d381174948e82df3b824"
+    },
+    {
+      "path": "runs/flags-witfix-d4-green-attempt3.stderr.log",
+      "bytes": 352,
+      "sha256": "46f2fe7223b32f4633415d91caf1d1701503fa85becf9985e03101817b3abfad"
+    },
+    {
+      "path": "runs/flags-witfix-d4-green-attempt3.stdout.log",
+      "bytes": 3683,
+      "sha256": "4e6f80a02b35b39d4ace668a8ab827cb29cacd212f004587486d11270f3e6273"
+    },
+    {
+      "path": "runs/flags-witfix-d5-green-attempt4.json",
+      "bytes": 836,
+      "sha256": "50f44b5a1f5df76e9f25b05ab40389031a6a96f1ec16e86f3cabe90e2a2b1151"
+    },
+    {
+      "path": "runs/flags-witfix-d5-green-attempt4.stderr.log",
+      "bytes": 265,
+      "sha256": "a2517eb2b5dcbb085b920fac3b065223aa4821db0e1a586c4cdcf647d268a1c3"
+    },
+    {
+      "path": "runs/flags-witfix-d5-green-attempt4.stdout.log",
+      "bytes": 2643,
+      "sha256": "9dd1084b938a46f2f8d0efa7fffe273b9af4c242d7e0412742225997e3c744bc"
+    },
+    {
+      "path": "runs/flags-witfix-d6-fmt-apply-world.json",
+      "bytes": 826,
+      "sha256": "11ef1820510d4b29d1c2cebf1cbad01566d3690e398eb9bbcb7f43a77e579d89"
+    },
+    {
+      "path": "runs/flags-witfix-d6-fmt-apply-world.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/flags-witfix-d6-fmt-apply-world.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/flags-witfix-d7-clippy-world-engine-dc.json",
+      "bytes": 958,
+      "sha256": "da5ca87cb68c99b3fd16f3cb091651d0f666a05eff2d80907a393347355b3f55"
+    },
+    {
+      "path": "runs/flags-witfix-d7-clippy-world-engine-dc.stderr.log",
+      "bytes": 177,
+      "sha256": "8dd6f20fd71876149982e7c94e93b6cf4c03ed4c2b0ad87123424104dbd5c1c3"
+    },
+    {
+      "path": "runs/flags-witfix-d7-clippy-world-engine-dc.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/flags-witfix-d8-world-all.json",
+      "bytes": 812,
+      "sha256": "bb69cd2625ba9c511ad3dba11173b4c285195f00bcf373e2959acbba0f5f8fbb"
+    },
+    {
+      "path": "runs/flags-witfix-d8-world-all.stderr.log",
+      "bytes": 160271,
+      "sha256": "491543cc51bbc07d77a841fc817407f7a1dd54f99ae9e3ece76ffeb18b7155c0"
+    },
+    {
+      "path": "runs/flags-witfix-d8-world-all.stdout.log",
+      "bytes": 137746,
+      "sha256": "5b008ad2f5498c597e76c6e1bc0b402411edb3c0ec0650f4a76bca0e69ae5be1"
+    },
+    {
+      "path": "runs/flags-witfix-f1-fmt-check.json",
+      "bytes": 859,
+      "sha256": "88633cd5bed3f7848872f26bd8175dc84b2d5b5cb9680c8f4af4ebb99fb58312"
+    },
+    {
+      "path": "runs/flags-witfix-f1-fmt-check.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/flags-witfix-f1-fmt-check.stdout.log",
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/flags-witfix-f2-clippy-world-engine-dc.json",
+      "bytes": 1008,
+      "sha256": "f17b1f5aa411b6529d7e043b4d7367bb0f17ad0c1814268c159282833abf796d"
+    },
+    {
+      "path": "runs/flags-witfix-f2-clippy-world-engine-dc.stderr.log",
+      "bytes": 107,
+      "sha256": "8c43b19a169a56e883566d0f644c8c9ac0b5f13e0c6dfd54f7176f079c0d0762"
+    },
+    {
+      "path": "runs/flags-witfix-f2-clippy-world-engine-dc.stdout.log",
+      "bytes": 38,
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/flags-witfix-f3-witness-driver.json",
+      "bytes": 924,
+      "sha256": "bcfbdf6111efc70d477d5d097e5c0bce37e17a6a2c4ec4b2761ca23bf92f13fa"
+    },
+    {
+      "path": "runs/flags-witfix-f3-witness-driver.stderr.log",
+      "bytes": 195,
+      "sha256": "50a1832cb781859e7a1c069b3db7dd2470f4f2ffb8a95d9bc4412e3dcd452d4a"
+    },
+    {
+      "path": "runs/flags-witfix-f3-witness-driver.stdout.log",
+      "bytes": 2679,
+      "sha256": "a122efae2222e913c817630b674a0854f22007f56619b60e55a898dbb47c9eda"
+    },
+    {
+      "path": "runs/flags-witfix-f4-world-all.json",
+      "bytes": 812,
+      "sha256": "85ad8623a31b78447825b7dc3d32b85ecff5c952766a6c708a25811cfbcc1b96"
+    },
+    {
+      "path": "runs/flags-witfix-f4-world-all.stderr.log",
+      "bytes": 160201,
+      "sha256": "f3874e62b045b63a75d15d24393d1047f8626c9bb90ef844b6269a38b2705681"
+    },
+    {
+      "path": "runs/flags-witfix-f4-world-all.stdout.log",
+      "bytes": 137746,
+      "sha256": "92e1f1e1709a3eefe1b14f7fc108dab276fb154c448a3c95b4b65910942a141d"
+    },
+    {
+      "path": "runs/flags-witfix-f5-engine-sys-lua-guards.json",
+      "bytes": 931,
+      "sha256": "3ab762791cf5108aa8d2bbce05db640147f68dc319784e9501561aea2670bd4e"
+    },
+    {
+      "path": "runs/flags-witfix-f5-engine-sys-lua-guards.stderr.log",
+      "bytes": 279,
+      "sha256": "4382678c9f1de16457c0690de799c3ed91f1859b62f74892353ddebae3e6a8f2"
+    },
+    {
+      "path": "runs/flags-witfix-f5-engine-sys-lua-guards.stdout.log",
+      "bytes": 3091,
+      "sha256": "70652e5025f68d41869b8fa3d7e32ca825a95f11231ffa555797ba87fe92ff6a"
+    },
+    {
+      "path": "scripts/check-physical-flags-witfix-linux-20261107.sh",
+      "bytes": 1420,
+      "sha256": "57173f31bdb60c0f388cd883fb310d091900b582b28e3cfe8203c4842873face"
+    },
+    {
+      "path": "scripts/freeze-hwcr-20261107.py",
+      "bytes": 23272,
+      "sha256": "15761c823a7456753940f23348afbbc4115ec46cc2de253ea8dd90cda6dd1025"
+    },
+    {
+      "path": "scripts/hwcr-extra-identity-20261107.py",
+      "bytes": 4975,
+      "sha256": "46aa4939ecdcfc1fa6d7fb40605ad7866efafa8ebb204e1db5ff5991a5c09172"
+    },
+    {
+      "path": "scripts/hwcr-name-check-20261107.py",
+      "bytes": 2595,
+      "sha256": "bda76b550f3dde455788679753e6bf5d43d1124f054d76af7c86acf2356480f0"
+    },
+    {
+      "path": "scripts/preflight-receipts-20261107.py",
+      "bytes": 2203,
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+    },
+    {
+      "path": "scripts/publish-hwcr-20261107.py",
+      "bytes": 8478,
+      "sha256": "f9249bc751c4b52732d0aa03e8ff990f9b066ca83a855e0f4da65a40a5041c23"
+    },
+    {
+      "path": "scripts/run-hwcr-final-set-20261107.sh",
+      "bytes": 2830,
+      "sha256": "5d5e7a5cba2b7c0c749ce634393c4fe2c2b442536f988ecda07807fe2e4e0abb"
+    },
+    {
+      "path": "scripts/run-physical-flags-witfix-direct-20261107.py",
+      "bytes": 2384,
+      "sha256": "a04d76679f16a1fdb10e75c1e0ad78837144512ca6ebd71d33828eaf096e3e97"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    }
+  ],
+  "scope": "Source and local-check packet of the public flag-store witness corrections only; not a native result, review, approval or acceptance."
+}

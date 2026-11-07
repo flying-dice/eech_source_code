@@ -1,0 +1,6 @@
+f1-fmt-check exit=0
+f2-clippy-world-engine-dc exit=0
+f3-witness-driver exit=0
+f4-world-all exit=0
+f5-engine-sys-lua-guards exit=0
+DONE

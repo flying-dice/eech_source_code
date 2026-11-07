@@ -1,0 +1,6 @@
+{
+  "read": {
+    "Root-physical-flags-witness-feedback-20261107-2012.json": "read in full at 20:20Z (previous batch) and at the start of this one",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json": "read in full at 2026-11-07T20:57:09Z, after the dry freeze refused for it; its provenance recovery was carried out before any real PRE (hwcr-recovery-receipt-20261107.json)"
+  }
+}
