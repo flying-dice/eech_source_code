@@ -1,0 +1,480 @@
+{
+  "kind": "Root read-only actual Git motion-response packet/publication binding",
+  "utc": "2026-11-08T01:18:36.260910+00:00",
+  "code": "fda05b65109ea19bc1d10f022555297670495b94",
+  "metadata": "58b25db9cbbc8b349384ad3bf08f4b34125c5060",
+  "manifest_entries": 89,
+  "exact_main_committed_packet_coverage": true,
+  "external_literal_byte_comparisons": [
+    {
+      "path": ".gitattributes",
+      "external_comparison": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\reference\\d3-entity-collision\\physical-flags-keyfix-020-reviewed\\.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "codex-d3-motion-flags-fallback-20261108-process.json",
+      "external_comparison": "R:\\d3-evidence\\codex-d3-motion-flags-fallback-20261108-process.json",
+      "sha256": "9f3e7a95e26091dae1defc563a109636e641d1a24903a7564ebe9f87eacb1090"
+    },
+    {
+      "path": "D3-MOTION-RESPONSE-FLAGS-FROZEN-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\D3-MOTION-RESPONSE-FLAGS-FROZEN-20261108.json",
+      "sha256": "a5f8b795fef427e0f53da01130fe04b93a5f2fe429bce585cb478fb3c12f6274"
+    },
+    {
+      "path": "ledger-tacview-closure-v190-preservation-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\ledger-tacview-closure-v190-preservation-20261108.json",
+      "sha256": "8e977e51355dc74a548263a853294fa1c2858b7551d9e51e91ef32d39bdda20a"
+    },
+    {
+      "path": "mfr332-claude-auth-expired-checkpoint-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-claude-auth-expired-checkpoint-20261108.json",
+      "sha256": "633d2b718047bf8d2c4183b8a6ca13a13a9992bfc90914692eb00aedd466ec46"
+    },
+    {
+      "path": "mfr332-extra-identity-POST-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-extra-identity-POST-20261107.json",
+      "sha256": "2d4bfcfde5be17c6410f7e177cb4ce313bd02f7990ecb2613ccfc2b2abeaeb1d"
+    },
+    {
+      "path": "mfr332-extra-identity-PRE-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-extra-identity-PRE-20261107.json",
+      "sha256": "2d4bfcfde5be17c6410f7e177cb4ce313bd02f7990ecb2613ccfc2b2abeaeb1d"
+    },
+    {
+      "path": "mfr332-feedback-files-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-feedback-files-20261107.json",
+      "sha256": "6c37e4792eed411e4224cd4871f9c6002e76f919a23e4b5dbd0169149b6899b6"
+    },
+    {
+      "path": "mfr332-final-set-20261107.progress",
+      "external_comparison": "R:\\d3-evidence\\mfr332-final-set-20261107.progress",
+      "sha256": "ca5a866c938bbf7ddc124bf0f0841db4a97a563c34213e45000e616ddaddfe88"
+    },
+    {
+      "path": "mfr332-final-set-lease-after-20261107.txt",
+      "external_comparison": "R:\\d3-evidence\\mfr332-final-set-lease-after-20261107.txt",
+      "sha256": "87f605a94258623e8b39aecb6f09c76f52de1868471c8bfc91bf5686da364eb4"
+    },
+    {
+      "path": "mfr332-final-set-lease-before-20261107.txt",
+      "external_comparison": "R:\\d3-evidence\\mfr332-final-set-lease-before-20261107.txt",
+      "sha256": "3f35b01acc8bbe91f70e1c24c70cebcead9ae258bbbfc91248a668dbdd6756dd"
+    },
+    {
+      "path": "mfr332-inputmaps-compare-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-inputmaps-compare-20261107.json",
+      "sha256": "8f9bc341076c17e25a0a9d81863a5a219f555247c1248a78ffb7aa4ba8856e73"
+    },
+    {
+      "path": "mfr332-name-check-negative-control-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-name-check-negative-control-20261107.json",
+      "sha256": "6077f6a3c2d79eec8a67421aa90f6a0f4c46c2ac7f31220e38e94296d0fd4f21"
+    },
+    {
+      "path": "mfr332-name-check-result-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-name-check-result-20261107.json",
+      "sha256": "f780014661fdd97274841923c6ac96ddfed6b449949fdb2f308d2f9a7122ade0"
+    },
+    {
+      "path": "mfr332-PRE-utc-20261107.txt",
+      "external_comparison": "R:\\d3-evidence\\mfr332-PRE-utc-20261107.txt",
+      "sha256": "627b438864ea68471afa359e2aa06486e0f7c6f6a3d6639908b2b07fed2d8416"
+    },
+    {
+      "path": "mfr332-preflight-negative-control-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-preflight-negative-control-20261107.json",
+      "sha256": "a00d74dd1f646e687f6e2ead79ef4fed784f4f774521fe82c6bb35a97a3c9c0c"
+    },
+    {
+      "path": "mfr332-preflight-receipts-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-preflight-receipts-20261107.json",
+      "sha256": "9cdfcae945f684a9eb4f9241f9519df2ff4256ee28e22229d436fdee79a8a592"
+    },
+    {
+      "path": "mfr332-readers-PRE-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-readers-PRE-20261107.json",
+      "sha256": "b50ad09d55bbd8a353bf98ed2558c522bf95f62302592b1f23e09aec3d06327e"
+    },
+    {
+      "path": "mfr332-retained-dev-runs-20261107.json",
+      "external_comparison": "R:\\d3-evidence\\mfr332-retained-dev-runs-20261107.json",
+      "sha256": "010ea163d31eb29a844025f3fed29bb78136b6617d97f7d836927715aa92b6af"
+    },
+    {
+      "path": "Root-motion-flags-feedback-20261108-0038.json",
+      "external_comparison": "R:\\d3-evidence\\Root-motion-flags-feedback-20261108-0038.json",
+      "sha256": "834c4abbd47c1755c120d6014c7511a3c8fa8efd531b69b447e0ea0fdf04f25a"
+    },
+    {
+      "path": "Root-motion-flags-feedback-20261108-0044.json",
+      "external_comparison": "R:\\d3-evidence\\Root-motion-flags-feedback-20261108-0044.json",
+      "sha256": "92d8167f02306776c8fb8c758918cf40cd298c5b333490b364f47e2a57813219"
+    },
+    {
+      "path": "Root-motion-flags-feedback-20261108-0052.json",
+      "external_comparison": "R:\\d3-evidence\\Root-motion-flags-feedback-20261108-0052.json",
+      "sha256": "12141accef022f09b34a9b0742821480e0e63ffe16f1ec0562a85371b8fde69a"
+    },
+    {
+      "path": "runs/d1-motion-hosted-first.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d1-motion-hosted-first.json",
+      "sha256": "f8de4842611738241d59646c8338b4bd677aaf7e55a24ffdb01c2b6421a97b87"
+    },
+    {
+      "path": "runs/d1-motion-hosted-first.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d1-motion-hosted-first.stderr.log",
+      "sha256": "5e8ad2d87727b5938aa027f857af9a3eb3ba85aa18af579955ca95f2d7a1b8b9"
+    },
+    {
+      "path": "runs/d1-motion-hosted-first.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d1-motion-hosted-first.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/d2-motion-hosted-attitude-fixed.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d2-motion-hosted-attitude-fixed.json",
+      "sha256": "40aeb1ca764f7de0b9d15af7e4b5019a35e29d78d30ea990619c7af768798bac"
+    },
+    {
+      "path": "runs/d2-motion-hosted-attitude-fixed.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d2-motion-hosted-attitude-fixed.stderr.log",
+      "sha256": "2786881c7a10e56d4f4cf256648c08a33470e242a0fa25cfb1629f9b29d4c291"
+    },
+    {
+      "path": "runs/d2-motion-hosted-attitude-fixed.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d2-motion-hosted-attitude-fixed.stdout.log",
+      "sha256": "53498f9574872d050a8096707329a058d3ab931bce74588b4aa8e5efb7137141"
+    },
+    {
+      "path": "runs/d3-motion-original-first.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d3-motion-original-first.json",
+      "sha256": "28dd0c7e82a4fd3e78a27404aeeaaebf8eb9310cef8ef4a74cd751e6f4c28b6a"
+    },
+    {
+      "path": "runs/d3-motion-original-first.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d3-motion-original-first.stderr.log",
+      "sha256": "f73dc27ef91fdb070e4f85bd02a5d2f7390fce498dec963f3726ccc8a2d0d660"
+    },
+    {
+      "path": "runs/d3-motion-original-first.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d3-motion-original-first.stdout.log",
+      "sha256": "f9247b22beae37422ec41d14bfc6241d5c809c1d18b4ed91b254c258b0010759"
+    },
+    {
+      "path": "runs/d4-guard-first.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d4-guard-first.json",
+      "sha256": "e6ebe3b3fbd3c6b087f31079e8078a82776535d9e122127380f40a4039500f1a"
+    },
+    {
+      "path": "runs/d4-guard-first.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d4-guard-first.stderr.log",
+      "sha256": "902f973f892798fe6758196b957559a423036062583e7b7a067ac0cdcfb500b3"
+    },
+    {
+      "path": "runs/d4-guard-first.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d4-guard-first.stdout.log",
+      "sha256": "bb5db356e592b0d0704071fa8472be5c1e528a97939286302e28e165ca2b85f3"
+    },
+    {
+      "path": "runs/d5-fmt-apply.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d5-fmt-apply.json",
+      "sha256": "238bcc56e19e77babe1a6c8ba8d837082af09453029c891b71237d4984992499"
+    },
+    {
+      "path": "runs/d5-fmt-apply.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d5-fmt-apply.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/d5-fmt-apply.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d5-fmt-apply.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/d6-clippy-motion.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d6-clippy-motion.json",
+      "sha256": "43e550cb96cbb1009aae7d17bd2e587561e517af915f25af5b65cb553b3abb83"
+    },
+    {
+      "path": "runs/d6-clippy-motion.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d6-clippy-motion.stderr.log",
+      "sha256": "736e702f7ca454e760073dfddffd16d27ecbf465d5cfbbaad522b9636befb1e3"
+    },
+    {
+      "path": "runs/d6-clippy-motion.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d6-clippy-motion.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/d7-fmt-apply-scan-once.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d7-fmt-apply-scan-once.json",
+      "sha256": "e1a45e5cfd5ed6e0522b196704e175173ca4e8270fa52547fd2548505efec6de"
+    },
+    {
+      "path": "runs/d7-fmt-apply-scan-once.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d7-fmt-apply-scan-once.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/d7-fmt-apply-scan-once.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-d7-fmt-apply-scan-once.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/s1-fmt-check.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s1-fmt-check.json",
+      "sha256": "e9dde7a2ca6173ab2a6875873fb15e43fce685d783931df8e834e0bf99ef204a"
+    },
+    {
+      "path": "runs/s1-fmt-check.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s1-fmt-check.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/s1-fmt-check.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s1-fmt-check.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/s10-build-dc.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s10-build-dc.json",
+      "sha256": "101d6f5b8fafb4d91121bd0ce9703b094606254f0a20467253732d74b7010045"
+    },
+    {
+      "path": "runs/s10-build-dc.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s10-build-dc.stderr.log",
+      "sha256": "dacf83a5f3a747ad38a235ac91a789a6212545366873912b8ad582418cd96287"
+    },
+    {
+      "path": "runs/s10-build-dc.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s10-build-dc.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/s2-clippy-default.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s2-clippy-default.json",
+      "sha256": "264c4d44b8f2bd2ffbdfc7af284b7b3c56fac774949602a4d3a53b77cca15ca5"
+    },
+    {
+      "path": "runs/s2-clippy-default.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s2-clippy-default.stderr.log",
+      "sha256": "ad70f409b7d54fe93f225648f085fecaca669770f35b42ab0b260e0493a64625"
+    },
+    {
+      "path": "runs/s2-clippy-default.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s2-clippy-default.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s3-clippy-motion-hosted.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s3-clippy-motion-hosted.json",
+      "sha256": "0a137c24d8f7d649b896f925d98f798f698d1c88eea420a2c7cee876f98ba8e0"
+    },
+    {
+      "path": "runs/s3-clippy-motion-hosted.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s3-clippy-motion-hosted.stderr.log",
+      "sha256": "3ed078a05be6870c49883fe83417a8f568a9b23d1b95cdb1b5bde171978cf679"
+    },
+    {
+      "path": "runs/s3-clippy-motion-hosted.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s3-clippy-motion-hosted.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s4-clippy-motion-original.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s4-clippy-motion-original.json",
+      "sha256": "ef392f1444e8be1276c83b42c87cbb25f3fb6ce7d45e533b5433462807a7897a"
+    },
+    {
+      "path": "runs/s4-clippy-motion-original.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s4-clippy-motion-original.stderr.log",
+      "sha256": "ba94fc406ecc54592bb2f6f6e953901e15aa700c7590a92948a1665abf3fa569"
+    },
+    {
+      "path": "runs/s4-clippy-motion-original.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s4-clippy-motion-original.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s5-motion-hosted.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s5-motion-hosted.json",
+      "sha256": "c540adf4e11bd825e9db79c47cffcb65ad5d3368ded477660b8de65b9405fe7b"
+    },
+    {
+      "path": "runs/s5-motion-hosted.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s5-motion-hosted.stderr.log",
+      "sha256": "3723a0e345ffdf011ed2702d9d8afe13636285da8377021b30c7e99c6c7dc410"
+    },
+    {
+      "path": "runs/s5-motion-hosted.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s5-motion-hosted.stdout.log",
+      "sha256": "ce7b3b67f3427b53af70da5bc423ce7a2c49af8eb23657c2b9cef0652f3099c1"
+    },
+    {
+      "path": "runs/s6-motion-original.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s6-motion-original.json",
+      "sha256": "839a24f365344f9db8e6a84fa519e3e5aca03f8e7d5731a0320c3d2deea84a60"
+    },
+    {
+      "path": "runs/s6-motion-original.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s6-motion-original.stderr.log",
+      "sha256": "dd1bac339d1478f48d3de7d0ca018bd87152e8da61ed186485ba569840bf7d35"
+    },
+    {
+      "path": "runs/s6-motion-original.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s6-motion-original.stdout.log",
+      "sha256": "f9247b22beae37422ec41d14bfc6241d5c809c1d18b4ed91b254c258b0010759"
+    },
+    {
+      "path": "runs/s7-flags-guard.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s7-flags-guard.json",
+      "sha256": "e1710a669931b6235763d21b28b8688eec954c7e1d98ca9ef1afd2a46037f9b4"
+    },
+    {
+      "path": "runs/s7-flags-guard.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s7-flags-guard.stderr.log",
+      "sha256": "a42ecb78d9468eae97aa95bebd5f485e1803be978324c7cba983c82b57857aad"
+    },
+    {
+      "path": "runs/s7-flags-guard.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s7-flags-guard.stdout.log",
+      "sha256": "cf01f053f75935b37f1f9a1e8f67c62c9333912d8a496e45d8cb77c4661778b8"
+    },
+    {
+      "path": "runs/s8-flags-controls-hosted.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s8-flags-controls-hosted.json",
+      "sha256": "7053248fd75ba3adf8112d35640e7d49d60e75d0562f627703a9dcc65f329d4d"
+    },
+    {
+      "path": "runs/s8-flags-controls-hosted.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s8-flags-controls-hosted.stderr.log",
+      "sha256": "f5b2ff02840a301d42e67e849dfb35999ee0cf529c0c287c3ac7141ee9a34798"
+    },
+    {
+      "path": "runs/s8-flags-controls-hosted.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s8-flags-controls-hosted.stdout.log",
+      "sha256": "4d79ca3873c9f3684dd3f5c0b7e57fb250a8fd47ab3d84c690820566b98c1d40"
+    },
+    {
+      "path": "runs/s9-flags-controls-original.json",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s9-flags-controls-original.json",
+      "sha256": "c197c87510a767bf227c841d47554174b393a254a34b1f71f9ad19591b872ef6"
+    },
+    {
+      "path": "runs/s9-flags-controls-original.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s9-flags-controls-original.stderr.log",
+      "sha256": "41839fd7071f48c0c2af0ffccec42c44de5aae9241e7fc08b2412f99e4659fc9"
+    },
+    {
+      "path": "runs/s9-flags-controls-original.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-mfr332-s9-flags-controls-original.stdout.log",
+      "sha256": "02f50dd3fb741ba063e24d7f88a32b3844c5250e9fa63f28ac0b3f1db2056fca"
+    },
+    {
+      "path": "scripts/check-physical-flags-mfr332-linux-20261107.sh",
+      "external_comparison": "R:\\d3-evidence\\check-physical-flags-mfr332-linux-20261107.sh",
+      "sha256": "7f33d12c8111423f45879521623d8f00048ba285fb483f0378601c9a35178867"
+    },
+    {
+      "path": "scripts/derive-mfr332-helpers-20261108.py",
+      "external_comparison": "R:\\d3-evidence\\derive-mfr332-helpers-20261108.py",
+      "sha256": "41c3aca3340c894b596bafc5e48b6c6bd434235a1c3412eb596706d14b6da183"
+    },
+    {
+      "path": "scripts/freeze-mfr332-20261107.py",
+      "external_comparison": "R:\\d3-evidence\\freeze-mfr332-20261107.py",
+      "sha256": "e0cbbc81a9ea6990de5fc4f00f1ee968802c701f410cb87842763459648ee4c8"
+    },
+    {
+      "path": "scripts/mfr332-extra-identity-20261107.py",
+      "external_comparison": "R:\\d3-evidence\\mfr332-extra-identity-20261107.py",
+      "sha256": "57be62b01ea4203c13074c4c1e3551d4d3d6efeb0e27c99ba6837418c6af52e9"
+    },
+    {
+      "path": "scripts/mfr332-name-check-20261107.py",
+      "external_comparison": "R:\\d3-evidence\\mfr332-name-check-20261107.py",
+      "sha256": "3aaf5231861bbdf2e3cebbe4ad1b598cfd1ae053de9267a698853ad56b6be145"
+    },
+    {
+      "path": "scripts/preflight-receipts-20261107.py",
+      "external_comparison": "R:\\d3-evidence\\preflight-receipts-20261107.py",
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+    },
+    {
+      "path": "scripts/publish-mfr332-20261107.py",
+      "external_comparison": "R:\\d3-evidence\\publish-mfr332-20261107.py",
+      "sha256": "b01e654b5e4d2d13d2b4b5ec66dceba90cc8d86223b269ff2e70dc30cb452855"
+    },
+    {
+      "path": "scripts/run-mfr332-final-set-20261107.sh",
+      "external_comparison": "R:\\d3-evidence\\run-mfr332-final-set-20261107.sh",
+      "sha256": "6ba225ee883390eebb27c4e6b220f6928ff6cc706f333237c58db706a00e6b16"
+    },
+    {
+      "path": "scripts/run-physical-flags-mfr332-direct-20261107.py",
+      "external_comparison": "R:\\d3-evidence\\run-physical-flags-mfr332-direct-20261107.py",
+      "sha256": "2497ae53ba661cf8ace454fe5ca5caba1535bf6b457346457604f711a5104e3a"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "external_comparison": "R:\\d3-evidence\\sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "external_comparison": "R:\\d3-evidence\\sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "path": "tacview-332955-all9-CI-readback-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\tacview-332955-all9-CI-readback-20261108.json",
+      "sha256": "045510a46b09fe84e487e2675ef10b08823482b2bfe1e5b1039d1299fe1eb22c"
+    },
+    {
+      "path": "tacview-closure-live-services-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\tacview-closure-live-services-20261108.json",
+      "sha256": "62f43c61a0aafec802ad848c1ff5993194c824dd6f36d1f767f30ffab6ae04ea"
+    },
+    {
+      "path": "tacview-reviewed-332955-Root-publication-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\tacview-reviewed-332955-Root-publication-20261108.json",
+      "sha256": "9cb68abfb7b6b49fd924c4797cd374f7606c38a9f301c58c678e454d2da96505"
+    }
+  ],
+  "metadata_five_actual_Git_files": [
+    {
+      "path": "STATUS.md",
+      "bytes": 1470554,
+      "sha256": "738a2dbdbbe16f85d20e1decd1f775c2b41ca9ca1d8a5e780a599a62c7bf56d0",
+      "actual_committed_equals_current": true
+    },
+    {
+      "path": "docs/handover/ACTIVE-EXTRACTION.json",
+      "bytes": 278124,
+      "sha256": "ccb2695cd0e72bc5db99f0fd72921963b927883f30b418544d7eefb2030e03a5",
+      "actual_committed_equals_current": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/physical-flags-motion-responses-publication/.gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "actual_committed_equals_current": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/physical-flags-motion-responses-publication/committed-bytes-and-checkpoint.json",
+      "bytes": 3607,
+      "sha256": "73fba33f1c2514d63a51ad24b7e921e4a1be86b5ded95c45568f0fd7607ad0d2",
+      "actual_committed_equals_current": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/physical-flags-motion-responses-publication/publication-helper.py",
+      "bytes": 10312,
+      "sha256": "7b5df8113b1695ddf8e084d220b6ef380ab2bef647d73e2768483886c202b7c5",
+      "actual_committed_equals_current": true
+    }
+  ],
+  "metadata_only_STATUS_card_and_postPOST_publication": true,
+  "clean_pushed_HEAD": true,
+  "limits": "No test/source/runtime mutation or replay. Literal CRLF and raw log EOF blanklines retained; author whitespace-check numeric child-status limitation stays qualified. New fixture/gate source has its own identity, old3abf Windowsnotrelabelled. SAMEreview needed; all10/wholeTask49/D3/native/fullpack acceptance notclaimed."
+}

@@ -1,4 +1,16 @@
-# CURRENT — D3 Task49: remaining motion-response flag group characterised and frozen; UNREVIEWED (8 November 2026)
+# CURRENT — D3 Task49: motion-response flag group reviewed at finite C-fixture scope; callback/provider lifetime next (8 November 2026)
+
+**Accepted:** SAME774419f8 findings empty; [literal reviewed packet](eech-campaign/reference/d3-entity-collision/physical-flags-motion-reviewed/README.md). Sourcefda05/meta58b25: real guided C response -> setter -> real store in Hosted and Original; six current setter roles disposed (2guided live/2uncalled/2logging-gated), ship/weapon-vector no flag words. This is direct C collaborator characterization, not message-table dispatch/shipped movement converter/Engineboot/native authority. All10finalcommands actual0/18Rusttests. Root0ca0/pubab82 joins3997 source rows/35extras/11readers/89packetentries87externalcopies/five metafiles. Traffic6groups10sets4explicit inspections0resets11fresh; positive1SET0READ, no reset case. New test feature/build gate has its own raw identity; no3abf Windows relabel or campaign replay.
+
+**Continuity:** Claude actualOAuth failure1 and seven-file partial work preserved; one announced GPTSolHigh fallback completed the same lane, separate service-status receipt without fabricated CLIexit/PID. No auth changes. Source guard now performs its seven queries over one tree read; final guard10 took60.56s, no extra perf experiment.
+
+**Tacview:** both immutable764 and current3abf fullpacks continue original jobs on distinct roots; latest growing ACMI/observation prefixes byte-identical only. No complete40/all8/fourinput acceptance; baselines/inputs/seed/frame/duration/tolerances unchanged. Supply43fe and Tacview7a4/873c closures retain exact finite scopes.
+
+**Next sole lane:** current supported callback/provider/session ownership and one-boot lifetime contract, accepted controls first, then smallest missing actual entry/store lifetime or refusal case. No speculative epoch/reset framework or automatic semantic correction.
+
+**Still open:** NativeAcceptance1/publicnativeREAD/changedanswer/lifetimes/FPU/neededDCS, wholeheight/sharedterrain/RNG/hierarchy/services/naturalmoving/finalcensus/current40/all8/fourinputs/currentCI/formalreview/normalmerge/all10/Task49/D3. Prep2 retained; no D4/D5/TypeScript. D3-CURRENT holds actual provider/job state.
+
+# HISTORICAL (finite motion review superseded this summary) — D3 Task49: remaining motion-response flag group characterised and frozen; UNREVIEWED (8 November 2026)
 
 **Candidate:** code/proof `fda05b65109ea19bc1d10f022555297670495b94`; [frozen packet](eech-campaign/reference/d3-entity-collision/physical-flags-motion-responses/README.md), [committed-byte publication](eech-campaign/reference/d3-entity-collision/physical-flags-motion-responses-publication/committed-bytes-and-checkpoint.json). Current source identifies SIX setters: TWO live guided-helicopter, TWO uncalled non-guided, TWO behind the per-entity logging bit; ship/weapon-vector name none of the three flag words. No motion response reads one. Supported-configuration source disposition only, not DCS/custom-host or natural-boot proof.
 

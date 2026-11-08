@@ -1,0 +1,17 @@
+{
+  "utc": "2026-11-08T01:10:13.103036+00:00",
+  "command": "claude auth status --json (read-only status, no auth change)",
+  "actual_exit": 1,
+  "loggedIn": false,
+  "authMethod": "none",
+  "reported_fields": [
+    "analyticsDisabled",
+    "apiProvider",
+    "authMethod",
+    "configDirectory",
+    "loggedIn",
+    "projectsDirectory"
+  ],
+  "network_model_access_verified": false,
+  "limit": "Local auth status alone cannot undo actual OAuth refresh failure or establish restored Sonnet model access. No login/logout/token/authconfig action and no implementation process restart."
+}
