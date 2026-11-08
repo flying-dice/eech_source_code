@@ -28,30 +28,6 @@ extern "C" {
     );
 }
 
-#[cfg(all(feature = "normal-fire-check", feature = "normal-fire-correlation", not(feature = "collision-fixture")))]
-#[test]
-fn normal_query_joins_the_actual_host_callback_entries_without_claiming_a_normal_birth() {
-    extern "C" {
-        fn eech_nf_query_join_check(text: *mut c_char, capacity: c_int, checks: *mut c_int) -> c_int;
-    }
-    lua_provider::install();
-    lua_provider::normal_capture_start();
-    unsafe { eech_physical_flags_collision_set_host(lua_provider::model, lua_provider::fresh, lua_provider::observe, lua_provider::bind_member) };
-    let mut text = vec![0 as c_char; 24000];
-    let mut checks = 0;
-    let failures = unsafe { eech_nf_query_join_check(text.as_mut_ptr(), text.len() as c_int, &mut checks) };
-    let report: String = text.iter().take_while(|&&c| c != 0).map(|&c| c as u8 as char).collect();
-    println!("new hosted identity expectations={checks}\n{report}");
-    assert_eq!(failures, 0, "{report}");
-    assert_eq!(checks, 3);
-    let events = report
-        .lines()
-        .filter(|line| line.starts_with("normal-ev "))
-        .map(|line| format!("{line}\n"))
-        .collect::<String>();
-    lua_provider::normal_capture_check(&events);
-}
-
 #[test]
 fn the_moving_mobile_pass_through_of_the_collision_query_reads_the_raw_updated_word_destructively_and_swaps_the_path_it_tests() {
     lua_provider::install();

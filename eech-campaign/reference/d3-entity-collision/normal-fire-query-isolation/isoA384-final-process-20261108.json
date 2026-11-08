@@ -1,0 +1,20 @@
+{
+  "controller_pid": 9228,
+  "started_utc": "2026-11-08T08:57:35.540367+00:00",
+  "state": "running",
+  "commands": [
+    [
+      "s1-fmt",
+      "rustup component add rustfmt && cargo fmt --version && cargo fmt --all -- --check"
+    ],
+    [
+      "s2-hosted-clippy",
+      "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --all-targets --features physical-flags-collision-check,normal-fire-check,normal-fire-correlation -- -D warnings"
+    ],
+    [
+      "s3-coexistence",
+      "cargo test --locked -p eech-engine-sys --features physical-flags-collision-check,normal-fire-check,normal-fire-correlation --test normal_fire_query --test physical_flags_collision -- --nocapture"
+    ]
+  ],
+  "actual_exits": {}
+}

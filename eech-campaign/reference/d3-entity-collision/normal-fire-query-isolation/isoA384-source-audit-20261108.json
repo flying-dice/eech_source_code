@@ -1,0 +1,27 @@
+{
+  "source_before": "a3845271de0ce04e39c3c3535592d9a3fd4efa33",
+  "unchanged_prior_source_rows": 4017,
+  "unchanged_raw_map_sha256": "47e491661c6bb3d877347303c25ef65f0d69a62a8e7df0613a5e908d98055c0f",
+  "prior_map_sha256": "5974bdb9407232e61bf859a51e0cdd0b4ca45ab7bdbfcfb29c6555d1f4711073",
+  "changed_prior_rows": [
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_collision.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/support/lua_provider.rs"
+  ],
+  "new_source": "eech-campaign/crates/eech-engine-sys/tests/normal_fire_query.rs",
+  "old_control_body_moved": true,
+  "production_C_Rust_Lua_controller_exact": true,
+  "cargo_only_one_test_target_added": true,
+  "artifacts": {
+    "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "e9b98225a4990b93c597711d00e2885e253488782cd628599d0beeaa86807dd1",
+    "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "3d223ab0572601cf57eac0a89f12615cc78cfaff2f30395e112588ede1a8a192",
+    "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "e70ef15ba7528154632904c4be4fdc1843178ed06d272e8ccccc1468bed6a996",
+    "eech-campaign/tools/normal_fire_capture_controller.py": "ea6a361e2a27b8c0ec43ce10221cc5b9324a220c7961d51c508a2c71fbf21129",
+    "eech-campaign/tools/normal_fire_capture.py": "14ae587ae11929b9f80c9e5b623e7913cd83a0189d18a1a5fda34aec2b71ce9c",
+    "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "eech-campaign/tools/input-manifest.py": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13"
+  },
+  "scope": "No compiled C/library/feature/physical contract change. Exact unchanged source closure reuses prior nqt2 actuals; new test executables run unfiltered separately."
+}

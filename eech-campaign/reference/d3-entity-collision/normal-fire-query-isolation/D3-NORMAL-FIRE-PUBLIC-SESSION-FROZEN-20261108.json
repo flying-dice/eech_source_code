@@ -1,0 +1,64 @@
+{
+  "utc": "2026-11-08T08:47:28.719246+00:00",
+  "source_before": "94fe4309eedddc634b37fa9294b93263866e6ea7",
+  "source_rows": 4020,
+  "source_fingerprint": "b18998dee3a1a266b2b485b634b30ab9b58b2aa7c2046cb8dcfca0695a49afa2",
+  "maps": {
+    "PRE": {
+      "path": "R:\\d3-evidence\\nqt2-inputmap-PRE-20261108.json",
+      "sha256": "5974bdb9407232e61bf859a51e0cdd0b4ca45ab7bdbfcfb29c6555d1f4711073"
+    },
+    "POST": {
+      "path": "R:\\d3-evidence\\nqt2-inputmap-POST-20261108.json",
+      "sha256": "5974bdb9407232e61bf859a51e0cdd0b4ca45ab7bdbfcfb29c6555d1f4711073"
+    }
+  },
+  "readers": {
+    "run-normal-fire-nqt2-direct-20261108.py": "14eca743275643743f9473b7abb0db4e1164b53202ab5510acc6f6df7e0e3172",
+    "check-normal-fire-nqt2-linux-20261108.sh": "e39988aeb0a8acc98a11ca6acc6c122afb1736187fdb94d3a96404e9ec4e3d98",
+    "run-nqt2-final-20261108.py": "4a62b203107b477ef0771baf810074ed7af5ca724946e6dbe85941f17d0a9472",
+    "nqt2-proof-20261108.py": "051b687ef4b419cc0543421c473e1e234406f0c37a0767a959641db817917e92",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "extras_count": 22,
+  "direct_exits": {
+    "s1-fmt": 0,
+    "s2-original-clippy": 0,
+    "s3-hosted-clippy": 0,
+    "s4-normal-controls": 0,
+    "s5-hosted-join": 0,
+    "s6-session-lua": 0,
+    "s7-profile-census": 0,
+    "s8-python": 0,
+    "s9-shipping-compile": 0
+  },
+  "Rust_tests": 4,
+  "reused_sys_C_test": 1,
+  "Python_tests": 5,
+  "portable_Lua_controls": {
+    "normal_codec": 10,
+    "hosted_join": 5,
+    "synthetic_session_transport": 13
+  },
+  "own_hook_FPU_modes": 4,
+  "delivered_invalid_context_control_records": 8200,
+  "actual_D2_callback_requests": {
+    "birth": 2,
+    "command": 3,
+    "figures": 82,
+    "flight": 22,
+    "forecast": 12,
+    "ready": 3,
+    "release": 1,
+    "required": 2,
+    "step": 2,
+    "vectors": 3
+  },
+  "hosted_callback_interval": [
+    3030,
+    3041
+  ],
+  "hosted_total_provider_entries": 3041,
+  "hygiene": [],
+  "scope": "UNREVIEWED source/private controls + concrete fixed-bound public driver/controller. Original real normal birth/movement distinct from hosted manually registered query (zero normal-birth credit), synthetic session/codec distinct from both. No Windows/native/root creation/cutover/removal/all10 closure. Root owns separate actual agent completion."
+}

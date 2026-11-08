@@ -84,6 +84,7 @@ pub fn log() -> Vec<String> {
 /// One new hosted observer control: wrap the REAL Lua model provider before
 /// its first entry. The wrapper counts actual calls, then delegates unchanged.
 #[cfg(feature = "normal-fire-correlation")]
+#[allow(dead_code)]
 pub fn normal_capture_start() {
     HOST.with(|slot| {
         let mut slot = slot.borrow_mut();
@@ -96,6 +97,7 @@ pub fn normal_capture_start() {
 }
 
 #[cfg(feature = "normal-fire-correlation")]
+#[allow(dead_code)]
 pub fn normal_capture_check(events: &str) {
     HOST.with(|slot| {
         let slot = slot.borrow();

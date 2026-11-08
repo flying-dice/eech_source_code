@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "nqt2 FROZEN_UNREVIEWED source/controller: all9 final direct0/outer13592 actual0;4020 PREPOST rows/22extras/5readers equal. Rust4 fresh+1 unchanged sys C reused by exact input join, Python5, portableLua10+5+13, own-hookFPU4/8200 context negatives. SAME6726 prior source accepted only; NEW combined review/native build/launch clearance pending. All10/prep2/GenericNative1 OPEN.",
+  "phase": "isoA384 FROZEN_UNREVIEWED corrected combined source/controller: final3 direct0/outer44401 actual0;4021 PREPOST/24extras/5readers equal; TWO separate full test executables1PASS each,16legacy+3new C expectations,3041 provider entries.4017 prior raw source rows/all9 Lua-controller artifacts unchanged. ONE combined SAME review still pending; no native/Windows/cutover; all10/prep2/GenericNative1 OPEN.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "Retain required hosted-only raw TREE/FOREST/CLOUD extraction after its applicable gates;965 discharges finite boot CRT subfact only, removal remains uncleared. Sole open blocks_cutover GenericNative1 first requires natural moving public-path prerequisite/effect proof; D3G08 hierarchy remains separately required, not silently solved by Task50.",
@@ -844,7 +844,7 @@
       "closure_scope": "CLOSED_SOURCE only; no actual capture/removal acceptance"
     }
   ],
-  "next_action": "STOP for SAME combined changed-material source/controller correctness/clean-code/boundary review. Root then owns NEW frozen observer Windows build/full derived97-payload inventory, healthy-only root/materialized-plan launch review; no old94fe relabel. Healthy fixed1500-frame normal/moving/READ/carry/pose positive FIRST; UNREACHED stops B. All10/currentfullpack gates and physical cutover remain open.",
+  "next_action": "STOP for ONE SAME combined corrected source/controller correctness/clean-code/boundary review. Test isolation candidate verified unfiltered separate executables, no globalreset/serial-order/filter dependency. Root later owns distinct frozen observer build/full97 derived payloads/healthy-only root and materialized launch review; all current fullpack/whole-D3 gates remain open.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -980,7 +980,7 @@
     "current_CI": "normal-fire-94fe-all9-CI-readback-20261108.json SHA256 d28a481e9366b9d5e58c5c505671e23cb220c1d4a9488b4fe75221ad787b746a; exact accepted94fe, not dirty nq94f"
   },
   "normal_fire_query_identity_candidate": {
-    "status": "FROZEN_UNREVIEWED",
+    "status": "FROZEN_UNREVIEWED_CORRECTED",
     "family": "nq94f",
     "gap": "AimWeaponStep has no canonical weapon identity; model candidate/scan identifies candidates, not calling weapon. Existing contact sample/global counters cannot join birth cohort.",
     "change": "Feature-only stack-scoped private birth ordinal/step/query and exact all-model-provider call ordinal; solver/request ABI unchanged.",
@@ -1032,6 +1032,39 @@
       "hosted_total_provider_entries": 3041,
       "hygiene_problems": []
     },
-    "publication_qualification": "STATUS/card/packet metadata follows POST; runtime/code test inputs unchanged. Raw logs preserve CRLF/EOF, source Git join retains three inherited uncompiled Lua filters. New Git CI still pending;94fe all9 applies to prior accepted source only."
+    "publication_qualification": "STATUS/card/packet metadata follows POST; runtime/code test inputs unchanged. Raw logs preserve CRLF/EOF, source Git join retains three inherited uncompiled Lua filters. New Git CI still pending;94fe all9 applies to prior accepted source only.",
+    "test_process_isolation": {
+      "status": "IMPLEMENTED_VERIFIED_AWAITING_SAME",
+      "prior_source": "b2a3806a0baf51b498b54a150e5d7aa71c32c62e / a3845271de0ce04e39c3c3535592d9a3fd4efa33",
+      "issue": "Previous exact command filtered hosted query alone; unfiltered shared executable could pair fresh Lua counter with persistent C ordinal. Prior actuals retain their exact scope.",
+      "change": "Dedicated tests/normal_fire_query.rs and Cargo target; legacy physical_flags_collision retains only original test. No global reset or production C/Lua/controller/feature/ABI change.",
+      "remaining": "ONE combined independent review on corrected head; Root new build/materialized launch review still required. No physical-source/API/feature/globalreset change.",
+      "freeze": "D3-NORMAL-FIRE-QUERY-ISOLATION-FROZEN-20261108.json",
+      "packet": "eech-campaign/reference/d3-entity-collision/normal-fire-query-isolation",
+      "final_actuals": {
+        "direct_exits": [
+          0,
+          0,
+          0
+        ],
+        "outer_session": 44401,
+        "actual_outer_exit": 0,
+        "source_rows": 4021,
+        "source_fingerprint": "1f592134673f3927021a86182a5ac88f051efd997c3466ae3fcf7850992e0df9",
+        "extras": 24,
+        "readers": 5,
+        "PRE_POST_equal": true,
+        "fresh_Rust_tests": 2,
+        "legacy_C_expectations": 16,
+        "new_C_expectations": 3,
+        "new_hosted_provider_entries": 3041,
+        "new_hosted_callback_interval": [
+          3030,
+          3041
+        ],
+        "prior_source_rows_exact": 4017,
+        "all_9_Lua_controller_artifacts_exact": true
+      }
+    }
   }
 }

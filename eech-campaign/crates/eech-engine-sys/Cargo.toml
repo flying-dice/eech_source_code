@@ -171,3 +171,9 @@ required-features = ["normal-fire-check", "model-fixture"]
 eech-world = { path = "../eech-world" }
 # the collision control's test bridge drives the real reference provider (`host.model`) from a Lua state of its own (tests/support/lua_provider.rs)
 mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }
+
+# One fresh process/provider/capture lifetime, separate from the legacy fixture.
+[[test]]
+name = "normal_fire_query"
+path = "tests/normal_fire_query.rs"
+required-features = ["physical-flags-collision-check", "normal-fire-check", "normal-fire-correlation"]
