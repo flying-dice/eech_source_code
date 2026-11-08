@@ -1,0 +1,22 @@
+{
+  "controller_pid": 6472,
+  "state": "terminal",
+  "started_utc": "2026-11-08T08:45:13.185685+00:00",
+  "command": "cargo test --locked -p eech-engine-sys --features physical-flags-collision-check,normal-fire-check,normal-fire-correlation --test physical_flags_collision normal_query_joins_the_actual_host_callback_entries_without_claiming_a_normal_birth -- --nocapture",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-normal-fire-nqt2-linux-20261108.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked -p eech-engine-sys --features physical-flags-collision-check,normal-fire-check,normal-fire-correlation --test physical_flags_collision normal_query_joins_the_actual_host_callback_entries_without_claiming_a_normal_birth -- --nocapture"
+  ],
+  "scope": "Working-tree check in the sole leased volume eech-linux-d3-physical-flags-9d247-20261107, image sha256:9d247b4e... named, never substituted.",
+  "pid": 21060,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-08T08:45:19.019212+00:00"
+}

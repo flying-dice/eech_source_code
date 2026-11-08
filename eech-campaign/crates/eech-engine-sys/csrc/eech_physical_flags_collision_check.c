@@ -49,6 +49,8 @@
 #include "eech_headless.h"
 
 #include "entity/mobile/mb_hostmodel.h"
+#include "entity/mobile/mb_normalfirefx.h"
+#include "entity/mobile/mb_wpnfx.h"
 
 struct check
 {
@@ -337,7 +339,7 @@ static entity *query (float x0, float y0, float z0, float x1, float y1, float z1
 #define AHEAD(MOBILE_Z) query (X + 20.4f, 130.0f, (MOBILE_Z) + 0.2f, X + 20.4f, 70.0f, (MOBILE_Z) + 0.2f)
 #define BEHIND(MOBILE_Z) query (X - 19.6f, 130.0f, (MOBILE_Z) + 0.2f, X - 19.6f, 70.0f, (MOBILE_Z) + 0.2f)
 
-int eech_physical_flags_collision_run (char *text, int capacity, int *checks)
+static int collision_run (char *text, int capacity, int *checks, int normal_join)
 {
 	struct check
 		c;
@@ -462,6 +464,29 @@ int eech_physical_flags_collision_run (char *text, int capacity, int *checks)
 
 	a = make_mobile (pool, 3, X, Z);
 
+#if defined(EECH_NORMAL_FIRE_CHECK) && defined(EECH_NORMAL_FIRE_CORRELATION) && defined(EECH_CAMPAIGN_HOST_ENTITY)
+	if(normal_join) {
+		extern int eech_nf_register_control(entity *);
+		extern int eech_wpn_events_get(char *,int);
+		weapon raw;entity *w=&pool[50],*hit;vec3d p={X+20.4f,130,Z+0.2f},q={X+20.4f,70,Z+0.2f};char events[20000];
+		memset(&raw,0,sizeof(raw));w->type=ENTITY_TYPE_WEAPON;set_local_entity_data(w,&raw);
+		raw.mob.sub_type=ENTITY_SUB_TYPE_WEAPON_BGM_71D_TOW_2;raw.mob.position=p;get_identity_matrix3x3(raw.mob.attitude);
+		raw.mob.target_link.parent=a;
+		EXPECT(&c,eech_nf_register_control(w),"private observer track registration");
+		eech_wpn_move_begin(w);NF_STEP_BEGIN(w)
+		NF_QUERY_BEGIN(w,0,&p,&q)
+		hit=AHEAD(Z);
+		NF_QUERY_END(w,hit)
+		NF_STEP_END(w) eech_wpn_move_end(w);
+		EXPECT(&c,hit==a,"one actual hosted moving-candidate positive");
+		eech_wpn_events_get(events,sizeof(events));note(&c,"%s",events);
+		EXPECT(&c,strstr(events,"kind=normal_model") && !strstr(events,"kind=normal_error"),"actual provider entries inside exact query");
+		goto cleanup;
+	}
+#else
+	(void)normal_join;
+#endif
+
 	EXPECT (&c, BEHIND (Z) == NULL, "unset flag: a segment behind the mobile (the previous path) is clear");
 	EXPECT (&c, AHEAD (Z) == a, "unset flag: a segment ahead of the mobile (the future path) hits it");
 	EXPECT_INT (&c, UPDATED_WORD (3) & 8, 0, "the read of an unset entity leaves its bit clear");
@@ -541,6 +566,7 @@ int eech_physical_flags_collision_run (char *text, int capacity, int *checks)
 
 	note (&c, "physical-flags-collision: consumer=get_line_of_sight_collision_entity (moving mobile pass-through, original profile)\n");
 
+cleanup:
 	/* give everything back */
 	for (i = 0; i < raw_count; i++)
 	{
@@ -571,5 +597,14 @@ int eech_physical_flags_collision_run (char *text, int capacity, int *checks)
 
 	return c.failures;
 }
+
+int eech_physical_flags_collision_run(char *text,int capacity,int *checks) {
+    return collision_run(text,capacity,checks,0);
+}
+#if defined(EECH_NORMAL_FIRE_CHECK) && defined(EECH_NORMAL_FIRE_CORRELATION) && defined(EECH_CAMPAIGN_HOST_ENTITY)
+int eech_nf_query_join_check(char *text,int capacity,int *checks) {
+    return collision_run(text,capacity,checks,1);
+}
+#endif
 
 #endif

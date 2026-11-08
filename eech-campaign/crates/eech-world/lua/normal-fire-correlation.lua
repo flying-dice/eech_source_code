@@ -7,8 +7,14 @@ local schemas = {
  normal_fire='fire launcher target weapon ready actual intercept angle maximum',
  normal_detach='fire detach launcher weapon config package devices burst ammo_before ammo_after visible_before visible_after flash_present flash_before flash_after volume ground pose',
  normal_birth='fire detach w launcher target weapon matched pose',
- normal_end='fire births', normal_error='reason'
+ normal_end='fire births', normal_error='reason',
+ normal_step='step w launcher target weapon pose motion velocity lifetime code',
+ normal_step_end='step w launcher target weapon pose motion velocity lifetime code',
+ normal_query='step query w which before segment', normal_query_end='step query w after hit hit_id',
+ normal_model='step query w call op'
 }
+local model_ops={catalogue=1,scene=2,triangle=3,route_node=4,route_face=5,object_table=6,object=7,animation=8,custom_object=9,custom_order=10,
+ target_point_offset=11,target_point_chain=12,target_point_world=13,target_point_fixed=14,entity_collision=15,entity_candidate=16,entity_scan=17,entity_pose=18}
 local function integer(s,lo,hi)
  if type(s)~='string' or not s:match('^%-?%d+$') then error('integer',0) end
  local v=tonumber(s); if not v or v<lo or v>hi or v~=math.floor(v) or tostring(v)~=s then error('integer domain',0) end
@@ -36,32 +42,54 @@ local function parse(line)
  e.seq=integer(e.seq,1,9007199254740991);e.tick=integer(e.tick,0,4294967295)
  return e
 end
+-- Strict standalone grammar for a selected literal excerpt in a paired report.
+-- Full live sequence/context checks remain in feed(), not this parser.
+function M.event(line) return parse(line) end
 function M.new(capture,frame_ms)
  assert(type(capture)=='string' and #capture>0 and #capture<=128 and capture:match('^[%w_.:-]+$'),'capture identity')
  assert(frame_ms==100,'supported frame duration is 100ms')
  local self={};local problem,closed,sequence,frame,clock,active,last_fire;local completed={};local ordinals={}
+ local step,query;local steps,queries,fire_records={},{},{};local last_step,last_query,last_model=0,0,0
+ local model_calls,model_pending,model_unread,model_cutoff=0,{},0,0
  local function fail(reason) problem=problem or ('normal-fire: '..tostring(reason));error(problem,0) end
  local function open() if problem then error(problem,0) end;if closed then fail('continuation after finalization') end end
+ -- Called at EVERY entry of the one real Lua model provider, from before boot.
+ -- Return the exact ordinal for caller-owned request/reply records. No physical
+ -- answer is chosen or changed; a later C record proves which query called it.
+ function self:model_entry(op)
+  open();local n=model_ops[op];if not n then fail('model operation') end
+  model_calls=model_calls+1;model_unread=model_unread+1;model_pending[model_calls]=n
+  if model_unread>100000 or model_calls>9007199254740991 then fail('undrained model entries') end
+  return model_calls
+ end
  function self:feed(current_frame,expected_tick,text)
   open()
+  local first_new=#queries+1
   local ok,why=pcall(function()
    if type(current_frame)~='number' or current_frame<1 or current_frame>4294967295 or current_frame~=math.floor(current_frame) or
       type(expected_tick)~='number' or expected_tick<0 or expected_tick>4294967295 or expected_tick~=math.floor(expected_tick) then error('frame context',0) end
    if frame and (current_frame<frame or (current_frame==frame and expected_tick~=clock)) then error('frame context changed',0) end
    if frame and current_frame>frame and expected_tick~=(clock+(current_frame-frame)*frame_ms)%4294967296 then error('frame clock relation',0) end
-   if active and current_frame~=frame then error('open fire crossed frame',0) end
+   if (active or step or query) and current_frame~=frame then error('open interval crossed frame',0) end
+   if frame and current_frame>frame then
+    for call in pairs(model_pending) do if call<=model_cutoff then model_pending[call]=nil end end
+    model_unread=model_calls-model_cutoff
+   end
    frame,clock=current_frame,expected_tick
    if type(text)~='string' or (#text>0 and text:sub(-1)~='\n') then error('event framing',0) end
    for line in text:gmatch('[^\n]+') do
     if line:match('^normal%-ev ') then
      local e=parse(line)
+     e.literal=line
      if sequence and e.seq~=sequence+1 then error('capture sequence',0) end;sequence=e.seq
      if e.tick~=clock then error('capture clock',0) end
      if e.kind=='normal_error' then error('observer '..e.reason,0) end
-     e.fire=integer(e.fire,0,9007199254740991)
+     if e.fire then e.fire=integer(e.fire,0,9007199254740991) end
      if e.kind=='normal_fire' then
       if active or e.fire==0 or (last_fire and e.fire<=last_fire) then error('fire context',0) end;last_fire=e.fire
-      identity(e.launcher);identity(e.target);if e.launcher==e.target then error('self target',0) end
+      if e.launcher~='none' then identity(e.launcher) end;if e.target~='none' then identity(e.target) end
+      e.canonical=e.launcher~='none' and e.target~='none'
+      if e.canonical and e.launcher==e.target then error('self target',0) end
       e.weapon=integer(e.weapon,1,2147483647);integer(e.ready,1,1)
       words(e.actual,3,true);words(e.intercept,3,true);words(e.angle,1,true);words(e.maximum,1,true)
       e.frame=frame;e.capture=capture;e.birth_list={};active=e
@@ -85,26 +113,61 @@ function M.new(capture,frame_ms)
       if e.launcher~='none' then identity(e.launcher) end;if e.target~='none' then identity(e.target) end
       if e.fire==0 and matched~=0 then error('unmatched birth domain',0) end
       if e.fire>0 then
-       identity(e.launcher);identity(e.target);integer(e.matched,1,1)
+       if e.launcher~='none' then identity(e.launcher) end;if e.target~='none' then identity(e.target) end;integer(e.matched,1,1)
        if not active or e.fire~=active.fire or not active.pending or e.detach~=active.pending.detach or
           e.launcher~=active.launcher or e.target~=active.target or integer(e.weapon,1,2147483647)~=active.weapon or ordinals[e.w] then error('birth identity/context',0) end
-       ordinals[e.w]=true;e.detachment=active.pending;active.pending=nil;active.birth_list[#active.birth_list+1]=e
+       ordinals[e.w]=e;e.detachment=active.pending;active.pending=nil;active.birth_list[#active.birth_list+1]=e
       elseif active then error('unrelated birth inside fire',0) end
      elseif e.kind=='normal_end' then
       if not active or e.fire~=active.fire or active.pending or integer(e.births,0,2147483647)~=#active.birth_list then error('end context',0) end
-      completed[#completed+1]=active;active=nil
+      completed[#completed+1]=active;fire_records[active.fire]=active;active=nil
+     elseif e.kind=='normal_step' or e.kind=='normal_step_end' then
+      e.step=integer(e.step,1,9007199254740991);e.w=integer(e.w,1,2147483647);integer(e.weapon,1,2147483647)
+      if e.launcher~='none' then identity(e.launcher) end;if e.target~='none' then identity(e.target) end
+      words(e.pose,12,true);words(e.motion,3,true);words(e.velocity,1,true);words(e.lifetime,1,true);integer(e.code,0,2147483647)
+      if e.kind=='normal_step' then
+       if active or step or e.step<=last_step then error('step context',0) end
+       last_step=e.step;e.frame=frame;e.capture=capture;e.birth=ordinals[e.w];e.queries={};step=e
+       if e.birth and e.weapon~=e.birth.weapon then error('step weapon identity',0) end
+       -- Loss/retargeting is real campaign behavior, not malformed capture.
+       -- A later SAME-target witness must require both of these facts.
+       e.same_target=e.birth and e.target==e.birth.target or false
+       e.same_launcher=e.birth and e.launcher==e.birth.launcher or false
+      else
+       if not step or query or e.step~=step.step or e.w~=step.w or e.launcher~=step.launcher or e.weapon~=step.weapon then error('step end context',0) end
+       step.result=e;steps[#steps+1]=step;step=nil
+      end
+     elseif e.kind=='normal_query' then
+      e.step=integer(e.step,1,9007199254740991);e.query=integer(e.query,1,9007199254740991);e.w=integer(e.w,1,2147483647);integer(e.which,0,2147483647);words(e.segment,6,true)
+      e.before=integer(e.before,0,model_calls)
+      if not step or query or e.step~=step.step or e.w~=step.w or e.query<=last_query then error('query context',0) end
+      last_query=e.query;e.models={};e.birth=step.birth;e.step_record=step;e.normal_fire=e.birth and fire_records[e.birth.fire] or nil;e.frame=frame;e.capture=capture;query=e
+     elseif e.kind=='normal_model' then
+      e.step=integer(e.step,1,9007199254740991);e.query=integer(e.query,1,9007199254740991);e.w=integer(e.w,1,2147483647)
+      e.call=integer(e.call,1,9007199254740991);e.op=integer(e.op,1,18)
+      if not query or e.step~=step.step or e.query~=query.query or e.w~=step.w or e.call<=last_model or e.call~=query.before+#query.models+1 or model_pending[e.call]~=e.op then error('model callback join',0) end
+      last_model=e.call;query.models[#query.models+1]=e
+     elseif e.kind=='normal_query_end' then
+      e.step=integer(e.step,1,9007199254740991);e.query=integer(e.query,1,9007199254740991);e.w=integer(e.w,1,2147483647);integer(e.hit,0,1)
+      if e.hit_id~='none' then identity(e.hit_id);if e.hit~='1' then error('hit identity',0) end end
+      e.after=integer(e.after,0,model_calls)
+      if not query or e.step~=step.step or e.query~=query.query or e.w~=step.w then error('query end context',0) end
+      if e.after~=query.before+#query.models then error('incomplete model interval',0) end
+      query.result=e;step.queries[#step.queries+1]=query;queries[#queries+1]=query;query=nil
      end
     elseif not line:match('^wpn%-ev ') then error('unexpected event line',0)
     elseif line:match(' kind=truncated') then error('legacy event truncation',0) end
    end
+   model_cutoff=model_calls
   end)
   if not ok then fail(why) end
+  local added={};for i=first_new,#queries do added[#added+1]=queries[i] end;return added
  end
  function self:failure(reason) open();fail('native failure: '..tostring(reason)) end
  function self:finish()
-  open();if active then fail('incomplete fire') end;closed=true
+  open();if active or step or query then fail('incomplete normal path') end;closed=true
   local births=0;for _,fire in ipairs(completed) do births=births+#fire.birth_list end
-  return {capture=capture,fires=completed,births=births,status=births>0 and 'CORRELATED' or 'UNREACHED'}
+  return {capture=capture,fires=completed,births=births,steps=steps,queries=queries,model_calls=model_calls,status=births>0 and 'CORRELATED' or 'UNREACHED'}
  end
  return self
 end

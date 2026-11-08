@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "observed_utc": "2026-11-08T07:39:38.052233+00:00",
+  "CODE": "995ee68501b4b0f9859e703a6713c99c6c9b4245",
+  "META": "94fe4309eedddc634b37fa9294b93263866e6ea7",
+  "clean": true,
+  "source_rows": 4016,
+  "raw_Git_equal": 4013,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "code_meta_runtime_inputs_literal_equal": true,
+  "PRE_POST_literal_equal": true,
+  "extras_unchanged": 17,
+  "sealed_readers_unchanged": 5,
+  "publication_entries": 60,
+  "packet_files_literal_Git_equal": 61,
+  "final_direct_exits": {
+    "s1-fmt": 0,
+    "s2-clippy": 0,
+    "s3-controls": 0,
+    "s4-shipping-check": 0
+  },
+  "Rust_tests": 2,
+  "portable_Lua_controls": 9,
+  "single_field_faults": 5,
+  "observer_modes": 4,
+  "unique_Original_model_fallback_cases": 5,
+  "frozen_sha256": "d4ceef2a6e09e51bc2e62d9b2832cff15df193e7544f7ddb5249f86d80349841",
+  "original_process_observation": "nfcD419-final-original-process-observation-20261108.json",
+  "all10_preserved": true,
+  "generic_native_acceptance_open": true,
+  "scope": "Root readonly source/evidence verification only. Private real collaborators, not native/natural/physical ownership/shipping acceptance. Independent review and typed author terminal observation remain separate."
+}

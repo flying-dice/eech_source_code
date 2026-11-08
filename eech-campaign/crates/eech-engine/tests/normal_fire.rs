@@ -224,9 +224,7 @@ fn answer(model: &mut aim::Aim, q: AimRequest) -> Result<AimReply, String> {
             r.echo = o.echo.map(|e| e.into_iter().map(model_event).collect());
         }
         AimRequest::WeaponStep(q) => {
-            if q.kind != AimStepKind::Birth {
-                return Err("private normal-fire control only serves actual birth".into());
-            }
+            let birth = q.kind == AimStepKind::Birth;
             let s = q.state;
             let input = flight::StepInput {
                 delta_time: q.delta_time,
@@ -265,7 +263,17 @@ fn answer(model: &mut aim::Aim, q: AimRequest) -> Result<AimReply, String> {
                     f: e.f,
                 })
                 .collect::<Vec<_>>();
-            let o = model.weapon_birth(q.weapon, &input, &answers, &q.draws)?;
+            let o = if birth {
+                model.weapon_birth(q.weapon, &input, &answers, &q.draws)?
+            } else if q.kind == AimStepKind::Step {
+                model.weapon_step(q.weapon, &input, &answers, &q.draws)?
+            } else {
+                return Err(format!("private normal-fire control unsupported step {:?}", q.kind));
+            };
+            if o.actions.iter().any(|a| a.f.iter().any(|v| !v.is_finite())) {
+                eprintln!("private step nonfinite actions={:?}; input={input:?}; answers={answers:?}", o.actions);
+                return Err("private step nonfinite output; full fixture diagnostic on stderr".into());
+            }
             r.need_lookup = o.state == flight::StepState::NeedLookup;
             r.need_draw = o.state == flight::StepState::NeedDraw;
             r.actions = o.actions.into_iter().map(event).collect();
@@ -297,7 +305,8 @@ fn real_normal_fire_uses_model_devices_and_real_d2_before_correlated_birth() {
             AimRequest::Vectors(_) => "vectors",
             AimRequest::Intercept(_) => "intercept",
             AimRequest::Release(_) => "release",
-            AimRequest::WeaponStep(_) => "birth",
+            AimRequest::WeaponStep(q) if q.kind == AimStepKind::Birth => "birth",
+            AimRequest::WeaponStep(_) => "flight",
             _ => "other",
         };
         *requests.entry(key).or_insert(0_usize) += 1;
@@ -365,6 +374,14 @@ fn real_normal_fire_uses_model_devices_and_real_d2_before_correlated_birth() {
       assert(r.status=='CORRELATED' and r.births==1 and #r.fires==1)
       local f=r.fires[1];assert(f.launcher=='eech-world:1' and f.target=='eech-world:2' and f.frame==1)
       local b=f.birth_list[1];assert(b.w==1 and b.detachment.ammo_before=='2' and b.detachment.ammo_after=='1')
+      assert(#r.steps==2 and #r.steps[1].queries==0 and #r.steps[2].queries==1 and #r.queries==1)
+      assert(r.steps[1].birth==b and r.steps[2].birth==b and r.queries[1].birth==b)
+      assert(r.queries[1].w==b.w and #r.queries[1].models==0) -- Original model profile
+      -- The real C formatter's explicit `none` domain: no invented canonical
+      -- identity, yet a well-formed normal path remains observable/ineligible.
+      local unrelated=EVENTS:gsub('eech%-world:[12]','none')
+      local u=N.new('private-noncanonical-control',100);u:feed(1,0,unrelated);local ur=u:finish()
+      assert(ur.births==1 and #ur.queries==1 and ur.fires[1].canonical==false)
     "#,
     )
     .exec()
@@ -411,5 +428,5 @@ fn real_normal_fire_uses_model_devices_and_real_d2_before_correlated_birth() {
     let observation = unsafe { CStr::from_ptr(observation.as_ptr()) }.to_str().unwrap();
     println!("{observation}");
     assert_eq!(observer, 0, "{observation}");
-    println!("portable_lua_controls=9 actual_positive_first single_field_faults=5 no_eligible failure_precedence frame_relation; observer_modes=4");
+    println!("portable_lua_controls=10 actual_positive_first single_field_faults=5 noncanonical_ineligible=1 no_eligible failure_precedence frame_relation; observer_modes=4");
 }

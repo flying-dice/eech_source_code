@@ -40,7 +40,7 @@ static routed_vehicle *vehicle_at(entity *e,int subtype,float z) {
 }
 int eech_nf_normal_check(const char *directory,campaign_aim_fn callback,campaign_env_fn environment,void *user,char *out,int cap) {
     jmp_buf fatal; jmp_buf *previous=eech_fatal_target;
-    entity *source,*target,*g,*s,*up,*sess,*born;
+    entity *source,*target,*g,*s,*up,*sess,*born,*view;
     routed_vehicle *raw,*traw;int i,package=-1,before,after,base,used=0;
     campaign_env_host env_host={environment,NULL};
     campaign_aim_host aim_host={callback,user};campaign_los_host los_host={clear_los,NULL};
@@ -56,6 +56,7 @@ int eech_nf_normal_check(const char *directory,campaign_aim_fn callback,campaign
     source=slot(40,ENTITY_TYPE_ROUTED_VEHICLE,sizeof(routed_vehicle));target=slot(41,ENTITY_TYPE_ROUTED_VEHICLE,sizeof(routed_vehicle));
     g=slot(400,ENTITY_TYPE_GROUP,sizeof(group));s=slot(404,ENTITY_TYPE_SECTOR,sizeof(sector));
     up=slot(405,ENTITY_TYPE_UPDATE,sizeof(update));sess=slot(406,ENTITY_TYPE_SESSION,sizeof(session));
+    view=slot(407,ENTITY_TYPE_CAMERA,sizeof(camera));set_camera_entity(view);
     set_update_entity(up);set_session_entity(sess);
     world_map.sector_side_length=4096;world_map.num_map_x_sectors=1;world_map.num_map_z_sectors=1;world_map.num_map_sectors=1;
     world_map.min_map_x=world_map.min_map_z=0;world_map.max_map_x=world_map.max_map_z=4095;
@@ -68,6 +69,13 @@ int eech_nf_normal_check(const char *directory,campaign_aim_fn callback,campaign
     for(i=0;i<NUM_WEAPON_PACKAGES;i++) if(weapon_config_database[raw->vh.weapon_config_type][i].sub_type==ENTITY_SUB_TYPE_WEAPON_BGM_71D_TOW_2) {package=i;break;}
     if(package<0) {snprintf(out+used,(size_t)(cap-used),"SETUP no compiled TOW package\n");eech_fatal_target=previous;return -1;}
     raw->vh.selected_weapon=ENTITY_SUB_TYPE_WEAPON_BGM_71D_TOW_2;
+    /* The compiled defaults are not a flight-ready configuration (zero motor
+     * powers/mass). Reuse the accepted D2 aim.rs::flying_gun motor-domain
+     * fixture exactly, in BOTH C's figures and the reference host. These are
+     * explicit synthetic physical inputs, never retail-effective GWUT facts. */
+    {weapon_data *f=&weapon_database[ENTITY_SUB_TYPE_WEAPON_BGM_71D_TOW_2];
+     f->start_weight=5;f->final_weight=5;f->diameter=0.1f;
+     f->boost_time=1;f->sustain_time=2;f->boost_power=1;f->sustain_power=1;}
     raw->vh.weapon_package_status_array[package].number=weapon_config_database[raw->vh.weapon_config_type][package].number;
     campaign_roster_set_host(&roster);campaign_roster_link_member(g,source);campaign_roster_link_member(g,target);
     campaign_aim_set_host(&aim_host);campaign_los_set_host(&los_host);
@@ -85,9 +93,17 @@ int eech_nf_normal_check(const char *directory,campaign_aim_fn callback,campaign
         update_entity_weapon_system_weapon_and_target_vectors(source);
         update_vehicle_weapon_fire(source);
     }
-    campaign_aim_set_host(NULL);
     after=raw->vh.weapon_package_status_array[package].number;
     born=get_local_entity_first_child(source,LIST_TYPE_LAUNCHED_WEAPON);
+    /* Two real D2 steps of the actual normal-born weapon: original unviewed
+     * state, then the existing camera child relation. This private physical
+     * control exercises both precision paths; it is not a native policy input. */
+    if(born) {
+        weapon_movement(born);
+        insert_local_entity_into_parents_child_list(born,LIST_TYPE_VIEW_WEAPON,view,NULL);
+        weapon_movement(born);
+    }
+    campaign_aim_set_host(NULL);
     eech_wpn_events_get(events,sizeof(events));
     snprintf(out+used,(size_t)(cap-used),"normal source=%s target=%s package=%d ammo=%d->%d ready=%d vectors=%d birth=%d\n%s",
         campaign_roster_host_id(source),campaign_roster_host_id(target),package,before,after,raw->vh.selected_weapon_system_ready,raw->vh.weapon_and_target_vectors_valid,born!=NULL,events);

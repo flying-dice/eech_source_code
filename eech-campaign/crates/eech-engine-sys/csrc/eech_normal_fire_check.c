@@ -17,8 +17,19 @@ extern int eech_wpn_events_get(char *,int);
 static int terrain_queries;
 static int flat(const campaign_terrain_request *q,campaign_terrain_reply *r,char *e,size_t n,void *u) {
     (void)e;(void)n;(void)u;
-    if(q->op!=CAMPAIGN_TERRAIN_POINT) return 1;
     memset(r,0,sizeof(*r)); r->normal[1]=1; r->type=TERRAIN_TYPE_LAND;
+    if(q->op==CAMPAIGN_TERRAIN_GROUND_BELOW) {
+        int inside=q->x>=q->world[0] && q->x<=q->world[2] && q->z>=q->world[1] && q->z<=q->world[3];
+        r->queried=inside;r->answer=!inside || q->y<0;
+    } else if(q->op==CAMPAIGN_TERRAIN_TREE_BEGIN) {
+        /* This declared private flat world has no vegetation. Preserve the
+         * caller's partial-output words on the miss. */
+        r->tree_state=CAMPAIGN_TERRAIN_TREE_DONE;
+        memcpy(r->tree_result_point,q->tree_point,sizeof(r->tree_result_point));
+        memcpy(r->tree_result_normal,q->tree_normal,sizeof(r->tree_result_normal));
+    } else if(q->op!=CAMPAIGN_TERRAIN_POINT && q->op!=CAMPAIGN_TERRAIN_FAST) {
+        snprintf(e,n,"private flat terrain unsupported op=%d",q->op);return 1;
+    }
     ++terrain_queries;return 0;
 }
 /* Device availability is an environmental property of the actual model DB.
@@ -100,6 +111,7 @@ int eech_nf_check(const char *directory,char *out,int cap) {
 #include <fenv.h>
 #include <errno.h>
 #include "entity/mobile/mb_normalfirefx.h"
+#include "entity/mobile/mb_wpnfx.h"
 struct nf_fp {unsigned short control,status;unsigned mxcsr;};
 static void nf_fp_read(struct nf_fp *f) {
     __asm__ __volatile__("fnstcw %0":"=m"(f->control));
@@ -109,6 +121,13 @@ static void nf_fp_read(struct nf_fp *f) {
 int eech_nf_observer_check(char *out,int cap) {
     fenv_t saved;unsigned mx;int mode,fail=0,terrain_before=terrain_queries;vec3d v={0,0,1};float angle=0,maximum=1;
     char empty[32000];viewpoint pose;weapon_package_status status;object_3d_sub_instance station;float flash;uint32_t flash_word;
+    entity observer;weapon observer_raw;int delivered=0,i;
+    extern int eech_nf_register_control(entity *);
+    memset(&observer,0,sizeof(observer));memset(&observer_raw,0,sizeof(observer_raw));
+    observer.type=ENTITY_TYPE_WEAPON;set_local_entity_data(&observer,&observer_raw);
+    observer_raw.mob.sub_type=ENTITY_SUB_TYPE_WEAPON_BGM_71D_TOW_2;
+    get_identity_matrix3x3(observer_raw.mob.attitude);
+    if(!eech_nf_register_control(&observer)) return -1;
     memset(&pose,0,sizeof(pose));get_identity_matrix3x3(pose.attitude);
     memset(&station,0,sizeof(station));memset(&status,0,sizeof(status));
     fegetenv(&saved);__asm__ __volatile__("stmxcsr %0":"=m"(mx));
@@ -116,6 +135,7 @@ int eech_nf_observer_check(char *out,int cap) {
     if(eech_wpn_events_get(empty,sizeof(empty)) || empty[0]) ++fail;
     for(mode=0;mode<4;mode++) {
         unsigned short cw,sw;unsigned csr;unsigned char env[28];struct nf_fp before,after;int seed=get_random_number_seed();
+        eech_wpn_move_begin(&observer);
         __asm__ __volatile__("fnstcw %0":"=m"(cw));cw=(unsigned short)((cw&~0x0c00u)|((unsigned)mode<<10)|0x3fu);__asm__ __volatile__("fldcw %0"::"m"(cw));
         __asm__ __volatile__("stmxcsr %0":"=m"(csr));csr=(csr&~0x6000u)|((unsigned)mode<<13)|0x1f80u|0x34u;__asm__ __volatile__("ldmxcsr %0"::"m"(csr));
         __asm__ __volatile__("fnstenv %0":"=m"(env));memcpy(&sw,env+4,2);sw|=0x34u;memcpy(env+4,&sw,2);__asm__ __volatile__("fldenv %0"::"m"(env));
@@ -133,16 +153,33 @@ int eech_nf_observer_check(char *out,int cap) {
         eech_nf_fallback(1);eech_nf_fallback(2);
         eech_nf_detach_end(&entities[42],&pose);
         eech_nf_fire_end(&entities[42]);
+        eech_nf_step_begin(&observer);
+        eech_nf_query_begin(&observer,0,&v,&v);
+        eech_nf_model_entry(2);
+        eech_nf_query_end(&observer,NULL);
+        eech_nf_step_end(&observer);
         nf_fp_read(&after);
         if(before.control!=after.control || before.status!=after.status || before.mxcsr!=after.mxcsr || errno!=EDOM || seed!=get_random_number_seed()) ++fail;
+        eech_wpn_move_end(&observer); /* legacy arithmetic outside hook measurement */
     }
     fesetenv(&saved);__asm__ __volatile__("ldmxcsr %0"::"m"(mx));
     /* A drained stream still records the later calls, exactly once. */
     eech_wpn_events_get(empty,sizeof(empty));
     {int n=0;const char *p=empty;while((p=strstr(p,"kind=normal_fire"))) {++n;++p;}if(n!=4) ++fail;}
     if(eech_wpn_events_get(empty,sizeof(empty)) || empty[0]) ++fail;
+    /* More delivered records than the buffer's capacity. Fully drained storage
+     * is reusable, but ordinals/latches are not reset. No producer is invoked. */
+    for(i=0;i<8200;i++) {
+        eech_nf_query_end(NULL,NULL); /* explicit invalid-context negative */
+        if(i%64==63 || i==8199) {
+            const char *p;eech_wpn_events_get(empty,sizeof(empty));p=empty;
+            while((p=strstr(p,"kind=normal_error reason=query_end_context"))) {++delivered;++p;}
+            if(strstr(empty,"reason=overflow")) ++fail;
+        }
+    }
+    if(delivered!=8200 || eech_wpn_events_get(empty,sizeof(empty)) || empty[0]) ++fail;
     if(terrain_queries!=terrain_before) ++fail;
-    snprintf(out,cap,"observer_checks=4 rounding_modes nonzero_x87_mxcsr_flags errno shared_rng no_aim_provider_no_terrain_traffic_and_drain failures=%d\n",fail);
+    snprintf(out,cap,"observer_checks=4 rounding_modes old_and_new_hooks nonzero_x87_mxcsr_flags errno shared_rng no_aim_provider_no_terrain_traffic_and_drain delivered_context_negatives=%d failures=%d\n",delivered,fail);
     return fail;
 }
 #else

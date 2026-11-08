@@ -1,0 +1,30 @@
+{
+  "provider": "codex_agent",
+  "state": "completed",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T06:23:25.193048+00:00",
+  "started_time_qualification": "Root dispatch observation, not OS birth",
+  "source_before": "d419afb575adac32b1d6fd1b2fe2706ffb5efcf1",
+  "scope": "Implement SAME36b2 bounded read-only normalfire/readiness/selectedpackage/station-muzzle/birth-cohort correlation through existingfixture/publicsurfaces. Realcollaborator coherentpositive+Originalfallback controls, preserveRNG/FPU/order/decisions. No newlaunchAPI/policy-angleforcing/productionhierarchymove/native untilSAMEsource/controller+Rootlaunchreview. One implementation/cacheauthor lane; all10/generic1/prep2/bothpacks preserved.",
+  "actual_OS_process_identity": "Not applicable to Codex service agent; no fabricated PID/CLI exit.",
+  "completed_observed_utc": "2026-11-08T07:40:39.512914+00:00",
+  "completion_observation": "Root received actual collaboration FINAL_ANSWER; service agent completed. No agent OS PID or CLI exit exists.",
+  "delivery_state": "FROZEN_CLEAN_PUSHED_STOP_FOR_SAME",
+  "CODE": "995ee68501b4b0f9859e703a6713c99c6c9b4245",
+  "META": "94fe4309eedddc634b37fa9294b93263866e6ea7",
+  "cache_lease": "released; warm cache and artifacts preserved",
+  "publication_checkpoint": "nfcD419-publication-checkpoint-20261108.json",
+  "publication_checkpoint_sha256": "c38c76e04d06faa39d255c575595e891c44018b5a54ce31aae2b6eb97521a371",
+  "Root_binding": "normal-fire-995ee-94fe-Root-binding-20261108.json",
+  "final_commands_actual_exits": {
+    "s1-fmt": 0,
+    "s2-clippy": 0,
+    "s3-controls": 0,
+    "s4-shipping-check": 0
+  },
+  "original_outer_session": 25001,
+  "original_outer_actual_exit": 0,
+  "scope_qualification": "Private Original-model world + real reference D2 only. Not Engine boot/public native/natural moving/physical ownership/cutover/all10 acceptance. SAME review and new-head CI pending."
+}

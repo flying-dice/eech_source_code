@@ -1,0 +1,25 @@
+
+running 1 test
+new hosted identity expectations=3
+normal-ev seq=1 tick=0 kind=normal_step step=1 w=1 launcher=none target=eech-world:1 weapon=70 pose=0x457b4666,0x43020000,0x457a0333,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000 motion=0x00000000,0x00000000,0x00000000 velocity=0x00000000 lifetime=0x00000000 code=0
+normal-ev seq=2 tick=0 kind=normal_query step=1 query=1 w=1 which=0 before=3029 segment=0x457b4666,0x43020000,0x457a0333,0x457b4666,0x428c0000,0x457a0333
+normal-ev seq=3 tick=0 kind=normal_model step=1 query=1 w=1 call=3030 op=17
+normal-ev seq=4 tick=0 kind=normal_model step=1 query=1 w=1 call=3031 op=17
+normal-ev seq=5 tick=0 kind=normal_model step=1 query=1 w=1 call=3032 op=17
+normal-ev seq=6 tick=0 kind=normal_model step=1 query=1 w=1 call=3033 op=18
+normal-ev seq=7 tick=0 kind=normal_model step=1 query=1 w=1 call=3034 op=16
+normal-ev seq=8 tick=0 kind=normal_model step=1 query=1 w=1 call=3035 op=17
+normal-ev seq=9 tick=0 kind=normal_model step=1 query=1 w=1 call=3036 op=17
+normal-ev seq=10 tick=0 kind=normal_model step=1 query=1 w=1 call=3037 op=16
+normal-ev seq=11 tick=0 kind=normal_model step=1 query=1 w=1 call=3038 op=18
+normal-ev seq=12 tick=0 kind=normal_model step=1 query=1 w=1 call=3039 op=16
+normal-ev seq=13 tick=0 kind=normal_model step=1 query=1 w=1 call=3040 op=15
+normal-ev seq=14 tick=0 kind=normal_model step=1 query=1 w=1 call=3041 op=17
+normal-ev seq=15 tick=0 kind=normal_query_end step=1 query=1 w=1 after=3041 hit=1 hit_id=eech-world:1
+normal-ev seq=16 tick=0 kind=normal_step_end step=1 w=1 launcher=none target=eech-world:1 weapon=70 pose=0x457b4666,0x43020000,0x457a0333,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000 motion=0x00000000,0x00000000,0x00000000 velocity=0x00000000 lifetime=0x00000000 code=0
+
+test normal_query_joins_the_actual_host_callback_entries_without_claiming_a_normal_birth ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.07s
+
+hosted_query_positive=1 callback_identity_faults=2 observer_error=1 empty_control=1 live_model_calls=3041

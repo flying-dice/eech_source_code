@@ -1,0 +1,229 @@
+[
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d1-step-query.json",
+    "sha256": "dea4047428d6076bb7a9163697ba7ac50e930e4e430759c5ca67f17657f85526",
+    "actual_exit": 101,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d1-step-query.stdout.log",
+        "sha256": "6502e76f24f2e08fad5fc7aa0e4088ad83f0421ea965f020953db3e022d60ff9",
+        "bytes": 2976
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d1-step-query.stderr.log",
+        "sha256": "b5152a225065c2789621b2c5c370bd27bb879fc8e08985984940d20d88dd5e92",
+        "bytes": 3456
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d10-session-batch.json",
+    "sha256": "d506ccaf423ce2ddce62d6257278351f9da8aa0b3707f3db3ca2dc52ba324c9a",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d10-session-batch.stdout.log",
+        "sha256": "b6aa067e8a9fa6b047e25d55b60437ea8459d942ffaeb0bbc442c74ea6add9eb",
+        "bytes": 588
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d10-session-batch.stderr.log",
+        "sha256": "70c5d7fe6f5faa1bb8f6fc760702be196cb47089b17b2e49e0f5b37d1fb73928",
+        "bytes": 245
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d11-full-session-transport.json",
+    "sha256": "52c887efdd549f9926a5e2c1d34c43ad02343cbecde91a3523cb7d414b816dc8",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d11-full-session-transport.stdout.log",
+        "sha256": "f4f19c54e6a5ae9accd5d4c0beb9e00f5fd3c21383186dbf4d6b64687a98f4f3",
+        "bytes": 865
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d11-full-session-transport.stderr.log",
+        "sha256": "ca8d413a50c9d90a69b0aa568af0ea8f5e18dff0b97ad89501c8f4850e7365eb",
+        "bytes": 245
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d12-format.json",
+    "sha256": "bae465a1b6a0318ed5ae59d9f73a9c8e3472299d286ff289f53dbfe86017beee",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d12-format.stdout.log",
+        "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+        "bytes": 46
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d12-format.stderr.log",
+        "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+        "bytes": 36
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d13-focused-lint.json",
+    "sha256": "924fd264be1eeb93ce1adda9bfa291a6941156c97ee4e7d12bf2091a1dae53ab",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d13-focused-lint.stdout.log",
+        "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+        "bytes": 38
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d13-focused-lint.stderr.log",
+        "sha256": "7e12f90a1ba170c9971392dddc22d99be524c6fa2201b12d04fb2888ad85db15",
+        "bytes": 330
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d2-setup-diagnostic.json",
+    "sha256": "0c636dd4d67b6887529d6b9284cd7ec107820870d152b28472a6c60f670f32c0",
+    "actual_exit": 101,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d2-setup-diagnostic.stdout.log",
+        "sha256": "f2967079f7ba720c2806f9acb5a2c35778d065dec0190f22e8e3982f09506000",
+        "bytes": 3202
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d2-setup-diagnostic.stderr.log",
+        "sha256": "b0992f4a2771efa804d0d237f9d0b66676a24333df165318593b1d2eadfba6ef",
+        "bytes": 3826
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d3-full-setup-diagnostic.json",
+    "sha256": "9bdced4013ff7239b1a84f2e339c3eae3a7a92deefaec8d99d4b3b1465b0a4a5",
+    "actual_exit": 101,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d3-full-setup-diagnostic.stdout.log",
+        "sha256": "52c7905f66f5d7ad402bb35790cf0b5bf629a7f1fc5f9558c2ba2960a77dfa23",
+        "bytes": 3011
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d3-full-setup-diagnostic.stderr.log",
+        "sha256": "7d6e8061c4ab4bd8d4e3798786b0a6bf1d580208699bfa7cb119054e6861f967",
+        "bytes": 6110
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d4-motor-domain.json",
+    "sha256": "32616bdf26fd7bf84895a047265873042940cd17131a3645507c0e1d3043db95",
+    "actual_exit": 101,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d4-motor-domain.stdout.log",
+        "sha256": "8af5744d6c397065e87e4139afdea6ac7666e51fdf5c2c6d2ff2154d79cc2894",
+        "bytes": 2992
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d4-motor-domain.stderr.log",
+        "sha256": "e01dc4296f2e4340483efb6dbcb0c89e042f245b4919bfe2f62034ea7c785780",
+        "bytes": 3488
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d4-process-observation-20261108.json",
+    "sha256": "482b457fb94b1a953033fa3c7e7d5a9fe7a905c72c7b955b2747606856e54715",
+    "actual_exit": null,
+    "logs": []
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d5-flat-movement.json",
+    "sha256": "df79689f06ab7ad4e24ebe8fec132ff4a07ff356166367828bb4fc02936b5f6d",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d5-flat-movement.stdout.log",
+        "sha256": "a3bd7af8b0e8adfec5ed0cc6a7b1756f66064616e7817edc8ede032f3493aa3d",
+        "bytes": 6156
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d5-flat-movement.stderr.log",
+        "sha256": "dc71fbbcca958e88f3a96ae5becc558fc33fced33c84b3d9ded7c9f77146f6bc",
+        "bytes": 312
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d6-hosted-join.json",
+    "sha256": "a65d09f56bb1ce30432764008fd35452d667f49f304bedd0e3043478b40b3f77",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d6-hosted-join.stdout.log",
+        "sha256": "938ec3801fd0d458e13237a4745bcb609e6d3f091f57ef22ed0cd5b08724b8ff",
+        "bytes": 2143
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d6-hosted-join.stderr.log",
+        "sha256": "a513d2b44e82f905ca2f3603070d289b656f37a1cfd8cf507dc8a7869de83168",
+        "bytes": 266
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d7-batched-identity.json",
+    "sha256": "d8f34439fbba43ef744ed50c8a29b12d95e1f590a8c92b408b333fcbb12412fe",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d7-batched-identity.stdout.log",
+        "sha256": "9d532fb399a699989bfb78ed6601cf0bcd091aa0a9c5e5c3f3f941d0b1b1e068",
+        "bytes": 6224
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d7-batched-identity.stderr.log",
+        "sha256": "bbfa21956161d1dbc100fa6813fad789e8d85bf0c879b4e31f6b3997e537e499",
+        "bytes": 312
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d8-bounded-hosted-join.json",
+    "sha256": "2c1f0d18e4bb289b93480db8538011c2163600f6caa0819dca0a5b22637e1c70",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d8-bounded-hosted-join.stdout.log",
+        "sha256": "c6bdbb065b03e268acb97bd1d7e3d11ccdb6ceed7044b0a2b15d8ce5dae495d7",
+        "bytes": 2166
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d8-bounded-hosted-join.stderr.log",
+        "sha256": "a513d2b44e82f905ca2f3603070d289b656f37a1cfd8cf507dc8a7869de83168",
+        "bytes": 266
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nq94f-d9-session-contract.json",
+    "sha256": "024f83d534e7a30b216d4c7fbb0825356007eac35896d32b5bae52b9239bbb38",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d9-session-contract.stdout.log",
+        "sha256": "d3f0051c9a771654b097f1e47b8fbf49f90ba6eaa60fca2a9aa6dd5396308087",
+        "bytes": 587
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nq94f-d9-session-contract.stderr.log",
+        "sha256": "96e2f184465402a3e38ce66d972ed019e83c9139d4aa4eb2d00fa29c45b2847d",
+        "bytes": 245
+      }
+    ]
+  }
+]

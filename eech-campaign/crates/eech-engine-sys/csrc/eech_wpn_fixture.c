@@ -422,6 +422,9 @@ static int nf_drain(char *text,int capacity,int *used) {
         if(*used+n+1>capacity) return 1;
         memcpy(text+*used,error,(size_t)n+1);*used+=n;nf_overflow_reported=1;
     }
+    /* Reuse only fully delivered storage; capture sequence and overflow latch
+     * never reset. Partial drains keep every unread record. */
+    if(nf_drained==nf_count) nf_drained=nf_count=0;
     return 0;
 }
 static const char *nf_id(entity *en) {
@@ -490,6 +493,62 @@ static void nf_birth(const entity *en,const weapon *raw,int ordinal,int submunit
     if(match) ++nf.births;
     nf_log_event("kind=normal_birth fire=%llu detach=%llu w=%d launcher=%s target=%s weapon=%d matched=%d pose=%s",
         match?nf.fire:0,nf.detach,ordinal,nf_id(raw->launched_weapon_link.parent),nf_id(raw->mob.target_link.parent),raw->mob.sub_type,match,pose);
+    errno=saved_errno;
+}
+/* Exact stack context, never a position/type/time match. model_entry counts
+ * every call through the real model-provider funnel, including boot traffic.
+ * Lua counts that same provider's entries and joins only the recorded ordinal.
+ * Fatal unwinding poisons the owning public entry; no recovery/reset is added. */
+static struct {
+    entity *en;
+    unsigned long long step,query;
+    int w,query_active;
+} nf_step;
+static unsigned long long nf_step_sequence,nf_query_sequence,nf_model_sequence;
+static void nf_step_pose(const char *kind,entity *en) {
+    const weapon *raw=(const weapon *)get_local_entity_data(en);
+    viewpoint vp;char pose[160];
+    memcpy(&vp.position,&raw->mob.position,sizeof(vp.position));
+    memcpy(vp.attitude,raw->mob.attitude,sizeof(vp.attitude));nf_pose(pose,sizeof(pose),&vp);
+    nf_log_event("kind=%s step=%llu w=%d launcher=%s target=%s weapon=%d pose=%s motion=0x%08x,0x%08x,0x%08x velocity=0x%08x lifetime=0x%08x code=%d",
+        kind,nf_step.step,nf_step.w,nf_id(raw->launched_weapon_link.parent),nf_id(raw->mob.target_link.parent),raw->mob.sub_type,pose,
+        nf_word(&raw->mob.motion_vector.x),nf_word(&raw->mob.motion_vector.y),nf_word(&raw->mob.motion_vector.z),
+        nf_word(&raw->mob.velocity),nf_word(&raw->weapon_lifetime),(int)raw->kill_code);
+}
+void eech_nf_step_begin(entity *en) {
+    int saved_errno=errno;
+    if(nf_step.en || !cur_move.track || cur_move.track->en!=en) {
+        nf_log_event("kind=normal_error reason=step_context");errno=saved_errno;return;
+    }
+    nf_step.en=en;nf_step.w=cur_move.track->ordinal;nf_step.step=++nf_step_sequence;
+    nf_step_pose("normal_step",en);errno=saved_errno;
+}
+void eech_nf_step_end(entity *en) {
+    int saved_errno=errno;
+    if(nf_step.en!=en || nf_step.query_active) nf_log_event("kind=normal_error reason=step_end_context");
+    else nf_step_pose("normal_step_end",en);
+    memset(&nf_step,0,sizeof(nf_step));errno=saved_errno;
+}
+void eech_nf_query_begin(entity *en,int which,const vec3d *p,const vec3d *q) {
+    int saved_errno=errno;
+    if(nf_step.en!=en || nf_step.query_active) nf_log_event("kind=normal_error reason=query_context");
+    else {
+        nf_step.query_active=1;nf_step.query=++nf_query_sequence;
+        nf_log_event("kind=normal_query step=%llu query=%llu w=%d which=%d before=%llu segment=0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x",
+            nf_step.step,nf_step.query,nf_step.w,which,nf_model_sequence,nf_word(&p->x),nf_word(&p->y),nf_word(&p->z),nf_word(&q->x),nf_word(&q->y),nf_word(&q->z));
+    }
+    errno=saved_errno;
+}
+void eech_nf_query_end(entity *en,entity *hit) {
+    int saved_errno=errno;
+    if(nf_step.en!=en || !nf_step.query_active) nf_log_event("kind=normal_error reason=query_end_context");
+    else nf_log_event("kind=normal_query_end step=%llu query=%llu w=%d after=%llu hit=%d hit_id=%s",nf_step.step,nf_step.query,nf_step.w,nf_model_sequence,hit!=NULL,nf_id(hit));
+    nf_step.query_active=0;errno=saved_errno;
+}
+void eech_nf_model_entry(int op) {
+    int saved_errno=errno;
+    ++nf_model_sequence;
+    if(nf_step.query_active) nf_log_event("kind=normal_model step=%llu query=%llu w=%d call=%llu op=%d",nf_step.step,nf_step.query,nf_step.w,nf_model_sequence,op);
     errno=saved_errno;
 }
 #endif
@@ -582,6 +641,16 @@ static struct track *track_new (const entity *en)
 	}
 	return NULL;
 }
+
+#if defined(EECH_NORMAL_FIRE_CHECK) && defined(EECH_NORMAL_FIRE_CORRELATION)
+/* Private callback-join control only: explicit registration, not birth proof.
+ * The separate real-normal-fire control gets its ordinal from actual birth. */
+int eech_nf_register_control(entity *en) {
+    struct track *t;ready();t=track_new(en);
+    if(t) t->sub_type=((weapon *)get_local_entity_data(en))->mob.sub_type;
+    return t!=NULL;
+}
+#endif
 
 static struct table_row *table_row_for (int sub_type)
 {

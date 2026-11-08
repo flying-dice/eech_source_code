@@ -1,0 +1,40 @@
+{
+  "aphavoc/source/entity/mobile/weapon/wn_move.c": {
+    "raw_sha256": "b103ad24f27a1a0c81f9a8dec187377b4cfd2348932663267145b5d37595e14c",
+    "default_body_exact_94fe": true,
+    "old_sha256": "f9533500b7f6d10d93ebb3209b3bec15aabb07d478adb17099cf231226f7cc5b"
+  },
+  "aphavoc/source/entity/mobile/mb_hostmodel.c": {
+    "raw_sha256": "6f66cc646ca38ab11164d2a92ec9b75c170d21ede39745d26a07759046d8aa97",
+    "default_body_exact_94fe": true,
+    "old_sha256": "7cab38d5fbb8a9a2d99ed83befdef6f624950fedfb69935a5a216e64cfa925ff"
+  },
+  "aphavoc/source/entity/mobile/vehicle/vh_wpn.c": {
+    "raw_sha256": "04266b535689dd01d3e2530ff70f65ac49ced63ff1ff164e59e1f6685ea6d31a",
+    "exact_94fe": true
+  },
+  "aphavoc/source/entity/mobile/weapon/weapon.c": {
+    "raw_sha256": "81057b0d979a85e4810fc7938597f83107cd89c3322910fc7fefe26cff3fb229",
+    "exact_94fe": true
+  },
+  "eech-campaign/crates/eech-engine/src/lib.rs": {
+    "raw_sha256": "33419d97a1b8fd701a18f3483b819494c80e3d8db4c185a7545947a9c6aa905b",
+    "exact_94fe": true
+  },
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": {
+    "raw_sha256": "d2599b6db3116f20766285aed733a0b699074365d5491370b2d6e874f69af4e0",
+    "exact_94fe": true
+  },
+  "eech-campaign/Cargo.lock": {
+    "raw_sha256": "3c6f1cdae3b102a81b81e0031b9fddd1d2ae895f0e88afdd88bdf400341d5643",
+    "exact_94fe": true
+  },
+  "eech-campaign/crates/eech-engine-sys/sources.txt": {
+    "raw_sha256": "212ea8d6bad9e78999ec2baecb65694def76aaa52c355cff6f7764050b5b6cb8",
+    "exact_94fe": true
+  },
+  "eech-campaign/crates/eech-engine-sys/build/main.rs": {
+    "raw_sha256": "78b9a53d92c85b672944fa763eaaa138aa46e20bc0158a0fb24af281195cc882",
+    "exact_94fe": true
+  }
+}

@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "mb_hostmodel.h"
+#include "mb_normalfirefx.h"
 
 static campaign_model_host current_host;
 static int host_installed;
@@ -109,6 +110,7 @@ static void ask (const campaign_model_request *request, campaign_model_reply *re
 
 	memset (error, 0, sizeof (error));
 
+	NF_MODEL_ENTRY (request->op)
 	if (current_host.model (request, reply, error, CAMPAIGN_MODEL_ERROR_MAX, current_host.user) != 0)
 	{
 		debug_fatal ("host model: %s", error[0] ? error : "[model-provider:callback] the host model provider failed without a message");

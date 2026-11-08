@@ -81,6 +81,59 @@ pub fn log() -> Vec<String> {
     LOG.with(|log| log.borrow().clone())
 }
 
+/// One new hosted observer control: wrap the REAL Lua model provider before
+/// its first entry. The wrapper counts actual calls, then delegates unchanged.
+#[cfg(feature = "normal-fire-correlation")]
+pub fn normal_capture_start() {
+    HOST.with(|slot| {
+        let mut slot = slot.borrow_mut();
+        let host = slot.as_mut().expect("installed provider");
+        let module: Table = host._lua.load(include_str!("../../../eech-world/lua/normal-fire-correlation.lua")).eval().unwrap();
+        host._lua.globals().set("NORMAL_MODULE", module).unwrap();
+        host._lua.globals().set("ORIGINAL_MODEL", host.model.clone()).unwrap();
+        host.model = host._lua.load("NORMAL_CAPTURE=NORMAL_MODULE.new('private-hosted-query',100); NORMAL_MODEL_OPS={}; return function(op,...) NORMAL_MODEL_OPS[#NORMAL_MODEL_OPS+1]=op; NORMAL_CAPTURE:model_entry(op); return ORIGINAL_MODEL(op,...) end").eval().unwrap();
+    });
+}
+
+#[cfg(feature = "normal-fire-correlation")]
+pub fn normal_capture_check(events: &str) {
+    HOST.with(|slot| {
+        let slot = slot.borrow();
+        let host = slot.as_ref().expect("installed provider");
+        host._lua.globals().set("NORMAL_EVENTS", events).unwrap();
+        host._lua
+            .load(
+                r#"
+          NORMAL_CAPTURE:feed(1,0,NORMAL_EVENTS)
+          local r=NORMAL_CAPTURE:finish()
+          assert(#r.steps==1 and #r.queries==1 and #r.queries[1].models>0)
+          assert(r.births==0 and r.status=='UNREACHED' and r.queries[1].birth==nil)
+          assert(r.queries[1].models[1].call>1) -- real boot/roster traffic counted first
+          local calls=r.model_calls
+          local function reject(text)
+            local c=NORMAL_MODULE.new('private-hosted-query',100)
+            -- Replay the ACTUAL provider's entry operations for this codec
+            -- mutation only; the coherent positive above used live delegation.
+            for _,op in ipairs(NORMAL_MODEL_OPS) do c:model_entry(op) end
+            local ok,e=pcall(function() c:feed(1,0,text) end);assert(not ok)
+            for _,f in ipairs({function()c:finish()end,function()c:feed(1,0,'')end,function()c:model_entry('scene')end,function()c:failure('later')end}) do
+              local ok2,e2=pcall(f);assert(not ok2 and e2==e)
+            end
+          end
+          local call=NORMAL_EVENTS:match('kind=normal_model.- call=(%d+)')
+          assert(call);reject((NORMAL_EVENTS:gsub('call='..call..' ', 'call=0 ',1)))
+          local model=NORMAL_EVENTS:match('(normal%-ev [^\n]*kind=normal_model[^\n]*)')
+          assert(model);reject((NORMAL_EVENTS:gsub(model:gsub('([^%w])','%%%1'),model:gsub(' w=1 ',' w=2 '),1)))
+          reject(NORMAL_EVENTS..'normal-ev seq=999999 tick=0 kind=normal_error reason=overflow\n')
+          local c=NORMAL_MODULE.new('empty-hosted-query',100);c:feed(1,0,'');assert(c:finish().status=='UNREACHED')
+          print('hosted_query_positive=1 callback_identity_faults=2 observer_error=1 empty_control=1 live_model_calls='..calls)
+        "#,
+            )
+            .exec()
+            .unwrap();
+    });
+}
+
 /// A fresh host binding for a scenario: the roster is emptied and the flag store replaced (scenario isolation of the test, as `flags_host::fresh`).
 pub extern "C" fn fresh() {
     HOST.with(|slot| {
