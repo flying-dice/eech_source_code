@@ -1,0 +1,87 @@
+{
+  "code_commit": "552ee8e079b75626199c4e348ed0e986bc02b7ba",
+  "source_rows_compared": 4010,
+  "raw_matches_committed": 4007,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "changed_sources": [
+    {
+      "path": "eech-campaign/crates/eech-dc/Cargo.toml",
+      "sha256": "870799e61394bba30754c606ae5551b47daf94518644df6b4c6d0d00ddd96195"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "sha256": "d39bcab66d7324a4f3102b01f2c51b98de1b24dea641f90c68e048951ca0cfc1"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "sha256": "6e7697b03371b1e2f08ada3712e37cd21293e273bf069532ca199486037d35ad"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/core_crt_observer.rs",
+      "sha256": "a901056a5fe74e99fe865f70f05981e646c4ff76b46732bacd5146efd8075469"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "sha256": "370b18f2df5c7ed3b50f4c26fdeb547244c99f203d9905ce9d8b87c1794cdea5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_core_crt_observer.c",
+      "sha256": "07bd774297b9bc0c59528133a3df2ae5f14b341bb97c4c85b3d1fefeaf26e035"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_core_crt_observer.h",
+      "sha256": "2273fb4ae6e642aadff891d0d05ac61fb35c8937bba9d09f3058da5adadacf1c"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "sha256": "d2599b6db3116f20766285aed733a0b699074365d5491370b2d6e874f69af4e0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "sha256": "ceab28c0587db1e8fd1f347466f174a3231e1ff21eef79853374a4b70a4e9d3e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/core_terrain_crt_observer.rs",
+      "sha256": "94bea71c8c4a1fac49991730a70e803c09758d7b886c992e24fae893c331eab9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/Cargo.toml",
+      "sha256": "a59515fcd660bbe9d2c54b6fd9fdac371814dd9e5c6301e7d066242c2dc5ece6"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "7a5e5918f96e49a711da076ea76155f464056bad5cdfac09212d98e9976cc481"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+      "sha256": "0cbd259d277dc84c2b3f4a357ee7d8b58b9d3ee2cb177fe51b422a0d6b12cb8a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/core_terrain_crt_driver.rs",
+      "sha256": "fb0eeae3771aae058c316d773df2cb4fb18bf7413213cf7a8198dab458853f1f"
+    }
+  ],
+  "source_fingerprint": "694b39a5bf42656d72410d87891454fdd77577293ce7044a05d4714f17abc81e",
+  "all_final_commands_direct0": true,
+  "outer_actual_exit": 0,
+  "post_POST_metadata": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "outer-session.json",
+    "literal-bytes-check.json",
+    "manifest.json",
+    "code-publication.json",
+    "publication-manifest.json",
+    "windows-observer-build-recipe.md"
+  ],
+  "literal_log_whitespace_qualification": "Five literal stdout logs retain original final blank lines; source/metadata check excludes runs and permits CRLF at EOL. No log normalization.",
+  "publication_helper": {
+    "private_path": "R:\\d3-evidence\\crt1516-publication-only-20261108.py",
+    "sha256": "099f7947999d2fff84d939c7b071a775da16637728fc340efacf43fa4a87eafc"
+  },
+  "scope": "Source/finite plan UNREVIEWED; no Windows/native/capture/removal clearance. Actual service completion is Root-owned separately."
+}
