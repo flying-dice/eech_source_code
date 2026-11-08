@@ -510,3 +510,204 @@ fn the_supply_control_seam_exists_only_behind_its_feature_and_the_consumer_reads
         "the read is in the fixed-wing branch and before the question to the host: {branch_at} {read_at} {helicopter_at} {ask_at}"
     );
 }
+
+/// every byte offset at which `needle` starts in `hay`
+fn offsets(hay: &str, needle: &str) -> Vec<usize> {
+    hay.match_indices(needle).map(|(at, _)| at).collect()
+}
+
+/// the nearest `if (` line before `at`: the conditional whose block holds the text at `at` (the Tacview readers put the read on the second line of the block their guard opens)
+fn nearest_if_line_before(code: &str, at: usize) -> String {
+    code[..at]
+        .lines()
+        .rev()
+        .map(str::trim)
+        .find(|l| l.starts_with("if (") || l.starts_with("if("))
+        .unwrap_or("")
+        .to_string()
+}
+
+/// the files under the original sources whose comment-stripped text contains `needle`, as `relative path -> occurrences`
+fn files_naming(needle: &str) -> BTreeMap<String, usize> {
+    let root = aphavoc();
+    let mut paths = Vec::new();
+    walk(&root, &mut paths);
+    let mut found = BTreeMap::new();
+    for path in paths {
+        let n = offsets(&strip_comments(&read(&path)), needle).len();
+        if n > 0 {
+            found.insert(path.strip_prefix(&root).unwrap().to_string_lossy().replace('\\', "/"), n);
+        }
+    }
+    found
+}
+
+#[test]
+fn the_legacy_tacview_writer_is_compiled_in_but_every_read_of_moved_and_rotated_waits_on_a_log_file_the_headless_boot_never_opens() {
+    // THE FINDING (ENV-PHYSICAL-FLAGS-HOST-STORE-NATIVE-ACCEPTANCE-1, the Tacview consumer, source text only): in the shipping EECH_DC engine the C Tacview writer (aphavoc/source/entity/tacview) is COMPILED IN, but
+    // `tacview_is_logging ()` is `tacview_log_file != NULL`, the file is opened only by `start_tacview_logging`, and the headless boot reaches neither of its two callers. Every read of MOVED or ROTATED and the
+    // frame reset of both words sit behind that condition, so in the headless shipping path they are never executed; only the SETTERS of the words run there. This pins the text the disposition relies on: a new
+    // caller, a new unguarded reader or a boot that starts logging fails here and the consumer must then be characterised in both profiles. It is not a native, boot or lifetime proof.
+    let sources = std::fs::read_to_string(crate_dir().join("sources.txt")).unwrap();
+    assert!(
+        sources.lines().any(|l| l.trim() == "aphavoc/source/entity/tacview/tacview.c"),
+        "the writer is compiled, not stubbed: it is listed in the engine's sources"
+    );
+    let tacview_c = strip_comments(&read(&aphavoc().join("entity/tacview/tacview.c")));
+    assert!(tacview_c.contains("FILE* tacview_log_file = NULL;"), "the log file starts unopened");
+
+    // 1. the file is assigned only in tacview.c (the initialiser, the open and the closes), and opened only by the one static open, whose only caller is start_tacview_logging
+    assert_eq!(
+        files_naming("tacview_log_file = ").keys().cloned().collect::<Vec<_>>(),
+        vec!["entity/tacview/tacview.c".to_string()],
+        "another file assigns the log file"
+    );
+    assert_eq!(
+        offsets(&tacview_c, "tacview_log_file = safe_fopen(").len(),
+        2,
+        "the log file is assigned from an open in exactly two places"
+    );
+    assert_eq!(
+        offsets(&tacview_c, "tacview_log_file = safe_fopen(log_filename, \"wb\");").len(),
+        1,
+        "one FIRST open: open_tacview_log"
+    );
+    // the second is the periodic REOPEN of an already open file (it closes it first, which a never-opened file could not survive)
+    assert_eq!(
+        offsets(
+            &tacview_c,
+            "fclose(tacview_log_file);\n\t\ttacview_log_file = NULL;\n\t\ttacview_log_file = safe_fopen(log_filename, \"ab\");"
+        )
+        .len(),
+        1
+    );
+    assert_eq!(offsets(&tacview_c, "open_tacview_log();").len(), 1, "the open has one caller");
+    let start = tacview_c.find("void start_tacview_logging(entity* gunship)").expect("start_tacview_logging");
+    assert!(
+        start < tacview_c.find("open_tacview_log();").unwrap(),
+        "the open is called from start_tacview_logging"
+    );
+
+    // 2. start_tacview_logging has exactly two callers: the user's gunship assignment (`assign_entity_to_user`, helicop.c) and the flight loop's entry (`flight`, flight.c, only for logging mode 3)
+    let starters: BTreeMap<String, usize> = files_naming("start_tacview_logging");
+    let want: BTreeMap<String, usize> = [
+        ("entity/mobile/aircraft/helicop/helicop.c", 1),
+        ("entity/tacview/tacview.c", 1),
+        ("entity/tacview/tacview.h", 1),
+        ("flight.c", 1),
+    ]
+    .iter()
+    .map(|(f, n)| (f.to_string(), *n))
+    .collect();
+    assert_eq!(starters, want, "start_tacview_logging gained, lost or moved a caller");
+    let helicop = strip_comments(&read(&aphavoc().join("entity/mobile/aircraft/helicop/helicop.c")));
+    let call = helicop.find("start_tacview_logging(en);").unwrap();
+    assert!(
+        helicop[..call].rfind("void assign_entity_to_user (entity *en)").is_some() && helicop[call..].find("void set_raw_gunship_entity").is_some(),
+        "the helicopter caller is inside assign_entity_to_user"
+    );
+    assert!(nearest_if_line_before(&helicop, call).contains("command_line_tacview_logging && command_line_tacview_logging < 3"));
+    let flight = strip_comments(&read(&aphavoc().join("flight.c")));
+    assert!(nearest_if_line_before(&flight, flight.find("start_tacview_logging(NULL);").unwrap()).contains("command_line_tacview_logging == 3"));
+    // the logging mode defaults to off
+    assert!(strip_comments(&read(&aphavoc().join("cmndline.c"))).contains("command_line_tacview_logging\t\t\t\t\t= 0,"));
+
+    // 3. the headless boot starts neither: no engine C file, no Rust of the shipping module and host names the writer, the user assignment, the gunship setter or the flight loop's entry
+    let names = [
+        "start_tacview_logging",
+        "tacview_log_file",
+        "command_line_tacview_logging",
+        "tacview_reset_frame",
+        "write_tacview",
+        "assign_entity_to_user",
+        "set_gunship_entity",
+    ];
+    let crates = crate_dir().join("..");
+    let mut shipping = Vec::new();
+    for dir in [
+        "eech-engine-sys/csrc",
+        "eech-engine-sys/src",
+        "eech-engine/src",
+        "eech-dc/src",
+        "eech-world/src",
+        "eech-world/csrc",
+    ] {
+        let dir = crates.join(dir);
+        for entry in std::fs::read_dir(&dir).unwrap_or_else(|e| panic!("{}: {e}", dir.display())) {
+            let path = entry.unwrap().path();
+            if matches!(path.extension().and_then(|e| e.to_str()), Some("c" | "h" | "rs")) {
+                shipping.push(path);
+            }
+        }
+    }
+    assert!(shipping.len() > 20, "the scan reached the shipping sources: {}", shipping.len());
+    for path in &shipping {
+        let text = strip_comments(&read(path));
+        for name in names {
+            assert!(
+                !text.contains(name),
+                "{} names {name}: the headless boot may now start the legacy writer",
+                path.display()
+            );
+        }
+    }
+    let engine = strip_comments(&read(&crate_dir().join("csrc/eech_engine.c")));
+    assert!(
+        !engine.contains("flight ()") && !engine.contains("flight();"),
+        "the headless boot calls the flight loop's entry"
+    );
+    // `flight ()` is called from one place only (the game phases, which the headless boot replaces by its own sequence)
+    assert_eq!(
+        files_naming("\tflight ();").keys().cloned().collect::<Vec<_>>(),
+        vec!["gameflow/gameflow.c".to_string()]
+    );
+
+    // 4. EVERY read of MOVED and ROTATED is inside a block opened by `if (tacview_is_logging () ...)`, the frame reset of both words likewise
+    let readers = [
+        "entity/mobile/aircraft/fixwing/fw_updt.c",
+        "entity/mobile/aircraft/helicop/hc_updt.c",
+        "entity/mobile/vehicle/anti_air/aa_updt.c",
+        "entity/mobile/vehicle/routed/rv_updt.c",
+    ];
+    let mut reads = 0;
+    for file in readers {
+        let code = strip_comments(&read(&aphavoc().join(file)));
+        for word in ["INT_TYPE_MOVED)", "INT_TYPE_ROTATED)"] {
+            for at in offsets(&code, &format!("get_local_entity_int_value(en, {word}")) {
+                reads += 1;
+                assert!(
+                    nearest_if_line_before(&code, at).contains("tacview_is_logging()"),
+                    "{file}: a read of {word} outside the logging guard"
+                );
+            }
+        }
+    }
+    assert_eq!(reads, 9, "the number of reads of MOVED and ROTATED the census pins (one MOVED, eight ROTATED)");
+    let update = strip_comments(&read(&aphavoc().join("entity/special/update/up_update.c")));
+    let guard = update
+        .find("if (tacview_is_logging() && tacview_reset_frame())")
+        .expect("the guarded frame reset");
+    for array in ["MOVED", "ROTATED"] {
+        let reset = update
+            .find(&format!("campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_{array});"))
+            .expect("the hosted reset");
+        assert!(guard < reset && reset - guard < 400, "the {array} reset is the guarded block's");
+        assert_eq!(
+            offsets(&update, &format!("CAMPAIGN_FLAG_ARRAY_{array})")).len(),
+            1,
+            "the {array} reset is named once"
+        );
+    }
+    // the per-entity logging bit is set only by the writer itself
+    assert_eq!(
+        files_naming("INT_TYPE_TACVIEW_LOGGING, TRUE").keys().cloned().collect::<Vec<_>>(),
+        vec!["entity/tacview/tacview.c".to_string()]
+    );
+
+    // the guard's own predicate, matched positive and negative on synthetic text (a read outside any logging conditional must be refused)
+    let guarded = "if (tacview_is_logging() && raw->alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
+    let unguarded = "if (raw->alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
+    let at = |code: &str| code.find("get_local_entity_int_value").unwrap();
+    assert!(nearest_if_line_before(guarded, at(guarded)).contains("tacview_is_logging()"));
+    assert!(!nearest_if_line_before(unguarded, at(unguarded)).contains("tacview_is_logging()"));
+}

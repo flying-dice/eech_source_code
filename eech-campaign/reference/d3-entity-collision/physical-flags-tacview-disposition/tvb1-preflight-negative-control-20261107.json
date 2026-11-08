@@ -1,0 +1,10 @@
+{
+  "prefix": "flags-tvb1b-",
+  "label_regex": "^[gd]\\d+-",
+  "declared_helper": "check-physical-flags-tvb1-linux-20261107.sh",
+  "records": 0,
+  "rows": [],
+  "problems": [
+    "no run record matches flags-tvb1b-^[gd]\\d+-"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "run-physical-flags-tvb1-direct-20261107.py": "0d1a4d96e4d40691a7767fcfba697619df12bfe4956c348903e77db42c0852c6",
+  "check-physical-flags-tvb1-linux-20261107.sh": "1f912efbac96b0a8ef7d906f676ba8571147031097b80a18b84cba966757a7ce",
+  "run-tvb1-final-set-20261107.sh": "9bd4d8b0154dd13b7212ee7e5f5f1994ef357725d4174b5bae8d266555960920",
+  "tvb1-extra-identity-20261107.py": "e8d87f7fa1a675a012933138f350abc8e58ba50479e644ee0c4e33b9f1122b43",
+  "freeze-tvb1-20261107.py": "c052e908a4f13974fba23385ef44f9fd6439f2b52b60a7786f2fecaafcba6188",
+  "publish-tvb1-20261107.py": "ce1d6920ced671744443250aecda22f40132abb97d36e90b1c7a76a0a1dd318d",
+  "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+  "sho-compare-maps-20261107.py": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+  "preflight-receipts-20261107.py": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf",
+  "tvb1-name-check-20261107.py": "3f0d7aaf8ad99012587af690ff2daa84851aa88cec30b4b32e95779cb428af66",
+  "derive-tvb1-helpers-20261107.py": "de64ae75c67d6352a9f324fe61eb6509e7daacff4de2347791f0da7d28a72d76",
+  "tvb1-extract-evidence-20261107.py": "1a15f7b63c6b9dbca2a431844c8eb44fe5dab54921807377d687f19197966e6d"
+}
