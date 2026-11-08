@@ -527,14 +527,29 @@ fn nearest_if_line_before(code: &str, at: usize) -> String {
         .to_string()
 }
 
+/// the three positive conjunctive conditions of the current sources: the update functions of the aircraft (`raw->ac`) and the vehicles (`raw->vh`), and the frame reset; the logging macro is the FIRST operand of an AND in each
+const LOGGING_GUARDS: [&str; 3] = [
+    "if (tacview_is_logging() && raw->ac.mob.alive)",
+    "if (tacview_is_logging() && raw->vh.mob.alive)",
+    "if (tacview_is_logging() && tacview_reset_frame())",
+];
+
 /// THE predicate the Tacview dormancy guard uses for every read of MOVED / ROTATED and every reset of both words: is the text at `at` inside the braces of the block a `if (tacview_is_logging () ...)` opens.
 /// Brace matching over comment-stripped text, no more: the block is the `{` that ends the condition's line or is the next thing after it, to its matching `}`; a text after that closing brace is OUTSIDE.
 /// (The first version of this guard accepted the nearest preceding `if (` line instead, which also accepts a text placed after the block's closing brace: the retained red run r1.)
+/// Only the three exact positive conditions of LOGGING_GUARDS select a block (any other condition containing the macro, a negated one or an OR arm, is skipped: fail closed).
 fn inside_logging_block(code: &str, at: usize) -> bool {
     for start in offsets(code, "tacview_is_logging()") {
         let line_start = code[..start].rfind('\n').map_or(0, |i| i + 1);
         if !code[line_start..start].trim_start().starts_with("if (") {
             continue; // the macro's own definition line, a call that is not a condition
+        }
+        // fail closed on every condition that is not one of the three exact positive guards of the current sources (whitespace runs collapsed, a trailing `{` ignored): a negated macro or an OR arm
+        // would also contain the macro's text and can run while the file is closed
+        let line_end = code[start..].find('\n').map_or(code.len(), |i| start + i);
+        let condition = code[line_start..line_end].trim_end().trim_end_matches('{');
+        if !LOGGING_GUARDS.contains(&condition.split_whitespace().collect::<Vec<_>>().join(" ").as_str()) {
+            continue;
         }
         let rest = &code[start..];
         let eol = rest.find('\n').unwrap_or(rest.len());
@@ -759,14 +774,31 @@ fn the_legacy_tacview_writer_is_compiled_in_but_every_read_of_moved_and_rotated_
     // the guard's own predicates (the SAME functions used above), matched positives and negatives on synthetic text
     let read = "get_local_entity_int_value(en, INT_TYPE_ROTATED)";
     let at = |code: &str, what: &str| code.find(what).unwrap();
-    let inside = "if (tacview_is_logging() && raw->alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
+    let inside = "if (tacview_is_logging() && raw->ac.mob.alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
     assert!(inside_logging_block(inside, at(inside, read)), "POSITIVE: a read inside the logging block");
+    let inside_vh = inside.replace("raw->ac.mob.alive", "raw->vh.mob.alive");
+    assert!(
+        inside_logging_block(&inside_vh, at(&inside_vh, read)),
+        "POSITIVE: the vehicle shape of the same guard"
+    );
+    // single-fault negatives of the CONDITION (the read is inside the braces in both): the macro negated, and the macro as one arm of an OR; either can run while the file is closed
+    let negated = "if (!tacview_is_logging() && raw->ac.mob.alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
+    assert!(
+        !inside_logging_block(negated, at(negated, read)),
+        "NEGATIVE: a read inside a block whose condition NEGATES the logging macro"
+    );
+    let or_arm = "if (other || tacview_is_logging())\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
+    assert!(
+        !inside_logging_block(or_arm, at(or_arm, read)),
+        "NEGATIVE: a read inside a block whose condition is an OR with the logging macro as one arm"
+    );
     let other_if = "if (raw->alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
     assert!(
         !inside_logging_block(other_if, at(other_if, read)),
         "NEGATIVE: a read inside some other conditional"
     );
-    let after_brace = "if (tacview_is_logging() && raw->alive)\n{\n int moved = 0;\n}\nint rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n";
+    let after_brace =
+        "if (tacview_is_logging() && raw->ac.mob.alive)\n{\n int moved = 0;\n}\nint rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n";
     assert!(
         !inside_logging_block(after_brace, at(after_brace, read)),
         "NEGATIVE: the same read immediately AFTER the closing brace of the logging block"
@@ -777,7 +809,8 @@ fn the_legacy_tacview_writer_is_compiled_in_but_every_read_of_moved_and_rotated_
         !inside_logging_block(reset_after, at(reset_after, "campaign_model_flag_reset")),
         "NEGATIVE: a reset after the closing brace of the guarded block"
     );
-    let nested = "if (tacview_is_logging() && raw->alive)\n{\n if (x)\n {\n y ();\n }\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
+    let nested =
+        "if (tacview_is_logging() && raw->ac.mob.alive)\n{\n if (x)\n {\n y ();\n }\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
     assert!(
         inside_logging_block(nested, at(nested, read)),
         "POSITIVE: a read after a nested block, still inside the logging block"

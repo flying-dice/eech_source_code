@@ -1,0 +1,13 @@
+{
+  "run-physical-flags-tvr69c-direct-20261107.py": "8f1a87d44b3bc24bce687edf8ada36e09cec66b4b456765100de6ddbacfa3fa8",
+  "check-physical-flags-tvr69c-linux-20261107.sh": "39e1f7b6515f722a7e7a5a3da9ce93f1aa35ddf1dab255de358da20ac17075a8",
+  "run-tvr69c-final-set-20261107.sh": "f640be2797b0009bf33918fcee20adb29b52566e0e1b96becde5f9e579a10368",
+  "tvr69c-extra-identity-20261107.py": "0331d1334379958b1e08279b21b0c36c923ca2d408e13ce9e11c2810a1fb752f",
+  "freeze-tvr69c-20261107.py": "4a9f1fe25f6829311b354d5821c2986f50c9b37cadd01df6964d3d9bc830fecd",
+  "publish-tvr69c-20261107.py": "16f1847818cbfd8a4434cfe57afe075b056e83d7d753e235c09d17dbbc060810",
+  "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+  "sho-compare-maps-20261107.py": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+  "preflight-receipts-20261107.py": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf",
+  "tvr69c-name-check-20261107.py": "281788efee8a61852ad5993f4090b41d2f68135cf90eda0fc855fa9b7e224893",
+  "derive-tvr69c-helpers-20261108.py": "03fff6eea7fed361960252349be3ba35ab87365065cde369524116a081c3b1ff"
+}

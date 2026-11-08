@@ -1,0 +1,6 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.37s
+     Running tests/physical_flags_guard.rs (/target/t/debug/deps/physical_flags_guard-6a148f79d6387257)
+error: test failed, to rerun pass `-p eech-engine-sys --test physical_flags_guard`
+error: 1 target failed:
+    `-p eech-engine-sys --test physical_flags_guard`
