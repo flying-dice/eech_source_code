@@ -1,0 +1,38 @@
+{
+  "observed_utc": "2026-11-08T04:56:26.752568+00:00",
+  "code": "552ee8e079b75626199c4e348ed0e986bc02b7ba",
+  "metadata": "19e319a5fd0a11220a5ccf2c1b2d03433719c981",
+  "clean_exact_upstream": true,
+  "source_rows": 4010,
+  "raw_Git_exact": 4007,
+  "inherited_Lua_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "other_parent_mapped_sources_unchanged": 3996,
+  "intended_changed_sources": 14,
+  "fingerprint": "694b39a5bf42656d72410d87891454fdd77577293ce7044a05d4714f17abc81e",
+  "extras": 14,
+  "readers": 8,
+  "final_direct_exits": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "selected_Rust_tests": 8,
+  "original_outer_exit": 0,
+  "original_outer_session": 64007,
+  "publication_manifest_entries": 67,
+  "packet_files_Git_literal": 68,
+  "metadata_commit_paths": [
+    "eech-campaign/reference/d3-entity-collision/core-terrain-crt-observer/code-publication.json",
+    "eech-campaign/reference/d3-entity-collision/core-terrain-crt-observer/publication-manifest.json"
+  ],
+  "post_POST_recipe_doc_sha256": "f4812b532be5d99c5048f850a8143ad7c405563aa46c0c5780c4171c435ac9be",
+  "frozen_tested_extras_unchanged": true,
+  "scope": "Mechanical source/offline evidence+publication binding only. Source review has a report-gate P2; no native/Core retail facts or loader-removal approval. PostPOST recipe is documentation only; no tests or build replay."
+}

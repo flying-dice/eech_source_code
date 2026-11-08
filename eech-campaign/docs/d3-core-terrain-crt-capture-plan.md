@@ -80,6 +80,20 @@ At most one matched control+one observer per map; no sweep/retry/window extensio
 
 ## Required report interpretation and refusal
 
+Report-gate correction (review P2 `ENV-CORE-CRT-OBSERVER-REPORT-COMPLETE-1`):
+the driver parses every exact ordered summary/mark/site/skin field and canonical
+integer domain before writing any report. It joins capacities, seed count, mark
+order=draws+mark-index, load/phase totals, per-site first/count/last and draw-prefix
+bounds, constructor balance/scene/skin calls, active versus inactive skin draws,
+and gap skin identities. Families occur in the C emitter's order; unknown kinds,
+missing load bounds, malformed fields and contradictions fail. The actual first
+post-load seed closes the ordered boot-boundary prefix, including an empty prefix.
+These are internal consistency bounds on compact evidence, not a reconstruction
+of every draw, independent metadata truth, digest verification or consumer identity.
+The compiled C/Rust observer/staging remains exact552ee; its prior controls are
+reused at their own scope. Corrected Lua/report controls require SAME review
+before native capture; the earlier build-only disposition is not capture acceptance.
+
 `core-crt-summary schema1` must be complete1/problem0/one begin+end; seed before
 load and actual first seed after load bound the window. Record effective clouds,
 season, observed map/dimensions (never infer map number from directory), balanced

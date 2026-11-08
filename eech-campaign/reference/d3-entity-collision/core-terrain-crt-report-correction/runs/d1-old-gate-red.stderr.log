@@ -1,0 +1,8 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.56s
+     Running tests/core_terrain_crt_driver.rs (/target/t/debug/deps/core_terrain_crt_driver-fd8a90b44668fc35)
+
+thread 'complete_report_requires_each_boundary_and_full_site_skin_phase_contract' (96) panicked at crates/eech-world/tests/core_terrain_crt_driver.rs:117:5:
+damaged reports accepted: ["missing_load_begin", "missing_load_end", "unknown_mark", "malformed_site", "malformed_skin", "phase_count", "phase_ordinal", "last_ordinal", "mark_draw_join", "seed_phase", "ctor_balance", "skin_draws", "skin_scene", "skin_domain", "canonical_integer", "value_domain"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-world --test core_terrain_crt_driver`

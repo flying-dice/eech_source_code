@@ -1,0 +1,15 @@
+{
+  "run-core-crt-crfix19e-direct-20261108.py": "c5c49d6e2ed3a794e1e03251541e1741fc03e0d452b8bd89f4f2077b953506e0",
+  "check-core-crt-crfix19e-linux-20261108.sh": "a24b6796bf5b40652032d0591e186b8767a4b7e3baa413c0f6212a7eb55284d3",
+  "run-crfix19e-final-b-20261108.py": "83b984d73e9db1371531a38b2b2318af057d569c7be3f85b17b3bb090f8f39eb",
+  "crfix19e-proof-20261108.py": "88bda05a232192a95067f41950a04d12601fe85f72e43c13afd032bbf35add77",
+  "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+  "independent-core-crt-observer-552ee-source-plan-20261108.json": "2ae6eca4aa9c4efab00a3bb39cdf140f5f1439cdcb9c5b9c0e40876850db0f33",
+  "independent-core-crt-observer-552ee-source-plan-20261108-v2.json": "4f01789a833c53d09e1029e6537ba3d8f7526dec949153c0b0a94b56b2798df5",
+  "core-crt-552ee-19e319-Root-binding-20261108.json": "4a054798487d18016d1d2bd1844ca92fc0a04b9ece6a820e924fc303d39b5f77",
+  "codex-d3-core-crt-characterization-20261108-completion.json": "7759775be27dcb49b679f502d96c4873713a5eead99e4bf42d0873825ec8f5ba",
+  "codex-d3-core-crt-report-correction-20261108-process.json": "c5b5cbce183c25d4fd7d78403b7e57336559b850bc1f875d85e547f5e30762da",
+  "crt1516-inputmap-POST-20261108.json": "05bc97d1f406e5723c77601020c20f2758bfe382f50f9fbf17f060f8c1fa2e6d",
+  "crfix19e-family-20261108.json": "60f19f0516ff97e57fa1ffa504f55072cc2e3e1f7468840b94abe0759419f88a",
+  "eech-campaign/docs/d3-core-terrain-crt-capture-plan.md": "6c96b927c3585ffa24f89ea0c2ad5736ad35f450ad9253038dd54813eda6ed78"
+}

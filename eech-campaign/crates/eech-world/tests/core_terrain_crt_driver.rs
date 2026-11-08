@@ -50,10 +50,38 @@ fn delegates_the_same_client_boot_once_and_copies_the_complete_raw_report() {
         .collect::<Vec<_>>()
         .join("\n")
         + "\n";
-    let earlier = earlier.replace("marks=9", "marks=6");
+    let earlier = earlier
+        .replace("marks=9", "marks=6")
+        .replace("order=12", "order=9")
+        .replace("first_gap=9 last=9", "first_gap=8 last=8");
     let (r, out, boots, queries) = run(&earlier, "");
     assert!(r.is_ok(), "{r:?}");
     assert_eq!(out, earlier);
+    assert_eq!((boots, queries), (1, 1));
+    // A coherent inactive constructor still has its real call/metadata, but no
+    // skin draw. Remove that draw and shift the actual report ordinals with it.
+    let inactive = REPORT
+        .lines()
+        .filter(|line| !line.contains("file=control.c line=20"))
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n";
+    let inactive = inactive
+        .replace("draws=3 pre=0 load=2", "draws=2 pre=0 load=1")
+        .replace("sites=4", "sites=3")
+        .replace("order=5 draws=1", "order=4 draws=0")
+        .replace("order=7 draws=2", "order=6 draws=1")
+        .replace("order=8 draws=2", "order=7 draws=1")
+        .replace("order=10 draws=3", "order=9 draws=2")
+        .replace("order=11 draws=3", "order=10 draws=2")
+        .replace("order=12 draws=3", "order=11 draws=2")
+        .replace("first_load=6 first_gap=0 last=6", "first_load=5 first_gap=0 last=5")
+        .replace("first_gap=9 last=9", "first_gap=8 last=8")
+        .replace("animation=3", "animation=-1")
+        .replace("frames=4 calls=1 draws=1", "frames=-1 calls=1 draws=0");
+    let (r, out, boots, queries) = run(&inactive, "");
+    assert!(r.is_ok(), "inactive coherent report: {r:?}");
+    assert_eq!(out, inactive);
     assert_eq!((boots, queries), (1, 1));
 }
 #[test]
@@ -80,4 +108,75 @@ fn failed_client_never_queries_a_poisoned_session_and_double_boot_is_refused() {
     let (r, _, boots, queries) = run(REPORT, "TWICE=true");
     assert!(r.is_err());
     assert_eq!((boots, queries), (1, 0));
+}
+
+#[test]
+fn complete_report_requires_each_boundary_and_full_site_skin_phase_contract() {
+    let (r, out, _, _) = run(REPORT, "");
+    assert!(r.is_ok(), "coherent positive must precede damage: {r:?}");
+    assert_eq!(out, REPORT);
+    let damages = [
+        ("missing_load_begin", "kind=load_begin", "kind=unrelated"),
+        ("missing_load_end", "kind=load_end", "kind=unrelated"),
+        ("unknown_mark", "kind=before_create", "kind=alien"),
+        ("malformed_site", "core-crt-site file=control.c line=20", "core-crt-site garbage"),
+        ("malformed_skin", "core-crt-skin scene=2", "core-crt-skin garbage"),
+        ("phase_count", "line=20 pre=0 load=1", "line=20 pre=0 load=2"),
+        ("phase_ordinal", "first_load=4", "first_load=8"),
+        ("last_ordinal", "first_load=4 first_gap=0 last=4", "first_load=4 first_gap=0 last=6"),
+        ("mark_draw_join", "order=5 draws=1", "order=5 draws=2"),
+        ("seed_phase", "a=1 b=10 c=2", "a=1 b=10 c=1"),
+        ("ctor_balance", "kind=ctor_end order=5 draws=1 a=2", "kind=ctor_end order=5 draws=1 a=1"),
+        ("skin_draws", "frames=4 calls=1 draws=1", "frames=4 calls=1 draws=0"),
+        ("skin_scene", "core-crt-skin scene=2", "core-crt-skin scene=3"),
+        ("skin_domain", "normal=4", "normal=-1"),
+        ("canonical_integer", "line=20", "line=020"),
+        ("value_domain", "first_value=1", "first_value=-1"),
+        ("boundary_order", "kind=before_reinitialise", "kind=after_reinitialise"),
+        ("summary_schema", "schema=1", "schema=2"),
+        ("summary_seed_join", "seeds=2", "seeds=3"),
+        ("family_order", "core-crt-site file=control.c line=20", "core-crt-skin file=control.c line=20"),
+        ("skin_calls", "frames=4 calls=1 draws=1", "frames=4 calls=2 draws=1"),
+        ("gap_skin_join", "gap_scene=-1", "gap_scene=3"),
+        ("skin_season_join", "animation=3 season=2", "animation=3 season=3"),
+    ];
+    let mut wrongly_accepted = Vec::new();
+    for (name, from, to) in damages {
+        assert_eq!(REPORT.matches(from).count(), 1, "one mutation only: {name}");
+        let (r, out, boots, queries) = run(&REPORT.replacen(from, to, 1), "");
+        if let Err(error) = r {
+            assert!(out.is_empty(), "{name}");
+            let expected = match name {
+                "missing_load_begin" | "missing_load_end" | "unknown_mark" | "boundary_order" => "observer boot boundary prefix/unknown kind",
+                "malformed_site" => "observer row fields",
+                "malformed_skin" => "observer field order/name",
+                "phase_count" => "observer site last phase/count",
+                "phase_ordinal" => "observer site phase ordinal",
+                "last_ordinal" => "observer site last ordinal",
+                "mark_draw_join" => "observer mark ordinal/draw join",
+                "seed_phase" => "observer seed phase/line",
+                "ctor_balance" => "observer constructor end",
+                "skin_draws" => "observer skin activation/draws",
+                "skin_scene" => "observer constructor skin identity",
+                "skin_domain" | "value_domain" => "observer integer outside domain",
+                "canonical_integer" => "noncanonical observer integer",
+                "summary_schema" => "incomplete/refused observer coverage",
+                "summary_seed_join" => "observer summary/mark phases",
+                "family_order" => "observer row grammar",
+                "skin_calls" => "observer skin activation/draws",
+                "gap_skin_join" => "observer gap skin scene missing",
+                "skin_season_join" => "observer constructor skin identity",
+                _ => unreachable!(),
+            };
+            assert!(error.contains(expected), "{name}: expected {expected}, got {error}");
+        } else {
+            wrongly_accepted.push(name);
+        }
+        assert_eq!((boots, queries), (1, 1), "{name}");
+    }
+    println!(
+        "Report completeness controls: coherent_positive=1 single_faults={} wrongly_accepted={wrongly_accepted:?}",
+        damages.len()
+    );
+    assert!(wrongly_accepted.is_empty(), "damaged reports accepted: {wrongly_accepted:?}");
 }

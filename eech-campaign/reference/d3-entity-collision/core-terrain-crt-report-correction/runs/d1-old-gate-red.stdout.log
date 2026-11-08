@@ -1,0 +1,12 @@
+
+running 1 test
+Report completeness controls: coherent_positive=1 single_faults=17 wrongly_accepted=["missing_load_begin", "missing_load_end", "unknown_mark", "malformed_site", "malformed_skin", "phase_count", "phase_ordinal", "last_ordinal", "mark_draw_join", "seed_phase", "ctor_balance", "skin_draws", "skin_scene", "skin_domain", "canonical_integer", "value_domain"]
+test complete_report_requires_each_boundary_and_full_site_skin_phase_contract ... FAILED
+
+failures:
+
+failures:
+    complete_report_requires_each_boundary_and_full_site_skin_phase_contract
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.05s
+
