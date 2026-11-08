@@ -1,0 +1,22 @@
+{
+  "controller_pid": 7236,
+  "state": "terminal",
+  "started_utc": "2026-11-08T04:45:22.097355+00:00",
+  "command": "cargo test --locked -p eech-world --test host_callbacks every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-core-crt-crt1516-linux-20261108.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked -p eech-world --test host_callbacks every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not"
+  ],
+  "scope": "Working-tree check in the sole leased volume eech-linux-d3-physical-flags-9d247-20261107, image sha256:9d247b4e... named, never substituted.",
+  "pid": 22092,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-08T04:45:23.825688+00:00"
+}

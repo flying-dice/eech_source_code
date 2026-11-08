@@ -2063,3 +2063,19 @@ extern "C" {
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by
 // target) cannot move any float or int before it; the C struct in rv_hostmv.h declares them last as well.
 const _: () = assert!(core::mem::offset_of!(eech_movement_step, hc_draws) > core::mem::offset_of!(eech_movement_step, gv_water));
+
+#[cfg(feature = "core-terrain-crt-observer")]
+extern "C" {
+    pub fn eech_engine_core_terrain_crt_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    // Feature-only observer controls; same native implementation, no copied CRT.
+    pub fn eech_core_crt_rand(file: *const c_char, line: c_int) -> c_int;
+    pub fn eech_core_crt_srand(seed: u32, file: *const c_char, line: c_int);
+    pub fn eech_core_crt_load_begin(clouds: c_int, season: c_int);
+    pub fn eech_core_crt_load_end(map: c_int, width: c_int, height: c_int);
+    pub fn eech_core_crt_boundary(name: *const c_char);
+    pub fn eech_core_crt_ctor(kind: c_int, scene: c_int);
+    pub fn eech_core_crt_skin_begin(scene: c_int, animation: c_int, season: c_int, normal: c_int, desert: c_int, winter: c_int);
+    pub fn eech_core_crt_skin_frames(frames: c_int);
+    pub fn eech_core_crt_skin_end();
+    pub fn eech_core_crt_report(text: *mut c_char, capacity: c_int) -> c_int;
+}

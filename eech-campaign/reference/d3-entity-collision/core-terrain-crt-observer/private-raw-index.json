@@ -1,0 +1,41 @@
+{
+  "files": [
+    {
+      "path": "R:\\d3-evidence\\core-crt-crt1516-d1-observer.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Original failed compile/link log; setup failure, not product RED"
+    },
+    {
+      "path": "R:\\d3-evidence\\core-crt-crt1516-d1-observer.stderr.log",
+      "bytes": 898472,
+      "sha256": "b29776ab7fd7813173db1c06c1b861b3f667f6c8e04ae26def926409fb5629e9",
+      "scope": "Original failed compile/link log; setup failure, not product RED"
+    },
+    {
+      "path": "R:\\d3-evidence\\core-crt-crt1516-d2-observer-libc-order.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Original failed compile/link log; setup failure, not product RED"
+    },
+    {
+      "path": "R:\\d3-evidence\\core-crt-crt1516-d2-observer-libc-order.stderr.log",
+      "bytes": 8738,
+      "sha256": "553852b161f3661ce67f89661c1215bbcb3e8ce512f40906017e88f16536c039",
+      "scope": "Original failed compile/link log; setup failure, not product RED"
+    },
+    {
+      "path": "R:\\d3-evidence\\crt1516-inputmap-PRE-20261108.json",
+      "bytes": 2059409,
+      "sha256": "05bc97d1f406e5723c77601020c20f2758bfe382f50f9fbf17f060f8c1fa2e6d",
+      "scope": "Full actual timed source map; private immutable, compact equality receipt published"
+    },
+    {
+      "path": "R:\\d3-evidence\\crt1516-inputmap-POST-20261108.json",
+      "bytes": 2059409,
+      "sha256": "05bc97d1f406e5723c77601020c20f2758bfe382f50f9fbf17f060f8c1fa2e6d",
+      "scope": "Full actual timed source map; private immutable, compact equality receipt published"
+    }
+  ],
+  "no_raw_normalization": true
+}

@@ -21,6 +21,7 @@
 //   EECH_ENGINE_OPT    C optimisation level (default 1)
 //
 
+mod core_crt_observer;
 #[path = "patches.rs"]
 mod patches;
 
@@ -218,6 +219,20 @@ fn main() {
         }
     }
 
+    if env::var_os("CARGO_FEATURE_CORE_TERRAIN_CRT_OBSERVER").is_some() {
+        assert!(
+            env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_none(),
+            "Core CRT observer cannot share the target-point RNG wrapper"
+        );
+        for file in core_crt_observer::files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap();
+            let source: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = core_crt_observer::apply(file, &source).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
     // 1a3b. TEST-ONLY (feature sector-height-observer, EEDCS-49 D3): read-only observation hooks at the places the sector's tallest-structure word is raised, stated to the host, read,
     //      used by the fixed-wing clearance and packed (patches.rs SECTOR_HEIGHT_OBSERVER_PATCHES, docs/d3-sector-height-public-baseline-plan.md). None of the eight files has a
     //      shipping patch; with the feature off the staged files are exactly the shipping ones and the in-tree sources are never edited.
@@ -408,6 +423,10 @@ fn main() {
         build.define("EECH_TARGET_POINT_FIXTURE", None);
         // EEDCS-52: every rand () of this build is counted (csrc/eech_tp_rand.h renames it; the real call happens once, in place); no other build includes the header
         build.flag("-include").flag(manifest.join("csrc/eech_tp_rand.h").to_str().unwrap());
+    }
+    if env::var_os("CARGO_FEATURE_CORE_TERRAIN_CRT_OBSERVER").is_some() {
+        build.define("EECH_CORE_TERRAIN_CRT_OBSERVER", None);
+        build.flag("-include").flag(manifest.join("csrc/eech_core_crt_observer.h").to_str().unwrap());
     }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());

@@ -313,12 +313,21 @@ static void boot (const struct eech_engine_config *config)
 	initialise_population_name_database ();
 	/* EEDCS-49: the host's roster of the sector lists and the campaign's keys for it end with the previous boot, before its entities are released */
 	campaign_place_reset ();
+#ifdef EECH_CORE_TERRAIN_CRT_OBSERVER
+	eech_core_crt_boundary ("before_reinitialise");
+#endif
 	reinitialise_entity_system ();
+#ifdef EECH_CORE_TERRAIN_CRT_OBSERVER
+	eech_core_crt_boundary ("after_reinitialise");
+#endif
 	campaign_roster_reset ();
 	campaign_supply_arrival_reset ();
 	campaign_object_reset ();
 
 	/* GUNSHIP_TYPE (host) */
+#ifdef EECH_CORE_TERRAIN_CRT_OBSERVER
+	eech_core_crt_boundary ("before_create");
+#endif
 	create_campaign (get_current_game_session ());
 	setup_campaign ();
 	create_server_pilot ();
@@ -2499,4 +2508,14 @@ int eech_engine_collision_geometry_arm (int on)
 	LEAVE (EECH_ENGINE_OK);
 }
 
+#endif
+
+#ifdef EECH_CORE_TERRAIN_CRT_OBSERVER
+int eech_engine_core_terrain_crt_summary (char *text, int capacity)
+{
+    ENTER (OPERATION_OBSERVE, NULL);
+    if (state != ENGINE_RUNNING) { LEAVE (EECH_ENGINE_STATE); }
+    if (!text || capacity <= 0 || eech_core_crt_report (text, capacity)) { LEAVE (EECH_ENGINE_BAD_ARGUMENT); }
+    LEAVE (EECH_ENGINE_OK);
+}
 #endif

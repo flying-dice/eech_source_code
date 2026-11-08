@@ -1,0 +1,8 @@
+{
+  "kind": "actual_exec_tool_session",
+  "session_id": 64007,
+  "actual_exit": 0,
+  "final_invocation": "python -I -B -X utf8 R:/d3-evidence/run-crt1516-final-20261108.py",
+  "OS_PID_not_observed": true,
+  "scope": "Actual tool terminal result; no invented agent CLI process or completion. This metadata was written after POST."
+}

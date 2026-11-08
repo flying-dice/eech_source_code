@@ -6838,6 +6838,16 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY Core CRT observation; original module CRT only, never Host CRT.
+    #[cfg(feature = "core-terrain-crt-observer")]
+    pub fn core_terrain_crt_summary(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; 65536];
+        // SAFETY: the engine receives the live buffer and exact capacity, and terminates successful output.
+        check(unsafe { sys::eech_engine_core_terrain_crt_summary(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: successful output is NUL terminated within the supplied buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): what the ORIGINAL target-point query, its callers and the boot census of `target_point_offsets[]` did in this process, as
     /// `key=value` text lines: the counters, the branch and caller matrix, the case counts, the census totals and the two verdicts (see `csrc/eech_tp_fixture.c`). Read-only; a report
     /// that does not fit fails.

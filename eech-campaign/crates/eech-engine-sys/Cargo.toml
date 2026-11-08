@@ -8,6 +8,8 @@ links = "eech_engine"
 build = "build/main.rs"
 
 [features]
+# TEST-ONLY Core loader CRT observer; never a shipping profile.
+core-terrain-crt-observer = []
 physical-flags-lifetime-check = []
 # TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
 dependent-fixture = []

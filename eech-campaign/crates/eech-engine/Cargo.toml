@@ -10,6 +10,8 @@ eech-engine-sys = { path = "../eech-engine-sys" }
 serde = { workspace = true }
 
 [features]
+# TEST-ONLY Core loader CRT observer; never a shipping profile.
+core-terrain-crt-observer = ["eech-engine-sys/core-terrain-crt-observer"]
 physical-flags-lifetime-check = ["eech-engine-sys/physical-flags-lifetime-check"]
 # TEST-ONLY (EEDCS-40): see eech-engine-sys.
 dependent-fixture = ["eech-engine-sys/dependent-fixture"]

@@ -1,0 +1,14 @@
+[
+  {
+    "old": "run-physical-flags-nr602-direct-20261108.py",
+    "old_sha256": "a2e162255f95ac6f24f84d3605b6642caa88d5da13bc2f3f7699aff16f81f81b",
+    "new": "run-core-crt-crt1516-direct-20261108.py",
+    "new_sha256": "c722372ed7891dca9217382867aba43229eec4290acd55aca3a6b3870d30ea24"
+  },
+  {
+    "old": "check-physical-flags-nr602-linux-20261108.sh",
+    "old_sha256": "4057cac09794a133bd91003008418bed246002962b956aad75857682d74f46d5",
+    "new": "check-core-crt-crt1516-linux-20261108.sh",
+    "new_sha256": "85a19c43c1b0720899676945237f5f37ad5d1169679305a0e4e7733a327f9a7c"
+  }
+]

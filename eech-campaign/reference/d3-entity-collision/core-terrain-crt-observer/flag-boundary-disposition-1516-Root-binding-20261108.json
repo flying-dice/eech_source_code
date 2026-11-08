@@ -1,0 +1,15 @@
+{
+  "observed_utc": "2026-11-08T03:56:02.977156+00:00",
+  "HEAD": "1516f5a9279dbfbb3a7d8ac309a8bb722c58e40e",
+  "parent": "b4ddd9ca2dd05c79b847ef6a8e7a32edb36c949a",
+  "clean_exact_upstream": true,
+  "metadata_files_literal": 8,
+  "document_lines": 93,
+  "source_files_unchanged": 14,
+  "accepted_evidence_hashes_verified": 6,
+  "literal_external_receipts": 2,
+  "manifest_entries": 4,
+  "packet_files_literal": 5,
+  "tests_build_native_cache_API_semantics_changed": false,
+  "scope": "Source-informed disposition only; no new FPU/flags/native measurement, GenericNative1/all10/Task49D3 remain open. Semantic review pending."
+}

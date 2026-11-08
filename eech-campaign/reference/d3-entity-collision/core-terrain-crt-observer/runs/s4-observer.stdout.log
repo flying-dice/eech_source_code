@@ -1,0 +1,10 @@
+
+running 4 tests
+test actual_crt_calls_are_forwarded_once_with_same_seed_values_order_and_fp_words ... Core CRT forwarding control: captured_draws=3 forwarded_after_capture=1 seeds=2 load_draws=2 gap_draws=1 inactive_skin_draws=0 active_skin_draws=1 FP_words_equal=1
+ok
+test additive_hooks_keep_original_rand_expressions_and_reject_a_changed_anchor ... ok
+test observer_body_and_force_include_are_wholly_feature_gated_without_duplicate_compilation ... ok
+test the_actual_compiled_staged_files_are_exactly_shipping_text_plus_the_eight_hooks ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

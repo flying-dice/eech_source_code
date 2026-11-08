@@ -1,0 +1,247 @@
+{
+  "source_before": "1516f5a9279dbfbb3a7d8ac309a8bb722c58e40e",
+  "utc": "2026-11-08T04:45:50.621949+00:00",
+  "scope": "Opt-in Core CRT observer/forwarding/staged-wiring/delegation only; no real Core terrain retail load, Windows/native/capture/shipping result. Raw aphavoc/modules unchanged; eight hooks in observer-profile staging only. Dedicated profile is not TP/old3abf. Source-compiled Core calls only, not Host/libCRT; ordered seed/milestone prefix plus counts/fingerprint, not full per-draw trace. Freeze at actual first seed after load, no assumed session timing/reload/dormancy. d1 libc force-include ordering101/d2 missing actual sys-link101 retained setup failures, no product RED. Default body guard/duplicate registration correction made before final checks. Wholeloader/Native1/all10/D3 open; Root/SAME review/build/materialization before capture.",
+  "input_rows": 4010,
+  "source_fingerprint": "694b39a5bf42656d72410d87891454fdd77577293ce7044a05d4714f17abc81e",
+  "PRE_POST_source_rows_equal": true,
+  "extras_equal": true,
+  "readers_equal": true,
+  "readers": {
+    "crt1516-derive-helpers-20261108.py": "e8c4e019096955bb81cb5bcce1a246cafc491fb4543a49430ae41088fae2de59",
+    "crt1516-wire-observer-20261108.py": "8d0ccaf354e3e22287b86709a8811b215a71ea25f39f9c50f98935e9f16cc3fd",
+    "crt1516-bind-controls-20261108.py": "13c13aa79d503694768c4e849ec5fb15ad94172932e2998940047c21080882b9",
+    "run-core-crt-crt1516-direct-20261108.py": "c722372ed7891dca9217382867aba43229eec4290acd55aca3a6b3870d30ea24",
+    "check-core-crt-crt1516-linux-20261108.sh": "85a19c43c1b0720899676945237f5f37ad5d1169679305a0e4e7733a327f9a7c",
+    "run-crt1516-final-20261108.py": "ac6f5d22dbdcdedbbe39a6a01d421756b7a745b690ecf2646e8b08b239145249",
+    "crt1516-proof-20261108.py": "10f43aaf5395ff963c14649dcd22b7a8d040fcb7558ac4622c076eb28f82affb",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "extras": {
+    "files": {
+      "eech-campaign/docs/d3-core-terrain-crt-capture-plan.md": "0616fe8dad025b43c923345b74638dcbc08aff5273a29ed40027916182068d10",
+      "eech-campaign/rustfmt.toml": "478e818c64a27dc341fffc827ee4b00c5aeef237ab8745efc9690f87ad245de9",
+      "crt1516-derive-helpers-20261108.py": "e8c4e019096955bb81cb5bcce1a246cafc491fb4543a49430ae41088fae2de59",
+      "crt1516-wire-observer-20261108.py": "8d0ccaf354e3e22287b86709a8811b215a71ea25f39f9c50f98935e9f16cc3fd",
+      "crt1516-bind-controls-20261108.py": "13c13aa79d503694768c4e849ec5fb15ad94172932e2998940047c21080882b9",
+      "run-core-crt-crt1516-direct-20261108.py": "c722372ed7891dca9217382867aba43229eec4290acd55aca3a6b3870d30ea24",
+      "check-core-crt-crt1516-linux-20261108.sh": "85a19c43c1b0720899676945237f5f37ad5d1169679305a0e4e7733a327f9a7c",
+      "run-crt1516-final-20261108.py": "ac6f5d22dbdcdedbbe39a6a01d421756b7a745b690ecf2646e8b08b239145249",
+      "crt1516-proof-20261108.py": "10f43aaf5395ff963c14649dcd22b7a8d040fcb7558ac4622c076eb28f82affb",
+      "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+      "independent-flag-boundary-disposition-1516-20261108.json": "400c7985f1833cf02a345128c8790b083a64f9fd598b67a7110c79fb6e19dd8f",
+      "flag-boundary-disposition-1516-Root-binding-20261108.json": "40592c8927bfad0c899c6165d18e32f1d6ab709e9e5cd3c40fbf5c738d087605",
+      "codex-d3-flag-supported-boundary-20261108-completion.json": "f73e3ca6119bc2bff73cf21899d7122ae4a9f75db4dec2501b92b16f15817ee7",
+      "codex-d3-core-crt-characterization-20261108-process.json": "84e14911a851e175a744dc31ba4ba1add5ad7517a24cea2acfdb15ffda5c4d2a"
+    },
+    "aggregate": "761c7285c777e69942bf7545ba2362d94d59afa2ec4d8a3bb8b308c6d02338d3"
+  },
+  "changed_sources": [
+    {
+      "path": "eech-campaign/crates/eech-dc/Cargo.toml",
+      "sha256": "870799e61394bba30754c606ae5551b47daf94518644df6b4c6d0d00ddd96195"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "sha256": "d39bcab66d7324a4f3102b01f2c51b98de1b24dea641f90c68e048951ca0cfc1"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "sha256": "6e7697b03371b1e2f08ada3712e37cd21293e273bf069532ca199486037d35ad"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/core_crt_observer.rs",
+      "sha256": "a901056a5fe74e99fe865f70f05981e646c4ff76b46732bacd5146efd8075469"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "sha256": "370b18f2df5c7ed3b50f4c26fdeb547244c99f203d9905ce9d8b87c1794cdea5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_core_crt_observer.c",
+      "sha256": "07bd774297b9bc0c59528133a3df2ae5f14b341bb97c4c85b3d1fefeaf26e035"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_core_crt_observer.h",
+      "sha256": "2273fb4ae6e642aadff891d0d05ac61fb35c8937bba9d09f3058da5adadacf1c"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "sha256": "d2599b6db3116f20766285aed733a0b699074365d5491370b2d6e874f69af4e0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "sha256": "ceab28c0587db1e8fd1f347466f174a3231e1ff21eef79853374a4b70a4e9d3e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/core_terrain_crt_observer.rs",
+      "sha256": "94bea71c8c4a1fac49991730a70e803c09758d7b886c992e24fae893c331eab9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/Cargo.toml",
+      "sha256": "a59515fcd660bbe9d2c54b6fd9fdac371814dd9e5c6301e7d066242c2dc5ece6"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "7a5e5918f96e49a711da076ea76155f464056bad5cdfac09212d98e9976cc481"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+      "sha256": "0cbd259d277dc84c2b3f4a357ee7d8b58b9d3ee2cb177fe51b422a0d6b12cb8a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/core_terrain_crt_driver.rs",
+      "sha256": "fb0eeae3771aae058c316d773df2cb4fb18bf7413213cf7a8198dab458853f1f"
+    }
+  ],
+  "inherited_Lua_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "runs": {
+    "d1-observer": {
+      "actual_exit": 101,
+      "command": "cargo test --locked -p eech-engine-sys --features core-terrain-crt-observer --test core_terrain_crt_observer -- --nocapture --test-threads 1",
+      "started_utc": "2026-11-08T04:11:20.673054+00:00",
+      "completed_utc": "2026-11-08T04:12:32.356864+00:00",
+      "results": []
+    },
+    "d2-observer-libc-order": {
+      "actual_exit": 101,
+      "command": "cargo test --locked -p eech-engine-sys --features core-terrain-crt-observer --test core_terrain_crt_observer -- --nocapture --test-threads 1",
+      "started_utc": "2026-11-08T04:13:43.304302+00:00",
+      "completed_utc": "2026-11-08T04:15:20.228127+00:00",
+      "results": []
+    },
+    "d3-observer-real-sys-link": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt && cargo test --locked -p eech-engine-sys --features core-terrain-crt-observer --test core_terrain_crt_observer -- --nocapture --test-threads 1",
+      "started_utc": "2026-11-08T04:17:09.910529+00:00",
+      "completed_utc": "2026-11-08T04:18:52.696311+00:00",
+      "results": [
+        {
+          "passed": 2,
+          "failed": 0
+        }
+      ]
+    },
+    "d4-staging-driver-census": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt && cargo test --locked -p eech-engine-sys --features core-terrain-crt-observer --test core_terrain_crt_observer -- --nocapture --test-threads 1 && cargo test --locked -p eech-world --test core_terrain_crt_driver -- --nocapture && cargo test --locked -p eech-world --test host_callbacks every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not",
+      "started_utc": "2026-11-08T04:20:37.438361+00:00",
+      "completed_utc": "2026-11-08T04:20:50.028700+00:00",
+      "results": [
+        {
+          "passed": 3,
+          "failed": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0
+        }
+      ]
+    },
+    "d5-fmt-and-default-clippy": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt && rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets -- -D warnings",
+      "started_utc": "2026-11-08T04:24:32.194728+00:00",
+      "completed_utc": "2026-11-08T04:26:12.551957+00:00",
+      "results": []
+    },
+    "d6-feature-clippy": {
+      "actual_exit": 0,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --features eech-dc/core-terrain-crt-observer --all-targets -- -D warnings",
+      "started_utc": "2026-11-08T04:27:19.848860+00:00",
+      "completed_utc": "2026-11-08T04:29:03.688481+00:00",
+      "results": []
+    },
+    "d7-final-fmt": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt",
+      "started_utc": "2026-11-08T04:34:24.545713+00:00",
+      "completed_utc": "2026-11-08T04:34:32.245329+00:00",
+      "results": []
+    },
+    "d8-format-frozen": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt",
+      "started_utc": "2026-11-08T04:35:18.082470+00:00",
+      "completed_utc": "2026-11-08T04:35:25.827743+00:00",
+      "results": []
+    },
+    "s1-fmt": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "started_utc": "2026-11-08T04:40:22.718888+00:00",
+      "completed_utc": "2026-11-08T04:40:30.911562+00:00",
+      "results": []
+    },
+    "s2-default-clippy": {
+      "actual_exit": 0,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets -- -D warnings",
+      "started_utc": "2026-11-08T04:40:31.047354+00:00",
+      "completed_utc": "2026-11-08T04:42:04.341698+00:00",
+      "results": []
+    },
+    "s3-observer-clippy": {
+      "actual_exit": 0,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --features eech-dc/core-terrain-crt-observer --all-targets -- -D warnings",
+      "started_utc": "2026-11-08T04:42:04.461573+00:00",
+      "completed_utc": "2026-11-08T04:43:42.704136+00:00",
+      "results": []
+    },
+    "s4-observer": {
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-engine-sys --features core-terrain-crt-observer --test core_terrain_crt_observer -- --nocapture --test-threads 1",
+      "started_utc": "2026-11-08T04:43:42.846469+00:00",
+      "completed_utc": "2026-11-08T04:45:19.693435+00:00",
+      "results": [
+        {
+          "passed": 4,
+          "failed": 0
+        }
+      ]
+    },
+    "s5-driver": {
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-world --test core_terrain_crt_driver -- --nocapture",
+      "started_utc": "2026-11-08T04:45:19.817027+00:00",
+      "completed_utc": "2026-11-08T04:45:21.967309+00:00",
+      "results": [
+        {
+          "passed": 3,
+          "failed": 0
+        }
+      ]
+    },
+    "s6-profile-census": {
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-world --test host_callbacks every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not",
+      "started_utc": "2026-11-08T04:45:22.097355+00:00",
+      "completed_utc": "2026-11-08T04:45:23.825688+00:00",
+      "results": [
+        {
+          "passed": 1,
+          "failed": 0
+        }
+      ]
+    }
+  },
+  "selected_final_Rust_tests": 8,
+  "actual_CRT_control": {
+    "captured_draws": 3,
+    "forwarded_after_capture": 1,
+    "seeds": 2,
+    "load": 2,
+    "gap": 1,
+    "inactive_skin": 0,
+    "active_skin": 1,
+    "FP_words_equal": true
+  },
+  "hygiene_problems": []
+}

@@ -3648,6 +3648,11 @@ impl LuaUserData for LuaEngine {
         methods.add_method("route_summary", |_, this, ()| this.engine.route_summary().map_err(lua_error));
         #[cfg(feature = "route-fixture")]
         methods.add_method("route_call", |_, this, index: i32| this.engine.route_call(index).map_err(lua_error));
+        // TEST-ONLY Core CRT observer, not a shipping capability.
+        #[cfg(feature = "core-terrain-crt-observer")]
+        methods.add_method("core_terrain_crt_summary", |_, this, ()| {
+            this.engine.core_terrain_crt_summary().map_err(lua_error)
+        });
         // TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): what the ORIGINAL target-point query, its callers and the boot census of the offset table did; not part of the shipping module.
         #[cfg(feature = "target-point-fixture")]
         methods.add_method("target_point_summary", |_, this, ()| this.engine.target_point_summary().map_err(lua_error));

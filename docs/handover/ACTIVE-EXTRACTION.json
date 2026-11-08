@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "fpuB4 supported flag-boundary source/evidence disposition frozen UNREVIEWED; historical common FPU/one-binding guarantees reused by source inference, not fresh measurements. No tests/code/native. GenericNative1/all10/Task49/D3 OPEN.",
+  "phase": "Required core-tree-loader-forest-cloud-rng observer/finite two-map plan FROZEN_UNREVIEWED crt1516; final6 direct0/8Rust PASS, no real terrain capture/removal/native clearance. Prep2/all10/generic flags parent OPEN.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
-  "next_production_change": "Remove the transitional raw TREE/FOREST/CLOUD loader/constructor block from hosted Core only after the existing D3G04 RNG/order blocker is resolved or a semantic difference approved; preserve Original and accepted outputs. First required fact is effective draws/skin/season and any pre-reseed consumer. This source disposition changes no production code and authorizes no capture/build/native execution.",
+  "next_production_change": "Still blocked on actual effective Core load/FOREST/CLOUD/skin CRT draws and first consumer before the real next seed; Linux forwarding/staging/Lua controls do not supply retail facts or authorize removal.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -126,7 +126,9 @@
     "(8 Nov 2026) SAMEdde3b645 accepted nr7e6 PLAN only. nr395 now implements new opt-in two-Lua transaction driver, strict independent report validator and concrete guarded controller. Final3 commands actual0: formatting, strict eech-world all-target Clippy, nine Rust controls with seven independent actual-Lua-report validations and five Python controls; PRE/POST4003/extras/seven readers equal. Offline scripted boot/SCENE/candidate plus real reference flag provider/store only, not native acceptance. Root copied91 payloads/healthy1179 input files and staged exact two Lua files; read-only preflight0, materialized plan eecd985c. Child roots/output uncreated, no native clearance. Developer d1 fixture action-shape101 and d3 synthetic reference-hash101 retained, not product RED.",
     "nr602 finite correction: final5 actual0/11Rust (9existing+actualconverter1+census1), seven independent actual-Lua-report validations/fivePython controls; PRE/POST4004/extras32/nine readers equal. V2plan4ee21/read-onlypreflight0 copies retained. Raw module.rs is entire true3abf production prefix plus cfg(test) declaration, three NUL preserved; other5protocol files exact. Runtime remains old3abf91payloads, no rebuild/relabel/native. Source findings corrected but OPEN pending SAME/newCI.",
     "SAME400394 findings[] finite ACTUAL READ/carry/five refusals: original session27818/outer0/controller7256 actual0/native7all0/stages21all0;14full1179 observations/seven fresh roots/91payload+twoLua unchanged. Healthyfirst/frame16/same complete tuple; zero realword->fact1, changedreply0x400->fact2/storezero, no optionalGROUP. SourceP2sCLOSED_SOURCE4cda, exact1ab9CI/Wine8Lua+converter1 actualPASS. Safe accepted packet labels derived summaries and keeps raw63/input/decodedCI private with original hashes. Not genericNative1/wholeflags/D3.",
-    "fpuB4 candidate source disposition: current flag GROUP/SET/READ/RESET share model_callback and common ENTER/LEAVE/setjmp restore. Accepted77ed measured16 full x87control/status+MXCSR entries/all4RCs normal/fatal at80fd; current join is inference, NOT new flags-FPU measurement. Accepted7d458 ownership plus400394 successful boot/publicREAD supports only persistent oneprovider/store/VM/ownerthread/oneboot domain; replacement/reentrancy/VM/thread/session recreation unsupported, coincident fN alias possible. Flag operations require host metadata, no new simulator flag API; physical DCS contracts remain separate. Guide hosted routing applies to recognised mobiles+taskleader, not blanket fallback dormancy.14currentfiles unchanged;2literal receipts/93line doc; no tests/build/native/cache/code/API/semantic change. Pending SAME. Exactb4ddd all9CI actualPASS retained."
+    "fpuB4 candidate source disposition: current flag GROUP/SET/READ/RESET share model_callback and common ENTER/LEAVE/setjmp restore. Accepted77ed measured16 full x87control/status+MXCSR entries/all4RCs normal/fatal at80fd; current join is inference, NOT new flags-FPU measurement. Accepted7d458 ownership plus400394 successful boot/publicREAD supports only persistent oneprovider/store/VM/ownerthread/oneboot domain; replacement/reentrancy/VM/thread/session recreation unsupported, coincident fN alias possible. Flag operations require host metadata, no new simulator flag API; physical DCS contracts remain separate. Guide hosted routing applies to recognised mobiles+taskleader, not blanket fallback dormancy.14currentfiles unchanged;2literal receipts/93line doc; no tests/build/native/cache/code/API/semantic change. Pending SAME. Exactb4ddd all9CI actualPASS retained.",
+    "SAME400c accepts1516 supported flag-boundary disposition at SOURCE only, no new measurement/launch/cutover. Next required core-tree-loader-forest-cloud-rng fix-blocker is authorized; guard0. crt1516 Core-only observer forwards real calls, not target-point profile substitution; native/capture unrun.",
+    "crt1516 UNREVIEWED core-terrain-crt-observer packet:6 final direct0/outer64007 actual0;8Rust PASS; real CRT3 captured+1 postfreeze/2seeds/FP words equal, scripted load/skin boundaries;4010 PREPOST rows+14extras+8readers equal. Default empty C body/one compilation and actual compiled staged text verified; portable Lua3/existing66/2 guard. Two setup101 logs retained. Dedicated profile only; no Windows/Core retail boot/capture, no loader removal/TP equivalence/full trace/Host CRT claim. SAME review and Root materialization required."
   ],
   "blockers": [
     {
@@ -197,9 +199,9 @@
       "id": "core-tree-loader-forest-cloud-rng",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "The ordinary boot still reaches load_3d_terrain (eech_engine.c, zone_sc.c reload): the raw tree loader and the FOREST_TREE_OBJECT constructor, then the CLOUD constructor and, when session_cloud_puffs > 1 or == 1 outside DESERT, per-sector CRT rand() draws. co_force.c (player flight tree force) and terrgeom.c (renderer) are other compiled consumers. The seed is set (eech_engine.c, which srands the CRT) before the load and no later reseed was found in source.; Reviewed source/API clarification2ab/c9a (SAMEb5d70724) finds the later session-creation reseed chain parser->ss_creat->session->random.c:srand. This refines the earlier no-reseed-found statement; consumers between load and reseed/effective draws remain unmeasured, not closed.",
-      "missing_fact": "For Lebanon map5 and Georgia: the effective session_cloud_puffs and season at the boot load and the zone reload, the number of CRT rand() calls made inside load_3d_terrain, whether a srand precedes the first outside consumer afterwards, whether co_force.c/terrgeom.c are reachable in the supported headless boot, AND whether the forest (and CLOUD) constructor draws: construct_3d_object_by_name -> construct_3d_object -> skin_random draws when the object's effective skin.animation >= 0, which the lexical absence of rand() in terrdata.c does not exclude. The effective forest skin metadata and the constructor's call/seed behaviour are UNKNOWN until supported observations establish them. Unproven, so nothing was removed and nothing is called dormant.",
-      "next_fix": "Smallest bounded capture: count CRT rand() inside load_3d_terrain per supported scenario with the existing rand-counting header (eech_tp_rand.h) and read the effective flags; then remove the loader/constructor/cloud block for the hosted build (explicit Original profile retained) only if no draw is consumed or the removal is baseline-approved. Required Task49/D3 work; no dummy draws."
+      "evidence": "The ordinary boot still reaches load_3d_terrain (eech_engine.c, zone_sc.c reload): the raw tree loader and the FOREST_TREE_OBJECT constructor, then the CLOUD constructor and, when session_cloud_puffs > 1 or == 1 outside DESERT, per-sector CRT rand() draws. co_force.c (player flight tree force) and terrgeom.c (renderer) are other compiled consumers. The seed is set (eech_engine.c, which srands the CRT) before the load and no later reseed was found in source.; Reviewed source/API clarification2ab/c9a (SAMEb5d70724) finds the later session-creation reseed chain parser->ss_creat->session->random.c:srand. This refines the earlier no-reseed-found statement; consumers between load and reseed/effective draws remain unmeasured, not closed. crt1516 adds a dedicated nondefault Core-only observer with eight strict additive staging hooks; actual compiled staged bytes verified. Final format/default+observer Clippy and4observer+3Lua+1census controls PASS; PRE/POST4010/extras/readers equal. No real terrain retail observation or removal. UI/client reload is source-blocked in supported headless entry.",
+      "missing_fact": "Actual Georgia/Lebanon effective clouds/season/constructor skin metadata, per-Core-site load/gap draws, first needed consumer before the observed first post-load seed. Compact counts/first ordinals/fingerprint are not full per-draw or Host CRT proof. Reload remains unmeasured because no supported public headless prerequisite is established.",
+      "next_fix": "SAME source+finite capture-plan review, then Root-owned fresh observer build/provenance/materialization and exactly matched Georgia/Lebanon control/observer pairs. Reuse the accepted matching Lebanon ordinary record; no completed replay for confidence. No removal before actual facts and required acceptance/disposition."
     },
     {
       "id": "dcs-tree-capability-unresolved",
@@ -823,7 +825,7 @@
       "closure_review_sha256": "400394a42c1883c3c50e0a3e3cef552c5ac184e06e5b1f0daa1978f67efea3dd"
     }
   ],
-  "next_action": "STOP for SAME review of docs/d3-flag-boundary-disposition.md (93 lines) and compact identities. Then resolve FIRST existing core-tree-loader-forest-cloud-rng fact: effective constructor/cloud-loop CRT draws and first consumer before session reseed, before hosted loader removal. No closed replay, new flag prototype/epoch framework or unsupported guarantee.",
+  "next_action": "STOP for SAME combined source+finite Georgia/Lebanon plan review. Root may build/materialize only after clearance, then bind exact source/bundle/literals/inputs/controller before capture. No source-blocked reload API, duration hunt, loader removal or closed-proof replay.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -916,12 +918,13 @@
   },
   "flag_boundary_disposition_candidate": {
     "document": "eech-campaign/docs/d3-flag-boundary-disposition.md",
-    "status": "UNREVIEWED_SOURCE_INFERENCE",
+    "status": "ACCEPTED_SOURCE_DISPOSITION_ONLY",
     "source": "b4ddd9ca2dd05c79b847ef6a8e7a32edb36c949a",
     "evidence": "eech-campaign/reference/d3-entity-collision/flag-boundary-disposition/evidence-identities.json",
     "supported_domain": "One persistent owner-thread/provider/store/VM binding and one boot attempt; generic outer FPU-word restoration only",
     "generic_NativeAcceptance1_closed": false,
     "first_next_physical_coupling": "Core load_3d_terrain FOREST/CLOUD/skin_random CRT sequence before session reseed",
-    "new_experiments_performed": false
+    "new_experiments_performed": false,
+    "review_sha256": "400c7985f1833cf02a345128c8790b083a64f9fd598b67a7110c79fb6e19dd8f"
   }
 }

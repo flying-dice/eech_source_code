@@ -23,6 +23,8 @@ serde.workspace = true
 serde_json.workspace = true
 
 [features]
+# TEST-ONLY Core loader CRT observer; never a shipping profile.
+core-terrain-crt-observer = ["eech-engine/core-terrain-crt-observer"]
 # TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
 dependent-fixture = ["eech-engine/dependent-fixture"]
 dependent-fixture-old-guard = ["dependent-fixture", "eech-engine/dependent-fixture-old-guard"]
