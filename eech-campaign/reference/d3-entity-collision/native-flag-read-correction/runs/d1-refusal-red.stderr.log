@@ -1,0 +1,25 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 35s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_dc-fdb47b6c877293f7)
+
+thread 'module::native_flag_read_refusal_check::nr602_real_delegated_refusal_preserves_the_public_converter_domain_and_reason' (4295) panicked at crates/eech-dc/src/native_flag_read_refusal_check.rs:103:13:
+refused: [model-provider:entity_candidate.callback] runtime error: candidate provider refused: counterfactual canonical refusal
+stack traceback:
+	[C]: in ?
+	[C]: in function 'error'
+	[string "nr602 actual READ driver"]:515: in function <[string "nr602 actual READ driver"]:488>
+	(tail call): in function <(tail call):-1>
+	[string "crates/eech-dc/src/native_flag_read_refusal..."]:1: in function 'provider'
+	[string "eech model bridge"]:55: in function <[string "eech model bridge"]:54>
+	[C]: in function 'boot'
+	[string "nr602 actual READ driver"]:694: in function <[string "nr602 actual READ driver"]:694>
+	[C]: in function 'pcall'
+	[string "nr602 actual READ driver"]:663: in function 'guarded'
+	[string "nr602 actual READ driver"]:694: in function 'run'
+	[string "nr602 actual READ driver"]:789: in function <[string "nr602 actual READ driver"]:786>
+	[C]: in function 'xpcall'
+	[string "nr602 actual READ driver"]:786: in main chunk
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-dc --lib`

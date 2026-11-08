@@ -1,0 +1,12 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T03:08:54.647569+00:00",
+  "started_time_qualification": "Root observed service agent running after followup/list_agents; not OS process creation",
+  "source_before": "602f243d9b7911942868ddec792c39715d053614",
+  "scope": "FixBOTH SAME5218P2s nr602: preserveactualdelegatedrefusal result/reason/nativechannel, positivefirstactualconvertercontrol; exactprofileinventory66/2+affectedhost_callbacks guard. Retainnewfocusedcontrols/fmt/lint/REALPREPOST. No native/productsemanticchange; oldliterals/eecdplanimmutable. Rootrestagesnewhashes beforefreeze; bothpacks/all10preserved.",
+  "actual_OS_process_identity": "Not applicable to Codex service agent; no fabricated PID/CLI exit."
+}

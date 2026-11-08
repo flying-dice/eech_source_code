@@ -1,0 +1,15 @@
+{
+  "source": "602f243d9b7911942868ddec792c39715d053614",
+  "kind": "New terminal CI actuals after SAME V2 sealed; Root asks same author to batch the harness correction, not a new review pass",
+  "id": "ENV-NATIVE-FLAG-READ-WINE-PYTHON-HARNESS-1",
+  "status": "CHANGES_REQUIRED",
+  "job_id": 128609409557,
+  "retained_log": "native-read-602f-CI-job-128609409557-20261108.log",
+  "terminal_CI_proof": "native-read-602f-all9-CI-terminal-20261108.json",
+  "actual": "Windows/Wine physical_flags_read_driver target:4passed/5failed. Rust lines90/322 spawning python3 return NotFound/program not found. Existing host_callbacks inventory also fails. Exact602f all9 terminal:4PASS/5FAIL; no rerun requested.",
+  "classification": "New test-harness portability defect, not a native campaign/product RED or changed baseline",
+  "required": "Keep real Lua/transaction/causality controls executable under Wine. Use existing portable test invocation patterns and explicitly scope independent Python validation/controller checks to a supported host; do not silently skip/delete the five controls or claim absent cross-validator coverage. Choose the smallest honest harness correction, retain all failed actuals, run affected checks and read back current-head CI. No unnecessary new toolchain or retail/campaign replay.",
+  "same_batch": ["ENV-NATIVE-FLAG-READ-DELEGATED-REFUSAL-1", "ENV-NATIVE-FLAG-READ-PROFILE-SCRIPT-CENSUS-1"],
+  "native_controller_clearance": false,
+  "all_ten_D3_requirements_preserved": true
+}

@@ -39,7 +39,10 @@ function T.answer(q, a, scenes, patterns)
 	if getmetatable(a) ~= nil then return 'candidate delegated answer has a metatable' end
 	if type(a.result) ~= 'string' then return 'candidate answer has no result' end
 	for k in pairs(a) do if k ~= 'result' and k ~= 'name' and k ~= 'p' and k ~= 'reason' then return 'candidate answer has an unknown field' end end
-	if a.result == 'refused' then return 'candidate provider refused: ' .. tostring(a.reason) end
+	if a.result == 'refused' then
+		if type(a.reason) ~= 'string' then return 'candidate refusal has no string reason' end
+		return nil, true
+	end
 	if type(a.name) ~= 'string' or #a.name > 127 or a.name:find('%z') then return 'candidate answer has invalid name' end
 	if q.scene > 0 and (scenes[q.scene] == nil or a.name ~= scenes[q.scene]) then return 'candidate name differs from its C-accepted boot scene' end
 	if q.scene == 0 and a.name ~= '' then return 'scene0 candidate has a name' end

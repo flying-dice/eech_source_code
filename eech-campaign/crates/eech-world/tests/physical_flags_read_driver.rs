@@ -15,6 +15,7 @@ const DRIVER: &str = include_str!("../lua/physical-flags-read-witness.lua");
 const PROTOCOL: &str = include_str!("../lua/physical-flags-read-transaction.lua");
 const OLD_FIXTURE: &str = include_str!("physical_flags_witness_driver.rs");
 static SERIAL: AtomicUsize = AtomicUsize::new(0);
+#[cfg(unix)]
 fn python() -> std::process::Command {
     let mut command = std::process::Command::new("python3");
     command.args(["-I", "-B", "-X", "utf8"]);
@@ -70,6 +71,12 @@ fn run(mode: &str, knobs: &str, reference: Option<&str>) -> Run {
     run_code(mode, knobs, reference, DRIVER)
 }
 fn run_code(mode: &str, knobs: &str, reference: Option<&str>, driver: &str) -> Run {
+    // Lua-only fixtures have declared synthetic identities and need no external
+    // Python on Windows/Wine. The independent Unix integration supplies the
+    // ACTUAL reference SHA for its actual Lua-produced report validations.
+    run_with_reference_hash(mode, knobs, reference, driver, &"c".repeat(64))
+}
+fn run_with_reference_hash(mode: &str, knobs: &str, reference: Option<&str>, driver: &str, reference_hash: &str) -> Run {
     let _restore = Restore(reference_arithmetic::current_mxcsr());
     let lua = unsafe { Lua::unsafe_new() };
     let output = temp("report");
@@ -82,16 +89,7 @@ fn run_code(mode: &str, knobs: &str, reference: Option<&str>, driver: &str) -> R
     });
     let extra = reference_path
         .as_ref()
-        .map(|p| {
-            let output = python()
-                .args(["-c", "import hashlib,sys; print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())"])
-                .arg(p)
-                .output()
-                .unwrap();
-            assert!(output.status.success());
-            let digest = String::from_utf8(output.stdout).unwrap();
-            format!(",control={:?},control_sha256='{}'", p.to_string_lossy().replace('\\', "/"), digest.trim())
-        })
+        .map(|p| format!(",control={:?},control_sha256='{reference_hash}'", p.to_string_lossy().replace('\\', "/")))
         .unwrap_or_default();
     lua.load(format!("P={{ entities={{{{slot=5,host_id='eech-world:1'}},{{slot=6,host_id='eech-world:2'}},{{slot=33,host_id='eech-world:3'}}}},frames={{{{'iter',{{'cand',1}}}}}},{knobs} }}")).exec().unwrap();
     lua.load(fixture()).exec().unwrap();
@@ -275,10 +273,18 @@ fn nr395_old_group_latch_predicate_fails_the_new_optional_group_transaction() {
 }
 
 #[test]
+#[cfg(unix)] // Python/tool scripts run on the Unix host, not inside Wine.
 fn nr395_independent_python_validator_and_controller_offline_controls_use_actual_lua_reports() {
     let control = healthy();
     let control_path = temp("control-for-python");
     std::fs::write(&control_path, &control).unwrap();
+    let digest = python()
+        .args(["-c", "import hashlib,sys; print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())"])
+        .arg(&control_path)
+        .output()
+        .unwrap();
+    assert!(digest.status.success());
+    let digest = String::from_utf8(digest.stdout).unwrap();
     let ids = temp("identities.json");
     std::fs::write(
         &ids,
@@ -303,7 +309,7 @@ fn nr395_independent_python_validator_and_controller_offline_controls_use_actual
         let outcome = if mode == "read_probe_control" {
             None
         } else {
-            Some(run(mode, "", Some(&control)))
+            Some(run_with_reference_hash(mode, "", Some(&control), DRIVER, digest.trim()))
         };
         if let Some(ref o) = outcome {
             assert!(o.result.is_ok(), "{:?}", o.result);

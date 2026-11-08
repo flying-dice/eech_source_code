@@ -1,0 +1,6 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.93s
+     Running tests/physical_flags_read_driver.rs (/target/t/debug/deps/physical_flags_read_driver-b20bed42a77e539b)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.96s
+     Running tests/host_callbacks.rs (/target/t/debug/deps/host_callbacks-01e380bfce0df75c)

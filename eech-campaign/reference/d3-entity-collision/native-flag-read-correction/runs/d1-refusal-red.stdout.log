@@ -1,0 +1,11 @@
+
+running 1 test
+test module::native_flag_read_refusal_check::nr602_real_delegated_refusal_preserves_the_public_converter_domain_and_reason ... FAILED
+
+failures:
+
+failures:
+    module::native_flag_read_refusal_check::nr602_real_delegated_refusal_preserves_the_public_converter_domain_and_reason
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 74 filtered out; finished in 0.02s
+

@@ -9204,3 +9204,7 @@ mod tests {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "native_flag_read_refusal_check.rs"]
+mod native_flag_read_refusal_check;

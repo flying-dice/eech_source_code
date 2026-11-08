@@ -511,8 +511,14 @@ local function candidate (scene, depth, kind, definition, key)
 		end
 	end
 	local answer = host.model ("entity_candidate", scene, depth, kind, definition, key)
-	local positive_problem = Tx.answer(q, answer, state.scenes, strict_patterns)
+	local positive_problem, delegated_refusal = Tx.answer(q, answer, state.scenes, strict_patterns)
 	if positive_problem then state.abort = positive_problem; error(positive_problem, 0) end
+	if delegated_refusal then
+		-- Preserve the real table/reason for MODEL_BRIDGE's existing refused
+		-- channel. This diagnostic fails without selecting another candidate.
+		state.abort = "candidate provider refused: " .. answer.reason
+		return answer
+	end
 	if state.transaction == nil and Tx.eligible(q) then
 		local registration = state.registrations[identity]
 		if not registration then state.abort = "eligible canonical candidate has no observed registration"; error(state.abort,0) end
