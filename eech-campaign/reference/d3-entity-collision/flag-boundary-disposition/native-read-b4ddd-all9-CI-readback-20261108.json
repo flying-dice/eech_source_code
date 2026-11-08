@@ -1,0 +1,282 @@
+{
+  "utc": "2026-11-08T03:48:27.656Z",
+  "commit": "b4ddd9ca2dd05c79b847ef6a8e7a32edb36c949a",
+  "runs": [
+    {
+      "id": 42443599189,
+      "name": "eech-loss-structural",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 457,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42443599189/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42443599189/logs",
+      "workflow_id": 391769320,
+      "jobs": [
+        {
+          "id": 128617779909,
+          "name": "Slice 1a historical equivalence",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42443599189,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    },
+    {
+      "id": 42443599207,
+      "name": "eech-core-ts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 666,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42443599207/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42443599207/logs",
+      "workflow_id": 364678585,
+      "jobs": [
+        {
+          "id": 128617780129,
+          "name": "verify",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42443599207,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    },
+    {
+      "id": 42443599257,
+      "name": "eech-campaign",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 812,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42443599257/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42443599257/logs",
+      "workflow_id": 367324141,
+      "jobs": [
+        {
+          "id": 128617780927,
+          "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42443599257,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Toolchain",
+              "status": "pending",
+              "conclusion": null,
+              "number": 3
+            },
+            {
+              "name": "Test",
+              "status": "pending",
+              "conclusion": null,
+              "number": 4
+            },
+            {
+              "name": "Lints",
+              "status": "pending",
+              "conclusion": null,
+              "number": 5
+            }
+          ]
+        },
+        {
+          "id": 128617781126,
+          "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42443599257,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Test",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 4
+            }
+          ]
+        },
+        {
+          "id": 128617781130,
+          "name": "test (x86_64-unknown-linux-gnu)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42443599257,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 128617781146,
+          "name": "windows-cross",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42443599257,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Lua 5.1.5 as lua.dll",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Test under Wine",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5
+            }
+          ]
+        },
+        {
+          "id": 128617781199,
+          "name": "test (i686-unknown-linux-gnu)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42443599257,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 10
+            }
+          ]
+        },
+        {
+          "id": 128617781226,
+          "name": "dcs-probe-tools",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42443599257,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Lua 5.1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Syntax",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 4
+            },
+            {
+              "name": "Self-test",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "SUPPLY arrival runner inputs",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 128617781235,
+          "name": "evidence-selftest",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42443599257,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 2
+            },
+            {
+              "name": "Evidence comparison selftest",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Pinned-archive downloader",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 4
+            },
+            {
+              "name": "Host-identity retained hashes",
+              "status": "pending",
+              "conclusion": null,
+              "number": 5
+            },
+            {
+              "name": "Supply-arrival retained hashes",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "all_nine_jobs_success": true,
+  "rerun_requested": false,
+  "scope": "Exact metadata-publication head CI; no source/code/runtime/wholeD3 acceptance added"
+}
