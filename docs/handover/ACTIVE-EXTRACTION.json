@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "STOPforSAME named signed query selector review: nq56 all5direct0/original40574outer0/PREPOST4023 equal/32extras/6readers/GitLF,3816+2compiled2fc unchanged. Real56d1bFAIL1497/Babsent/raw314092 preserved, complete private rawcodecRED1\u2192GREEN0; no newnative/cutover/all10 closure.",
+  "phase": "pfb502 facade/scanned-candidate version2 FROZEN; all6 final direct0/outer0, PREPOST4023 equal/29extras/6readers. STOP for ONE combined SAME correctness/extraction-boundary review; oldFAIL1500 retained, no native/cutover/all10 closure.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "Retain required hosted-only raw TREE/FOREST/CLOUD extraction after its applicable gates;965 discharges finite boot CRT subfact only, removal remains uncleared. Sole open blocks_cutover GenericNative1 first requires natural moving public-path prerequisite/effect proof; D3G08 hierarchy remains separately required, not silently solved by Task50.",
@@ -877,14 +877,22 @@
     },
     {
       "id": "ENV-NORMAL-FIRE-QUERY-SELECTOR-DOMAIN-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "Reviewed56d1b real healthy attempt actual1/frame1497; retained normal_query which=-1 rejected by Lua integer domain; B neverprepared/launched. Root offline selected-codec scan normal-fire-56d1b-offline-event-domain-scan-20261108.json.",
+      "evidence": "Reviewed56d1b real healthy attempt actual1/frame1497; retained normal_query which=-1 rejected by Lua integer domain; B neverprepared/launched. Root offline selected-codec scan normal-fire-56d1b-offline-event-domain-scan-20261108.json.; SAME5db source/exactlaunchae76/currentall9bb81 accepted; later b502 completes all1500frames before separate finalization defect.",
       "missing_fact": "Collector and independent report codec must accept exactly the true signed selector domain {-1,0,1} from ALL real collision-lookup producers while preserving selected cohort/identity/model/semantic/prefix/store gates.",
       "next_fix": "Trace single WL_COLLISION producer/wf_target_which and all target_which writes; retained complete raw selected-codec RED/GREEN, portable positive/domain-bound negatives; Lua/Python/tests/docs only with unchanged3816+2 compiled2fc/default reuse, one SAME review before future native."
+    },
+    {
+      "id": "ENV-NORMAL-FIRE-PUBLIC-FACADE-FINALIZATION-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Actual reviewed b5021500frame healthyFAIL: engine:close methodnil; real LuaEngine userdata has only frame/clock/wpn_events driver methods, no close. Synthetic Engine invented close. Root363f terminal binding; B neverprepared/launched.",
+      "missing_fact": "Actual public facade finalization plus lead210 consumer alignment: separate birth/current targets from actual moving scannedcandidate; exact pre-NEED movement snapshot/callback ordinal and complete reference/accounting gates; fixed26 past raw lacks live movement/reply facts.",
+      "next_fix": "Freeze combined facade/candidate contract version2 with real proxy/FlagStore/temporal controls; 3815 rawrows unchanged+1cfg(test)-excluded seam+2 configs; ONE SAME boundary/source review then Root exactmaterializedreview, no immediate retail rerun."
     }
   ],
-  "next_action": "ONE SAME changed-material review of exact {-1,0,1} selector correction/retained full rawcodec RED-GREEN/inputreuse. Root owns later separately reviewed native/materialization; no default/C/native replay, runtime relabel or actor/window/seed/config changes; GenericNative1/all10 remainOPEN.",
+  "next_action": "STOP for ONE SAME combined facade/scanned-candidate source/controller and extraction-boundary review, then Root exact materialized review before any new native plan. No rerun solely to reclassify oldFAIL as UNREACHED; all10/Generic1/prep2 remain OPEN.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -1179,7 +1187,7 @@
     "extra_producer_files": 2
   },
   "normal_query_selector_correction": {
-    "status": "FROZEN_UNREVIEWED_STOP",
+    "status": "CLOSED_SOURCE_SAME5DB",
     "blocker": "ENV-NORMAL-FIRE-QUERY-SELECTOR-DOMAIN-1",
     "document": "eech-campaign/docs/d3-normal-query-selector.md",
     "domain": [
@@ -1211,5 +1219,33 @@
     "publication_filter": "2 coordinate-bearing Root originals private/hash-bound; labelled safe projections, extra PUBONLY reader afterPOST; no testsource changes",
     "compiled_product_rows": 3816,
     "extra_producer_files": 2
-  }
+  },
+  "public_session_candidate_contract": {
+    "status": "FROZEN_STOP_FOR_SAME",
+    "lead_decision": "scanned-candidate-lead-decision-live-services-v210-20261108.json",
+    "document": "eech-campaign/docs/d3-public-session-finalization.md",
+    "blocker": "ENV-NORMAL-FIRE-PUBLIC-FACADE-FINALIZATION-1",
+    "reported_version": 2,
+    "actual_old_failure": "normal-query-b502-terminal-Root-binding-20261108.json:1500frames/297fires+births/155296stepPairs/26queries/19714996modelcalls/moving0/failed1; Babsent. NeverrelabelasacceptedUNREACHED.",
+    "raw_fixed_queries": "pfb502-fixed-query-analysis-20261108.json:24 excluded by oldstrongerbirthtargetpredicate,2 needlivefacts; no candidate request/motion/replies recoverable fornewcontractall26.",
+    "new_finite_contract": "first actual registered moving routed scannedcandidate +normalcohort/scene locks, independent immutable birth/currenttargethistory; exactNEED/READ/reask/TEST and immutable existingmove atNEED; B earliernormalprefix +exact movementcallback/frame/precedingmodelordinal before500m input",
+    "userdata": "actual mlua proxy checks3driver methods and6realserde modes; no Engine construction/boot/unsafe/reset/phantomclose",
+    "compiled_reuse": "module.rs/product/build/Cargo literal2fc;3815 rawunchanged +1 existingcfg(test)-excluded native_flag_read_refusal_check.rs changed +2 producer configs unchanged. Never3816wholeRAWsame.",
+    "native_launch": false,
+    "physical_cutover": false,
+    "freeze": "D3-PUBLIC-SESSION-CANDIDATE-CONTRACT-FROZEN-20261108.json",
+    "packet": "eech-campaign/reference/d3-entity-collision/public-session-candidate-contract/",
+    "final_actuals": {
+      "direct_exits": 6,
+      "all_zero": true,
+      "Rust_selected_tests": 3,
+      "Python_tests": 12,
+      "PRE_POST_rows": 4023,
+      "extras": 29,
+      "sealed_readers": 6,
+      "source_fingerprint": "69ecd8b8f48a93600e666d95653f3e6b222bba321befb57e048d5704e4153086",
+      "post_POST": "STOP/publication metadata only"
+    }
+  },
+  "old764_default_scope": "Accepted SAMEbbaf OLD764only:40PASS/all8COMPLETE/final4inputs0/90payloads; notcurrent3ab/wholeheight/Generic1/all10. Current3abfullpack remainsRootowned/running."
 }

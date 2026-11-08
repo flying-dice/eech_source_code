@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T11:25:29.169387+00:00",
+  "reviewer": "SAME independent Task49 reviewer /root/d3_environment_review",
+  "scope": "ONE exact NEW b502 materialized launch prerequisite. Closed5db4 selector source, earlier boot/proof/controller and finite default scopes reused unchanged; no semantic source re-review or experiment replay.",
+  "plan_sha256": "ba827b639c43ffd55c638db635e678b9c6ce82be0fff3c441e29c676ebc72004",
+  "controller_sha256": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+  "artifact_hashes": {
+    "driver": "73b3d2cc847f3274a28067ca79338fa47db50e7fc9181cbc10f21f9c761913aa",
+    "collector": "0381bd8a3725bae9d35fa3f3148a24c692548fadc961c2a94abdf10a3a354ddf",
+    "transaction": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "contract": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+    "controller": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+    "validator": "0905ff4b12b6c851f60379e7dde57089cad1fadf85b1c337438b88ebdfd7b6c1",
+    "common": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "common_validator": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "input_tool": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+    "input_reference": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4"
+  },
+  "evidence": [
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-query-b502-20261108-materialized/capture-plan.json",
+      "bytes": 5500,
+      "sha256": "ba827b639c43ffd55c638db635e678b9c6ce82be0fff3c441e29c676ebc72004"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-query-b502-20261108-materialized/tools/normal_fire_capture_controller.py",
+      "bytes": 11061,
+      "sha256": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-query-b502-20261108-materialized/preparation.json",
+      "bytes": 3551,
+      "sha256": "c91468af55e52ed316f2f2f4c72efd60dcbcb13a7c20acba1e55289bc1cf5f12"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-query-b502-20261108-materialized/healthy-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-fire-426de-20261108-materialized/bundle-manifest.json",
+      "bytes": 31356,
+      "sha256": "904f40638bebd8e21cd5b8d8747c53c1152a8188e164bffa20afdcabd599c28d"
+    },
+    {
+      "path": "R:/d3-evidence/independent-normal-query-selector-b502-source-20261108.json",
+      "bytes": 12347,
+      "sha256": "5db4d73e9a26c1758589cb7459656c9029c6bc9c3d72808cc492042c6b237114"
+    }
+  ],
+  "reuse_receipts": [
+    {
+      "path": "R:\\d3-evidence\\independent-normal-query-selector-b502-source-20261108.json",
+      "sha256": "5db4d73e9a26c1758589cb7459656c9029c6bc9c3d72808cc492042c6b237114"
+    },
+    {
+      "path": "R:\\d3-evidence\\normal-fire-first-native-426de-Root-binding-20261108.json",
+      "sha256": "31446aeb8620aa65a35f7f9a70320731b8335295df7056c0f4eecdabc2f2305b"
+    },
+    {
+      "path": "R:\\d3-evidence\\normal-query-selector-b502-Root-binding-20261108.json",
+      "sha256": "dda1631b1f698c4b7db9d71c4349d4beea12a03f06c0ff1a60ca70d92af07720"
+    },
+    {
+      "path": "R:\\d3-evidence\\codex-d3-normal-query-selector-fix-20261108-completion.json",
+      "sha256": "1e9fcfd76e01823d17c099fe9d1a35e33bcc4e40539bc780dbce32161c32c56b"
+    },
+    {
+      "path": "R:\\d3-evidence\\D3-NORMAL-QUERY-SELECTOR-FROZEN-20261108.json",
+      "sha256": "5e26035448d054ce959afc0209fcd4730813a1bb167921890cc245e7e03464c4"
+    },
+    {
+      "path": "R:\\d3-evidence\\nq56-publication-checkpoint-20261108.json",
+      "sha256": "474990d5f7fc0dc1c0eb69dd22260039f5762403f0328d5e8067fb0426d28361"
+    }
+  ],
+  "findings": [],
+  "binding_and_boundary_assessment": {
+    "identity": "Compiled runtime/report source_revision remains2fcf69f9b8972b4353687dc2ca1eaaac780836f3; corrected diagnostics remainb50203d48cb46be1dbe52e062b0516d0afa587e4. Original immutable97-payload bundle/manifest904f4063 is retained, not recopied, overlaid or relabelled.",
+    "artifacts": "All ten actual execution-artifact hashes match this plan, including new Git-LF collector0381bd8a and independent validator0905ff4b at the exact source-closure identities. Driver73b3, transaction, contract and common modules remain unchanged. Staged controller69ae is the previously reviewed exact artifact, so its positive-first/identity/post-input/exclusive-output logic is reused.",
+    "fresh_root": "Preparation actual input-tool0 on the NEW normal-query-healthy-b502 root binds1179 full reference entries and manifest SHA62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1. All five engine-written identities match the retained accepted default setup. Old failed426de/56d roots and outputs are distinct and consumed.",
+    "no_child_effects": "New normal-query-B-b502 root parent and normal-query-capture-b502 output parent are absent at review. Exact pristine/healthy/runtime/literal/root/output paths are separated by the unchanged controller preflight contract. No native run was performed by reviewer.",
+    "receipts_and_reuse": "All six declared source/default/Root-mechanical/typed-completion/freeze/publication receipt hashes match current literal files. The Root materialization and reported full read-only preflight0 bind this exact plan/controller; reviewer checked their concrete artifacts without running the controller.",
+    "default_disposition": "Completed true2fc35-frame default native0 with all3COMPLETE outputs literal3ab+80fd remains accepted by5db4 for unchanged bundle/client/args/config. Current completed2fc/retained3ab/accepted80fd copies were checked against each declared size/SHA and direct complete bytes. No default replay or new ordinary baseline is needed or authorized.",
+    "failure_preservation": "Earlier bootFAIL and56dFAIL at reported frame1497 remain failed/incomplete with B absent. Corrected full-EOF codec evidence does not relabel those actuals. This new root is a separately identified fresh attempt after a reviewed diagnostic fix, not a restart of an old process/root."
+  },
+  "decision": {
+    "status": "CONDITIONAL_EXACT_HEALTHY_THEN_GATED_B_LAUNCH_CLEARANCE",
+    "native_controller_launch_clearance": true,
+    "native_launch_clearance": true,
+    "retained_build_and_default_reuse_accepted_at_prior_scope": true,
+    "native_acceptance": false,
+    "natural_moving_accepted": false,
+    "physical_cutover_clearance": false,
+    "loader_removal_clearance": false,
+    "GenericNativeAcceptance1_closed": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "authorized_exact_sequence": [
+    "Only planba827b63/controller69ae and artifact_hashes above; full immutable97 bundle/source2fc and separate b502 literals. Preserve actual process PID/birth/argv/cwd/status/raw event/report hashes and pre/post full inputs. Native failure must keep post-input evidence and block later cases; no automatic retry.",
+    "Fresh healthy FIRST at unchanged Lebanon seed1/100ms/30s warmup+120s settle=1500frames. The first otherwise-eligible cohort locks exact fire/detach/weapon ordinal, launcher/target/weapon. Only a later eligible query of that SAME cohort in this window may qualify; no actor/window/seed/cohort fallback.",
+    "B root/copy/output/prepare/boot/provider remains forbidden unless complete healthy PASS is validated against exact artifacts, complete event semantics, model interval, selected host/store/moving tuple and full report hash. Healthy UNREACHED prevents B; a controller terminal0 labelled UNREACHED is not authority acceptance.",
+    "Before the one500m terrain-input lift/delegation require the actual already-observed earlier-frame common fire/detach/birth literals, same canonical registration and finite original base+lift<=ceiling. Final same-prefix/cohort and real host-position/moving-pose effects remain mandatory. No launch/view/readiness/flag/fire-policy forcing or scenario/baseline/tolerance change."
+  ],
+  "limitations": [
+    "This is exact launch permission only. It guarantees neither a complete corrected native run nor natural reach, a changed physical outcome or any native/full-parent acceptance; actual results require SAME independent review.",
+    "Default equality remains a measured35-frame scope, not1500-frame capture noninvasiveness/fullpack proof. Current exactb502 CI is separately monitored by Root; no all9-green or delivery waiver is inferred.",
+    "Both original immutable fullpacks and original jobs remain Root-owned and untouched; partial prefixes are not completed conformance. All ten D3 requirements, GenericNative1/blocks_cutover, D3G08 physical hierarchy/device responsibility, other consumers/lifetimes/FPU/DCS, whole height, final current40/all8/four inputs/census/current CI/formal review/normal merge/Task49/D3/delivery remain open as applicable.",
+    "Only this unique external JSON is written. No native/controller/input-tool/scanner/test/build/cache execution, source/Git mutation or nested agents by reviewer. No D4/D5/TypeScript or formal GitHub approval/merge."
+  ]
+}

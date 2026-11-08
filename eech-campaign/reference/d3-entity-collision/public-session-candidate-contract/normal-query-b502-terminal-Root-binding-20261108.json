@@ -1,0 +1,1104 @@
+{
+  "observed_utc": "2026-11-08T11:56:26.826824+00:00",
+  "reader_sha256": "e12deec92107dfd9268faaa1648cea9adbf95bd06775df67a680c13126bb747c",
+  "session": 37060,
+  "controller_PID": 20700,
+  "native_PID": 9036,
+  "controller_actual_exit": 1,
+  "native_actual_exit": 1,
+  "original_process_IDs_absent": true,
+  "completion_sha256": "cdad618e33df1a24ec8136e6d772a2d1c403dd8b27ccb19ed2d023ad76269771",
+  "plan_sha256": "ba827b639c43ffd55c638db635e678b9c6ce82be0fff3c441e29c676ebc72004",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "diagnostic_git": "b50203d48cb46be1dbe52e062b0516d0afa587e4",
+  "report_sha256": "7b0c8a558bb3a20b6b227d02047af4d36ce40266fe12eebafa0b2263a73dda8f",
+  "events_sha256": "1fd73aa2f08338eeeabbcb3500137f884ede4762522233e2284261f26b706898",
+  "raw_bytes": 110076923,
+  "reported_counts": {
+    "frames": "1500",
+    "fires": "297",
+    "births": "297",
+    "steps": "155296",
+    "queries": "26",
+    "model_calls": "19714996",
+    "moving": "0",
+    "failed": "1",
+    "changed": "0"
+  },
+  "reason": "[string \"D:\\EECH-Migration-Evidence\\normal-query-b50...\"]:120: attempt to call method 'close' (a nil value)",
+  "raw_consecutive_records": 319569,
+  "last_tick_ms": 149900,
+  "raw_kind_counts": {
+    "normal_fire": 297,
+    "normal_detach": 297,
+    "normal_birth": 297,
+    "normal_end": 297,
+    "normal_step": 155296,
+    "normal_step_end": 155296,
+    "normal_query": 26,
+    "normal_model": 7737,
+    "normal_query_end": 26
+  },
+  "raw_query_selectors": {
+    "0": 2,
+    "-1": 24
+  },
+  "raw_model_ops": {
+    "17": 5006,
+    "16": 2699,
+    "18": 28,
+    "15": 4
+  },
+  "query_contexts_without_coordinates": [
+    {
+      "query": {
+        "seq": "308538",
+        "tick": "147600",
+        "step": "153677",
+        "query": "1",
+        "w": "234",
+        "which": "0",
+        "before": "19394116"
+      },
+      "birth": {
+        "fire": "234",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "93700"
+      },
+      "step": {
+        "w": "234",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "234",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 253,
+        "16": 241,
+        "18": 9,
+        "15": 1
+      },
+      "birth_target_equals_step_target": true,
+      "birth_target_equals_end_target": true
+    },
+    {
+      "query": {
+        "seq": "311570",
+        "tick": "149400",
+        "step": "154940",
+        "query": "2",
+        "w": "237",
+        "which": "0",
+        "before": "19629358"
+      },
+      "birth": {
+        "fire": "237",
+        "launcher": "eech-world:2971",
+        "target": "eech-world:3395",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "95700"
+      },
+      "step": {
+        "w": "237",
+        "launcher": "eech-world:2971",
+        "target": "eech-world:3395",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "237",
+        "launcher": "eech-world:2971",
+        "target": "eech-world:3395",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 255,
+        "16": 245,
+        "18": 11,
+        "15": 3
+      },
+      "birth_target_equals_step_target": true,
+      "birth_target_equals_end_target": true
+    },
+    {
+      "query": {
+        "seq": "312274",
+        "tick": "149600",
+        "step": "155034",
+        "query": "3",
+        "w": "291",
+        "which": "-1",
+        "before": "19656071"
+      },
+      "birth": {
+        "fire": "291",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "141500"
+      },
+      "step": {
+        "w": "291",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "291",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 25,
+        "16": 11
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "312334",
+        "tick": "149600",
+        "step": "155045",
+        "query": "4",
+        "w": "280",
+        "which": "-1",
+        "before": "19656128"
+      },
+      "birth": {
+        "fire": "280",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "131900"
+      },
+      "step": {
+        "w": "280",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "280",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 11,
+        "16": 4
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "312371",
+        "tick": "149600",
+        "step": "155055",
+        "query": "5",
+        "w": "268",
+        "which": "-1",
+        "before": "19656153"
+      },
+      "birth": {
+        "fire": "268",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "122300"
+      },
+      "step": {
+        "w": "268",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "268",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "312407",
+        "tick": "149600",
+        "step": "155057",
+        "query": "6",
+        "w": "266",
+        "which": "-1",
+        "before": "19656185"
+      },
+      "birth": {
+        "fire": "266",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "121800"
+      },
+      "step": {
+        "w": "266",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "266",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "312453",
+        "tick": "149600",
+        "step": "155064",
+        "query": "7",
+        "w": "256",
+        "which": "-1",
+        "before": "19656222"
+      },
+      "birth": {
+        "fire": "256",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "112900"
+      },
+      "step": {
+        "w": "256",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "256",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 73,
+        "16": 35
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "312579",
+        "tick": "149600",
+        "step": "155072",
+        "query": "8",
+        "w": "246",
+        "which": "-1",
+        "before": "19656338"
+      },
+      "birth": {
+        "fire": "246",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "103300"
+      },
+      "step": {
+        "w": "246",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "246",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 975,
+        "16": 486,
+        "18": 2
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "314104",
+        "tick": "149700",
+        "step": "155102",
+        "query": "9",
+        "w": "291",
+        "which": "-1",
+        "before": "19670872"
+      },
+      "birth": {
+        "fire": "291",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "141500"
+      },
+      "step": {
+        "w": "291",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "291",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 23,
+        "16": 10
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "314161",
+        "tick": "149700",
+        "step": "155113",
+        "query": "10",
+        "w": "280",
+        "which": "-1",
+        "before": "19670939"
+      },
+      "birth": {
+        "fire": "280",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "131900"
+      },
+      "step": {
+        "w": "280",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "280",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 11,
+        "16": 4
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "314198",
+        "tick": "149700",
+        "step": "155123",
+        "query": "11",
+        "w": "268",
+        "which": "-1",
+        "before": "19670964"
+      },
+      "birth": {
+        "fire": "268",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "122300"
+      },
+      "step": {
+        "w": "268",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "268",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "314234",
+        "tick": "149700",
+        "step": "155125",
+        "query": "12",
+        "w": "266",
+        "which": "-1",
+        "before": "19670996"
+      },
+      "birth": {
+        "fire": "266",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "121800"
+      },
+      "step": {
+        "w": "266",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "266",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "314280",
+        "tick": "149700",
+        "step": "155132",
+        "query": "13",
+        "w": "256",
+        "which": "-1",
+        "before": "19671033"
+      },
+      "birth": {
+        "fire": "256",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "112900"
+      },
+      "step": {
+        "w": "256",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "256",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 73,
+        "16": 35
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "314406",
+        "tick": "149700",
+        "step": "155140",
+        "query": "14",
+        "w": "246",
+        "which": "-1",
+        "before": "19671149"
+      },
+      "birth": {
+        "fire": "246",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "103300"
+      },
+      "step": {
+        "w": "246",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "246",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 975,
+        "16": 486,
+        "18": 2
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "315933",
+        "tick": "149800",
+        "step": "155169",
+        "query": "15",
+        "w": "291",
+        "which": "-1",
+        "before": "19685599"
+      },
+      "birth": {
+        "fire": "291",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "141500"
+      },
+      "step": {
+        "w": "291",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "291",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 23,
+        "16": 10
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "315990",
+        "tick": "149800",
+        "step": "155180",
+        "query": "16",
+        "w": "280",
+        "which": "-1",
+        "before": "19685659"
+      },
+      "birth": {
+        "fire": "280",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "131900"
+      },
+      "step": {
+        "w": "280",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "280",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 11,
+        "16": 4
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "316027",
+        "tick": "149800",
+        "step": "155190",
+        "query": "17",
+        "w": "268",
+        "which": "-1",
+        "before": "19685685"
+      },
+      "birth": {
+        "fire": "268",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "122300"
+      },
+      "step": {
+        "w": "268",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "268",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "316063",
+        "tick": "149800",
+        "step": "155192",
+        "query": "18",
+        "w": "266",
+        "which": "-1",
+        "before": "19685719"
+      },
+      "birth": {
+        "fire": "266",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "121800"
+      },
+      "step": {
+        "w": "266",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "266",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "316109",
+        "tick": "149800",
+        "step": "155199",
+        "query": "19",
+        "w": "256",
+        "which": "-1",
+        "before": "19685756"
+      },
+      "birth": {
+        "fire": "256",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "112900"
+      },
+      "step": {
+        "w": "256",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "256",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 73,
+        "16": 35
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "316235",
+        "tick": "149800",
+        "step": "155207",
+        "query": "20",
+        "w": "246",
+        "which": "-1",
+        "before": "19685872"
+      },
+      "birth": {
+        "fire": "246",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "103300"
+      },
+      "step": {
+        "w": "246",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "246",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 975,
+        "16": 486,
+        "18": 2
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "317758",
+        "tick": "149900",
+        "step": "155236",
+        "query": "21",
+        "w": "291",
+        "which": "-1",
+        "before": "19700306"
+      },
+      "birth": {
+        "fire": "291",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "141500"
+      },
+      "step": {
+        "w": "291",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "291",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 23,
+        "16": 10
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "317815",
+        "tick": "149900",
+        "step": "155247",
+        "query": "22",
+        "w": "280",
+        "which": "-1",
+        "before": "19700368"
+      },
+      "birth": {
+        "fire": "280",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "131900"
+      },
+      "step": {
+        "w": "280",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "280",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 11,
+        "16": 4
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "317852",
+        "tick": "149900",
+        "step": "155257",
+        "query": "23",
+        "w": "268",
+        "which": "-1",
+        "before": "19700393"
+      },
+      "birth": {
+        "fire": "268",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "122300"
+      },
+      "step": {
+        "w": "268",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "268",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "317888",
+        "tick": "149900",
+        "step": "155259",
+        "query": "24",
+        "w": "266",
+        "which": "-1",
+        "before": "19700425"
+      },
+      "birth": {
+        "fire": "266",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "121800"
+      },
+      "step": {
+        "w": "266",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "266",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "317934",
+        "tick": "149900",
+        "step": "155266",
+        "query": "25",
+        "w": "256",
+        "which": "-1",
+        "before": "19700462"
+      },
+      "birth": {
+        "fire": "256",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "112900"
+      },
+      "step": {
+        "w": "256",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "256",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 73,
+        "16": 35
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    },
+    {
+      "query": {
+        "seq": "318060",
+        "tick": "149900",
+        "step": "155274",
+        "query": "26",
+        "w": "246",
+        "which": "-1",
+        "before": "19700578"
+      },
+      "birth": {
+        "fire": "246",
+        "launcher": "eech-world:2972",
+        "target": "eech-world:3397",
+        "weapon": "13",
+        "matched": "1",
+        "tick": "103300"
+      },
+      "step": {
+        "w": "246",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "step_end": {
+        "w": "246",
+        "launcher": "eech-world:2972",
+        "target": "none",
+        "weapon": "13",
+        "code": "0"
+      },
+      "model_ops": {
+        "17": 975,
+        "16": 486,
+        "18": 2
+      },
+      "birth_target_equals_step_target": false,
+      "birth_target_equals_end_target": false
+    }
+  ],
+  "final_input_audits": [
+    {
+      "path": "D:\\EECH-Migration-Evidence\\normal-query-capture-b502-20261108-runs\\01-healthy\\pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "files": 1179
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\normal-query-capture-b502-20261108-runs\\01-healthy\\post-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "files": 1179
+    }
+  ],
+  "payloads_unchanged": 97,
+  "artifacts_unchanged": {
+    "driver": "73b3d2cc847f3274a28067ca79338fa47db50e7fc9181cbc10f21f9c761913aa",
+    "collector": "0381bd8a3725bae9d35fa3f3148a24c692548fadc961c2a94abdf10a3a354ddf",
+    "transaction": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "contract": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+    "controller": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+    "validator": "0905ff4b12b6c851f60379e7dde57089cad1fadf85b1c337438b88ebdfd7b6c1",
+    "common": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "common_validator": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "input_tool": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+    "input_reference": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4"
+  },
+  "B_prepared": false,
+  "B_launched": false,
+  "scope": "Terminal FAILED1500-frame attempt due invented public close method, NOT accepted UNREACHED/native authority/physical cutover/all10/D3. Zero eligible witnesses before finalization does not imply no real moving actors. Raw source contexts/counters only; Host request/reply/motion facts were not persisted for ineligible queries and cannot be invented. Coordinates/poses omitted. No native/default/build/scanner replay; existing source/launch/default scopes preserved."
+}

@@ -1,0 +1,21 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.17s
+     Running tests/normal_fire_session.rs (/target/t/debug/deps/normal_fire_session-1904c73208ef1b9a)
+
+thread 'normal_session_validates_the_whole_reference_before_effects_and_failure_precedes_unreached' (126) panicked at crates/eech-world/tests/normal_fire_session.rs:46:5:
+exit status: 1
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+Error: RuntimeError("[string \"/tmp/eech-normal-session-codec-125/transpor...\"]:278: assertion failed!\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-normal-session-codec-125/transpor...\"]:278: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-world --test normal_fire_session`

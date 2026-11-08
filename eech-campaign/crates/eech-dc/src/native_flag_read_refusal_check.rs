@@ -10,6 +10,46 @@ mod model_root;
 const DRIVER: &str = include_str!("../../eech-world/lua/physical-flags-read-witness.lua");
 const PROTOCOL: &str = include_str!("../../eech-world/lua/physical-flags-read-transaction.lua");
 
+// Actual mlua registration of the production userdata, without constructing an
+// Engine, booting C, changing globals or copying its method list into a mock.
+#[test]
+fn public_normal_session_driver_consumes_only_registered_userdata_methods() -> Result<(), Box<dyn std::error::Error>> {
+    let lua = Lua::new();
+    lua.globals().set("SESSION_PROXY", lua.create_proxy::<LuaEngine>()?)?;
+    lua.load("assert(type(SESSION_PROXY.frame)=='function' and type(SESSION_PROXY.clock)=='function')")
+        .exec()?;
+    for (mode, tag) in [
+        (MovementMode::Move, "move"),
+        (MovementMode::Stop, "stop"),
+        (MovementMode::ShipMove, "ship_move"),
+        (MovementMode::PersonBegin, "person_begin"),
+        (MovementMode::FixedWingMove, "fixed_wing_move"),
+        (MovementMode::HelicopterBegin, "helicopter_begin"),
+    ] {
+        let value: String = lua.from_value(lua.to_value_with(&mode, options())?)?;
+        assert_eq!(value, tag);
+    }
+    let driver = include_str!("../../eech-world/lua/normal-fire-session.lua");
+    let mut methods = std::collections::BTreeSet::new();
+    for (_, tail) in driver.match_indices("engine:").map(|(i, _)| (i, &driver[i + 7..])) {
+        let method: String = tail.chars().take_while(|c| c.is_ascii_lowercase() || *c == '_').collect();
+        if !method.is_empty() {
+            methods.insert(method);
+        }
+    }
+    assert!(methods.contains("frame") && methods.contains("clock") && methods.contains("wpn_events"));
+    for method in &methods {
+        let present: bool = lua.load(format!("return type(SESSION_PROXY.{method})=='function'")).eval()?;
+        assert!(present, "driver consumes an absent actual public userdata method: {method}");
+    }
+    for method in ["close", "stop", "finish", "shutdown"] {
+        let absent: bool = lua.load(format!("return SESSION_PROXY.{method}==nil")).eval()?;
+        assert!(absent, "public lifetime changed: {method}");
+    }
+    assert_eq!(methods.len(), 3);
+    Ok(())
+}
+
 #[test]
 fn nr602_real_delegated_refusal_preserves_the_public_converter_domain_and_reason() -> Result<(), Box<dyn std::error::Error>> {
     // Positive FIRST, then only result/reason changed, then the real canonical

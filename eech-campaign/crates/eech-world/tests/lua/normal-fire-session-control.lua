@@ -80,23 +80,22 @@ local function damage(triple)
  local r=K.parse(text);local event=K.unhex(r.evidence[triple[1]])
  local changed,n=event:gsub(triple[2]..'=[^%s]+',triple[2]..'='..triple[3],1);assert(n==1)
  r.evidence[triple[1]]=T.hex(changed);local rows={}
- for _,kind in ipairs({'identity','counts','selection','evidence','verdict'}) do rows[#rows+1]=K.row(kind,r[kind]) end
+ for _,kind in ipairs({'identity','counts','accounting','selection','evidence','verdict'}) do rows[#rows+1]=K.row(kind,r[kind]) end
  return table.concat(rows,'\n')..'\n'
 end
 for _,triple in ipairs(faults) do assert(not pcall(function()K.healthy(K.parse(damage(triple)),{},T)end)) end
 for _,pair in ipairs({{'target=eech%-world:2','target=eech-world:3'},{'carry=13','carry=14'},{'failed=0','failed=1'},{'frames=1500','frames=1499'},{'position=10,100,20','position=11,100,20'}}) do
  local bad,n=text:gsub(pair[1],pair[2],1);assert(n==1 and not pcall(function()K.healthy(K.parse(bad),{},T)end))
 end
-local calls={prepare=0,boot=0,frame=0,close=0,output=0};local fatal=false
+local calls={prepare=0,boot=0,frame=0,clock=0,events=0,output=0};local fatal=false
 package.preload.eech_dc=function()return {
  prepare_installation=function()calls.prepare=calls.prepare+1 end,
  boot=function(options)
   calls.boot=calls.boot+1;local count=0
   assert(type(options.aim)=='function' and type(options.model)=='function' and type(options.move_vehicle)=='function')
   return {frame=function(_,ms)assert(ms==100);count=count+1;calls.frame=count;if fatal and count==10 then error('unrelated native stand-in failure')end end,
-   clock=function()return {elapsed_seconds=count/10}end,
-   wpn_events=function()return ''end,
-   close=function()calls.close=calls.close+1 end}
+   clock=function()calls.clock=calls.clock+1;return {elapsed_seconds=count/10}end,
+   wpn_events=function()calls.events=calls.events+1;return ''end}
  end}end
 local create=host.create_exclusive;host.create_exclusive=function()calls.output=calls.output+1;error('output touched')end
 local function args(mode,out,reference)
@@ -150,42 +149,52 @@ host.terrain_provider=function()return function()error('unused terrain')end end
 host.env_provider=function()return function()error('unused environment')end end
 host.args=args('healthy','/empty.txt')
 assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
-assert(calls.frame==1500 and calls.close==1)
+assert(calls.frame==1500 and calls.clock==1501 and calls.events==1501)
 local e=assert(io.open(root..'/empty.txt','rb'));local r=K.parse(e:read('*a'));e:close()
 assert(r.verdict.status=='UNREACHED' and r.counts.failed=='0' and r.counts.changed=='0')
-fatal=true;calls.close=0;calls.frame=0;host.args=args('healthy','/failed.txt')
+fatal=true;calls.clock=0;calls.events=0;calls.frame=0;host.args=args('healthy','/failed.txt')
 assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
-assert(calls.frame==10 and calls.close==0)
+assert(calls.frame==10 and calls.clock==10 and calls.events==10) -- no native getter after failed frame
 local e=assert(io.open(root..'/failed.txt','rb'));local r=K.parse(e:read('*a'));e:close()
 assert(r.verdict.status=='FAIL' and r.counts.failed=='1')
 -- Coherent whole-driver transport positive then B. This stand-in delivers the
 -- explicitly SYNTHETIC codec stream, not a real normal campaign firing claim.
 local baseline=K.parse(text);local unregistered=false;local same_live=false;local other_live=false;local no_later=false;local prefix_fault;local reset_fault
-local boot_extra=0;local boot_query=false
+local boot_extra=0;local boot_query=false;local candidate_variant=false;local transport_flag_key='f1';local candidate_bad;local alternate_candidate=false;local transport_frame=0
+local wrong_move_identity=false
+local function candidate_id()return candidate_variant and ((alternate_candidate and transport_frame>=303) and 'eech-world:4' or 'eech-world:3') or 'eech-world:2'end
 local options,binds,candidate_calls,y,lift_calls,move_calls
+local shared_position
 local function patterns(row)return table.concat(row,',')end
 local function flag_request(phase,lane)
  local w={};for i=1,16 do w[i]=Z end
  w[12]=phase==19 and '0x41980000' or '0x41a80000'
  if phase==19 then w[1]=O else w[14]=O end
- return patterns(w)..(phase==21 and ' f1' or '')
+ return patterns(w)..(phase==21 and ' '..transport_flag_key or '')
 end
 local function candidate_key(carried,placed)
  local w=K.patterns(baseline.selection.request,44);w[15]=y==100 and '0x42c80000' or '0x44160000'
+ if candidate_bad=='stationary' then w[17]=Z;w[18]=Z;w[19]=Z end
  if carried then w[21]=O end
  if placed then w[44]=O;w[28]=O;w[32]=O;w[36]=O end
- return patterns(w)..' eech-world:2'
+ return patterns(w)..' '..(candidate_bad=='identity' and 'eech-world:9' or candidate_id())
 end
 host.bind_mobile=function()binds=binds+1;return 'eech-world:'..binds end
 host.move_vehicle=function(step)
  move_calls=move_calls+1
- assert(step.host_id=='eech-world:2' and step.mode=='move');y=step.terrain.elevation
- if y==600 then lift_calls=lift_calls+1 else assert(y==100) end
- return {position={10,y,20},motion_vector={2,0,0}}
+ assert(step.host_id==candidate_id() and step.mode==(candidate_bad=='ship' and 'ship_move' or 'move'));y=step.terrain.elevation
+ if y==600 then lift_calls=lift_calls+1 else assert(y==100 or (candidate_bad=='overwrite' and y==200)) end
+ local position={10,y,20};if candidate_bad=='overwrite' then shared_position[1]=10;shared_position[2]=y;shared_position[3]=20;position=shared_position end
+ return {position=position,motion_vector=candidate_bad=='stationary' and {0,0,0} or {2,0,0}}
 end
 host.model=function(op,scene,depth,kind,definition,key)
  if op=='scene' then return {name='fixture-scene1'} end
  if op=='entity_scan' then
+  if candidate_variant then
+   local a=real_model(op,scene,depth,kind,definition,key);if a.result=='flag_group' then transport_flag_key=a.name end
+   if candidate_bad=='read' and a.result=='flag_read' then local p=K.patterns(a.p,3);p[3]='0x00000002';a.p=patterns(p) end
+   return a
+  end
   if key:find(K.whole(22),1,true) then return {result='flag_reset',p=(reset_fault=='array' and O or Z)..','..(reset_fault=='count' and Z or O)..','..Z} end
   if candidate_calls==0 then return {result='flag_group',name='f1',p=(reset_fault=='eligibility' and Z or O)..','..Z..','..Z} end
   return {result='flag_read',p=Z..','..O..','..Z}
@@ -193,15 +202,16 @@ host.model=function(op,scene,depth,kind,definition,key)
  if op=='entity_candidate' then
   candidate_calls=candidate_calls+1
   if candidate_calls<3 then return {result=candidate_calls==1 and 'need_updated' or 'need_placement',name='fixture-scene1'} end
-  local p=K.patterns(baseline.selection.pose,16);if y==600 then p[2]='0x44160000';p[5]='0x44160000' end
+  local p=K.patterns(baseline.selection.pose,16);if y==600 then p[2]='0x44160000';p[5]='0x44160000' end;if candidate_bad=='pose' or candidate_bad=='stationary' then p[16]=Z end
   return {result='test',name='fixture-scene1',p=patterns(p)}
  end
  return {result='recorded'}
 end
 package.loaded.eech_dc=nil
 package.preload.eech_dc=function()return {prepare_installation=function()end,boot=function(o)
- options=o;binds=0;candidate_calls=0;y=100;lift_calls=0;move_calls=0
+ options=o;binds=0;candidate_calls=0;y=100;lift_calls=0;move_calls=0;transport_flag_key='f1';transport_frame=0;shared_position={10,100,20}
  o.bind_mobile({member_key=1,group_key=1});o.bind_mobile({member_key=2,group_key=1})
+ if candidate_variant then o.bind_mobile({member_key=candidate_bad=='registration' and 0 or 3,group_key=1});if alternate_candidate then o.bind_mobile({member_key=4,group_key=1}) end end
  o.model('scene',1);o.model('entity_scan',0,nil,nil,nil,flag_request(19))
  for _=1,8 do o.model('scene',1) end
  for _=1,boot_extra do o.model('scene',1) end -- synthetic Engine boot transport; provider delegates once per call
@@ -219,21 +229,29 @@ package.preload.eech_dc=function()return {prepare_installation=function()end,boo
   local e=baseline.evidence;local tail=K.unhex(e.step)..'\n'..K.unhex(e.query)..'\n'..K.unhex(e.models)..K.unhex(e.query_end)..'\n'..K.unhex(e.step_end)..'\n'
   if later then tail=tail:gsub('seq=(%d+)',function(n)return 'seq='..(tonumber(n)+9)end):gsub('step=1','step=2'):gsub('query=1','query=2'):gsub('before=10','before=15'):gsub('after=15','after=20'):gsub('call=(%d+)',function(n)return 'call='..(tonumber(n)+5)end):gsub('tick=30100','tick=30200') end
   if boot_extra>0 then tail=tail:gsub('before=(%d+)',function(n)return 'before='..(tonumber(n)+boot_extra)end):gsub('after=(%d+)',function(n)return 'after='..(tonumber(n)+boot_extra)end):gsub('call=(%d+)',function(n)return 'call='..(tonumber(n)+boot_extra)end) end
+  if candidate_variant then tail=tail:gsub('target=eech%-world:2','target=none'):gsub('which=0','which=-1') end
   return tail
  end
- return {clock=function()return {elapsed_seconds=count/10}end,close=function()end,
+ return {clock=function()return {elapsed_seconds=count/10}end,
  frame=function(_,ms)
-  assert(ms==100);count=count+1
+  assert(ms==100);count=count+1;transport_frame=count
   if count==301 and not same_live then pending=prefix(30000) end
   if count==302 or (same_live and not no_later and count==303) then
    candidate_calls=0
-   local step={host_id='eech-world:2',mode='move',terrain={elevation=100},map_max={4095,10000,4095}}
-   o.move_vehicle(step);assert(step.terrain.elevation==100,'caller input mutated')
+   local step={host_id=candidate_id(),mode=candidate_bad=='ship' and 'ship_move' or 'move',terrain={elevation=100},map_max={4095,10000,4095}}
+   if candidate_bad~='late_move' then o.move_vehicle(step);assert(step.terrain.elevation==100,'caller input mutated') end
+   if candidate_bad=='repeat' then
+    local again={host_id=wrong_move_identity and 'eech-world:4' or candidate_id(),mode='move',terrain={elevation=100},map_max={4095,10000,4095}}
+    o.move_vehicle(again);assert(again.terrain.elevation==100,'second caller input mutated')
+   end
    o.model('entity_candidate',1,nil,nil,nil,candidate_key(false,false))
    o.model('entity_scan',0,nil,nil,nil,flag_request(21))
    o.model('entity_candidate',1,nil,nil,nil,candidate_key(true,false))
    o.model('entity_pose',1)
    o.model('entity_candidate',1,nil,nil,nil,candidate_key(true,true))
+   if candidate_bad=='late_move' or candidate_bad=='overwrite' then
+    local late={host_id=candidate_id(),mode='move',terrain={elevation=candidate_bad=='overwrite' and 200 or 100},map_max={4095,10000,4095}};o.move_vehicle(late)
+   end
    pending=(same_live and count==302 and prefix(30100) or '')..query(count==303)
    if other_live and count==302 then
     local second=prefix(30100):gsub('seq=(%d+)',function(n)return 'seq='..(tonumber(n)+13)end):gsub('fire=1','fire=2'):gsub('detach=1','detach=2'):gsub(' w=1 ',' w=2 ')
@@ -254,6 +272,52 @@ assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/transport-B.txt','rb'));local b=K.parse(e:read('*a'));e:close()
 assert(K.validate(b,{},T) and b.counts.changed=='1' and lift_calls==1)
 assert(K.paired(b,K.parse(healthy)))
+candidate_variant=true;host.args=args('healthy','/scanned-other-candidate.txt')
+assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))),'normal query must admit its actual moving scanned candidate, separately from birth/current target')
+local e=assert(io.open(root..'/scanned-other-candidate.txt','rb'));local physical=K.parse(e:read('*a'));e:close()
+assert(K.healthy(physical,{},T) and physical.selection.target=='eech-world:3')
+assert(physical.selection.birth_target=='eech-world:2' and physical.selection.step_target=='none' and physical.selection.end_target=='none')
+host.args=args('terrain_lift','/scanned-other-candidate-B.txt',root..'/scanned-other-candidate.txt')
+assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
+local e=assert(io.open(root..'/scanned-other-candidate-B.txt','rb'));local candidate_B=K.parse(e:read('*a'));e:close()
+assert(K.validate(candidate_B,{},T) and K.paired(candidate_B,physical) and lift_calls==1)
+for _,fault in ipairs({'identity','registration','read','pose','stationary','ship','late_move'}) do
+ candidate_bad=fault;host.args=args('healthy','/candidate-'..fault..'.txt')
+ assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
+ local e=assert(io.open(root..'/candidate-'..fault..'.txt','rb'));local bad=K.parse(e:read('*a'));e:close()
+ assert(bad.counts.changed=='0' and bad.counts.moving=='0',fault..' status='..bad.verdict.status..' moving='..bad.counts.moving)
+ if fault=='identity' or fault=='stationary' or fault=='ship' or fault=='late_move' then
+  local expected={identity='10',stationary='14',ship='9',late_move='9'};assert(bad.verdict.status=='UNREACHED' and bad.accounting.first_code==expected[fault]);K.accounting(bad)
+  if fault=='ship' then assert(bad.accounting.first_mode=='4') end
+  if fault=='late_move' then assert(bad.accounting.first_mode=='0') end
+ else assert(bad.verdict.status=='FAIL' and bad.counts.failed=='1') end
+end
+for _,case in ipairs({'repeat','overwrite'}) do
+ candidate_bad=case;host.args=args('healthy','/move-'..case..'.txt')
+ assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
+ local e=assert(io.open(root..'/move-'..case..'.txt','rb'));local h=K.parse(e:read('*a'));e:close()
+ assert(K.healthy(h,{},T) and h.selection.move_call==(case=='repeat' and '2' or '1') and h.selection.position=='10,100,20')
+ host.args=args('terrain_lift','/move-'..case..'-B.txt',root..'/move-'..case..'.txt')
+ assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
+ local e=assert(io.open(root..'/move-'..case..'-B.txt','rb'));local b=K.parse(e:read('*a'));e:close()
+ assert(K.validate(b,{},T) and K.paired(b,h) and lift_calls==1 and move_calls==2)
+end
+for _,fault in ipairs({'late','identity'}) do
+ candidate_bad=fault=='late' and 'overwrite' or 'repeat';wrong_move_identity=fault=='identity'
+ host.args=args('terrain_lift','/wrong-move-'..fault..'.txt',root..'/move-repeat.txt')
+ assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
+ local e=assert(io.open(root..'/wrong-move-'..fault..'.txt','rb'));local b=K.parse(e:read('*a'));e:close()
+ assert(b.verdict.status=='FAIL' and b.counts.failed=='1' and b.counts.changed=='0' and lift_calls==0 and move_calls==1)
+ assert(K.unhex(b.verdict.reason):find('same actual movement callback before effect',1,true))
+end
+wrong_move_identity=false
+candidate_bad=nil;same_live=true;alternate_candidate=true;host.args=args('healthy','/locked-candidate-no-fallback.txt')
+assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
+local e=assert(io.open(root..'/locked-candidate-no-fallback.txt','rb'));local fixed=K.parse(e:read('*a'));e:close()
+assert(fixed.verdict.status=='UNREACHED' and fixed.counts.failed=='0' and fixed.counts.moving=='0')
+assert(K.accounting(fixed)[15]>0 and K.accounting(fixed)[20]>0)
+same_live=false;alternate_candidate=false
+candidate_variant=false
 boot_extra=100001;host.args=args('healthy','/long-boot-driver.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/long-boot-driver.txt','rb'));local long_driver=K.parse(e:read('*a'));e:close()
@@ -306,3 +370,5 @@ assert(u.verdict.status=='UNREACHED' and u.counts.failed=='0' and u.counts.birth
 print('normal_session_proof_gates=PASS semantic_faults=25 pre_effect_reference_faults=27 prefix_faults=4 same_cohort_later_healthy_B=2 no_later_and_other_cohort_UNREACHED=2 real_flag_store_calls='..#history..' flag_ACK_faults=3 ACK_failure_precedes_UNREACHED=3 retained_C_codec_births=1 synthetic_transport_healthy_B=2')
 print('boot_retention_controls=PASS real_provider_calls=200036 first_frame_and_next_frame_queries=2 partial_feed=1 drain_faults=2 wrong_op=1 alternating_overflow=1 retired_budget=1 driver_long_boot_healthy_B=2 boot_query_refused_before_frame1=1 continuation_surfaces=6')
 print('signed_query_selector=PASS domains=3 invalid_domains=7 real_provider_contexts=3 selected_cohort_gates_unchanged=1')
+print('public_session_contract=PASS phantom_close_removed=1 no_getter_after_failure=1 real_flags_scanned_candidate_healthy_B=2 separate_target_histories=1 candidate_registration_flag_pose_faults=4 stationary_and_other_mode_UNREACHED=2 locked_candidate_no_fallback=1 bounded_numeric_accounting=1')
+print('existing_move_causality=PASS late_move_UNREACHED=1 repeated_and_overwritten_healthy_B=4 wrong_late_or_identity_B_before_effect=2 actual_all_callback_ordinal=1 immutable_at_NEED=1')

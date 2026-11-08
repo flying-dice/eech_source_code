@@ -84,7 +84,7 @@ def preflight(path):
     return p, paths, base, roots, out, reference
 
 def expected(p, mode, reference='none'):
-    return dict(schema='1', mode=mode, capture=p['capture_prefix']+':'+mode, runtime=p['source_revision'], bundle=p['bundle_manifest_sha256'], reference=reference, **{k:p['hashes'][k] for k in LUA})
+    return dict(schema='2', mode=mode, capture=p['capture_prefix']+':'+mode, runtime=p['source_revision'], bundle=p['bundle_manifest_sha256'], reference=reference, **{k:p['hashes'][k] for k in LUA})
 
 def healthy_reference(path, digest, identity):
     check(sha(path) == digest, 'healthy report bytes changed')

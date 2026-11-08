@@ -15,6 +15,13 @@ def module(name):
 R=module('normal_fire_capture');C=module('normal_fire_capture_controller')
 
 def encoded(s):return 'h'+s.encode().hex()
+
+def sync_candidate(r):
+    s=r['selection'];equal=dict(call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',frame='frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose')
+    placed=s['reask'].split(',');placed[43]=placed[27]=placed[31]=placed[35]='0x3f800000'
+    row={k:('move' if k=='mode' else ','.join(placed) if k=='test_request' else s[equal[k]]) for k in R.CANDIDATE_FIELDS.split()}
+    r['evidence']['candidate']=encoded('normal-candidate '+' '.join(k+'='+row[k] for k in R.CANDIDATE_FIELDS.split()))
+    return r
 def emit(rows):return ''.join('normal-capture '+name+' '+' '.join(k+'='+str(row[k]) for k in R.SCHEMA[name].split())+'\n' for name,row in rows.items()).encode()
 def fixture():
     zero='0x00000000';one='0x3f800000';two='0x40000000';pose=','.join([zero]*3+[one,zero,zero,zero,one,zero,zero,zero,one])
@@ -33,11 +40,13 @@ def fixture():
     models='\n'.join(event('normal_model',7+i,step=1,w=1,query=1,call=11+i,op=op) for i,op in enumerate([16,17,16,18,16]))+'\n'
     end=event('normal_query_end',12,step=1,w=1,query=1,after=15,hit=0,hit_id='none')
     step_end=event('normal_step_end',13,step=1,w=1,pose=pose,motion=f'{zero},{zero},{one}',velocity='0x42480000',lifetime='0x4039999a',**common)
-    identity=dict(schema='1',mode='healthy',capture='fixture:healthy',runtime='b'*40,bundle='a'*64,driver='a'*64,collector='a'*64,transaction='a'*64,contract='a'*64,reference='none',profile='reference-hosted',scenario='lebanon_retail',seed='1',frame_ms='100',warmup='30',settle='120')
+    identity=dict(schema='2',mode='healthy',capture='fixture:healthy',runtime='b'*40,bundle='a'*64,driver='a'*64,collector='a'*64,transaction='a'*64,contract='a'*64,reference='none',profile='reference-hosted',scenario='lebanon_retail',seed='1',frame_ms='100',warmup='30',settle='120')
     counts=dict(frames='1500',fires='1',births='1',steps='1',queries='1',model_calls='15',moving='1',failed='0',changed='0')
-    selection={k:'1' for k in R.SCHEMA['selection'].split()};selection.update(frame='302',birth_frame='301',before='10',after='15',need='11',read='12',carry='13',test='15',launcher=common['launcher'],target=common['target'],weapon='70',scene='1',name=encoded('fixture-scene1'),member='2',group='1',bind='2',key='f1',lane='1',word=zero,fact=one,pose=moving,request=','.join(request),reask=','.join(carry),position='10,100,20',motion='2,0,0',base='100',ceiling='10000',previous='30.100000381469727',current='30.200000762939453')
+    selection={k:'1' for k in R.SCHEMA['selection'].split()};selection.update(frame='302',birth_frame='301',before='10',after='15',need='11',read='12',carry='13',test='15',launcher=common['launcher'],birth_target=common['target'],step_target=common['target'],end_target=common['target'],target=common['target'],move_call='1',move_before='10',move_after='10',weapon='70',scene='1',name=encoded('fixture-scene1'),member='2',group='1',bind='2',key='f1',lane='1',word=zero,fact=one,pose=moving,request=','.join(request),reask=','.join(carry),position='10,100,20',motion='2,0,0',base='100',ceiling='10000',previous='30.100000381469727',current='30.200000762939453')
     evidence={k:encoded(value) for k,value in dict(fire=fire,detach=detach,birth=birth,step=step,query=query,models=models,query_end=end,step_end=step_end).items()}
-    return dict(identity=identity,counts=counts,selection=selection,evidence=evidence,verdict=dict(status='PASS',reason=encoded('healthy normal cohort')))
+    outcomes=['0']*21;outcomes[20]='1'
+    account=dict(processed='1',decisions='1',outcomes=','.join(outcomes),first_query='1',first_code='21',first_frame='302',first_selector='0',first_models='5',first_candidates='3',first_need='1',first_reads='1',first_reasks='1',first_tests='1',first_mode='1',first_registered='1',first_type='0')
+    return sync_candidate(dict(identity=identity,counts=counts,accounting=account,selection=selection,evidence=evidence,verdict=dict(status='PASS',reason=encoded('healthy normal cohort'))))
 
 def damage_event(report,role,field,value):
     bad=copy.deepcopy(report);text=R.unhex(bad['evidence'][role]);token=next(x for x in text.split() if x.startswith(field+'='))
@@ -55,6 +64,30 @@ SEMANTIC_FAULTS=[
 ]
 
 class Controls(unittest.TestCase):
+    def test_scanned_candidate_is_distinct_from_immutable_target_history(self):
+        f=fixture();R.validate(emit(f),f['identity'])
+        f['selection'].update(target='eech-world:3',member='3',bind='3',step_target='none',end_target='none')
+        for role in ('step','step_end'):f=damage_event(f,role,'target','none')
+        f=damage_event(f,'query','which','-1');f['accounting']['first_selector']='-1'
+        sync_candidate(f);R.validate(emit(f),f['identity'])
+        self.assertEqual(f['selection']['birth_target'],'eech-world:2')
+        for key,value in [('target','eech-world:4'),('birth_target','none'),('step_target','eech-world:2'),('member','4'),('bind','4')]:
+            bad=copy.deepcopy(f);bad['selection'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):R.validate(emit(bad),f['identity'])
+
+    def test_rejection_accounting_is_bounded_and_cannot_credit_a_missing_witness(self):
+        f=fixture();R.validate(emit(f),f['identity'])
+        for key,value in [('processed','2'),('first_code','0'),('first_tests','2'),('first_mode','11'),('first_registered','2'),('first_selector','2'),('outcomes',','.join(['0']*21))]:
+            bad=copy.deepcopy(f);bad['accounting'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):R.validate(emit(bad),f['identity'])
+        under=copy.deepcopy(f);under.pop('selection');under.pop('evidence');under['counts']['moving']='0'
+        under['verdict'].update(status='UNREACHED',reason=encoded('no eligible normal moving cohort'))
+        outcomes=['0']*21;outcomes[13]='1';under['accounting'].update(outcomes=','.join(outcomes),first_code='14',first_need='0',first_reads='0',first_reasks='0',first_tests='0')
+        R.validate(emit(under),under['identity'])
+        with tempfile.TemporaryDirectory(prefix='normal-accounting-unreached-') as d:
+            p=Path(d)/'under.txt';p.write_bytes(emit(under))
+            with self.assertRaises(ValueError):C.healthy_reference(p,C.sha(p),under['identity'])
+
     def test_query_selector_exact_signed_source_domain(self):
         f=fixture();text=R.unhex(f['evidence']['query'])
         for which in ('0','1','-1'):
@@ -66,13 +99,13 @@ class Controls(unittest.TestCase):
     def test_boot_ordinals_are_global_not_a_per_frame_call_limit(self):
         f=fixture();R.validate(emit(f),f['identity'])
         offset=100001;f['counts']['model_calls']=str(int(f['counts']['model_calls'])+offset)
-        for key in ('before','after','need','read','carry','test'):
+        for key in ('before','after','need','read','carry','test','move_before','move_after'):
             f['selection'][key]=str(int(f['selection'][key])+offset)
         for role,field in [('query','before'),('models','call'),('query_end','after')]:
             text=R.unhex(f['evidence'][role])
             text=re.sub(r'\b'+field+r'=(\d+)',lambda m:field+'='+str(int(m[1])+offset),text)
             f['evidence'][role]=encoded(text)
-        raw=emit(f);R.validate(raw,f['identity'])
+        sync_candidate(f);raw=emit(f);R.validate(raw,f['identity'])
         with tempfile.TemporaryDirectory(prefix='normal-boot-ordinal-') as d:
             p=Path(d)/'synthetic.txt';p.write_bytes(raw);C.healthy_reference(p,C.sha(p),f['identity'])
 
@@ -98,7 +131,7 @@ class Controls(unittest.TestCase):
         for key in ('request','reask'):
             w=s[key].split(',');w[14]='0x44160000';s[key]=','.join(w)
         w=s['pose'].split(',');w[1]=w[4]='0x44160000';s['pose']=','.join(w)
-        R.validate(emit(b),b['identity'],healthy)
+        sync_candidate(b);R.validate(emit(b),b['identity'],healthy)
         changed=damage_event(b,'birth','pose','0x3f800000,'+R.unhex(b['evidence']['birth']).split('pose=')[1].split(', ',1)[0].split(',',1)[1])
         with self.assertRaisesRegex(ValueError,'paired common prefix'):R.validate(emit(changed),b['identity'],healthy)
 
@@ -129,6 +162,7 @@ class Controls(unittest.TestCase):
 
     def test_unreached_is_not_healthy_and_failure_precedes_it(self):
         f=fixture();f.pop('selection');f.pop('evidence');f['counts'].update(fires='0',births='0',steps='0',queries='0',moving='0');f['verdict']=dict(status='UNREACHED',reason=encoded('no eligible normal moving cohort'))
+        f['accounting']={k:('0,'*20+'0' if k=='outcomes' else '0') for k in R.SCHEMA['accounting'].split()}
         self.assertEqual(R.validate(emit(f),f['identity'])['verdict']['status'],'UNREACHED')
         f['counts']['failed']='1'
         with self.assertRaises(ValueError):R.validate(emit(f),f['identity'])
@@ -149,7 +183,7 @@ class Controls(unittest.TestCase):
         for k in ('request','reask'):
             w=s[k].split(',');w[14]='0x44160000';s[k]=','.join(w)
         w=s['pose'].split(',');w[1]=w[4]='0x44160000';s['pose']=','.join(w)
-        R.validate(emit(b),b['identity'],healthy)
+        sync_candidate(b);R.validate(emit(b),b['identity'],healthy)
         with self.assertRaises(ValueError):R.validate(emit(b),b['identity'])
         bad=copy.deepcopy(b);bad['selection']['bind']='3'
         with self.assertRaises(ValueError):R.validate(emit(bad),b['identity'],healthy)

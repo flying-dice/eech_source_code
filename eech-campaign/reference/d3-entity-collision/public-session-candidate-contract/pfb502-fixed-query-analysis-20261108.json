@@ -1,0 +1,373 @@
+{
+  "utc": "2026-11-08T12:22:26.575816+00:00",
+  "raw": {
+    "path": "D:\\EECH-Migration-Evidence\\normal-query-capture-b502-20261108-runs\\01-healthy\\capture.txt.events",
+    "bytes": 110076923,
+    "sha256": "1fd73aa2f08338eeeabbcb3500137f884ede4762522233e2284261f26b706898"
+  },
+  "complete_EOF": true,
+  "consecutive_NF_records": 319569,
+  "last_tick_ms": 149900,
+  "fixed_queries": 26,
+  "old_stronger_predicate_counts": {
+    "live_host_motion_and_candidate_answers_missing": 2,
+    "old_same_birth_target_predicate": 24
+  },
+  "model_ops": {
+    "17": 5006,
+    "16": 2699,
+    "18": 28,
+    "15": 4
+  },
+  "safe_query_facts": [
+    {
+      "query": 1,
+      "selector": 0,
+      "tick": 147600,
+      "old_predicate_result": "live_host_motion_and_candidate_answers_missing",
+      "step_target_none": false,
+      "end_target_none": false,
+      "hit": 0,
+      "model_ops": {
+        "17": 253,
+        "16": 241,
+        "18": 9,
+        "15": 1
+      }
+    },
+    {
+      "query": 2,
+      "selector": 0,
+      "tick": 149400,
+      "old_predicate_result": "live_host_motion_and_candidate_answers_missing",
+      "step_target_none": false,
+      "end_target_none": false,
+      "hit": 0,
+      "model_ops": {
+        "17": 255,
+        "16": 245,
+        "18": 11,
+        "15": 3
+      }
+    },
+    {
+      "query": 3,
+      "selector": -1,
+      "tick": 149600,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 25,
+        "16": 11
+      }
+    },
+    {
+      "query": 4,
+      "selector": -1,
+      "tick": 149600,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 11,
+        "16": 4
+      }
+    },
+    {
+      "query": 5,
+      "selector": -1,
+      "tick": 149600,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      }
+    },
+    {
+      "query": 6,
+      "selector": -1,
+      "tick": 149600,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      }
+    },
+    {
+      "query": 7,
+      "selector": -1,
+      "tick": 149600,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 73,
+        "16": 35
+      }
+    },
+    {
+      "query": 8,
+      "selector": -1,
+      "tick": 149600,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 975,
+        "16": 486,
+        "18": 2
+      }
+    },
+    {
+      "query": 9,
+      "selector": -1,
+      "tick": 149700,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 23,
+        "16": 10
+      }
+    },
+    {
+      "query": 10,
+      "selector": -1,
+      "tick": 149700,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 11,
+        "16": 4
+      }
+    },
+    {
+      "query": 11,
+      "selector": -1,
+      "tick": 149700,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      }
+    },
+    {
+      "query": 12,
+      "selector": -1,
+      "tick": 149700,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      }
+    },
+    {
+      "query": 13,
+      "selector": -1,
+      "tick": 149700,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 73,
+        "16": 35
+      }
+    },
+    {
+      "query": 14,
+      "selector": -1,
+      "tick": 149700,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 975,
+        "16": 486,
+        "18": 2
+      }
+    },
+    {
+      "query": 15,
+      "selector": -1,
+      "tick": 149800,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 23,
+        "16": 10
+      }
+    },
+    {
+      "query": 16,
+      "selector": -1,
+      "tick": 149800,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 11,
+        "16": 4
+      }
+    },
+    {
+      "query": 17,
+      "selector": -1,
+      "tick": 149800,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      }
+    },
+    {
+      "query": 18,
+      "selector": -1,
+      "tick": 149800,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      }
+    },
+    {
+      "query": 19,
+      "selector": -1,
+      "tick": 149800,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 73,
+        "16": 35
+      }
+    },
+    {
+      "query": 20,
+      "selector": -1,
+      "tick": 149800,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 975,
+        "16": 486,
+        "18": 2
+      }
+    },
+    {
+      "query": 21,
+      "selector": -1,
+      "tick": 149900,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 23,
+        "16": 10
+      }
+    },
+    {
+      "query": 22,
+      "selector": -1,
+      "tick": 149900,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 11,
+        "16": 4
+      }
+    },
+    {
+      "query": 23,
+      "selector": -1,
+      "tick": 149900,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      }
+    },
+    {
+      "query": 24,
+      "selector": -1,
+      "tick": 149900,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 21,
+        "16": 9
+      }
+    },
+    {
+      "query": 25,
+      "selector": -1,
+      "tick": 149900,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 73,
+        "16": 35
+      }
+    },
+    {
+      "query": 26,
+      "selector": -1,
+      "tick": 149900,
+      "old_predicate_result": "old_same_birth_target_predicate",
+      "step_target_none": true,
+      "end_target_none": true,
+      "hit": 0,
+      "model_ops": {
+        "17": 975,
+        "16": 486,
+        "18": 2
+      }
+    }
+  ],
+  "new_contract_missing_fact": "Actual registered moving routed candidate/NeedUpdated/READ/reask/TEST facts are absent from the retained C opcode stream for all26 queries; no inferred eligibility or new actor/window.",
+  "source_rationale": "wn_move scans get_line_of_sight_collision_entity(source,NULL,...), independent of birth/current target. Target already none at24 query step starts; raw lacks unlink cause. No source branch guessed.",
+  "scope": "Read-only existing26-record analysis, no native/default replay; old1500FAIL staysFAIL. No coordinates/poses/host identities published."
+}

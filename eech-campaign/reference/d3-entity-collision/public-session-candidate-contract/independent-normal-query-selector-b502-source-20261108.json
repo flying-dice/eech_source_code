@@ -1,0 +1,182 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T11:22:09.505324+00:00",
+  "reviewer": "SAME independent Task49 reviewer /root/d3_environment_review",
+  "scope": "ONE exact query-selector-domain correction, retained failed actual/EOF codec evidence and declared safe projections. Prior f0 boot-retention source,8a14 launch and retained compiled/default scopes reused unchanged; no source/kernel/proof replay.",
+  "source": {
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "before": "56d1b7e31c8e4c4b45ed41f45c0e984ce7bbe6d8",
+    "code_commit": "0518039fe5299d4313301edec2ccb0cc9aa87c64",
+    "metadata_HEAD": "b50203d48cb46be1dbe52e062b0516d0afa587e4",
+    "actual_HEAD_full_clean_observed": true,
+    "Root_clean_pushed_actual_service_FINAL": true,
+    "compiled_runtime_unchanged": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3"
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-NORMAL-QUERY-SELECTOR-FROZEN-20261108.json",
+      "bytes": 6427,
+      "sha256": "5e26035448d054ce959afc0209fcd4730813a1bb167921890cc245e7e03464c4"
+    },
+    {
+      "path": "R:/d3-evidence/nq56-publication-checkpoint-20261108.json",
+      "bytes": 17838,
+      "sha256": "474990d5f7fc0dc1c0eb69dd22260039f5762403f0328d5e8067fb0426d28361"
+    },
+    {
+      "path": "R:/d3-evidence/normal-query-selector-b502-Root-binding-20261108.json",
+      "bytes": 1920,
+      "sha256": "dda1631b1f698c4b7db9d71c4349d4beea12a03f06c0ff1a60ca70d92af07720"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-normal-query-selector-fix-20261108-completion.json",
+      "bytes": 990,
+      "sha256": "1e9fcfd76e01823d17c099fe9d1a35e33bcc4e40539bc780dbce32161c32c56b"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/normal-query-selector/normal-fire-56d1b-terminal-Root-binding-20261108-safe-projection.json",
+      "bytes": 4038,
+      "sha256": "66fe67f7bdc482c4f19c20cb7c9e30eedfd33f1b8f7ff101d3f0c28fdb57617f"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/normal-query-selector/normal-fire-56d1b-offline-event-domain-scan-20261108-safe-projection.json",
+      "bytes": 1558,
+      "sha256": "a6dcc6f8a7d426305730c8c3da0e4496ae378e1af48ee34ec8c67a5651f56407"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/normal-query-selector/nq56-retained-RED-20261108.json",
+      "bytes": 2295,
+      "sha256": "738d220fc3b871338045872a274f904eee8b4be6d36f22b4cc943a7a59510551"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/normal-query-selector/nq56-retained-GREEN-20261108.json",
+      "bytes": 1359,
+      "sha256": "012f83ef70ba6166333dce012fe47392572a75fa6432d1301fafb308c079644c"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+      "bytes": 17282,
+      "sha256": "0381bd8a3725bae9d35fa3f3148a24c692548fadc961c2a94abdf10a3a354ddf"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/normal_fire_capture.py",
+      "bytes": 13791,
+      "sha256": "0905ff4b12b6c851f60379e7dde57089cad1fadf85b1c337438b88ebdfd7b6c1"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-normal-query-selector.md",
+      "bytes": 3751,
+      "sha256": "004317cc47cb17836bf2eee97333da57a265c2089b620c3818c06b641d2f62f8"
+    }
+  ],
+  "findings": [],
+  "finding_disposition": {
+    "id": "ENV-NORMAL-FIRE-QUERY-SELECTOR-DOMAIN-1",
+    "disposition": "CLOSED_SOURCE",
+    "reason": "Both Lua semantic/contextual guards and independent Python now accept exactly canonical -1/0/1. Query-specific -0 is rejected. No global integer semantics, producer/consumer request ABI, selected-target/motion/model/flag/common-prefix gate or physical behavior changes."
+  },
+  "source_correctness": [
+    "wn_flight.c::wf_target_which returns-1 when has_target is false; its only target_which assignments initialize0 and set1 after acquiring the launcher target. The sole wf_q(WL_COLLISION,asked_which,...) producer passes that value directly to q.a. This establishes the exact source domain{-1,0,1}, not arbitrary signed integers or merely nonnegative integers.",
+    "wn_move.c::CAMPAIGN_STEP_LOOKUP_COLLISION forwards lookup->a unchanged into the new observer. weapon_step_target resolves0 to the original weapon target,1 to the acquired launcher target and none for-1. Collision queries without a current target are legitimate. Which=-1 is not evidence of a missing target-record defect and does not itself establish selected-cohort eligibility.",
+    "The Lua event parser adds only the explicit -0 spelling rejection and bounded integer range; contextual feed uses the same range after semantic validation. Python retains its canonical integer grammar and changes the bound to-1..1. Prior invalid fixture-1 is correctly replaced by-2; seven malformed/out-of-domain forms still fail.",
+    "The selected canonical birth/launcher/target/step/query identity, exact model interval, real host motion/UPDATED carry/moving TEST, semantic evidence/common-prefix and flag-oracle requirements are unchanged. The correction neither selects another actor nor widens bounds/seed/window."
+  ],
+  "affected_controls_and_retained_scan": {
+    "final_direct_commands": 5,
+    "final_direct_actual_exits": 0,
+    "original_final_outer_session": 40574,
+    "original_final_outer_actual_exit": 0,
+    "Rust_tests": 2,
+    "Python_tests": 10,
+    "valid_selector_domains": 3,
+    "invalid_selector_domains": 7,
+    "private_real_reference_provider_contexts": 3,
+    "control_qualification": "0/1/-1 positives pass the actual Lua parser and contextual collector with real-provider entries plus synthetic retained-C query framing. They are private codec controls, not three fresh retail encounters. All previous semantic/prefix/reset/boot-retention controls remain in the affected test.",
+    "failures_preserved": "Genuine old Lua RED101, intermediate textual-0 acceptance failure, old independent Python selected-codec RED1 and all raw inputs remain literal; no failure is promoted to physical success.",
+    "retained_raw_identity": {
+      "bytes": 109435851,
+      "sha256": "efafe1bced72210778b30c187a59f55d86235ee1b70f589c90169be6a6822cef"
+    },
+    "same_raw_full_EOF_RED_and_GREEN": true,
+    "total_lines": 315244,
+    "consecutive_normal_records": 314092,
+    "selected_codec_record_kinds_count": 313796,
+    "excluded_normal_end_count": 296,
+    "old_domain_faults": 6,
+    "corrected_codec_faults": 0,
+    "retained_selectors": {
+      "0": 2,
+      "-1": 6
+    },
+    "scan_limit": "Retained full-EOF selected-event semantic validation; not a replay of N.feed/global provider-order context and not a native continuation. normal_end records are intentionally outside Python EVENTS; observer errors are separately failures. Selector1 is source/private-control supported, not observed in this retail raw stream. Reviewer read retained results/identities and did not rerun scanner/native/tests."
+  },
+  "private_projection_review": {
+    "independently_recomputed": true,
+    "private_originals_not_copied": true,
+    "projections_are_derived_not_literal": true,
+    "terminal_projection": "Private Root4f original bytes/SHA verified; remove ONLY first_minus_one.line and independently derive safe seq/tick_ms/selector from that line. All other fields exactly match the original.",
+    "initial_offline_projection": "Private initial scan bytes/SHA verified; remove ONLY each of five first_faults[i].line fields, retaining all other metadata. This initial partial scan is separate from the later full-EOF RED/GREEN.",
+    "privacy_and_chronology": "No raw scene/actor/pose/segment tuples or coordinate-bearing lines are reproduced in this report. The two safe projections and publication-only filter are explicitly post-POST metadata, not new test inputs. No test/source/native replay is implied."
+  },
+  "actual_failed_run_preserved": {
+    "diagnostic": "56d1b",
+    "compiled_runtime": "2fcf69",
+    "native_controller_outer_actual_exit": 1,
+    "reported_frame": 1497,
+    "full1500_completed": false,
+    "last_record_tick_ms": 149600,
+    "raw_normal_fire_detach_birth_each": 296,
+    "raw_step_pairs": 155096,
+    "raw_queries": 8,
+    "raw_model_entries": 2700,
+    "failure": "Diagnostic collector rejected legitimate selector-1 with integer-domain error. Report zero traffic totals are fallback after the latched finish failure, not absence of raw activity.",
+    "B_prepared": false,
+    "B_launched": false,
+    "reclassified_UNREACHED_or_PASS": false,
+    "input_binding": "Two full1179 pre/post manifests plus config audit passed;97 payloads and ten old execution artifacts stayed unchanged. Original processes are absent as Root bound. These are retained actuals, not a new run."
+  },
+  "mechanical_binding": {
+    "Root_actual_exit": 0,
+    "source_rows": 4023,
+    "raw_Git_literal": 4020,
+    "historical_uncompiled_Lua_CRLF_GitLF_qualifications": 3,
+    "timed_PRE_POST_equal": true,
+    "stable_extras": 32,
+    "stable_test_readers": 6,
+    "whole_product_build_Cargo_static_rows_equal_compiled_2fc": 3816,
+    "additional_producer_configs_equal": 2,
+    "artifact_Git_joins": 10,
+    "publication_manifest_entries": 58,
+    "packet_Git_literal_files": 59,
+    "literal_external_copies": 52,
+    "derived_safe_projections": 2,
+    "qualifications": "Post-POST publication-only filter has its own declared identity; no claim that it was an affected-check input. Checkpoint JSON58 is authoritative; inherited console57 is cosmetic. Root generator guard failed before creating its reader and was corrected before the actual0 audit; no product/source/test/native replay."
+  },
+  "decision": {
+    "status": "QUERY_SELECTOR_CLOSED_SOURCE; BUILD_AND_DEFAULT_REUSE_ACCEPTED_AT_PRIOR_SCOPE",
+    "bounded_prerequisite_source_accepted": true,
+    "retained_build_reuse_accepted": true,
+    "retained_default_reuse_accepted": true,
+    "native_launch_clearance": false,
+    "native_controller_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "loader_removal_clearance": false,
+    "natural_moving_accepted": false,
+    "GenericNativeAcceptance1_closed": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "reuse_and_next_gate": [
+    "Retain true2fc compiled source/bundle97 identity. Whole3816+2 equivalence supports reuse; corrected b502 collector/validator remain separately Git/hash-bound. Do not relabel or overwrite sealed old binary/literal/actual artifacts.",
+    "Completed35-frame standard default native0 and all3COMPLETE literal comparisons to3ab/80fd retain f0 accepted scope and may be reused for the same compiled bundle/client/args/config. No replay is required merely to correct the diagnostic selector.",
+    "Old failed1497 root/output is consumed. A NEW fresh healthy root/output and separately materialized current literals/validator/immutable plan must obtain SAME exact launch review before execution. Healthy1500 FIRST and B only after complete healthy/common-prefix/locked-cohort gates; no restart, actor/window/seed search or alternative fallback.",
+    "Root monitors exactb502 CI separately; latest supplied campaign in progress and loss/TS success. No current all9-green or CI-only wait is inferred."
+  ],
+  "limits": [
+    "All ten D3 requirements, GenericNative1/blocks_cutover, D3G08 physical hierarchy/device responsibility, other consumers/lifetimes/FPU/DCS, whole height, current full40/all8/four inputs/census/current CI/formal review/normal merge/Task49/D3/delivery remain open as applicable; prep2 unchanged.",
+    "Both original immutable fullpacks remain Root-owned and untouched; partial prefixes are not completed acceptance. No D4/D5/TypeScript or formal GitHub self-approval/merge.",
+    "Reviewer inspected only changed source/evidence, independently recomputed declared safe projections and wrote this unique external JSON. No test/build/native/controller/scanner/cache execution, source/Git mutation or nested agents."
+  ]
+}

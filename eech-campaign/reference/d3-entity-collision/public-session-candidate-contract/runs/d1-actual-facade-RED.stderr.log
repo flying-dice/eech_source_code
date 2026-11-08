@@ -1,0 +1,10 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 16s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_dc-0dc7011ced65ab7c)
+
+thread 'module::native_flag_read_refusal_check::public_normal_session_driver_consumes_only_registered_userdata_methods' (4568) panicked at crates/eech-dc/src/native_flag_read_refusal_check.rs:31:9:
+driver consumes an absent actual public userdata method: close
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-dc --lib`
