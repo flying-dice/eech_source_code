@@ -1,0 +1,345 @@
+{
+  "kind": "Root read-only actual Git flag-lifetime packet/publication binding",
+  "utc": "2026-11-08T01:54:42.417497+00:00",
+  "code": "0c7b61bac977075f172bc3d55c2520d2f8aa1f51",
+  "metadata": "26f025321f83241155e0edbe39e04771ff33b6f4",
+  "manifest_entries": 62,
+  "exact_main_committed_packet_coverage": true,
+  "external_literal_byte_comparisons": [
+    {
+      "path": ".gitattributes",
+      "external_comparison": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\reference\\d3-entity-collision\\physical-flags-keyfix-020-reviewed\\.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "codex-d3-flag-lifetime-20261108-process.json",
+      "external_comparison": "R:\\d3-evidence\\codex-d3-flag-lifetime-20261108-process.json",
+      "sha256": "595db727fae839b1c8686432d22cd83830f8ea0d1fc0ddebec142ced623977e4"
+    },
+    {
+      "path": "D3-FLAG-LIFETIME-FROZEN-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\D3-FLAG-LIFETIME-FROZEN-20261108.json",
+      "sha256": "a93dde6c22c7eabff23d2959c210b4d7a8cc27ab65c2ea2c066a5deae686cb78"
+    },
+    {
+      "path": "fl667-derivation-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\fl667-derivation-20261108.json",
+      "sha256": "03fe83c50421537e8ebf04b172d5c5d044fa4964e93dd68c1373ca46ceebf049"
+    },
+    {
+      "path": "fl667-extra-POST-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\fl667-extra-POST-20261108.json",
+      "sha256": "7e94fcbead21dc5e5d7dde520087a7a6c28af875d0ea8d8e0b6bee817e9a676e"
+    },
+    {
+      "path": "fl667-extra-PRE-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\fl667-extra-PRE-20261108.json",
+      "sha256": "7e94fcbead21dc5e5d7dde520087a7a6c28af875d0ea8d8e0b6bee817e9a676e"
+    },
+    {
+      "path": "fl667-family-exclusive-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\fl667-family-exclusive-20261108.json",
+      "sha256": "622a37cd60ff9bba9cb40671ad564542d6adcb3d376a1d1c2d54a17b7e61ab57"
+    },
+    {
+      "path": "fl667-final-completion-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\fl667-final-completion-20261108.json",
+      "sha256": "7e6b5ce2b720e0c655e8bea514b6601d3f312c026de0962c0ac8875572fc64da"
+    },
+    {
+      "path": "fl667-helper-comment-qualification-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\fl667-helper-comment-qualification-20261108.json",
+      "sha256": "433f758f4f6d0f0a765653a3854b129af735837a68f4788a4f8ecc33214cc9c6"
+    },
+    {
+      "path": "fl667-inputmap-POST-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\fl667-inputmap-POST-20261108.json",
+      "sha256": "e62541a950fb692c7b1e0325ebb4c06d19e634565c7fb19dfbdc6988323731f0"
+    },
+    {
+      "path": "fl667-inputmap-PRE-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\fl667-inputmap-PRE-20261108.json",
+      "sha256": "e62541a950fb692c7b1e0325ebb4c06d19e634565c7fb19dfbdc6988323731f0"
+    },
+    {
+      "path": "fl667-POST-utc-20261108.txt",
+      "external_comparison": "R:\\d3-evidence\\fl667-POST-utc-20261108.txt",
+      "sha256": "fe55740e4151b17dab29ab3e629d03cab0ecb55f532191e3b187bda0772c1ceb"
+    },
+    {
+      "path": "fl667-PRE-utc-20261108.txt",
+      "external_comparison": "R:\\d3-evidence\\fl667-PRE-utc-20261108.txt",
+      "sha256": "e1de52482edb179af078b38c431ea6f487f8f3b340fd61d47509bec0eaf1187f"
+    },
+    {
+      "path": "fl667-readers-PRE-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\fl667-readers-PRE-20261108.json",
+      "sha256": "37ca8f23feb4f44a794bdf94620d9ffe6652f05a0524b91300c4f30ab77ecd64"
+    },
+    {
+      "path": "ledger-motion-closure-v191-preservation-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\ledger-motion-closure-v191-preservation-20261108.json",
+      "sha256": "a1ae14ba3f94bffd02e28cc38b8751aec59e4f8a5de9dcfef95376b5d3f0d879"
+    },
+    {
+      "path": "motion-58b25-all9-CI-readback-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\motion-58b25-all9-CI-readback-20261108.json",
+      "sha256": "aa507f2a86aad4e93768555a5be3da8a9713a4e0866c0f218d0ca95be9c1d99d"
+    },
+    {
+      "path": "motion-667ff-all9-CI-readback-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\motion-667ff-all9-CI-readback-20261108.json",
+      "sha256": "1935195115ac801ac99a5a44a9bf77fddfb72bfd1317948e027db8aad017e50b"
+    },
+    {
+      "path": "motion-flags-reviewed-live-services-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\motion-flags-reviewed-live-services-20261108.json",
+      "sha256": "a5805c2929242cea10c4bd333707d3abc39023f4e2b935628af1d193cdb05307"
+    },
+    {
+      "path": "motion-reviewed-667ff-Root-publication-20261108.json",
+      "external_comparison": "R:\\d3-evidence\\motion-reviewed-667ff-Root-publication-20261108.json",
+      "sha256": "b65c40ceb701ef2f85942bb6b988cf98550ba96a2bd4d6878ccbadf8303f39a2"
+    },
+    {
+      "path": "Root-flag-lifetime-feedback-20261108-0133.json",
+      "external_comparison": "R:\\d3-evidence\\Root-flag-lifetime-feedback-20261108-0133.json",
+      "sha256": "b202d0e201254405661a3cced8725c6d846735f8f9146f09355d0a5c172cfe32"
+    },
+    {
+      "path": "runs/d1-fmt-apply.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d1-fmt-apply.json",
+      "sha256": "55e7c749f21517726aadc77cff4a30632913b72a13955dbec4a8291a29639d3a"
+    },
+    {
+      "path": "runs/d1-fmt-apply.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d1-fmt-apply.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/d1-fmt-apply.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d1-fmt-apply.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/d2-lifetime-first.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d2-lifetime-first.json",
+      "sha256": "383887a9abfc8dc159f13fa2530a23fef8db66bb25f86dfec9b4a24e7cd0608e"
+    },
+    {
+      "path": "runs/d2-lifetime-first.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d2-lifetime-first.stderr.log",
+      "sha256": "91fd4b23fb2ab287bba532c68cb751c08d11e702bee7af624b1302c703c5c261"
+    },
+    {
+      "path": "runs/d2-lifetime-first.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d2-lifetime-first.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/d3-lifetime-word-type-fixed.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d3-lifetime-word-type-fixed.json",
+      "sha256": "0d7c467735730751087bb5b749319e53338d6eb35e6ea3c6581608d7df95b6c9"
+    },
+    {
+      "path": "runs/d3-lifetime-word-type-fixed.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d3-lifetime-word-type-fixed.stderr.log",
+      "sha256": "4d94d0184fcdddece3f1fd63161b54da58919ff1d17712ad6e17384d0cc57a08"
+    },
+    {
+      "path": "runs/d3-lifetime-word-type-fixed.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d3-lifetime-word-type-fixed.stdout.log",
+      "sha256": "c22720f25ce083b30ec77f380e55aaba09246865d951a7db3cda8eba4962b221"
+    },
+    {
+      "path": "runs/d4-fmt-final-source.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d4-fmt-final-source.json",
+      "sha256": "4498daf08b768e9e37fefc3a52f4511793fba4c2c53f7c9bedf560ec96daecf6"
+    },
+    {
+      "path": "runs/d4-fmt-final-source.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d4-fmt-final-source.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/d4-fmt-final-source.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d4-fmt-final-source.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/d5-lifetime-withheld-refusal.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d5-lifetime-withheld-refusal.json",
+      "sha256": "3f9cb7ce285263e1ffcd7f14d52d932ad465be06027629194c21883aef21711c"
+    },
+    {
+      "path": "runs/d5-lifetime-withheld-refusal.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d5-lifetime-withheld-refusal.stderr.log",
+      "sha256": "0c2c04140c0e62b40c6da61a9467da8144a82f55c25f296ff973842c4a7d5460"
+    },
+    {
+      "path": "runs/d5-lifetime-withheld-refusal.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-d5-lifetime-withheld-refusal.stdout.log",
+      "sha256": "2c6e83d435561e8fceb14ac32a3a0399fc8ad530d9a9d83efefa86ad737cf955"
+    },
+    {
+      "path": "runs/s1-fmt.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s1-fmt.json",
+      "sha256": "cf07fc21eee304ca5dd4e14a9ab8311f13d04885495a872f54f0b702221c5c4d"
+    },
+    {
+      "path": "runs/s1-fmt.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s1-fmt.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/s1-fmt.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s1-fmt.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/s2-clippy-default.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s2-clippy-default.json",
+      "sha256": "dbf001fd234880fb1d506edc907382b92159a2585ce76cd71cee636d7fd6b998"
+    },
+    {
+      "path": "runs/s2-clippy-default.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s2-clippy-default.stderr.log",
+      "sha256": "fc2060b2d3aef3f3f43685cf9698eb007ca69b805d1377e72e9d99299919a0ed"
+    },
+    {
+      "path": "runs/s2-clippy-default.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s2-clippy-default.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s3-clippy-lifetime.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s3-clippy-lifetime.json",
+      "sha256": "2520738ab6f412861e57c6f2fc489f64fce5ddf806715db8ab9c9d18180d8908"
+    },
+    {
+      "path": "runs/s3-clippy-lifetime.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s3-clippy-lifetime.stderr.log",
+      "sha256": "4caa29df3588b97a84b0be62d49ebbd3fd3267fcda2242cfe68642ef7e148973"
+    },
+    {
+      "path": "runs/s3-clippy-lifetime.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s3-clippy-lifetime.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s4-lifetime.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s4-lifetime.json",
+      "sha256": "fffc0797c977b400ccdef2398d64f824ad69f2a2403fbd42feddb0a7da4530a0"
+    },
+    {
+      "path": "runs/s4-lifetime.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s4-lifetime.stderr.log",
+      "sha256": "780cca5b4b915e4a358ccedd2c5fa677c5b9d9646dec5feb66c4dbbd27c35a7d"
+    },
+    {
+      "path": "runs/s4-lifetime.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s4-lifetime.stdout.log",
+      "sha256": "2c6e83d435561e8fceb14ac32a3a0399fc8ad530d9a9d83efefa86ad737cf955"
+    },
+    {
+      "path": "runs/s5-source-guard.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s5-source-guard.json",
+      "sha256": "6256d8abecb647944be00eb90221d26f774bccec5ec0c478b4dc5624872d8475"
+    },
+    {
+      "path": "runs/s5-source-guard.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s5-source-guard.stderr.log",
+      "sha256": "f200740e4fb8010a76ac9081b51735387507a6a407b14a034bb11bb466778fb3"
+    },
+    {
+      "path": "runs/s5-source-guard.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s5-source-guard.stdout.log",
+      "sha256": "cb661b83bc27ea9faae5f46bd2e5124c02eb2469b97007be69d5332139007bd6"
+    },
+    {
+      "path": "runs/s6-build-default.json",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s6-build-default.json",
+      "sha256": "23c2f3078f9a4d909a957ff10493db1b7b6a9192cbcca8534316e10c8c0cda66"
+    },
+    {
+      "path": "runs/s6-build-default.stderr.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s6-build-default.stderr.log",
+      "sha256": "55cc04a66b40a2b79ec21ba5bfba5bebe8ba04483a8a14d6c1cbbbf0dd877ba8"
+    },
+    {
+      "path": "runs/s6-build-default.stdout.log",
+      "external_comparison": "R:\\d3-evidence\\flags-fl667-s6-build-default.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "scripts/check-physical-flags-fl667-linux-20261108.sh",
+      "external_comparison": "R:\\d3-evidence\\check-physical-flags-fl667-linux-20261108.sh",
+      "sha256": "a2bb190a2008a76e26e472de3ab9576389d47cc4f2e2571a294ddb81c78d0e6a"
+    },
+    {
+      "path": "scripts/derive-fl667-helpers-20261108.py",
+      "external_comparison": "R:\\d3-evidence\\derive-fl667-helpers-20261108.py",
+      "sha256": "65c1b61901cfe3c7666e9513128a7082a5c83ce8770cb2260870d47b120ed6b2"
+    },
+    {
+      "path": "scripts/fl667-proof-20261108.py",
+      "external_comparison": "R:\\d3-evidence\\fl667-proof-20261108.py",
+      "sha256": "769cfc3dab3a32aa7e62a3080af78e4b7b1611654b00f76912e59058c375ac32"
+    },
+    {
+      "path": "scripts/run-fl667-final-20261108.py",
+      "external_comparison": "R:\\d3-evidence\\run-fl667-final-20261108.py",
+      "sha256": "e13b1025aa0714937e060bd95bca0a54024f6a77058c8a422c5acb07b5361656"
+    },
+    {
+      "path": "scripts/run-physical-flags-fl667-direct-20261108.py",
+      "external_comparison": "R:\\d3-evidence\\run-physical-flags-fl667-direct-20261108.py",
+      "sha256": "651a156786ee41328f5969be29c8846e82af2de17501af6fe506bb4b4782d9d7"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "external_comparison": "R:\\d3-evidence\\sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "external_comparison": "R:\\d3-evidence\\sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    }
+  ],
+  "metadata_five_actual_Git_files": [
+    {
+      "path": "STATUS.md",
+      "bytes": 1475677,
+      "sha256": "4f48ac9806fbcf854b32c0c74d864075f3ba3af2c586cb8c534a62594e665a31",
+      "actual_committed_equals_current": true
+    },
+    {
+      "path": "docs/handover/ACTIVE-EXTRACTION.json",
+      "bytes": 279295,
+      "sha256": "1abad318608e009bbffa0fa0721a6fa5aaea2345a4bb640adf6c9f483fdd1729",
+      "actual_committed_equals_current": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/physical-flags-lifetime-publication/.gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "actual_committed_equals_current": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/physical-flags-lifetime-publication/committed-bytes-and-checkpoint.json",
+      "bytes": 1871,
+      "sha256": "3e5cc96f87bf58ccc4972acdf9195b3306ac993867c007ea1ac9defd0682ba86",
+      "actual_committed_equals_current": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/physical-flags-lifetime-publication/publication-helper.py",
+      "bytes": 9077,
+      "sha256": "f3bbe03d8551d96d8f48b1ce13cb318251a7400db628c09b125c49f7a2635c5f",
+      "actual_committed_equals_current": true
+    }
+  ],
+  "metadata_only_STATUS_card_and_postPOST_publication": true,
+  "clean_pushed_HEAD": true,
+  "limits": "No test/source/runtime mutation or replay. Literal CRLF and raw log EOF blanklines retained; author whitespace-check numeric child-status limitation stays qualified. New preboot entry/gate source has its own identity, old3abf Windowsnotrelabelled. SAMEreview needed; all10/wholeTask49/D3/native/fullpack acceptance notclaimed."
+}

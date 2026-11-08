@@ -1,0 +1,180 @@
+{
+  "schema": "independent-finite-characterization-source-review/v1",
+  "reviewed_utc": "2026-11-08T01:55:46.311589+00:00",
+  "scope": "Only new flag provider ownership/entry-lifetime contract, gated preboot C entry, engine-own unit control, source guards and new evidence. Correctness/clean code/boundary review together; no tests/builds/native/cache operations/source mutation/delegation.",
+  "source": {
+    "commit": "0c7b61bac977075f172bc3d55c2520d2f8aa1f51",
+    "parent": "667ff97e5f619ec67d6a3e6c362d8c67181581a1",
+    "metadata_commit": "26f025321f83241155e0edbe39e04771ff33b6f4",
+    "observed_HEAD_exact_full_clean": true,
+    "reviewed_changed_blobs": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+        "git_blob": "c4f8909d4d71951e81b7f7b1c5eafccf15c38fce",
+        "sha256": "f1794ca2273d6ef038d1889af7cb30944d69a62c3edf09d84b45e9c33d6139d3"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "git_blob": "6ae3132973e3bf133297248f3bc6469855e8a915",
+        "sha256": "a07cc815f0acffdf67313ec84294a1e093b9b0ea2c3260f119bfc44ed233e3e1"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "git_blob": "9bbb99d16e90d541afe309dceab042a93ac65677",
+        "sha256": "1185183a6c71f9e182358461e274a1ab09d6a90f9ffe5dc10727152ff1416818"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_flags_lifetime_check.h",
+        "git_blob": "49f316ebfd9bd34517dc9eaf11d65421ba2c4203",
+        "sha256": "fdf20c5524ed8bb14106858d499026ce39092f55cf77d8fea5cfad74ae6a088f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_lifetime_guard.rs",
+        "git_blob": "17dda611d3c927591960769935513ea5876e6b4c",
+        "sha256": "353ac8c72968a949ed5222d8cce1cf2ee606a8a8310c39cb15d2a23f634e1db8"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/Cargo.toml",
+        "git_blob": "e96b3ed1f0e523d7402881bbdcc51bbfa2623608",
+        "sha256": "b8a381d0368c8dd8f016cf462e0c10bb3f25cb7837cdc996fc7e40787e12ce4c"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/flag_lifetime_check.rs",
+        "git_blob": "49860c379206a1d6639c5fd957aa9d7907521d70",
+        "sha256": "e99d433a8b7c7dfcf34af15d83c1465ae537a09482f8678015ccc043c3b9c014"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "git_blob": "0a5a43af403e147194fa122c745c26497a3c256f",
+        "sha256": "b9f9e3e80c152acfadd4e89a1bf120c1bab970da465927563c953e416d6409ba"
+      },
+      {
+        "path": "eech-campaign/docs/d3-flag-provider-lifetime.md",
+        "git_blob": "089b25c1d2b4b92dcb2e32bdba43ddc9d54446a7",
+        "sha256": "2c4bd3ef14236b021ff342005b025ce1e174ed31164119278e8d7d68b2134e9f"
+      }
+    ]
+  },
+  "evidence": {
+    "freeze": {
+      "path": "R:/d3-evidence/D3-FLAG-LIFETIME-FROZEN-20261108.json",
+      "bytes": 12372,
+      "sha256": "a93dde6c22c7eabff23d2959c210b4d7a8cc27ab65c2ea2c066a5deae686cb78"
+    },
+    "source_binding": {
+      "path": "R:/d3-evidence/flag-lifetime-0c7b-Root-binding-20261108.json",
+      "bytes": 2928,
+      "sha256": "d6622bd028887eb10d65fb25995ca573161751ebf3cf02332d7f8d1a6ef1b54f"
+    },
+    "publication_binding": {
+      "path": "R:/d3-evidence/flag-lifetime-26f0-Root-publication-20261108.json",
+      "bytes": 16689,
+      "sha256": "fd8b5bdb91ff943261f6c58487e827fc26f105a52ddedbd9b8ca1514a019616b"
+    },
+    "typed_service_completion": {
+      "path": "R:/d3-evidence/codex-d3-flag-lifetime-20261108-completion.json",
+      "bytes": 1940,
+      "sha256": "23d25cf0295fa20d1bb4bb6ba91d840a11daace620b5d226ecaf643f013941e1"
+    }
+  },
+  "findings": [],
+  "decision": {
+    "status": "ACCEPTED_FINITE_PREBOOT_ENTRY_CHARACTERIZATION",
+    "owned_provider_and_shared_entry_join_accepted": true,
+    "native_launch_clearance": false,
+    "production_cutover_clearance": false,
+    "GenericNativeAcceptanceRow": "OPEN",
+    "successful_boot_lifetime_accepted": false,
+    "provider_replacement_supported": false,
+    "whole_flags_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "assessment": [
+    {
+      "topic": "Safe API ownership and order",
+      "result": "Actual Engine::boot consumes the static owned ModelProvider into thread-local MODEL after global BOOTED.swap, before CString validation. Deliberate NUL map argument fails there before C/retail boot. Weak store proves provider ownership persists; second boot attempt returns State before MODEL replacement and drops proposed replacement. The provider remains thread-local and Engine is neither Send nor Sync. This characterizes the existing one-attempt source contract, not a new recovery/restart API."
+    },
+    {
+      "topic": "Real entry/callback/store path",
+      "result": "The thin gated C entry is included after the actual ENTER/LEAVE definitions and uses them directly, without copied entry macros. Actual campaign_model_flag_set/read binds one group. Real with_host lends a temporary HostContext; static model_callback reads own MODEL and ignores entry user, while C retains callback with user=NULL. Actual eech-world flag_answer receives SectorRoster/rawu32 request and converts its FlagAnswer into this engine own ModelAnswer, without cross-crate engine enum reinterpretation or duplicate store."
+    },
+    {
+      "topic": "Finite positive/error/refusal relation",
+      "result": "Healthy set/read yields word32. After with_host borrowed callbacks/context end, NULL-host entry reads same group/key/store. Argument-error entry invokes no provider and later NULL-host read still works. Valid same READ withheld by provider reaches actual callback and yields named Fatal, preserving owned provider; next poisoned entry returns before any callback. Six callbacks/one group/word32/zero postpoison are diagnostic actuals, not universal count requirements."
+    },
+    {
+      "topic": "Confinement and source identity",
+      "result": "Feature is empty/nondefault and forwarded only to named sys test define; Rust unit module requires both test and feature, header is wholly gated. Feature-off default build is checked. Removing exactly40 bytes of include plus adjacent separator from candidate eech_engine.c recovers parent byte-for-byte; original NUL count1 remains1. MODEL/BOOTED/ENTER/LEAVE production bodies are unchanged. Raw gate/build/source inputs changed and must retain their own identity; old3abf Windows binaries are not relabeled."
+    },
+    {
+      "topic": "Supported domain and clean code",
+      "result": "Contract explicitly limits support to one persistent owner/provider/store on its owning thread and one boot attempt per process. Store clear preserves flags; process C keys persist. Fresh replacement can accidentally reuse fN and alias another group, so no guaranteed refusal, epoch/reset/registry or new lifetime protocol is invented. Existing helpers/types are reused; no successful boot/session or second authoritative world is manufactured."
+    }
+  ],
+  "checks": {
+    "final_commands": [
+      {
+        "label": "s1-fmt",
+        "actual_exit": 0,
+        "Rust_test_instances": 0
+      },
+      {
+        "label": "s2-clippy-default",
+        "actual_exit": 0,
+        "Rust_test_instances": 0
+      },
+      {
+        "label": "s3-clippy-lifetime",
+        "actual_exit": 0,
+        "Rust_test_instances": 0
+      },
+      {
+        "label": "s4-lifetime",
+        "actual_exit": 0,
+        "Rust_test_instances": 1
+      },
+      {
+        "label": "s5-source-guard",
+        "actual_exit": 0,
+        "Rust_test_instances": 3
+      },
+      {
+        "label": "s6-build-default",
+        "actual_exit": 0,
+        "Rust_test_instances": 0
+      }
+    ],
+    "selected_Rust_instances": 4,
+    "unit_lifetime_tests": 1,
+    "source_guard_tests": 3,
+    "actual_callback_group_word_postpoison": [
+      6,
+      1,
+      32,
+      0
+    ],
+    "outer_runner": "Root retains actual80196 exit0; six direct children separately bound, not inferred from service completion.",
+    "development": "d2 u32.to_bits compile mistake and d3 invalidarray3 early-domain refusal were fixture mistakes, not product RED. The latter was replaced with a valid same READ provider-withheld negative, which establishes intended callback path. No manufactured behavioral correction is claimed."
+  },
+  "provenance": {
+    "PRE_utc": "2026-11-08T01:40:39.1909426Z",
+    "POST_utc": "2026-11-08T01:46:34.9589868Z",
+    "source_rows": 4000,
+    "raw_literal_Git_rows": 3997,
+    "three_inherited_uncompiled_Lua_CRLF_GitLF_qualifications": true,
+    "extras": 18,
+    "current_PRE_readers": 7,
+    "other_mapped_Git_inputs_unchanged_parent": 3992,
+    "publication": "62 exact main manifest entries plus manifest63tracked;60 external literal byte comparisons;five actualGit/current metadata files, STATUS/card plus3 postPOST publication files. Raw line endings/logEOF and whitespace-check status limitation remain qualified.",
+    "author": "GPT6.1SolHigh service completed, actual FINAL/list_agents observation; no fabricated OS PID/creation/CLIexit0. Actual direct test/build children retain their own exits."
+  },
+  "limits": [
+    "Private entry intentionally permits preboot access. No successful Engine::boot, retail load, Lua MODEL_BRIDGE, public native campaign READ/changed-fact authority, message dispatch or actual boot/session shutdown is exercised.",
+    "Not thread-exit/recreated-owner/LuaVM destruction/provider replacement/reentrancy/callback swapping/session lifetime proof. Replacement is unsupported/unproved; C static keys and new store coincidences are explicitly possible.",
+    "Exact entry macro sharing does not measure complete FPU state, globals or RNG preservation. Historical model callback/FPU evidence retains original identities/scopes, not current flag measurements.",
+    "GenericNativeAcceptance1/public nativeREAD/otherconsumers/lifetime/FPU/DCS/all10/wholeheight/final current40/all8/fourinputs/currentCI/review/census/normalmerge/Task49/D3 remain required as applicable. Prior source/finite proofs are not reopened or relabeled.",
+    "Both immutable fullpacks/processes/inputs/binaries/outputs are untouched; partial prefixes are not completed acceptance. Root owns canonical disposition/publication; reviewer wrote only this external report. No formal approval/merge/delivery acceptance."
+  ]
+}
