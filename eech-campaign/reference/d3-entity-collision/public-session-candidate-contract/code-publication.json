@@ -1,0 +1,20 @@
+{
+  "CODE": "6821894e9dd7fcd8f859f5a0a490573bc7c0138d",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "source_rows": 4023,
+  "raw_equals_Git": 4020,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "source_fingerprint": "69ecd8b8f48a93600e666d95653f3e6b222bba321befb57e048d5704e4153086",
+  "post_POST_metadata": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "manifest.json",
+    "code-publication.json",
+    "publication-manifest.json"
+  ],
+  "scope": "UNREVIEWED facade/scanned-candidate contract; no binary relabel/native/cutover/all10 closure; Root completion separate."
+}
