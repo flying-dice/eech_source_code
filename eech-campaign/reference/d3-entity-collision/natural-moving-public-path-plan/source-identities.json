@@ -1,0 +1,73 @@
+{
+  "source_before": "4951145adc10b8fbbbd26b672cf13e28755e4ed0",
+  "files": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "sha256": "bb55acdcce5f25662f314c3cb91ad1c0be08d4fd762dd1b9f69d68eab0fc77c6",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+      "sha256": "1db11d556060dacf713605b45ef9e473d30361f089ae38c1522d198bb67c3af2",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_aim_fixture.c",
+      "sha256": "d2e81f9da7a78cbcaf5b44b98e169e9f1a970ae3f9b5af31c1c3e128290e3800",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/weapon.c",
+      "sha256": "6404b7b85e7ab83f80f4a29c415c1105dac2ba3c4f8959484902c902cf7ad05c",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/wn_creat.c",
+      "sha256": "d25e8782d52a136e987c09b71200f4169b70a9727e8483b783854d07c6c8fdc5",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/wn_move.c",
+      "sha256": "f9533500b7f6d10d93ebb3209b3bec15aabb07d478adb17099cf231226f7cc5b",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_wpn.c",
+      "sha256": "27f1b24248631af131b40f3e6c22734d8e6dc41c9c8e25f3cdf0ba095329685d",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "sha256": "69c4d7b0a93ff2f70f31c6ad4b989da108167bc3c69577903e57f91f9d7e3fd4",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+      "sha256": "c69146bacf99aaccf88253afbe033f7ab88a4a5492dfb1e7edcbeca008ca443f",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_aimfx.h",
+      "sha256": "677f5f9925181c46984c3c8a3d89aa2411cdb4df8e1e630f03c83aaa8f814bdc",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "modules/3d/3dobjdb.c",
+      "sha256": "fc3e86ba9cffd570a9827bae817e425b6cad1c9df098b2090bbe3e3628ea2b19",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/patches.rs",
+      "sha256": "ecf5b10ee1f328307a7127c893851645acfdb7a50efc11965d49da8189499750",
+      "raw_equals_Git": true
+    },
+    {
+      "path": "eech-campaign/docs/d3-needed-consumer-api-disposition.md",
+      "sha256": "62b58907b489544f8e374dc7ae4f49305af37c48a4abe9a1f7016275e756de39",
+      "raw_equals_Git": true
+    }
+  ],
+  "first_witness_prerequisite": "Normal firing/readiness/selected-package to actual muzzle/birth/cohort correlation; desired vectors/global counters do not establish this.",
+  "separate_production_boundary": "Existing REQUIRED_OPEN D3G-08 device presence/current-pose viewpoints, not assumed to precede read-only witness observability.",
+  "runtime_source_changed": false
+}

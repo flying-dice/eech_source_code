@@ -1,0 +1,40 @@
+{
+  "runtime_source": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "literal": {
+    "path": "R:\\d3-evidence\\canonical-pose-authority-ea2b23481-literal.lua",
+    "source": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "git_blob": "3015ac7ff49388ab4e58544dde67f9ec9617c1ed",
+    "sha256": "d289806870b4ee2e9c67bfc242c4920a033c87f3cd3281c8648229c6596958d5",
+    "bytes": 102821,
+    "no_native_binary_relabel": true
+  },
+  "actual_native_exit": 1,
+  "actual_helper_exit": 1,
+  "actual_outer_exit": 1,
+  "pre_post_input_exits": [
+    0,
+    0
+  ],
+  "complete_pre_post_manifest_bytes_equal": true,
+  "payloads": 88,
+  "model_jsonl_sha256": "094683ae7dc35b7a1c7e1991d37eda3258ed33f3b4af1ec39405fd7dbe64b91b",
+  "last_warmup_host_step_motion_above_1": true,
+  "target_questions": 0,
+  "target_need_updated": 0,
+  "target_test": 0,
+  "global_moving": 0,
+  "global_candidate_need_updated": 0,
+  "global_stationary_entity_questions": 275,
+  "global_counts_are_not_per_target_proof": true,
+  "case_weapons_ended": 1,
+  "case_weapons_pending": 0,
+  "terminal_code": "hit_land",
+  "terminal_steps": 6,
+  "candidate_mobile_unnamed": 0,
+  "request_faults": 0,
+  "reply_faults": 0,
+  "classification": "UNREACHED_PHYSICAL_ENCOUNTER_PRECONDITION; NOT_MOVING_OR_POSITIVE_AUTHORITY",
+  "terrain_lift_started": false,
+  "Original_started": false,
+  "limits": "A genuinely moving target was selected from actual last host step, but no collision question reached it before the projectile ended. No physical solver/pose authority failure or success is inferred. No seed/warmup/distance/baseline/tolerance tuned. All whole-D3 scope remains required."
+}

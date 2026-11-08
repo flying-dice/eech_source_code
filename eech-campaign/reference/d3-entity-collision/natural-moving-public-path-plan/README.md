@@ -1,0 +1,3 @@
+# Natural moving public-path prerequisite plan (UNREVIEWED)
+
+See ../../../docs/d3-natural-moving-public-path-plan.md. Source-first missing prerequisite and healthy-control-first plan only. Normal firing/readiness/package/muzzle/cohort observability is distinct from eventual D3G-08 ownership; no package angle/policy/flag is forced and no shipping/test launch API added. No native case selected or controller implemented. Seven literal safe evidence copies; original raw recordings/physical cohorts remain private at their own identities. CRT965 finite acceptance does not bypass GenericNative1. No tests/build/native/cache action, baseline/config/auth change or cutover. STOP for SAME plan review; Root records actual completion separately.

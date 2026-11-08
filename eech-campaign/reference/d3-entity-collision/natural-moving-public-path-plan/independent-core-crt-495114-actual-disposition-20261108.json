@@ -1,0 +1,255 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T06:02:40.719093+00:00",
+  "review_kind": "Independent combined new retained actuals and source-disposition review; no source/control replay",
+  "source_identity": {
+    "disposition_HEAD": "4951145adc10b8fbbbd26b672cf13e28755e4ed0",
+    "runtime_snapshot_source": "599958ce961111f01c946245572a3757d8fe4ea0",
+    "compiled_observer_source": "552ee8e079b75626199c4e348ed0e986bc02b7ba",
+    "ordinary_runtime": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+    "document": "eech-campaign/docs/d3-core-terrain-crt-actual-disposition.md",
+    "document_lines": 119,
+    "document_sha256": "ce43484c537b0e632e54523b139558eebbba62b9683e999e4a0b3d58f305e48c",
+    "observed_worktree": "R:/d3-evidence/collision-characterization-20261029, clean495114; Root verifies exact upstream",
+    "runtime_changes": false
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/independent-core-crt-capture-599958-plan-20261108.json",
+      "bytes": 11562,
+      "sha256": "070a49d7daa0701b457c89bc3b2db64ed79b8d2aac13ee8314cdb4ac8ffdf3bd"
+    },
+    {
+      "path": "R:/d3-evidence/independent-core-crt-endpoint-79784-source-20261108.json",
+      "bytes": 8959,
+      "sha256": "af9501075b5f03df1f8e73808f743ad0748064c31d6dce8431ff85e1efbf1583"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-capture-actual-Root-binding-20261108.json",
+      "bytes": 15868,
+      "sha256": "a69640a697608076646e94fe7db185b3980876a4cfc563f2ddcf65969917ef8e"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-disposition-495114-Root-binding-20261108.json",
+      "bytes": 3424,
+      "sha256": "0ed5a5ba32b07e23b6cb8c4fdf55db29033fc067941a4e225f6cf30f76a8a2c2"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-core-crt-actual-disposition-20261108-completion.json",
+      "bytes": 1835,
+      "sha256": "3c650a46a6d8d54235ba7120f80761904ae9d64c0c0a1774adab6912fd264ba0"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-actual-disposition/D3-CORE-CRT-ACTUAL-DISPOSITION-FROZEN-20261108.json",
+      "bytes": 843,
+      "sha256": "906f475ce15e3365397719385f7959b510c927a962a8d3c2482541efd42ad792"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-actual-disposition/evidence-index.json",
+      "bytes": 13419,
+      "sha256": "2f6240b3aa9f20d3df33e2d25a0b5fe76d61ebef3cecc038921f389dc1a1af79"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-actual-disposition/numeric-projection.json",
+      "bytes": 8934,
+      "sha256": "55d00c30b9e62064f5c5671c9455a4e93f20e828b2f36b73c2ba19897f1bb87e"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-actual-disposition/source-identities.json",
+      "bytes": 8245,
+      "sha256": "0f15b5ecc502e7dd63c8c6ad1ebcbe2976f2bbc4883aa87486a387cc4c51ddb5"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-actual-disposition/retained-producer-index.json",
+      "bytes": 1711,
+      "sha256": "1df03b11d473c13dda10271347ed0a740411fdd042ea6d5ada6ef8e50dc8a8b8"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-actual-disposition/core-crt-matched-599958-20261108-completion.json",
+      "bytes": 17792,
+      "sha256": "0283543f1303e0206e7d32a12d8d4e21cd6b4c723a685cce44986df1abf6534d"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-actual-disposition/manifest.json",
+      "bytes": 2853,
+      "sha256": "09ee7d471e48145730824e6be197052484151bb09d9a5e011df24a86e2a8a99e"
+    }
+  ],
+  "findings": [],
+  "actual_execution_and_noninvasiveness": {
+    "status": "ACCEPTED_FINITE_MATCHED_CAPTURE",
+    "cleared_plan_sha256": "134284354240d9588395e95579632dafea20297b1fad2f1769a9c3fff7984f5d",
+    "controller_sha256": "5db6802740703bb05220e53eb98d864bb4c3e63f7bd54dbbbaded00a4496485d",
+    "launch_review_sha256": "070a49d7daa0701b457c89bc3b2db64ed79b8d2aac13ee8314cdb4ac8ffdf3bd",
+    "original_outer_session": 19507,
+    "actual_outer_exit": 0,
+    "actual_controller_exit": 0,
+    "native_exits": [
+      0,
+      0,
+      0
+    ],
+    "stage_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "case_order": [
+      "georgia-ordinary",
+      "georgia-observer",
+      "lebanon-observer"
+    ],
+    "retained_Lebanon_ordinary_replayed": false,
+    "full_input_config_observations": 6,
+    "fresh_roots": 3,
+    "reference_row_counts_per_root": [
+      1174,
+      1174,
+      1179
+    ],
+    "ordinary_observer_payloads_unchanged": [
+      91,
+      94
+    ],
+    "complete_literal_output_comparisons": 6,
+    "comparison_scope": "Each observer complete ACMI/observations/metrics file is directly byte-identical to its matched ordinary record. Georgia ordinary is the new first counterpart; Lebanon reuses its accepted true3abf/80fd files. Exact fixed seed1/100ms/hours0.001 recording/supply settings and the35-frame plan are unchanged. No retries, window/configuration hunt, baseline/tolerance change or partial-prefix substitution.",
+    "build_profile": "Dedicated observer source599958/compiled552ee/image09b73; actual profile-v2 binds feature, five COFF objects, two staged sources and94 payloads. The first direct-seed reader assumption/failure is retained; the V2 read-only correction caused no rebuild."
+  },
+  "observed_safe_facts": {
+    "georgia": {
+      "map": 3,
+      "tree_grid": [
+        244,
+        116
+      ],
+      "clouds": 1,
+      "season": 2,
+      "season_name": "SUMMER",
+      "Core_pre_draws": 0,
+      "Core_load_draws": 1578750,
+      "Core_gap_draws": 0,
+      "loads": 1,
+      "load_ends": 1,
+      "seeds": 3,
+      "marks": 12,
+      "FOREST_skin_calls": 1,
+      "CLOUD_skin_calls": 1,
+      "each_effective_animation": -1,
+      "each_skin_frames": -1,
+      "each_skin_draws": 0
+    },
+    "lebanon": {
+      "map": 5,
+      "tree_grid": [
+        76,
+        92
+      ],
+      "clouds": 1,
+      "season": 4,
+      "season_name": "DESERT",
+      "Core_pre_draws": 0,
+      "Core_load_draws": 0,
+      "Core_gap_draws": 0,
+      "loads": 1,
+      "load_ends": 1,
+      "seeds": 3,
+      "marks": 12,
+      "FOREST_skin_calls": 1,
+      "CLOUD_skin_calls": 1,
+      "each_effective_animation": -1,
+      "each_skin_frames": -1,
+      "each_skin_draws": 0
+    },
+    "Georgia_source_site_counts": [
+      {
+        "role": "base per sector",
+        "calls": 28304
+      },
+      {
+        "role": "pack per sector",
+        "calls": 28304
+      },
+      {
+        "role": "center_x rejection-loop draws",
+        "calls": 98605
+      },
+      {
+        "role": "center_z rejection-loop draws",
+        "calls": 98607
+      },
+      {
+        "role": "center_y group draws",
+        "calls": 98605
+      },
+      {
+        "role": "puff x offset",
+        "calls": 245265
+      },
+      {
+        "role": "puff y offset",
+        "calls": 245265
+      },
+      {
+        "role": "puff z offset",
+        "calls": 245265
+      },
+      {
+        "role": "puff heading",
+        "calls": 245265
+      },
+      {
+        "role": "puff scale",
+        "calls": 245265
+      }
+    ],
+    "count_interpretation": "244*116=28304; the ten counts sum1578750. Five per-puff counts agree. Center_z performs two extra rejection iterations relative to the98605 group-center y draws. There is no justified fixed-draws-per-sector approximation. Lebanon has no draw at these sites.",
+    "publication_safety": "Only numeric/source-role facts are reproduced here. Random return values, retail scene identities, geometry/pose/actor tuples and full raw recordings/input inventories remain private. The numeric projection is explicitly DERIVED, not a literal raw CRT report."
+  },
+  "source_and_causal_disposition": {
+    "guard_and_skin": "The actual season enum is INVALID0/DEFAULT1/SUMMER2/WINTER3/DESERT4. Source constructs CLOUD before evaluating clouds>1 || (clouds==1 && season!=DESERT), so Georgia enters and Lebanon skips the loop. Both real FOREST/CLOUD constructors are reached, and their actual animation<0 early return explains zero skin draws. These are reached inactive negatives, not active/custom-skin or every-season proof.",
+    "compiled_source_attribution": "Actual compiled staged terrdata bytes are joined to raw source unchanged expressions by the retained profile and independent Root mapping. The ten observed staged sites correspond to the declared base/pack/center/puff expressions; no uncompiled fixture or rewritten expression is substituted.",
+    "actual_seed_bound": "Both reports have two seed1 marks before load, balanced FOREST/CLOUD and completed load, then all three before_reinitialise/after_reinitialise/before_create marks, followed by the actual first post-load seed at random.c120, phase2. Both report complete1/problem0 and zero instrumented Core gap draws. The window closes there; no claim is made about every later boot call.",
+    "closing_path": "Current create_campaign calls parser_campaign_file. CAMPAIGN_DATA creates local entities and AI/routes before creating SESSION; ss_creat initialises start_time via get_session_random_start_time_of_day, which calls initialise_random_number_generator/set_random_number_seed/srand before its rand16/sfrand1 start-time uses. The campaign LCG state and the visual cloud CRT calls are distinct, and the closing reset precedes those later random uses.",
+    "intervening_work": "The gap is not described as empty. MAP installation asks cached reference terrain map facts; placement RESET reaches owned roster.clear; heap/dispatch, roster/supply/object identities are reset. CAMPAIGN_DATA creates local sectors, pylons, bridges, update/camera entities, AI/routes before SESSION. Those are actual source paths and some use terrain/model/placement services; their needed physical behavior is not waved away.",
+    "reference_host_qualification": "The enumerated terrain/model/placement paths and kernels accept explicit/cached inputs and identify no needed reference-host CRT consumer/reseed before the closing Core seed. Retained World archive absence of direct rand/srand imports is corroboration only. This is a bounded source-supported relevance conclusion, NOT runtime Host-zero, opaque Lua/CRT/OS internals, arbitrary-provider/thread behavior or CRT-state-isolation proof. Such universal claims are neither made nor invented as a new prerequisite for this finite disposition.",
+    "finite_conclusion": "For these supported headless/reference boots, Georgia visual-puff Core CRT consumption is reset before an identified needed CRT consumer; Lebanon is guarded out. The measured boot RNG uncertainty can therefore be discharged at this finite scope. No dummy draw preservation or extra RNG observer is justified by that resolved uncertainty alone."
+  },
+  "provenance_and_document_review": {
+    "document_status": "The119-line disposition accurately separates measured Core counts, source inference about reference-host relevance, incomplete broader histories and the unimplemented removal. No concrete correctness/clean-wording/boundary issue was found.",
+    "Root_publication_join": "38 interpreted current source files raw=old/new Git unchanged; doc119;18 manifest entries/19 literal files;12 literal external copies;35 private originals hash-verified unchanged. The Root independently recomputes the sanitized numeric projection and actual-staged/raw expression mapping.",
+    "raw_review": "Reviewer read both actual private CRT reports, matched summaries/seed-boundary facts to the projection and inspected the relevant new consumer/seed/enum paths. It did not rerun the capture, old source tests or the audit checker.",
+    "metadata_scope": "HEAD495114 changes documentation/status/card/evidence only. Original runtime/source599958, compiled552ee, sourceP2af95 and captureplan070a49 retain their exact identities; no relabelled runtime.",
+    "service_completion": "Actual service FINAL/completed status is typed separately; no fabricated OS PID or CLI exit. Author performed no test/build/native/cache work in this disposition batch.",
+    "CI": "Exact preceding599958 CI success retains its own scope. No495114 current-head success or full delivery is inferred from a documentation publication."
+  },
+  "decision": {
+    "status": "ACCEPTED_FINITE_SUPPORTED_BOOT_CRT_ACTUALS_AND_SOURCE_DISPOSITION",
+    "matched_capture_noninvasiveness_accepted": true,
+    "measured_constructor_cloud_skin_facts_accepted": true,
+    "supported_boot_CRT_blocking_uncertainty_discharged": true,
+    "universal_Host_zero_or_isolation_accepted": false,
+    "all_skins_seasons_reload_histories_accepted": false,
+    "core_loader_removal_row_closed": false,
+    "loader_removal_clearance": false,
+    "generic_NativeAcceptance1_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "next_finite_production_boundary": {
+    "identified": "Hosted-only raw TREE data/FOREST constructor and CLOUD/puff responsibilities in terrdata.c, preserving Original and still-needed base terrain loading. Hosted tree collision already asks its host-owned data/model route.",
+    "not_authorized": "This review names the required next extraction responsibility; it does not approve an unimplemented patch or remove current gates. The actual changed code must retain needed state/consumers/lifetimes/cleanup/compile/profile identity and applicable baseline/current-fullpack/review requirements. Player tree-force and renderer observations are only the stated headless-boot scope; UI/client reload remains source-blocked/unmeasured. No new reload API, broad dormancy claim or baseline rewrite."
+  },
+  "limits": [
+    "Core-only instrumented call-expression counts, compact order/site/skin metadata and digest are not a collision-free full trace or Host/library-internal runtime coverage. Source relevance plus observed reset/noninvasiveness is bounded to the two declared configurations, not arbitrary season/skin/custom-provider/thread behavior.",
+    "Neither original three-hour fullpack is accepted here; both original process identities and immutable source/bin/root/output trees remain unchanged/in progress. Growing equal prefixes are PARTIAL only.",
+    "GenericNative1 remains OPEN/blocks_cutover and all ten D3 requirements remain intact, including other needed consumers/services/natural moving/DCS/hierarchy/shared terrain, final census/current40all8/four inputs/currentCI/review/normal merge/Task49/D3 acceptance as applicable. Prep2 is retained; no D4/D5/historical TypeScript.",
+    "No new native/build/capture/removal permission follows from an actual-results report. No reviewer test/build/native/checker replay, cache/source/Git/process mutation or nested delegation occurred; only this new external immutable JSON was written."
+  ]
+}
