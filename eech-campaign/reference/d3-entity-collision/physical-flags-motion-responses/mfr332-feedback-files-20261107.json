@@ -1,0 +1,23 @@
+{
+  "read": {
+    "Root-physical-flags-witness-feedback-20261107-2012.json": "read in full in earlier batches; not about this residual",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json": "read in full in an earlier batch; not about this residual",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2148.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2150.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2154.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2201.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2205.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2215.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2222.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-supply-boolean-fix-feedback-20261107-2242.json": "read in full in the boolean-correction batch (sb120)",
+    "Root-supply-boolean-fix-feedback-20261107-2243.json": "read in full in the boolean-correction batch (sb120)",
+    "Root-tacview-consumer-feedback-20261107-2349.json": "read in full in the Tacview disposition batch (tvb1)",
+    "Root-tacview-consumer-feedback-20261107-2350.json": "read in full in the Tacview disposition batch (tvb1)",
+    "Root-tacview-correction-feedback-20261108-0008.json": "read in full in the Tacview correction batch (tvr459)",
+    "Root-tacview-correction-feedback-20261108-0012.json": "read in full in the Tacview correction batch (tvr459)",
+    "Root-motion-flags-feedback-20261108-0038.json": "Read in full by fallback at resume; re-read before PRE/freeze/STOP.",
+    "Root-motion-flags-feedback-20261108-0044.json": "Read in full by fallback at resume; re-read before PRE/freeze/STOP.",
+    "Root-motion-flags-feedback-20261108-0052.json": "Read in full by fallback at resume; re-read before PRE/freeze/STOP."
+  },
+  "note": "Historical read attestations are inherited literally from tvr69c; current Root-motion-flags notes read in full at fallback start, before PRE, freeze and STOP. No replay of old experiments."
+}

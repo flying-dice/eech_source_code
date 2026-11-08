@@ -1,0 +1,30 @@
+{
+  "d1-motion-hosted-first": {
+    "actual_exit": 101,
+    "why": "Developer compile failure: scripted result attitude is a flat nine-float array; fixture initially used matrix indexing. Retained setup failure, not product RED."
+  },
+  "d2-motion-hosted-attitude-fixed": {
+    "actual_exit": 0,
+    "why": "Hosted real C guided response/setter/store characterization after flat-array fixture correction; one test, positive actual store traffic. Developer working-tree evidence only, no timed PRE/POST or retroactive frozen-source claim."
+  },
+  "d3-motion-original-first": {
+    "actual_exit": 0,
+    "why": "Same characterization cases in Original profile; one test. Developer working-tree evidence only, not final frozen checks."
+  },
+  "d4-guard-first": {
+    "actual_exit": 0,
+    "why": "Developer guard before the bounded seven-query single-source-census refactor requested by Root0052. Retained, not relabelled as final source."
+  },
+  "d5-fmt-apply": {
+    "actual_exit": 0,
+    "why": "Original author formatting application before the guard single-census refactor."
+  },
+  "d6-clippy-motion": {
+    "actual_exit": 0,
+    "why": "Original author strict feature Hosted and Original lint, before the final guard single-census refactor."
+  },
+  "d7-fmt-apply-scan-once": {
+    "actual_exit": 0,
+    "why": "Fallback formatting after only the requested guard single-census refactor. Dedicated final checks follow the real PRE."
+  }
+}

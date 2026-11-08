@@ -1,0 +1,73 @@
+{
+  "prefix": "flags-mfr332-",
+  "label_regex": "^d[1-7]-",
+  "declared_helper": "intentionally-wrong-mfr332-helper.sh",
+  "records": 7,
+  "rows": [
+    {
+      "record": "flags-mfr332-d1-motion-hosted-first.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": false
+    },
+    {
+      "record": "flags-mfr332-d2-motion-hosted-attitude-fixed.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": false
+    },
+    {
+      "record": "flags-mfr332-d3-motion-original-first.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": false
+    },
+    {
+      "record": "flags-mfr332-d4-guard-first.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": false
+    },
+    {
+      "record": "flags-mfr332-d5-fmt-apply.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": false
+    },
+    {
+      "record": "flags-mfr332-d6-clippy-motion.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": false
+    },
+    {
+      "record": "flags-mfr332-d7-fmt-apply-scan-once.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": false
+    }
+  ],
+  "problems": [
+    "flags-mfr332-d1-motion-hosted-first.json: not run with intentionally-wrong-mfr332-helper.sh",
+    "flags-mfr332-d2-motion-hosted-attitude-fixed.json: not run with intentionally-wrong-mfr332-helper.sh",
+    "flags-mfr332-d3-motion-original-first.json: not run with intentionally-wrong-mfr332-helper.sh",
+    "flags-mfr332-d4-guard-first.json: not run with intentionally-wrong-mfr332-helper.sh",
+    "flags-mfr332-d5-fmt-apply.json: not run with intentionally-wrong-mfr332-helper.sh",
+    "flags-mfr332-d6-clippy-motion.json: not run with intentionally-wrong-mfr332-helper.sh",
+    "flags-mfr332-d7-fmt-apply-scan-once.json: not run with intentionally-wrong-mfr332-helper.sh"
+  ]
+}

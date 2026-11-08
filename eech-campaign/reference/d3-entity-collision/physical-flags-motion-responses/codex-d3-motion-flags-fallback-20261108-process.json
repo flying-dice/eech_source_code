@@ -1,0 +1,12 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T01:00:45.237002+00:00",
+  "source_before": "33295557b72406f90127f7bed5626d0adab4cc07",
+  "scope": "Resume preserved7-file mfr332 partialmotionresponse characterization after Claude actualOAuthfailure1; finish currentguardcache/countprecision, sealedfinal10checks/maps, cleanpush STOPforSAMEreview. Onefocusedimplementation/cacheowner, bothfullpacks/all10 unchanged. Noauthchange/CLIrestart/modelimpersonation.",
+  "partial_checkpoint": "mfr332-claude-auth-expired-checkpoint-20261108.json",
+  "actual_OS_process_identity": "Not applicable: Codex service agent, no fabricated CLI PID/birth/exit."
+}

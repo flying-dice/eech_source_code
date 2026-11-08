@@ -1,0 +1,25 @@
+{
+  "utc": "2026-11-08T00:35:55.078Z",
+  "ledger": {
+    "page": "14548994",
+    "snapshot": "v:190",
+    "previous_characters": 537585,
+    "entire_previous_body_literal_prefix": true,
+    "all_five_macro_parameters_literal": true,
+    "new_section_readback_equal_ignoring_generated_new_local_ids": true
+  },
+  "jira": {
+    "issue": "EEDCS-49",
+    "checkpoint_comment": "11022",
+    "body_exact_expected": true,
+    "prior_comment_11021_unchanged": true,
+    "previous_append_rejected": "CONTENT_LIMIT_EXCEEDED; no history rewritten or truncated"
+  },
+  "pr": {
+    "number": 109,
+    "head": "33295557b72406f90127f7bed5626d0adab4cc07",
+    "state": "open",
+    "draft": true,
+    "body_exact_expected": true
+  }
+}

@@ -1,0 +1,11 @@
+s1-fmt-check exit=0
+s2-clippy-default exit=0
+s3-clippy-motion-hosted exit=0
+s4-clippy-motion-original exit=0
+s5-motion-hosted exit=0
+s6-motion-original exit=0
+s7-flags-guard exit=0
+s8-flags-controls-hosted exit=0
+s9-flags-controls-original exit=0
+s10-build-dc exit=0
+DONE

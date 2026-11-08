@@ -65,6 +65,8 @@ physical-flags-consumer-check = []
 physical-flags-collision-check = []
 # TEST-ONLY (EEDCS-49, D3, Task49): the world of the third real immediate-consumer control of the UPDATED word: the SHIPPING supply arrival descriptor (gd_supply_arrival.c campaign_supply_arrival_check) handed to the engine's own Rust boundary (csrc/eech_physical_flags_supply_check.c; the test is eech-engine/tests/physical_flags_supply.rs). Never enabled in the shipping build.
 physical-flags-supply-check = []
+# TEST-ONLY (EEDCS-49, D3, Task49): the world of the control of the motion-response SETS of the MOVED / ROTATED words: the real AI helicopter guided begin/end bodies (rv_hostmv.c) applying a scripted host answer through the real setter to the host's store or the engine's array (csrc/eech_physical_flags_motion_check.c; the test is tests/physical_flags_motion.rs). Never enabled in the shipping build.
+physical-flags-motion-check = []
 
 # TEST-ONLY (EEDCS-49, D3): the read-only observer of the sector tallest-structure word on the real public path: staged hooks (build/patches.rs SECTOR_HEIGHT_OBSERVER_PATCHES), csrc/eech_sho.c, and four
 # read-only report entries. Never enabled in the shipping build; with it off no hook, patch or definition exists.
@@ -118,6 +120,11 @@ required-features = ["physical-flags-check"]
 name = "physical_flags_collision"
 path = "tests/physical_flags_collision.rs"
 required-features = ["physical-flags-collision-check"]
+
+[[test]]
+name = "physical_flags_motion"
+path = "tests/physical_flags_motion.rs"
+required-features = ["physical-flags-motion-check"]
 
 [[test]]
 name = "sector_height"

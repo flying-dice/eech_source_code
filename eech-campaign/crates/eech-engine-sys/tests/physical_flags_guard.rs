@@ -485,8 +485,8 @@ fn the_supply_control_seam_exists_only_behind_its_feature_and_the_consumer_reads
     // the test-only key helpers of mb_hostmodel.c: the feature joins the gate they already had
     let model = read(&aphavoc().join("entity/mobile/mb_hostmodel.c"));
     assert!(
-        model.contains("|| defined(EECH_PHYSICAL_FLAGS_SUPPLY_CHECK)\n"),
-        "the gate of the test-only key helpers no longer names the supply control"
+        model.contains("|| defined(EECH_PHYSICAL_FLAGS_SUPPLY_CHECK) || defined(EECH_PHYSICAL_FLAGS_MOTION_CHECK)\n"),
+        "the gate of the test-only key helpers no longer names the supply and motion controls"
     );
     // the CONSUMER: the fixed-wing branch reads the getter into the descriptor (as the corrected boolean), ONCE, and the host is asked after it (before any gate)
     let consumer = strip_comments(&read(&aphavoc().join("entity/special/guide/gd_supply_arrival.c")));
@@ -825,4 +825,169 @@ fn the_legacy_tacview_writer_is_compiled_in_but_every_read_of_moved_and_rotated_
         !macro_means_open_log_file("#define tacview_is_logging()  (tacview_log_file == NULL)\n"),
         "NEGATIVE: the inverted macro"
     );
+}
+
+/// the name of the function whose column-0 definition line is the nearest one before `at`
+fn enclosing_function(code: &str, at: usize) -> String {
+    let line = code[..at]
+        .lines()
+        .rev()
+        .find(|l| l.chars().next().is_some_and(|c| c.is_ascii_alphabetic()) && l.contains(" ("))
+        .unwrap_or("");
+    line.split(" (")
+        .next()
+        .unwrap_or("")
+        .rsplit(' ')
+        .next()
+        .unwrap_or("")
+        .trim_start_matches('*')
+        .to_string()
+}
+
+#[test]
+fn the_motion_responses_set_moved_and_rotated_at_six_known_places_two_live_two_dead_and_two_behind_the_logging_bit() {
+    // THE ROLES (the group of helicopter, vehicle, ship and weapon-vector motion responses of ENV-PHYSICAL-FLAGS-HOST-STORE-NATIVE-ACCEPTANCE-1), from source text: the only SETTERS of MOVED and ROTATED in the host-movement
+    // responses are the six statements of rv_hostmv.c below, and nothing in them reads either word. Two sit behind the PER-ENTITY Tacview logging bit (the vehicle's and the fixed wing's `result.rotated`; the bit is set
+    // only by the Tacview writer, pinned above), two are in public functions that nothing calls, and the two guided helicopter steps are the live ones (the control tests/physical_flags_motion.rs runs them).
+    // The ship and the weapon-vector name none of the three words (the census above is exact), which the last assertion states for the two directories.
+    let code = strip_comments(&read(&aphavoc().join("entity/mobile/vehicle/routed/rv_hostmv.c")));
+    let mut found: Vec<(String, String, String)> = Vec::new();
+    for (word, token) in [("MOVED", "INT_TYPE_MOVED, TRUE"), ("ROTATED", "INT_TYPE_ROTATED, TRUE")] {
+        for at in offsets(&code, token) {
+            let statement = code[..at].rfind("set_local_entity_int_value").expect("the setter call");
+            let condition_start = code[..statement].rfind("if (").expect("a conditional before the set");
+            let condition_line_end = code[condition_start..].find('\n').map(|i| condition_start + i).expect("the condition's line");
+            let condition = code[condition_start..condition_line_end].trim().to_string();
+            let between: String = code[condition_line_end..statement].split_whitespace().collect();
+            assert_eq!(between, "{", "the set is the FIRST statement of the block its condition opens: {condition}");
+            found.push((enclosing_function(&code, condition_start), condition, word.to_string()));
+        }
+    }
+    found.sort();
+    let expected: Vec<(String, String, String)> = [
+        (
+            "campaign_movement_fixed_wing_move",
+            "if (raw->ac.mob.tacview_logging && result.rotated)",
+            "ROTATED",
+        ),
+        ("campaign_movement_helicopter_begin", "if (result.moved)", "MOVED"),
+        ("campaign_movement_helicopter_end", "if (result.rotated)", "ROTATED"),
+        ("campaign_movement_helicopter_guided_begin", "if (result.moved)", "MOVED"),
+        ("campaign_movement_helicopter_guided_end", "if (result.rotated)", "ROTATED"),
+        ("campaign_movement_move", "if (raw->vh.mob.tacview_logging && result.rotated)", "ROTATED"),
+    ]
+    .iter()
+    .map(|(f, c, w)| (f.to_string(), c.to_string(), w.to_string()))
+    .collect();
+    assert_eq!(
+        found, expected,
+        "a motion response gained, lost or changed the condition of a set of MOVED / ROTATED"
+    );
+    // the file reads neither word (the census pins the same for every file: no `get` of MOVED or ROTATED outside the Tacview readers)
+    assert!(
+        !code.contains("INT_TYPE_MOVED)") && !code.contains("INT_TYPE_ROTATED)"),
+        "rv_hostmv.c reads a word"
+    );
+
+    // Read this guard's source census once for all seven role queries.
+    let root = aphavoc();
+    let mut paths = Vec::new();
+    walk(&root, &mut paths);
+    let sources: Vec<(String, String)> = paths
+        .into_iter()
+        .map(|path| {
+            (
+                path.strip_prefix(&root).unwrap().to_string_lossy().replace('\\', "/"),
+                strip_comments(&read(&path)),
+            )
+        })
+        .collect();
+    let naming = |needle: &str| -> BTreeMap<String, usize> {
+        sources
+            .iter()
+            .filter_map(|(path, text)| {
+                let n = offsets(text, needle).len();
+                (n > 0).then(|| (path.clone(), n))
+            })
+            .collect()
+    };
+    // the two public functions of the non-guided helicopter step are called by nothing (their sets are dead), the guided pair by the helicopter's own movement only
+    let begins = naming("campaign_movement_helicopter_begin");
+    assert_eq!(
+        begins.keys().cloned().collect::<Vec<_>>(),
+        vec![
+            "entity/mobile/vehicle/routed/rv_hostmv.c".to_string(),
+            "entity/mobile/vehicle/routed/rv_hostmv.h".to_string()
+        ],
+        "campaign_movement_helicopter_begin gained a caller: its set is no longer dead"
+    );
+    let ends = naming("campaign_movement_helicopter_end");
+    assert_eq!(
+        ends.keys().cloned().collect::<Vec<_>>(),
+        vec![
+            "entity/mobile/vehicle/routed/rv_hostmv.c".to_string(),
+            "entity/mobile/vehicle/routed/rv_hostmv.h".to_string()
+        ],
+        "campaign_movement_helicopter_end gained a caller: its set is no longer dead"
+    );
+    for name in ["campaign_movement_helicopter_guided_begin", "campaign_movement_helicopter_guided_end"] {
+        assert_eq!(
+            naming(name).keys().cloned().collect::<Vec<_>>(),
+            vec![
+                "entity/mobile/aircraft/helicop/hc_move.c".to_string(),
+                "entity/mobile/vehicle/routed/rv_hostmv.c".to_string(),
+                "entity/mobile/vehicle/routed/rv_hostmv.h".to_string()
+            ],
+            "{name} is called from the helicopter's own movement only"
+        );
+    }
+
+    // the ship and the weapon-vector name none of the three words
+    for word in ["INT_TYPE_UPDATED", "INT_TYPE_MOVED", "INT_TYPE_ROTATED"] {
+        for file in naming(word).keys() {
+            assert!(
+                !file.starts_with("entity/mobile/vehicle/ship/") && !file.starts_with("entity/mobile/weapon/"),
+                "{file} names {word}: the ship or the weapon-vector now touches a flag word"
+            );
+        }
+    }
+}
+
+#[test]
+fn the_motion_control_exists_only_behind_its_feature_and_its_world_is_wholly_inside_its_define() {
+    for name in [
+        "eech-engine-sys",
+        "eech-engine",
+        "eech-dc",
+        "eech-world",
+        "eech-campaign",
+        "eech-harness",
+        "eech-sys",
+        "eech-map",
+    ] {
+        let text = std::fs::read_to_string(crate_dir().join("..").join(name).join("Cargo.toml")).unwrap();
+        let mentions = text.matches("physical-flags-motion-check").count();
+        match name {
+            "eech-engine-sys" => assert_eq!(mentions, 2, "the feature is declared once, empty, and required by the one test: {text}"),
+            _ => assert_eq!(mentions, 0, "{name} must not enable the motion control feature"),
+        }
+        let default = text.lines().find(|l| l.trim_start().starts_with("default")).unwrap_or("");
+        assert!(!default.contains("motion"), "{name}: a default feature enables the control: {default}");
+    }
+    let sys = std::fs::read_to_string(crate_dir().join("Cargo.toml")).unwrap();
+    assert!(sys.contains("\nphysical-flags-motion-check = []\n"));
+    let build = std::fs::read_to_string(crate_dir().join("build/main.rs")).unwrap();
+    assert_eq!(build.matches("EECH_PHYSICAL_FLAGS_MOTION_CHECK").count(), 1);
+    assert!(build.contains(
+        "if env::var_os(\"CARGO_FEATURE_PHYSICAL_FLAGS_MOTION_CHECK\").is_some() {\n        build.define(\"EECH_PHYSICAL_FLAGS_MOTION_CHECK\", None);"
+    ));
+    let fixture = strip_comments(&read(&crate_dir().join("csrc/eech_physical_flags_motion_check.c")));
+    assert!(
+        fixture.trim_start().starts_with("#ifdef EECH_PHYSICAL_FLAGS_MOTION_CHECK") && fixture.trim_end().ends_with("#endif"),
+        "the fixture is not wholly behind its define"
+    );
+    assert_eq!(fixture.matches("#ifdef EECH_PHYSICAL_FLAGS_MOTION_CHECK").count(), 1);
+    // the real bodies the control runs are the ones the roles above name
+    assert!(fixture.contains("campaign_movement_helicopter_guided_begin (&pool [index])"));
+    assert!(fixture.contains("campaign_movement_helicopter_guided_end (&pool [index], &steer, angles)"));
 }

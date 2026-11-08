@@ -1,0 +1,9 @@
+
+running 1 test
+physical flags motion facts:
+begin moved=1: word 0x20, host (sets, reads) None
+lane 31: raw MOVED -2147483648 ROTATED -2147483648
+test the_real_helicopter_guided_steps_set_moved_and_rotated_in_the_hosts_store_exactly_when_the_host_says_so_and_never_read_them ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
