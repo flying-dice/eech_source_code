@@ -1,0 +1,20 @@
+{
+  "read": {
+    "Root-physical-flags-witness-feedback-20261107-2012.json": "read in full in earlier batches; not about this correction",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json": "read in full in an earlier batch; not about this correction",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2148.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2150.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2154.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2201.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2205.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2215.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2222.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-supply-boolean-fix-feedback-20261107-2242.json": "read in full in the boolean-correction batch (sb120)",
+    "Root-supply-boolean-fix-feedback-20261107-2243.json": "read in full in the boolean-correction batch (sb120)",
+    "Root-tacview-consumer-feedback-20261107-2349.json": "read in full in the Tacview disposition batch (tvb1)",
+    "Root-tacview-consumer-feedback-20261107-2350.json": "read in full in the Tacview disposition batch (tvb1)",
+    "Root-tacview-correction-feedback-20261108-0008.json": "read in full at the start of this batch (present at the start; the directory listing was taken before any edit): the SAME review supports current supported-headless dormancy and keeps both findings OPEN; Root's mechanical binding (3995 rows, 32 extras, 12 readers, 3 finals actual 0 / eight guards, 3994 other mapped Git inputs unchanged true 3abf) supports only the measured product/test input classification, not the blanket range prose; publication of 459653 (56 exact Git entries / 54 external copies); ask: include the SAME review and the two small Root receipts literally in the correction packet; process learning: batched Git joins, not per-file processes (applied in the identity join). Done: the three are packet literals",
+    "Root-tacview-correction-feedback-20261108-0012.json": "read in full at about the name-check step, before the real PRE: Root's observation that the erratum's claim 'nothing above this line ... was rewritten' was false for the current contract (this batch also corrected section 13's guard explanation, comms-route and identity prose); required small precision applied in the same doc correction: the earlier packet, raw capture and freeze remain literal and the current corrected prose supersedes its earlier version; no new test, build or native run for the sentence"
+  },
+  "note": "the whole directory is listed (never `tail -1`) at the start, before PRE, at the freeze and at the stop; the runner of this family prints every Root-tacview-correction-feedback*.json it finds before each run."
+}

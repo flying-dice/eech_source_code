@@ -1,0 +1,4 @@
+s1-fmt-check exit=0
+s2-clippy-engine-sys exit=0
+s3-flags-guard exit=0
+DONE

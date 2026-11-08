@@ -527,6 +527,52 @@ fn nearest_if_line_before(code: &str, at: usize) -> String {
         .to_string()
 }
 
+/// THE predicate the Tacview dormancy guard uses for every read of MOVED / ROTATED and every reset of both words: is the text at `at` inside the braces of the block a `if (tacview_is_logging () ...)` opens.
+/// Brace matching over comment-stripped text, no more: the block is the `{` that ends the condition's line or is the next thing after it, to its matching `}`; a text after that closing brace is OUTSIDE.
+/// (The first version of this guard accepted the nearest preceding `if (` line instead, which also accepts a text placed after the block's closing brace: the retained red run r1.)
+fn inside_logging_block(code: &str, at: usize) -> bool {
+    for start in offsets(code, "tacview_is_logging()") {
+        let line_start = code[..start].rfind('\n').map_or(0, |i| i + 1);
+        if !code[line_start..start].trim_start().starts_with("if (") {
+            continue; // the macro's own definition line, a call that is not a condition
+        }
+        let rest = &code[start..];
+        let eol = rest.find('\n').unwrap_or(rest.len());
+        let open = match rest[..eol].find('{') {
+            Some(i) => start + i,
+            None if rest[eol..].trim_start().starts_with('{') => start + eol + rest[eol..].find('{').unwrap(),
+            None => continue, // a brace-less conditional opens no block
+        };
+        let mut depth = 0usize;
+        for (i, c) in code[open..].char_indices() {
+            match c {
+                '{' => depth += 1,
+                '}' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        if at > open && at < open + i {
+                            return true;
+                        }
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    false
+}
+
+/// does the header's `tacview_is_logging ()` mean "the log file is open" (`tacview_log_file != NULL`), the relation every logging conditional rests on
+fn macro_means_open_log_file(header: &str) -> bool {
+    header.lines().any(|l| {
+        l.contains("#define tacview_is_logging()")
+            && l.split("tacview_is_logging()")
+                .nth(1)
+                .is_some_and(|rest| rest.trim() == "(tacview_log_file != NULL)")
+    })
+}
+
 /// the files under the original sources whose comment-stripped text contains `needle`, as `relative path -> occurrences`
 fn files_naming(needle: &str) -> BTreeMap<String, usize> {
     let root = aphavoc();
@@ -552,6 +598,11 @@ fn the_legacy_tacview_writer_is_compiled_in_but_every_read_of_moved_and_rotated_
     assert!(
         sources.lines().any(|l| l.trim() == "aphavoc/source/entity/tacview/tacview.c"),
         "the writer is compiled, not stubbed: it is listed in the engine's sources"
+    );
+    // the condition every guard below rests on: the header's macro is exactly "the log file is open"
+    assert!(
+        macro_means_open_log_file(&strip_comments(&read(&aphavoc().join("entity/tacview/tacview.h")))),
+        "tacview.h: tacview_is_logging () is no longer `tacview_log_file != NULL`"
     );
     let tacview_c = strip_comments(&read(&aphavoc().join("entity/tacview/tacview.c")));
     assert!(tacview_c.contains("FILE* tacview_log_file = NULL;"), "the log file starts unopened");
@@ -675,23 +726,24 @@ fn the_legacy_tacview_writer_is_compiled_in_but_every_read_of_moved_and_rotated_
         for word in ["INT_TYPE_MOVED)", "INT_TYPE_ROTATED)"] {
             for at in offsets(&code, &format!("get_local_entity_int_value(en, {word}")) {
                 reads += 1;
-                assert!(
-                    nearest_if_line_before(&code, at).contains("tacview_is_logging()"),
-                    "{file}: a read of {word} outside the logging guard"
-                );
+                assert!(inside_logging_block(&code, at), "{file}: a read of {word} outside the logging block");
             }
         }
     }
     assert_eq!(reads, 9, "the number of reads of MOVED and ROTATED the census pins (one MOVED, eight ROTATED)");
     let update = strip_comments(&read(&aphavoc().join("entity/special/update/up_update.c")));
-    let guard = update
-        .find("if (tacview_is_logging() && tacview_reset_frame())")
-        .expect("the guarded frame reset");
-    for array in ["MOVED", "ROTATED"] {
-        let reset = update
-            .find(&format!("campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_{array});"))
-            .expect("the hosted reset");
-        assert!(guard < reset && reset - guard < 400, "the {array} reset is the guarded block's");
+    assert_eq!(
+        offsets(&update, "if (tacview_is_logging() && tacview_reset_frame())").len(),
+        1,
+        "the guarded frame reset is the one conditional of its kind"
+    );
+    for (array, original) in [("MOVED", "memset (moved_entities, 0,"), ("ROTATED", "memset (rotated_entities, 0,")] {
+        // the hosted reset and the original profile's memset of the same word: each named once and each a member of the guarded block (real block membership, not distance)
+        for text in [format!("campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_{array});"), original.to_string()] {
+            let at = offsets(&update, &text);
+            assert_eq!(at.len(), 1, "{text} is named once");
+            assert!(inside_logging_block(&update, at[0]), "{text} is outside the logging block of the frame reset");
+        }
         assert_eq!(
             offsets(&update, &format!("CAMPAIGN_FLAG_ARRAY_{array})")).len(),
             1,
@@ -704,10 +756,40 @@ fn the_legacy_tacview_writer_is_compiled_in_but_every_read_of_moved_and_rotated_
         vec!["entity/tacview/tacview.c".to_string()]
     );
 
-    // the guard's own predicate, matched positive and negative on synthetic text (a read outside any logging conditional must be refused)
-    let guarded = "if (tacview_is_logging() && raw->alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
-    let unguarded = "if (raw->alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
-    let at = |code: &str| code.find("get_local_entity_int_value").unwrap();
-    assert!(nearest_if_line_before(guarded, at(guarded)).contains("tacview_is_logging()"));
-    assert!(!nearest_if_line_before(unguarded, at(unguarded)).contains("tacview_is_logging()"));
+    // the guard's own predicates (the SAME functions used above), matched positives and negatives on synthetic text
+    let read = "get_local_entity_int_value(en, INT_TYPE_ROTATED)";
+    let at = |code: &str, what: &str| code.find(what).unwrap();
+    let inside = "if (tacview_is_logging() && raw->alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
+    assert!(inside_logging_block(inside, at(inside, read)), "POSITIVE: a read inside the logging block");
+    let other_if = "if (raw->alive)\n{\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
+    assert!(
+        !inside_logging_block(other_if, at(other_if, read)),
+        "NEGATIVE: a read inside some other conditional"
+    );
+    let after_brace = "if (tacview_is_logging() && raw->alive)\n{\n int moved = 0;\n}\nint rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n";
+    assert!(
+        !inside_logging_block(after_brace, at(after_brace, read)),
+        "NEGATIVE: the same read immediately AFTER the closing brace of the logging block"
+    );
+    let reset_after =
+        "if (tacview_is_logging() && tacview_reset_frame())\n{\n write_tacview_frame_header();\n}\ncampaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_MOVED);\n";
+    assert!(
+        !inside_logging_block(reset_after, at(reset_after, "campaign_model_flag_reset")),
+        "NEGATIVE: a reset after the closing brace of the guarded block"
+    );
+    let nested = "if (tacview_is_logging() && raw->alive)\n{\n if (x)\n {\n y ();\n }\n int rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);\n}";
+    assert!(
+        inside_logging_block(nested, at(nested, read)),
+        "POSITIVE: a read after a nested block, still inside the logging block"
+    );
+    let header = "#define tacview_is_logging()  (tacview_log_file != NULL)\n";
+    assert!(macro_means_open_log_file(header), "POSITIVE: the macro is the open-log-file test");
+    assert!(
+        !macro_means_open_log_file("#define tacview_is_logging()  (1)\n"),
+        "NEGATIVE: a macro that is unconditionally true"
+    );
+    assert!(
+        !macro_means_open_log_file("#define tacview_is_logging()  (tacview_log_file == NULL)\n"),
+        "NEGATIVE: the inverted macro"
+    );
 }

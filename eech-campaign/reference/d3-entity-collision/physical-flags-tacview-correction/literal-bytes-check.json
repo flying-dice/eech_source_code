@@ -1,0 +1,277 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the working bytes of every packet file except this record and the manifest, and of every changed source file",
+  "files": {
+    ".gitattributes": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    "D3-TACVIEW-DISPOSITION-CORRECTION-FROZEN-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 13035,
+      "sha256": "f8f92b6c8c05e9abb2270142cd0a464bf2292f2635e2d2cbe4092e0d86eff5de"
+    },
+    "README.md": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 8556,
+      "sha256": "2fc43b7128a379f657ca5f2515ecf3f1630b541a467c976413c788933636f1e8"
+    },
+    "Root-tacview-correction-feedback-20261108-0008.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1946,
+      "sha256": "4bdd78e3be37d26a5860c2a22b31cb9bb0a522f5a2bceb13a35387a2f3845804"
+    },
+    "Root-tacview-correction-feedback-20261108-0012.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 997,
+      "sha256": "91417a1509d643d6a03f3946e8082ba6cfa6db7c8b71ce1eaa2a485b4609f3ef"
+    },
+    "independent-tacview-disposition-8ffd-source-20261108.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 11810,
+      "sha256": "9ab3482df6d7164e47255f77d21c22646b79d14c3a72680b944f4a86a5933413"
+    },
+    "runs/d1-fmt-apply.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 882,
+      "sha256": "a2173c1296d94e2bd858b09c644a1804e25e198df8d96089fcfa2b19ff92c309"
+    },
+    "runs/d1-fmt-apply.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    "runs/d1-fmt-apply.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    "runs/g1-green-brace-aware.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 878,
+      "sha256": "50d21801b2a22967f896abf79f52e9daf2c1c0dce056b1328cf323500e91123d"
+    },
+    "runs/g1-green-brace-aware.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 257,
+      "sha256": "f3031a83c5511a26b52f8323ec4158df2cc5549e624fb46ac89a2c97c5a92c8f"
+    },
+    "runs/g1-green-brace-aware.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1123,
+      "sha256": "b9d69f302fdc17e4d371ae0369e16109e3689c788a0faba3bb47a0b245889722"
+    },
+    "runs/r1-red-old-predicate.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 880,
+      "sha256": "a6539b999feb4d68938ca7019570520e5ccde26242fb5edf060fee7dcba11d40"
+    },
+    "runs/r1-red-old-predicate.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 417,
+      "sha256": "442d3d2ebc4dc601b92d5870db9f6ab9374338904c7e93276fd2c607a0897c89"
+    },
+    "runs/r1-red-old-predicate.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1804,
+      "sha256": "72b4a97e65221c5272cb28ad57e5935fcc4d7b0d4e4a6223fbbcf867a465cdda"
+    },
+    "runs/s1-fmt-check.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 859,
+      "sha256": "1c54497c882c971343de844ce2d53840952968d7a2e2d952066ced5a3bf1a5c0"
+    },
+    "runs/s1-fmt-check.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    "runs/s1-fmt-check.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    "runs/s2-clippy-engine-sys.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 967,
+      "sha256": "076b0a47db4c170c0d6eb0c7f5fe94346df9eccf2781262eb649524f21fcf48b"
+    },
+    "runs/s2-clippy-engine-sys.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 187,
+      "sha256": "d29c56f653368c365cc2bb3cf31e99d57ca4e1e49429085a226a12fb245fb039"
+    },
+    "runs/s2-clippy-engine-sys.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 38,
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    "runs/s3-flags-guard.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 915,
+      "sha256": "ca4ab453d6bb0d06dcc48f247fd3b71d96cb05713d5f409f30f2e9335bff0061"
+    },
+    "runs/s3-flags-guard.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 257,
+      "sha256": "89d28a5ef9b556efeea818c768fd1010e561e2e524caecda62376e71e37e571e"
+    },
+    "runs/s3-flags-guard.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1159,
+      "sha256": "2f27506581fa3949e50a7c0fe7b390146968176dc1aa2d095639de351ec7c569"
+    },
+    "scripts/check-physical-flags-tvr459-linux-20261107.sh": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1407,
+      "sha256": "e107a2735010d085500520402742b5a93ef18dd2988e0b18052b5501391606ed"
+    },
+    "scripts/derive-tvr459-helpers-20261108.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1772,
+      "sha256": "7b862aa98b944474d1d4e2f3ffa53924c4b90b550b7fa1960150a86f89c5aee3"
+    },
+    "scripts/freeze-tvr459-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 18591,
+      "sha256": "1184ae31f74dfee5935ac4c0ec0f9f1acdb858cdd5e2233f7ca990207c25d5b1"
+    },
+    "scripts/preflight-receipts-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2203,
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+    },
+    "scripts/publish-tvr459-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 11872,
+      "sha256": "7e8760fb470dd3998c180e1813602f9647595248ebc42fd5333cb0ae1982728d"
+    },
+    "scripts/run-physical-flags-tvr459-direct-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2377,
+      "sha256": "312ba9280063cdb8649af24bf4855694548b81bb04f57cd63dc2347ef3ada63d"
+    },
+    "scripts/run-tvr459-final-set-20261107.sh": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2575,
+      "sha256": "aac4953b0616631f5c625f155020480bad5f6ed28686324bec8f9b819649138a"
+    },
+    "scripts/sector-roster-inputmap-batched-20261106.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    "scripts/sho-compare-maps-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    "scripts/tvr459-extra-identity-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 4159,
+      "sha256": "4ef42d21f5c053bd6f488c8f59c30869b1e0eab53d1b0fdbdf5e8ac68195ad83"
+    },
+    "scripts/tvr459-identity-join-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 5400,
+      "sha256": "7dc7d47900c97aba3157d98494eab57af5d936fcf2238ba7211810761a5ac18f"
+    },
+    "scripts/tvr459-name-check-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2832,
+      "sha256": "d5aa0ca978f4ce9e6569f4732e2d6854aac39a2acd22f3ce1ad628b31721113e"
+    },
+    "tacview-disposition-459653-Root-publication-20261108.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 13046,
+      "sha256": "ed09ed8d6a645a9d0c9a63641b0baad796288817ce608cc98ee3a72da855e619"
+    },
+    "tacview-disposition-8ffd-Root-binding-20261108.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2593,
+      "sha256": "5e6a89136350d34cd45ea2f0ca22628733992fa9c135ae5340d04d391bfdd58e"
+    },
+    "tvr459-PRE-utc-20261107.txt": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 21,
+      "sha256": "31eb998dec7f9469cbac476ac2e1b554241b2f72374e6d22dd96f9fccc85616c"
+    },
+    "tvr459-extra-identity-POST-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 8377,
+      "sha256": "1a3a1f9a7fc4bdab826c15c9f444b884072b50d7ed528107d0329a5eec07bd3b"
+    },
+    "tvr459-extra-identity-PRE-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 8377,
+      "sha256": "1a3a1f9a7fc4bdab826c15c9f444b884072b50d7ed528107d0329a5eec07bd3b"
+    },
+    "tvr459-feedback-files-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 3215,
+      "sha256": "ef68d30d2e81de28bf6a261d51bfaf41e581b7fafa4510e03bf94c5f7d5c419f"
+    },
+    "tvr459-final-set-20261107.progress": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 75,
+      "sha256": "1f13a2d1a56d4423f062bb3ab9e9b222358d43cab0003aeb223f6748d5043e91"
+    },
+    "tvr459-final-set-lease-after-20261107.txt": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 40,
+      "sha256": "06059c0c68a5c90bf55c3b34c881db62b435f56baaa31c5eba233091697fd067"
+    },
+    "tvr459-final-set-lease-before-20261107.txt": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 252,
+      "sha256": "4e3f94ed3c322aea5762e67b3f18553d1e94c91ffe1d4b44a3f5b64f4e95feab"
+    },
+    "tvr459-identity-join-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 6301,
+      "sha256": "a82c9815b4be31de32f5f980cd90117dbaf738a9bc6e40a591e611c75b288e79"
+    },
+    "tvr459-inputmaps-compare-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1737,
+      "sha256": "c774d47426b163f7a8036a96da843ba55f4db4e321132c2078669e73130f2602"
+    },
+    "tvr459-name-check-negative-control-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 254,
+      "sha256": "65c7bd5f25f95e886d95162a6fd9c9da0d8cc2e2a2eab68b2c9a012d9cda0202"
+    },
+    "tvr459-name-check-result-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 143,
+      "sha256": "3851f492b152759fcec42a54a5a2c5d4c059c3c11d4b567bdb239aea6e5a7259"
+    },
+    "tvr459-preflight-negative-control-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 240,
+      "sha256": "30c7b8ec00f79c94aba53db8bf4083221c51742b42d0d9816c971708d5020313"
+    },
+    "tvr459-preflight-receipts-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 823,
+      "sha256": "28eede347ba9a516fd3e88b0762920e589f5e37914bb3fd6bd251271557bc3a4"
+    },
+    "tvr459-readers-PRE-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1290,
+      "sha256": "53fac78e49ef96fde39172b65cf47ffd4ca124d813ffcd50a758897f97c14411"
+    },
+    "tvr459-retained-dev-runs-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1102,
+      "sha256": "3c7293904ea5386636acc44d845882ffa8e9668ba3b35cfe874c9c5cb04950a6"
+    },
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 43312,
+      "sha256": "520083a67b58a2a780cfdd95f69039ff4f26700c3f874c59858838cc2ba927cf",
+      "frozen_sha256_equal": true
+    }
+  },
+  "problems": []
+}

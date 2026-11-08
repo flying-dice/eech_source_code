@@ -1,0 +1,164 @@
+{
+  "schema": "independent-bounded-source-disposition-review/v1",
+  "reviewed_utc": "2026-11-08T00:04:36.048354+00:00",
+  "scope": "Only new Tacview/MOVED-ROTATED shipping dormancy disposition, source guard, documentation and retained compiled/default-root evidence. Correctness, clean code and boundary/evidence accuracy reviewed together. No tests/builds/native/cache operations/source mutations or delegated reviews.",
+  "source": {
+    "commit": "8ffd4c937fd4b4fd14bd813d896b340fd01b76d0",
+    "parent": "b1b9a5d9ea27cbbbeda33035972e416ee7925001",
+    "metadata_commit": "4596534a5d8c40e4e1cefc233a569488f7f16bda",
+    "observed_head_exact_full_status_clean": true,
+    "reviewed_changed_blobs": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+        "git_blob": "02fb3b2f3fd19b825d16d5f31da565fb156bbe04",
+        "sha256": "46c1899cfb12eb965e7bb4968bd9da59eae9419b68098c8b7550ff9894266161"
+      },
+      {
+        "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+        "git_blob": "db0aba61d4c3e20d26e1b41cd7e9d76f2bdbdd3f",
+        "sha256": "0911b4b1c33f61d9ac9e4b98a557a4097465966828083d9e239fe69088ef844c"
+      }
+    ],
+    "production_code_changed": false
+  },
+  "evidence": {
+    "freeze": {
+      "path": "R:/d3-evidence/D3-TACVIEW-CONSUMER-DISPOSITION-FROZEN-20261107.json",
+      "bytes": 13882,
+      "sha256": "634125b69b0b931cad742f595b335ea597c5a8f3d42ee932be57c11787b5caa1"
+    },
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-tacview-consumer-20261107-completion.json",
+      "bytes": 1599,
+      "sha256": "ec5b4901af2a878e12dc440cc31ca913c3bed1b5378ef94dc9278f037abc1c3d"
+    },
+    "retained_evidence": {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/physical-flags-tacview-disposition/tvb1-dormancy-evidence-20261107.json",
+      "bytes": 9924,
+      "sha256": "4bf168c52786ac94329ffc97d83998b586a40e6c5031ee77f036d4c5393f4240"
+    }
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "dormancy_source_conclusion_supported_with_limits": true,
+    "new_guard_and_final_identity_prose_accepted": false,
+    "native_launch_clearance": false,
+    "meaning": "Current supported headless source dormancy is supported; two bounded guard/evidence corrections are required before accepting the new pinned disposition. No product/build/native correction or rerun is requested.",
+    "generic_flag_native_acceptance_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-TACVIEW-DORMANCY-GUARD-ENCLOSURE-1",
+      "severity": "P2",
+      "area": "new source guard",
+      "evidence": [
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+          "line": 520,
+          "claim": "nearest_if_line_before returns the most recent lexical if line, not an enclosing conditional."
+        },
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+          "line": 679,
+          "claim": "Read gating is accepted solely by that line containing tacview_is_logging()."
+        }
+      ],
+      "problem": "The guard claims to pin the condition and reject unguarded reads, but it neither asserts the actual tacview.h macro definition nor verifies that a read/reset is inside its guarded block. Moving an existing read immediately after the closing logging brace preserves census counts and the nearest prior if line, so this new predicate accepts an unguarded read. Changing the macro to unconditional true is also not rejected by this new predicate. These are source-derived counterexamples; reviewer did not execute mutations.",
+      "minimum_correction": "Pin the actual macro relationship to tacview_log_file != NULL, and bind relevant reads/reset to the enclosing current guarded block (a bounded brace-aware relation or exact block shape suffices; no compiler/parser framework). Retain the current positive and add a read-after-closing-brace negative plus changed-predicate negative; ensure reset membership is likewise real block membership rather than distance/order only. Keep the existing global census, which already detects additional reader sites.",
+      "validation_scope": "Only affected guard controls/format/strictlint with actual final input maps; no productionC build, numeric matrix or native war."
+    },
+    {
+      "id": "ENV-TACVIEW-DISPOSITION-IDENTITY-SCOPE-1",
+      "severity": "P2",
+      "area": "new documentation/provenance",
+      "evidence": [
+        {
+          "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+          "line": 175,
+          "claim": "States3abf equals HEAD over aphavoc and eech-campaign/crates, including an empty git diff claim."
+        },
+        {
+          "path": "eech-campaign/reference/d3-entity-collision/physical-flags-tacview-disposition/tvb1-dormancy-evidence-20261107.json",
+          "field": "repo_head",
+          "value": "b1b9a5d9ea27cbbbeda33035972e416ee7925001"
+        }
+      ],
+      "problem": "The retained extractor correctly recorded an empty product-and-crate diff at parentb1b9 before the new guard edit. It cannot establish that same literal claim at8ffd/459: the new physical_flags_guard.rs is inside the stated crates range and git diff3abf..8ffd names that changed test. Compiled3abf evidence can be reused for unchanged production inputs, with the new test delta explicitly excluded; the present blanket HEAD wording is false.",
+      "minimum_correction": "State the retained extraction exact parent/time, distinguish unchanged production/build inputs from the new source-only test, and qualify compiled3abf evidence at its true identity. Preserve the old extraction/freeze literal; add explicit corrected prose/erratum rather than rewriting historical capture. No new native/build experiment is needed.",
+      "validation_scope": "Documentation/provenance delta and exact input-identity join only; no old matrix or fullpack replay."
+    }
+  ],
+  "supported_current_facts": [
+    "Legacy tacview.c is listed for compilation; retained ordinary and Original3abf nm reports define the writer and show actual mobile caller references. Compiled availability is not stubbing or headless reachability.",
+    "Current tacview.h macro is tacview_log_file != NULL; current tacview.c initializes NULL. First opening is the static open called by start_tacview_logging. Its two callers are user assignment and flight entry; periodic frame-header reopening is not an independent supported entry from a never-opened log.",
+    "Current headless boot substitutes its own startup and does not call flight or user gunship assignment. The step does call receive_comms_data; comm_man.c437 requires an initialized connection, while actual headless_devices.c436-475 supplies a zero-initialized private connection, failed initialization and no received data. The compiled comm_man assignment reference therefore does not defeat current supported headless dormancy.",
+    "All nine actual current MOVED/ROTATED getter reads in the four named update sources are genuinely inside logging blocks, and current reset is logging-gated. This conclusion comes from inspected source, independently of the insufficient new guard. Other moving fields such as MOBILE_MOVING are distinct.",
+    "Rust shipping recording uses host observations and its own recorder, independently of the legacy C flag consumer. Closed default roots mode0/no legacy C log files are supporting retained observations, not runtime proof of every call or proof for arbitrary hosts/configurations."
+  ],
+  "check_evidence": {
+    "final_direct_commands": {
+      "s1-fmt-check": {
+        "label": "s1-fmt-check",
+        "state": "terminal",
+        "actual_exit": 0,
+        "started_utc": "2026-11-07T23:57:26.585134+00:00",
+        "completed_utc": "2026-11-07T23:57:34.368082+00:00",
+        "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+        "record_sha256": "efd4efd867b0bab40d85b56c7033776ca607f74d398e44d0639e76f057516622",
+        "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+        "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+        "uses_declared_helper": true,
+        "test_binaries": 0,
+        "tests_passed": 0,
+        "tests_failed": 0,
+        "selected_counts": {}
+      },
+      "s2-clippy-engine-sys": {
+        "label": "s2-clippy-engine-sys",
+        "state": "terminal",
+        "actual_exit": 0,
+        "started_utc": "2026-11-07T23:57:34.508142+00:00",
+        "completed_utc": "2026-11-07T23:59:10.192013+00:00",
+        "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --all-targets -- -D warnings",
+        "record_sha256": "6ef27fcdc8a4d700eeed8d212366a78071ad44fbde967ffe04eb1f555a95dd24",
+        "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+        "stderr_sha256": "5caf4b6183af5ceb18ee70b31fe609c1e2e88b081b20cbba61b1f6535843f5d9",
+        "uses_declared_helper": true,
+        "test_binaries": 0,
+        "tests_passed": 0,
+        "tests_failed": 0,
+        "selected_counts": {}
+      },
+      "s3-flags-guard": {
+        "label": "s3-flags-guard",
+        "state": "terminal",
+        "actual_exit": 0,
+        "started_utc": "2026-11-07T23:59:10.354829+00:00",
+        "completed_utc": "2026-11-08T00:00:17.222693+00:00",
+        "command": "cargo --version && cargo test --locked -p eech-engine-sys --no-fail-fast --test physical_flags_guard",
+        "record_sha256": "49404d4f8ba40491c572b1e9ef7aa9305772e1b36d594ebb398da151c11cb778",
+        "stdout_sha256": "0428b4ccb69a5f2a8c636cf2b27b5b28bc67644acb42c563be6f90484e5b7ae8",
+        "stderr_sha256": "5d3b988b026b9ebbda457ecccbd8487a3426621f506210cb7aefc2e28eefb403",
+        "uses_declared_helper": true,
+        "test_binaries": 1,
+        "tests_passed": 8,
+        "tests_failed": 0,
+        "selected_counts": {
+          "physical_flags_guard": 8
+        }
+      }
+    },
+    "final_count": "three commands actual0, eight guard tests; fmt/lint are not additional behavioral tests",
+    "development": "g1/g2 retained101 reflect incorrect open/reopen premises, not product semantic REDs. Corrected source-only disposition can legitimately be GREEN before a move; final guard followed formatting.",
+    "source_maps": "Freeze records equal3995 PRE/POST rows/readers with inherited qualifications. Root supplemental mechanical Git/packet audit was still running at seal and is not necessary to establish the two findings; this report does not claim it completed."
+  },
+  "limits": [
+    "No claim tacview_log_file was measured remaining NULL, no Engine boot/native/i686/O2/FPU/lifetime proof and no all-consumer closure. A configured/custom host, changed boot/caller, network/device implementation or DCS-needed consumer requires its own supported reachability/neededness disposition and real-caller proof as applicable.",
+    "ENV-PHYSICAL-FLAGS-HOST-STORE-NATIVE-ACCEPTANCE-1, public READ/changed-answer/all consumers/lifetimes/DCS and all ten D3 requirements remain open. No arbitrary dormant classification for other consumers.",
+    "No production or native launch clearance is needed or granted by this doc/guard disposition. Existing3abf and764 fullpacks are preserved, still partial until actual completion/review. Named supply correction closure remains unchanged at its finite scope.",
+    "Root owns canonical finding disposition/publication; reviewer wrote only this new external report. No formal approval/merge/wholeheight/Task49/D3/delivery acceptance."
+  ]
+}

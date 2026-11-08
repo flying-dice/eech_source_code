@@ -1,0 +1,33 @@
+{
+  "prefix": "flags-tvr459-",
+  "label_regex": "^[rgd]\\d+-",
+  "declared_helper": "check-physical-flags-tvr459-linux-20261107.sh",
+  "records": 3,
+  "rows": [
+    {
+      "record": "flags-tvr459-d1-fmt-apply.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-tvr459-g1-green-brace-aware.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-tvr459-r1-red-old-predicate.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    }
+  ],
+  "problems": []
+}

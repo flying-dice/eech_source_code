@@ -1,0 +1,131 @@
+{
+  "kind": "identity join of the Tacview disposition correction (tvr459): what the earlier blanket 'git diff empty over aphavoc and eech-campaign/crates' claim hid, and the exact identities it can be replaced by",
+  "base_of_the_compiled_evidence": "3abf03e51",
+  "head_at_capture": "4596534a5d8c40e4e1cefc233a569488f7f16bda",
+  "ranges": [
+    "aphavoc",
+    "eech-campaign/crates"
+  ],
+  "files_differing_from_base_in_working_tree": [
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs"
+  ],
+  "files_differing_from_base_at_head_commit": [
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs"
+  ],
+  "expected_only": [
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs"
+  ],
+  "relied_on_sources": {
+    "aphavoc/source/entity/tacview/tacview.c": {
+      "blob_at_3abf03e51": "988ced09048003e3a8e528070a6f6e606bfeb39d",
+      "blob_of_working_bytes": "988ced09048003e3a8e528070a6f6e606bfeb39d",
+      "equal": true
+    },
+    "aphavoc/source/entity/tacview/tacview.h": {
+      "blob_at_3abf03e51": "0d2c303228eb1003ecaec290a65539188e8a3af5",
+      "blob_of_working_bytes": "0d2c303228eb1003ecaec290a65539188e8a3af5",
+      "equal": true
+    },
+    "aphavoc/source/entity/mobile/aircraft/helicop/helicop.c": {
+      "blob_at_3abf03e51": "4ffc1f553d2addb63d94066965927a49801d7ce3",
+      "blob_of_working_bytes": "4ffc1f553d2addb63d94066965927a49801d7ce3",
+      "equal": true
+    },
+    "aphavoc/source/flight.c": {
+      "blob_at_3abf03e51": "72605e40e04c774a24b3ead20780102ac020bec1",
+      "blob_of_working_bytes": "72605e40e04c774a24b3ead20780102ac020bec1",
+      "equal": true
+    },
+    "aphavoc/source/cmndline.c": {
+      "blob_at_3abf03e51": "0c9d00c5242db8cc69879880d5951724d68d942d",
+      "blob_of_working_bytes": "0c9d00c5242db8cc69879880d5951724d68d942d",
+      "equal": true
+    },
+    "aphavoc/source/gameflow/gameflow.c": {
+      "blob_at_3abf03e51": "0cdf29f8d77af2dd6b312e1d8e16465165a8b466",
+      "blob_of_working_bytes": "0cdf29f8d77af2dd6b312e1d8e16465165a8b466",
+      "equal": true
+    },
+    "aphavoc/source/comms/comm_man.c": {
+      "blob_at_3abf03e51": "8fe5117241f48431d9c5f603fb1030cf82c8b949",
+      "blob_of_working_bytes": "8fe5117241f48431d9c5f603fb1030cf82c8b949",
+      "equal": true
+    },
+    "aphavoc/source/entity/special/update/up_update.c": {
+      "blob_at_3abf03e51": "372d660ac0a5528279f3eb4f5733b217e16b3f0c",
+      "blob_of_working_bytes": "372d660ac0a5528279f3eb4f5733b217e16b3f0c",
+      "equal": true
+    },
+    "aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c": {
+      "blob_at_3abf03e51": "4b24f9bfde45f3bbac4a5abe05402a173283c1eb",
+      "blob_of_working_bytes": "4b24f9bfde45f3bbac4a5abe05402a173283c1eb",
+      "equal": true
+    },
+    "aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c": {
+      "blob_at_3abf03e51": "a46c31838f8a973da08b010cf7cb075e639afe5f",
+      "blob_of_working_bytes": "a46c31838f8a973da08b010cf7cb075e639afe5f",
+      "equal": true
+    },
+    "aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c": {
+      "blob_at_3abf03e51": "7456fbbcbd67d84fbe1d65d3c653de6213044fc7",
+      "blob_of_working_bytes": "7456fbbcbd67d84fbe1d65d3c653de6213044fc7",
+      "equal": true
+    },
+    "aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c": {
+      "blob_at_3abf03e51": "28c2d4c44b285afa2e2c9637c8965f2c1f8cc2c6",
+      "blob_of_working_bytes": "28c2d4c44b285afa2e2c9637c8965f2c1f8cc2c6",
+      "equal": true
+    },
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": {
+      "blob_at_3abf03e51": "dd99dd944f175da3c4999069acaa69848363dc92",
+      "blob_of_working_bytes": "dd99dd944f175da3c4999069acaa69848363dc92",
+      "equal": true
+    },
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_headless_devices.c": {
+      "blob_at_3abf03e51": "0382cb8364718bd668a5f1d4ba207146bf1532d8",
+      "blob_of_working_bytes": "0382cb8364718bd668a5f1d4ba207146bf1532d8",
+      "equal": true
+    },
+    "eech-campaign/crates/eech-engine-sys/sources.txt": {
+      "blob_at_3abf03e51": "80a34c950d46f2346680363bc0dc6825ed2d29e0",
+      "blob_of_working_bytes": "80a34c950d46f2346680363bc0dc6825ed2d29e0",
+      "equal": true
+    },
+    "eech-campaign/crates/eech-engine-sys/build/main.rs": {
+      "blob_at_3abf03e51": "c3650df34d3c893fe82844bda8b5e280bca3cdeb",
+      "blob_of_working_bytes": "c3650df34d3c893fe82844bda8b5e280bca3cdeb",
+      "equal": true
+    },
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml": {
+      "blob_at_3abf03e51": "9c72859a9285a1f08d5c7c591c1cd12cddd33619",
+      "blob_of_working_bytes": "9c72859a9285a1f08d5c7c591c1cd12cddd33619",
+      "equal": true
+    }
+  },
+  "retained_extraction": {
+    "path": "collision-characterization-20261029\\eech-campaign\\reference\\d3-entity-collision\\physical-flags-tacview-disposition\\tvb1-dormancy-evidence-20261107.json",
+    "sha256": "4bf168c52786ac94329ffc97d83998b586a40e6c5031ee77f036d4c5393f4240",
+    "recorded_repo_head": "b1b9a5d9ea27cbbbeda33035972e416ee7925001",
+    "recorded_product_and_crate_source_changed_since_3abf": false
+  },
+  "retained_reports": {
+    "ordinary": {
+      "report_sha256_now": "b6016bf398c480b1adee6fdaf3f959c799735c3ba18579980d2aa8c70d590587",
+      "report_sha256_recorded": "b6016bf398c480b1adee6fdaf3f959c799735c3ba18579980d2aa8c70d590587",
+      "equal": true,
+      "archive_sha256_now": "9dd51a5e80de26a102a0ad7dc75cf380ea4f7a333cd8fba018810edee08f4a1e",
+      "archive_sha256_recorded": "9dd51a5e80de26a102a0ad7dc75cf380ea4f7a333cd8fba018810edee08f4a1e",
+      "archive_equal": true
+    },
+    "original": {
+      "report_sha256_now": "9d6105dcbec28cca7de2206498ba8df7a87140155e4f8135c58b3ae6f64a17fe",
+      "report_sha256_recorded": "9d6105dcbec28cca7de2206498ba8df7a87140155e4f8135c58b3ae6f64a17fe",
+      "equal": true,
+      "archive_sha256_now": "25656407d11f059f4d70a56e576ed0a87e5d2d2f0b322ac63b3d23c6dbc6cb23",
+      "archive_sha256_recorded": "25656407d11f059f4d70a56e576ed0a87e5d2d2f0b322ac63b3d23c6dbc6cb23",
+      "archive_equal": true
+    }
+  },
+  "problems": [],
+  "scope": "read-only identity join: no build, native or replay; it says the production and build inputs read by the disposition are unchanged since 3abf03e51 and that the one changed file in the stated ranges is the source-only guard test"
+}

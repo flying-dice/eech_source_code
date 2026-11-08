@@ -1,0 +1,6 @@
+{
+  "subject": "Keep the new erratum's own scope literal",
+  "observed": "Current Edit stream adds erratum saying 'nothing above this line or in the earlier packet was rewritten', but this correction ALSO edits the preceding guard explanation in section13 (macro and enclosingblock prose). The earlierpacket/rawextract/freeze do remain unchanged.",
+  "required_small_precision": "Before final PRE, make the erratum say the earlier packet/raw capture/freeze remain literal and the CURRENT contract's corrected prose supersedes its earlier version. Do not claim no current text above the erratum changed. No new test/build/native run for this sentence; apply with the already planned doc correction. This is Root observation of actual edit scope, not a new semantic finding or scope expansion.",
+  "state": "Both SAME9ab findings stillOPEN until new independentreview; new guardGREEN observedg1actual0, genuineoldpredicateRED101 retained. Root remains readonly W/cache. Both fullpacks preserved."
+}
