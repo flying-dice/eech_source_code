@@ -1,4 +1,14 @@
-# CURRENT — D3 Task49: Tacview identity finding CLOSED_SOURCE; the guard residual is corrected in a frozen UNREVIEWED candidate and stays OPEN; native UNRUN (8 November 2026)
+# CURRENT — D3 Task49: supported-headless Tacview disposition reviewed; next remaining motion-response flag paths (8 November 2026)
+
+**Accepted finite proof:** SAME7a4df12e findings empty closes the guard source finding; identity finding stays CLOSED_SOURCE873c. [Literal closure packet](eech-campaign/reference/d3-entity-collision/physical-flags-tacview-reviewed/README.md). The compiled legacy writer is dormant in current supported headless startup. Guard pins actual macro, all9 reads/reset membership and exactly3 positive guard conditions; meaningful parent guard RED then GREEN; final3 actual0/eightguards. Root4d0d/f7d3 joins3995 rows/29extras/11readers and50Gitentries48externalcopies. Product inputs unchanged3abf; no new Windows/native/default/war replay.
+
+**Tacview:** the shipping Rust recorder is independent. Both immutable764 and current3abf fullpacks continue original jobs on distinct roots; latest growing ACMI/observation prefixes byte-equal only. No complete40/all8/four-input acceptance. No baseline/input/seed/frame/duration/tolerance changes.
+
+**Next sole lane:** resolve remaining helicopter/vehicle/ship/weapon-vector motion-response flag paths as one finite group, current actual READ versus WRITE role/reachability first. Reuse accepted movement controls; real response-to-store controls only where needed. No stale-label chase or speculative second motion model.
+
+**Still open:** NativeAcceptance1/publicREAD/changedanswer/otherneededconsumers/lifetimes/FPU/DCS, wholeheight/sharedterrain/RNG/hierarchy/services/naturalmoving/finalcensus/current40/all8/fourinputs/currentCI/formalreview/normalmerge/all10/Task49/D3. Supported-headless source disposition is not runtime/customhost/network/device/DCS proof. Prep2 retained; no D4/D5/TypeScript. D3-CURRENT holds actual jobs.
+
+# HISTORICAL (reviewed source disposition superseded this summary) — D3 Task49: Tacview identity finding CLOSED_SOURCE; the guard residual is corrected in a frozen UNREVIEWED candidate and stays OPEN; native UNRUN (8 November 2026)
 
 **The review** (`independent-tacview-correction-bccd-source-20261108.json`, SHA-256 `873c09a44fe8bba0f5daff7c10c7db6c0d46a0ef0c4ffcc4bc8535430c2e1240`): `ENV-TACVIEW-DISPOSITION-IDENTITY-SCOPE-1` is CLOSED_SOURCE (source and provenance scope; the earlier packets, raw extraction and freeze stay literal). One residual of `ENV-TACVIEW-DORMANCY-GUARD-ENCLOSURE-1` stays OPEN: the guard selected a block by any `if (` line containing the macro, which also admits `if (!tacview_is_logging() && ...)` and `if (other || tacview_is_logging())`. The review retains current supported-headless dormancy; this is not a production defect.
 

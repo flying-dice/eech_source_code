@@ -1,0 +1,98 @@
+{
+  "schema": "independent-source-finding-closure/v1",
+  "reviewed_utc": "2026-11-08T00:31:36.497192+00:00",
+  "scope": "Only new exact-condition residual correction, its guard controls, contract sentence and final evidence. No reopened identity/production/default proofs, no tests/build/native/cache/source execution or mutation, no delegation.",
+  "source": {
+    "commit": "eb7b6de7000ef35635b903089fd9aba4a46d5553",
+    "parent": "69c0c8a46d48125aa05761692b10d9948515d46c",
+    "metadata_commit": "16487c2ca7f0e7548d5851b5284fc2aa17a3de68",
+    "observed_HEAD_exact_full_clean": true,
+    "product_change": false
+  },
+  "evidence": {
+    "prior_residual_review": {
+      "path": "R:/d3-evidence/independent-tacview-correction-bccd-source-20261108.json",
+      "sha256": "873c09a44fe8bba0f5daff7c10c7db6c0d46a0ef0c4ffcc4bc8535430c2e1240",
+      "bytes": 7128
+    },
+    "freeze": {
+      "path": "R:/d3-evidence/D3-TACVIEW-GUARD-RESIDUAL-FROZEN-20261108.json",
+      "sha256": "31feadadfc923146451cdcf592b8c81d89953d253df929b2cac1d03b76f8823b",
+      "bytes": 13250
+    },
+    "source_binding": {
+      "path": "R:/d3-evidence/tacview-residual-eb7b-Root-binding-20261108.json",
+      "sha256": "4d0db32a5b2aadfc332ae641a4965c7e6132095fc4c33c5482dc729d5ab73f35",
+      "bytes": 2676
+    },
+    "publication_binding": {
+      "path": "R:/d3-evidence/tacview-residual-16487-Root-publication-20261108.json",
+      "sha256": "f7d31c0a996ebbb6df7636e73c3a1209fef1208e159a6d3e8020114686a2902a",
+      "bytes": 11860
+    },
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-tacview-residual-20261108-completion.json",
+      "sha256": "0d271bbdefc3c1047810553e69f4fb509264c4faa11edb2439b65a31a97dc91d",
+      "bytes": 1662
+    }
+  },
+  "findings": [],
+  "decision": {
+    "status": "SOURCE_DISPOSITION_CLEAR",
+    "closed_ids": [
+      "ENV-TACVIEW-DORMANCY-GUARD-ENCLOSURE-1"
+    ],
+    "prior_identity_finding": "CLOSED_SOURCE at873c, unchanged and not reopened",
+    "supported_headless_dormancy_disposition_accepted": true,
+    "native_launch_clearance": false,
+    "new_build_or_native_required_for_guard_doc_delta": false,
+    "generic_flag_native_acceptance_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "assessment": [
+    "LOGGING_GUARDS contains exactly the three current positive conjunctive full conditions: logging-and-ac.alive, logging-and-vh.alive and logging-and-reset-frame. Full condition text is checked before unchanged brace membership; any inverted/OR-bypassed or otherwise unsupported condition fails closed. Bounded whitespace collapsing/trailing opening brace handling does not turn either rejected counterexample into an allowed shape.",
+    "The same inside_logging_block predicate protects all nine actual current getter reads plus hosted resets and Original memset resets. New real-shape positives pass; inverted-macro and OR-arm single-fault negatives are executed through that same predicate. Previously accepted nested-block positivity, after-closing-brace read/reset rejection and actual macro pin remain intact.",
+    "Retained r1 actual101 is meaningful guard RED: supported positives and real memberships passed first, then old predicate failed the intended NEGATES-logging assertion. This is not a product/native RED. Corrected GREEN and final three direct actual0/eightguards follow, after formatting.",
+    "Minimal test-only condition whitelist fixes the named guarantee without a generalized parser/framework, product source/API/ABI/physical behavior change, fresh Windows build or campaign replay. Contract accurately describes this bounded text guard; it is not a preprocessed whole-program proof.",
+    "Root joins3995 timedPRE/POST/current raw rows and actualGit,29extras/11currentreaders,3994 other mapped Git inputs unchanged3abf, same three inherited uncompiled Lua rawCRLF/GitLF qualifications. Publication binds50 exact entries/48externalcopies; metadata only STATUS/card; actual producer terminal0/resultfalse00:30:00.154679Z. No normalization or post-hoc test identity claim."
+  ],
+  "checks": {
+    "PRE_utc": "2026-11-08T00:27:05Z",
+    "POST_utc": "2026-11-08T00:28:38Z",
+    "final_commands": [
+      {
+        "label": "s1-fmt-check",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "result_rows": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s2-clippy-engine-sys",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "result_rows": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s3-flags-guard",
+        "actual_exit": 0,
+        "selected_test_instances": 8,
+        "result_rows": 1,
+        "selected_targets": {
+          "physical_flags_guard": 8
+        }
+      }
+    ],
+    "selected_test_instances": 8,
+    "red_record_sha256": "8aada0e2b5cbd9efc33a744e7ffc9c1db39cd260487e29be826833528d804958"
+  },
+  "limits": [
+    "Accepted disposition is source/build-supported dormancy of the legacy compiled C Tacview flag consumer in the CURRENT SUPPORTED headless configuration. No new measurement of log-file NULL, Engineboot/native reachability, arbitrary custom configuration/network/device/DCS behavior, whole FPU or lifetime.",
+    "A changed caller/boot/condition or needed custom/DCS consumer requires its own current reachability/neededness disposition and real-caller proof if applicable. Rust shipping recorder remains separate; unused Host writes are not consumer authority.",
+    "ENV-PHYSICAL-FLAGS-HOST-STORE-NATIVE-ACCEPTANCE-1/publicREAD/otherconsumers/lifetimes/FPU/DCS/allten requirements/wholeheight/final current40/all8/fourinputs/CI/review/census/normalmerge/Task49/D3 remain open as applicable. No generic cutover/native/delivery authorization from this source-only closure.",
+    "Both immutable shipping fullpacks, their original processes/inputs/binaries/outputs and prior finite scopes are preserved. Partial prefixes are not completed acceptance. Root owns canonical finding disposition/publication; reviewer wrote only this new external report."
+  ]
+}
