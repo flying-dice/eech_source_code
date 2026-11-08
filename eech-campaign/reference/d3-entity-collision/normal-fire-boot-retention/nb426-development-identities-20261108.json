@@ -1,0 +1,25 @@
+{
+  "files": {
+    "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": {
+      "raw_sha256": "5b4deb11bae278c5d51c707d707785e4c9386f28c76c761ff46722633ac78848",
+      "CRLF": 0
+    },
+    "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": {
+      "raw_sha256": "73b3d2cc847f3274a28067ca79338fa47db50e7fc9181cbc10f21f9c761913aa",
+      "CRLF": 0
+    },
+    "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua": {
+      "raw_sha256": "a32321d7d93573b95a276ab9031433008bd99a270ce3ece951916d96bd139f92",
+      "CRLF": 0
+    },
+    "eech-campaign/tools/test_normal_fire_capture.py": {
+      "raw_sha256": "1fb209e15e9d644e8ca75db8a631ba2662cf24fee1b4be62da61c7f6950bc1f9",
+      "CRLF": 0
+    },
+    "eech-campaign/docs/d3-normal-fire-boot-retention.md": {
+      "raw_sha256": "89c4c87948d9fb3b3a02579dcce130f8a7c2782f258ed7e2e5f4a18838b3f128",
+      "CRLF": 0
+    }
+  },
+  "scope": "Current d4/Python development bytes preserved before LF normalization. Earlier partial development commands retain real exits/logs and known oldcollector identity, not a fabricated whole-source seal."
+}

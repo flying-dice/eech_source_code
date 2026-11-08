@@ -20,7 +20,7 @@ if mode=='terrain_lift' then
  assert(identity.reference~='none' and #identity.reference==64,'reference digest')
 else assert(a.reference==nil and identity.reference=='none','healthy reference') end
 local out=assert(host.create_exclusive(a.out));local raw=assert(host.create_exclusive(a.out..'.events'))
-local capture=N.new(identity.capture,100);local engine,failed,frame= nil,nil,0
+local capture=N.new(identity.capture,100);local engine,failed,frame= nil,nil,0;local booting=true
 local registrations,scenes={},{};local bind_count,changed,moving=0,0,0
 local records,moves={},{};local selected,evidence,previous,current;local locked;local awaiting_birth=false;local oracle=K.oracle()
 local function issue(why) failed=failed or tostring(why) end
@@ -41,7 +41,10 @@ local function model(op,scene,depth,kind,definition,key)
   elseif op=='entity_scan' and type(key)=='string' then r.flag=oracle:check(key,answer) end
  end)
  if not ok then issue(why) end
- records[call]=r;return answer
+ -- Boot still delegates and validates scene/store effects exactly once. It
+ -- cannot select a weapon query. Retain only answers a frame query can consume.
+ if not booting and (r.q or (r.flag and (r.flag.phase==19 or r.flag.phase==21))) then records[call]=r end
+ return answer
 end
 local function move(step)
  if failed then error(failed,0) end
@@ -68,7 +71,8 @@ local function choose(query)
  local m=moves[b.target];local registration=registrations[b.target]
  if not m or not registration or not finite(m.base) or not finite(m.ceiling) or m.base+500>m.ceiling or m.motion[1]^2+m.motion[2]^2+m.motion[3]^2<=1 then return end
  for i,event in ipairs(query.models) do
-  local r=records[event.call];assert(r,'missing live provider entry')
+  local r=records[event.call] or {}
+  if event.op==16 then assert(r.q,'missing live candidate entry') end
   if r.q and r.q.identity==b.target and T.eligible(r.q) and r.answer.result=='need_updated' then
    local j=i+1;local next_r=query.models[j] and records[query.models[j].call]
    if next_r and next_r.flag and next_r.flag.phase==19 then j=j+1;next_r=query.models[j] and records[query.models[j].call] end
@@ -77,7 +81,7 @@ local function choose(query)
     if carry and carry.q and not T.same_reask({scene=r.q.scene,identity=b.target,words=r.q.words,answered_word=read.word},carry.q) then
      for k=j+1,#query.models do
       local test_event=query.models[k];local test=records[test_event.call]
-      if test.q and test.q.identity==b.target and test.q.scene==r.q.scene and test.answer.result=='test' and K.patterns(test.answer.p,16) then
+      if test and test.q and test.q.identity==b.target and test.q.scene==r.q.scene and test.answer.result=='test' and K.patterns(test.answer.p,16) then
        local s={frame=frame,birth_frame=f.frame,fire=b.fire,detach=b.detach,w=b.w,step=query.step,query=query.query,before=query.before,after=query.result.after,need=event.call,read=query.models[j].call,carry=carry_event.call,test=test_event.call,launcher=b.launcher,target=b.target,weapon=b.weapon,scene=r.q.scene,name=T.hex(r.answer.name),member=registration.member,group=registration.group,bind=registration.bind,key=read.key,lane=read.lane,word=read.word,fact=carry.q.words[21],pose=test.answer.p,request=table.concat(r.q.words,','),reask=table.concat(carry.q.words,','),position=csv(m.position),motion=csv(m.motion),base=string.format('%.17g',m.base),ceiling=string.format('%.17g',m.ceiling),previous=string.format('%.17g',previous),current=string.format('%.17g',current)}
        local ev={fire=T.hex(f.literal),detach=T.hex(b.detachment.literal),birth=T.hex(b.literal),step=T.hex(st.literal),query=T.hex(query.literal),query_end=T.hex(query.result.literal),step_end=T.hex(st.result.literal)}
        local lines={};for _,v in ipairs(query.models) do lines[#lines+1]=v.literal end;ev.models=T.hex(table.concat(lines,'\n')..'\n')
@@ -101,13 +105,16 @@ local ok,why=xpcall(function()
  end,move_vehicle=move,observe_loss=host.observe_loss,supply_reached=host.supply_reached,line_of_sight=host.line_of_sight,model=model,sense=host.sense,aim=host.aim}
  if failed then error(failed,0) end
  local clock=engine:clock();assert(clock.elapsed_seconds==0,'fresh seed1 clock')
- local boot=engine:wpn_events();assert(raw:write(boot));capture:feed(1,0,boot);records={};moves={}
+ local boot=engine:wpn_events();assert(raw:write(boot));local boot_queries=capture:feed(1,0,boot)
+ assert(#boot_queries==0,'unsupported weapon query during boot') -- diagnose, never silently discard a query
+ capture:drained();booting=false;records={};moves={}
  for n=1,1500 do
   frame=n;previous=clock.elapsed_seconds;engine:frame(100);if failed then error(failed,0) end;clock=engine:clock();current=clock.elapsed_seconds
   assert(finite(previous) and finite(current) and current>previous,'real frame clock')
   local events=engine:wpn_events();assert(raw:write(events))
   local queries=capture:feed(frame,(frame-1)*100,events)
   for _,q in ipairs(queries) do choose(q) end
+  capture:drained()
   records={};moves={}
  end
  if not failed then engine:close();engine=nil end -- no getter/close after failure

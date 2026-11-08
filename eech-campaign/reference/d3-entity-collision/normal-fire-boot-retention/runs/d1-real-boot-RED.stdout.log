@@ -1,0 +1,14 @@
+
+running 1 test
+
+Error: RuntimeError("normal-fire: undrained model entries\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t...gn/crates/eech-world/lua/normal-fire-correlation.lua:95: in function 'fail'\n\t...gn/crates/eech-world/lua/normal-fire-correlation.lua:111: in function 'model_entry'\n\t[string \"/tmp/eech-normal-session-codec-125/transpor...\"]:15: in function 'boot_traffic'\n\t[string \"/tmp/eech-normal-session-codec-125/transpor...\"]:21: in main chunk")
+
+test normal_session_validates_the_whole_reference_before_effects_and_failure_precedes_unreached ... FAILED
+
+failures:
+
+failures:
+    normal_session_validates_the_whole_reference_before_effects_and_failure_precedes_unreached
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.26s
+

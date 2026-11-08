@@ -1,0 +1,17 @@
+
+running 1 test
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+Error: RuntimeError("[string \"/tmp/eech-normal-session-codec-18/transport...\"]:203: ...mpaign/crates/eech-world/lua/normal-fire-session.lua:141: normal-fire-session: FAIL: ...mpaign/crates/eech-world/lua/normal-fire-session.lua:84: attempt to index local 'test' (a nil value)\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-normal-session-codec-18/transport...\"]:203: in main chunk")
+
+test normal_session_validates_the_whole_reference_before_effects_and_failure_precedes_unreached ... FAILED
+
+failures:
+
+failures:
+    normal_session_validates_the_whole_reference_before_effects_and_failure_precedes_unreached
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.76s
+

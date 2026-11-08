@@ -91,7 +91,10 @@ function M.new(capture,frame_ms)
  assert(frame_ms==100,'supported frame duration is 100ms')
  local self={};local problem,closed,sequence,frame,clock,active,last_fire;local completed={};local ordinals={}
  local step,query;local steps,queries,fire_records={},{},{};local last_step,last_query,last_model=0,0,0
- local model_calls,model_pending,model_unread,model_cutoff=0,{},0,0
+ -- Exact ordered op runs, not one allocation per callback. Boot's long scan
+ -- loops still increment every ordinal. Keep the existing 100000 retained-
+ -- record resource budget; alternating operations cannot compress past it.
+ local model_calls,model_runs,model_cursor,model_drained,fed_calls=0,{},1,0,nil
  local function fail(reason) problem=problem or ('normal-fire: '..tostring(reason));error(problem,0) end
  local function open() if problem then error(problem,0) end;if closed then fail('continuation after finalization') end end
  -- Already delivered, completed normal birth; no C getter, lazy registration
@@ -107,9 +110,23 @@ function M.new(capture,frame_ms)
  -- answer is chosen or changed; a later C record proves which query called it.
  function self:model_entry(op)
   open();local n=model_ops[op];if not n then fail('model operation') end
-  model_calls=model_calls+1;model_unread=model_unread+1;model_pending[model_calls]=n
-  if model_unread>100000 or model_calls>9007199254740991 then fail('undrained model entries') end
+  model_calls=model_calls+1
+  if model_calls>9007199254740991 then fail('model ordinal overflow') end
+  local last=model_runs[#model_runs]
+  if last and last.op==n then last.after=model_calls
+  else
+   if #model_runs==100000 then fail('undrained model operation runs') end
+   model_runs[#model_runs+1]={first=model_calls,after=model_calls,op=n}
+  end
   return model_calls
+ end
+ -- The caller acknowledges ONLY a complete public session:wpn_events() drain,
+ -- after feed/selection. Partial/open intervals and callbacks after feed cannot
+ -- retire proof. This releases boot/previous-frame retention BEFORE new calls.
+ function self:drained()
+  open()
+  if active or step or query or fed_calls~=model_calls then fail('incomplete model drain') end
+  model_drained=model_calls;model_runs={};model_cursor=1
  end
  function self:feed(current_frame,expected_tick,text)
   open()
@@ -120,10 +137,6 @@ function M.new(capture,frame_ms)
    if frame and (current_frame<frame or (current_frame==frame and expected_tick~=clock)) then error('frame context changed',0) end
    if frame and current_frame>frame and expected_tick~=(clock+(current_frame-frame)*frame_ms)%4294967296 then error('frame clock relation',0) end
    if (active or step or query) and current_frame~=frame then error('open interval crossed frame',0) end
-   if frame and current_frame>frame then
-    for call in pairs(model_pending) do if call<=model_cutoff then model_pending[call]=nil end end
-    model_unread=model_calls-model_cutoff
-   end
    frame,clock=current_frame,expected_tick
    if type(text)~='string' or (#text>0 and text:sub(-1)~='\n') then error('event framing',0) end
    for line in text:gmatch('[^\n]+') do
@@ -188,13 +201,15 @@ function M.new(capture,frame_ms)
       end
      elseif e.kind=='normal_query' then
       e.step=integer(e.step,1,9007199254740991);e.query=integer(e.query,1,9007199254740991);e.w=integer(e.w,1,2147483647);integer(e.which,0,2147483647);words(e.segment,6,true)
-      e.before=integer(e.before,0,model_calls)
+      e.before=integer(e.before,model_drained,model_calls)
       if not step or query or e.step~=step.step or e.w~=step.w or e.query<=last_query then error('query context',0) end
       last_query=e.query;e.models={};e.birth=step.birth;e.step_record=step;e.normal_fire=e.birth and fire_records[e.birth.fire] or nil;e.frame=frame;e.capture=capture;query=e
      elseif e.kind=='normal_model' then
       e.step=integer(e.step,1,9007199254740991);e.query=integer(e.query,1,9007199254740991);e.w=integer(e.w,1,2147483647)
       e.call=integer(e.call,1,9007199254740991);e.op=integer(e.op,1,18)
-      if not query or e.step~=step.step or e.query~=query.query or e.w~=step.w or e.call<=last_model or e.call~=query.before+#query.models+1 or model_pending[e.call]~=e.op then error('model callback join',0) end
+      while model_runs[model_cursor] and model_runs[model_cursor].after<e.call do model_cursor=model_cursor+1 end
+      local run=model_runs[model_cursor]
+      if not query or e.step~=step.step or e.query~=query.query or e.w~=step.w or e.call<=last_model or e.call~=query.before+#query.models+1 or not run or e.call<run.first or run.op~=e.op then error('model callback join',0) end
       last_model=e.call;query.models[#query.models+1]=e
      elseif e.kind=='normal_query_end' then
       e.step=integer(e.step,1,9007199254740991);e.query=integer(e.query,1,9007199254740991);e.w=integer(e.w,1,2147483647);integer(e.hit,0,1)
@@ -207,7 +222,7 @@ function M.new(capture,frame_ms)
     elseif not line:match('^wpn%-ev ') then error('unexpected event line',0)
     elseif line:match(' kind=truncated') then error('legacy event truncation',0) end
    end
-   model_cutoff=model_calls
+   fed_calls=model_calls
   end)
   if not ok then fail(why) end
   local added={};for i=first_new,#queries do added[#added+1]=queries[i] end;return added

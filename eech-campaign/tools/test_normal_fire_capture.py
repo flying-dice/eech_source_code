@@ -55,6 +55,19 @@ SEMANTIC_FAULTS=[
 ]
 
 class Controls(unittest.TestCase):
+    def test_boot_ordinals_are_global_not_a_per_frame_call_limit(self):
+        f=fixture();R.validate(emit(f),f['identity'])
+        offset=100001;f['counts']['model_calls']=str(int(f['counts']['model_calls'])+offset)
+        for key in ('before','after','need','read','carry','test'):
+            f['selection'][key]=str(int(f['selection'][key])+offset)
+        for role,field in [('query','before'),('models','call'),('query_end','after')]:
+            text=R.unhex(f['evidence'][role])
+            text=re.sub(r'\b'+field+r'=(\d+)',lambda m:field+'='+str(int(m[1])+offset),text)
+            f['evidence'][role]=encoded(text)
+        raw=emit(f);R.validate(raw,f['identity'])
+        with tempfile.TemporaryDirectory(prefix='normal-boot-ordinal-') as d:
+            p=Path(d)/'synthetic.txt';p.write_bytes(raw);C.healthy_reference(p,C.sha(p),f['identity'])
+
     def test_complete_event_semantics_before_child_effect(self):
         f=fixture();R.validate(emit(f),f['identity'])
         with tempfile.TemporaryDirectory(prefix='normal-semantic-gate-') as d:

@@ -1,0 +1,6 @@
+{
+  "utc": "2026-11-08T10:14:32.626672+00:00",
+  "source_before": "426de7baf016e9dfbf54e1188622975fb5dcd8c2",
+  "process": "codex-d3-normal-fire-boot-retention-fix-20261108-process.json",
+  "scope": "Named boot/per-frame diagnostic retention blocker only; preserve actual failed426 native attempt/defaultPASS. Lua/tests/docs correction, unchanged2fc compiled input join, no native/build/default replay or all10 closure."
+}

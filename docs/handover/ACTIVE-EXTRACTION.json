@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "STOP for SAME THREE P2 changed-material closure: literal-LF nf3lf all5direct0/original37902outer0; PREPOST4023 equal/26extras/5readers. Original nf3p2 rawpass/freeze and failedpublicationjoin1 retained. SourceCODEe8cb; compiledRuntime2fc unchanged/no native/cutover/all10 closure.",
+  "phase": "STOP for SAME named boot/per-frame retention changed-material review: nb426 all5direct0/original33619outer0, PREPOST4023 equal/28extras/5readers, activeGitLF, compiled2fc3816+2 unchanged. Prior3P2closed3c9b/24a9/outer60c9; actual426 defaultCOMPLETEPASS+healthyBOOTFAIL retained; no new native/cutover/all10 closure.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "Retain required hosted-only raw TREE/FOREST/CLOUD extraction after its applicable gates;965 discharges finite boot CRT subfact only, removal remains uncleared. Sole open blocks_cutover GenericNative1 first requires natural moving public-path prerequisite/effect proof; D3G08 hierarchy remains separately required, not silently solved by Task50.",
@@ -845,30 +845,38 @@
     },
     {
       "id": "ENV-NORMAL-FIRE-HEALTHY-REFERENCE-COMPLETE-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "SEALED independent-normal-fire-f88d6-combined-source-20261108.json SHA2565fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf",
+      "evidence": "SEALED independent-normal-fire-f88d6-combined-source-20261108.json SHA2565fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf; SAME3c9b +supplement24a9 source closure, finite only.",
       "missing_fact": "Complete selected C event domains/effects/identity/model-sequence envelope in both gates, positive-first semantic faults before B effects.",
       "next_fix": "One consolidated nf3p2 Lua/validator/test correction; SAME changed-material closure required, no native clearance."
     },
     {
       "id": "ENV-NORMAL-FIRE-PRE-EFFECT-COHORT-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "SEALED independent-normal-fire-f88d6-combined-source-20261108.json SHA2565fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf",
+      "evidence": "SEALED independent-normal-fire-f88d6-combined-source-20261108.json SHA2565fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf; SAME3c9b +supplement24a9 source closure, finite only.",
       "missing_fact": "Already-observed common fire/detach/birth prefix before B; strictly earlier birth and unchanged literal prefix, honest first same-frame UNREACHED.",
       "next_fix": "One consolidated nf3p2 Lua/validator/test correction; SAME changed-material closure required, no native clearance."
     },
     {
       "id": "ENV-NORMAL-FIRE-FLAG-RESET-ORACLE-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "SEALED independent-normal-fire-f88d6-combined-source-20261108.json SHA2565fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf",
+      "evidence": "SEALED independent-normal-fire-f88d6-combined-source-20261108.json SHA2565fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf; SAME3c9b +supplement24a9 source closure, finite only.",
       "missing_fact": "Accepted eligible-only reset extent, ineligible/highword and other-array preservation, exact cleared-count ACK.",
       "next_fix": "One consolidated nf3p2 Lua/validator/test correction; SAME changed-material closure required, no native clearance."
+    },
+    {
+      "id": "ENV-NORMAL-FIRE-BOOT-RETENTION-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Actual426 reviewed native healthy bootFAIL beforeframe1: real entity_scan callback crosses100000 undrained model entries; Root31446 binding normal-fire-first-native-426de-Root-binding-20261108.json. Default3COMPLETE PASS reused; B neverprepared.",
+      "missing_fact": "Bounded collector boot/per-frame retention must preserve every actual provider ordinal/op and full query join without imposing total boot-call count as event capacity; no boot answer dictionary accumulation or previous-frame retention into next callbacks.",
+      "next_fix": "Source-backed compact exact op runs plus explicit complete-drain handoff, query-relevant frame answer retention, coherent real-provider boot RED then GREEN and first-frame/partial/fault controls; unchanged2fc reuse; SAME closure before next Root launch."
     }
   ],
-  "next_action": "Finish complete semantic healthy-reference/pre-effect common-prefix/eligible RESET oracle controls in one batch. Hold ALL Docker/Linux until Root explicit cache release. Then narrow affected checks, exact product/build/Cargo equivalence to compiled2fc, clean freeze/push STOP for SAME changed-material closure before native materialization/launch.",
+  "next_action": "ONE SAME changed-material review of frozen ENV-NORMAL-FIRE-BOOT-RETENTION-1 correction and exact2fc reuse. Root owns later corrected literal/root/plan materialization and separate reviewed launch; no default/control/C replay, runtime relabel, actor/window change or physical cutover.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -1004,7 +1012,7 @@
     "current_CI": "normal-fire-94fe-all9-CI-readback-20261108.json SHA256 d28a481e9366b9d5e58c5c505671e23cb220c1d4a9488b4fe75221ad787b746a; exact accepted94fe, not dirty nq94f"
   },
   "normal_fire_query_identity_candidate": {
-    "status": "THREE_P2_CORRECTION_ACTIVE",
+    "status": "SOURCE_ACCEPTED_SAME3C9B_24A9; naturalmoving native remainsOPEN after actualbootFAIL",
     "family": "nq94f",
     "gap": "AimWeaponStep has no canonical weapon identity; model candidate/scan identifies candidates, not calling weapon. Existing contact sample/global counters cannot join birth cohort.",
     "change": "Feature-only stack-scoped private birth ordinal/step/query and exact all-model-provider call ordinal; solver/request ABI unchanged.",
@@ -1096,7 +1104,7 @@
   "normal_fire_proof_gate_corrections": {
     "review": "R:/d3-evidence/independent-normal-fire-f88d6-combined-source-20261108.json",
     "review_sha256": "5fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf",
-    "status": "FROZEN_UNREVIEWED_STOP",
+    "status": "CLOSED_SOURCE_SAME3C9B_24A9",
     "document": "eech-campaign/docs/d3-normal-fire-proof-gates.md",
     "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
     "runtime_build_binding": "R:/d3-evidence/normal-fire-observer-2fcf69-build-Root-binding-20261108.json",
@@ -1123,9 +1131,43 @@
       "reason": "nf3p2 raw5pass/freeze retained; publication join STOPPED1 on changed diagnostic/test CRLF->GitLF mismatch. Normalize only driver/testLua/testPython to exact existingGitLF then fresh affected checks. No C/build change.",
       "prior_raw_freeze": "R:/d3-evidence/D3-NORMAL-FIRE-PROOF-GATES-FROZEN-20261108.json",
       "failure_receipt": "R:/d3-evidence/nf3p2-publication-join-failure-20261108.json",
-      "status": "FROZEN_ALL5PASS_UNREVIEWED",
+      "status": "ACCEPTED_LITERAL_SOURCE_SAME3C9B_24A9",
       "final_outer_session": 37902,
       "source_raw_Git_qualifications": "only historical3 tree-geometry Lua fixtures; changed driver/testLua/testPython are exact GitLF"
     }
+  },
+  "normal_fire_boot_retention": {
+    "status": "FROZEN_UNREVIEWED_STOP",
+    "blocker": "ENV-NORMAL-FIRE-BOOT-RETENTION-1",
+    "document": "eech-campaign/docs/d3-normal-fire-boot-retention.md",
+    "actual_attempt": "normal-fire-first-native-426de-Root-binding-20261108.json",
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "source_closure": [
+      "independent-normal-fire-426de-proof-gates-closure-20261108.json",
+      "independent-normal-fire-426de-proof-gates-closure-supplement-20261108.json"
+    ],
+    "outer_closure": "independent-normal-fire-426de-materialized-launch-v3-20261108.json",
+    "default": "native0/all3COMPLETE literal3ab+80fd/four1179inputchecks unchanged97payloads; reuseONLY",
+    "healthy": "actualnative1/frames0/FAIL undrainedmodelentries; B absent, never UNREACHED",
+    "development": "d1 real-provider RED101; d2 nil-record correction101 retained; d3/d4GREEN; localPython9GREEN",
+    "cache": "soleauthor Linux9d; Root noDocker",
+    "native_launch": false,
+    "physical_cutover": false,
+    "freeze": "R:/d3-evidence/D3-NORMAL-FIRE-BOOT-RETENTION-FROZEN-20261108.json",
+    "packet": "eech-campaign/reference/d3-entity-collision/normal-fire-boot-retention",
+    "direct_exits": {
+      "s1-profile-census": 0,
+      "s2-python": 0,
+      "s3-fmt": 0,
+      "s4-world-clippy": 0,
+      "s5-session-lua": 0
+    },
+    "source_rows": 4023,
+    "source_fingerprint": "bb2c7c31a2b8d5055038af17cd260c5a6cf5c53fc23fed7855bc6c74abe968b6",
+    "extras_count": 28,
+    "sealed_readers": 5,
+    "real_provider_calls": 200036,
+    "compiled_product_rows": 3816,
+    "extra_producer_files": 2
   }
 }

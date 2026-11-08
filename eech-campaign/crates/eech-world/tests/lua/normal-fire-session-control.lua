@@ -4,9 +4,54 @@ local T=assert(loadfile(base..'/physical-flags-read-transaction.lua'))()
 local rf=assert(io.open(retained,'rb'));local real_events=rf:read('*a');rf:close()
 local codec=N.new('retained-real-C',100);codec:feed(1,0,real_events);assert(codec:prefix(1))
 local original=codec:finish();assert(original.births==1 and #original.queries==1) -- replay codec only, no new C execution
+-- Real reference-provider traffic with the same entity_scan op as the retained
+-- native boot failure; the empty-store RESET is a valid metadata request.
+-- This is boot-shaped private traffic, not a retail/campaign boot claim.
+local reset_words={};for i=1,16 do reset_words[i]='0x00000000' end;reset_words[12]=K.whole(22)
+local reset_key=table.concat(reset_words,',')
+local function boot_traffic(c,count,offset)
+ for i=1,count do
+  assert(c:model_entry('entity_scan')==(offset or 0)+i)
+  local a=host.model('entity_scan',0,nil,nil,nil,reset_key)
+  assert(a.result=='flag_reset' and a.p=='0x00000000,0x00000000,0x00000000')
+ end
+end
+local small=N.new('short-real-provider-boot',100);boot_traffic(small,32);small:feed(1,0,'');small:drained();assert(small:finish().model_calls==32)
+local long=N.new('long-real-provider-boot',100);boot_traffic(long,100001);long:feed(1,0,'');long:drained()
+boot_traffic(long,100001,100001) -- first frame calls happen BEFORE its feed, at the SAME frame/tick as the boot drain
+local function query_stream(before,op,step,tick)
+ local st=assert(real_events:match('(normal%-ev [^\n]+kind=normal_step step=2 [^\n]+)'))
+ local qe=assert(real_events:match('(normal%-ev [^\n]+kind=normal_query_end [^\n]+)'))
+ local en=assert(real_events:match('(normal%-ev [^\n]+kind=normal_step_end step=2 [^\n]+)'))
+ local qu=assert(real_events:match('(normal%-ev [^\n]+kind=normal_query [^\n]+)'))
+ -- Synthetic sequence/context over retained actual physical fields, not a new C query.
+ local rows={st,qu,'normal-ev seq=3 tick=0 kind=normal_model step=2 query=1 w=1 call='..(before+1)..' op='..op,qe,en}
+ for i,line in ipairs(rows) do rows[i]=line:gsub('seq=%d+','seq='..((step-1)*5+i),1):gsub('tick=0','tick='..tick):gsub('step=2','step='..step):gsub('query=1','query='..step):gsub('before=0','before='..before):gsub('after=0','after='..(before+1)) end
+ return table.concat(rows,'\n')..'\n'
+end
+boot_traffic(long,1,200002);local first=query_stream(200002,17,1,0)
+assert(#long:feed(1,0,first)==1);long:drained()
+boot_traffic(long,1,200003);assert(#long:feed(2,100,query_stream(200003,17,2,100))==1);long:drained()
+assert(long:finish().model_calls==200004)
+local split=N.new('partial-drain',100);split:model_entry('entity_scan')
+local stream=query_stream(0,17,1,0);local cut=assert(stream:find('normal%-ev seq=3'))
+split:feed(1,0,stream:sub(1,cut-1));split:feed(1,0,stream:sub(cut));split:drained();assert(split:finish().model_calls==1)
+local function latch(c,operation,needle)
+ local ok,why=pcall(operation);assert(not ok and tostring(why):find(needle,1,true),tostring(why))
+ for _,resume in ipairs({function()c:drained()end,function()c:prefix(1)end,function()c:feed(1,0,'')end,function()c:finish()end,function()c:model_entry('scene')end,function()c:failure('other')end}) do
+  local accepted,same=pcall(resume);assert(not accepted and same==why)
+ end
+end
+local partial=N.new('partial-ACK',100);partial:model_entry('entity_scan');partial:feed(1,0,stream:sub(1,cut-1));latch(partial,function()partial:drained()end,'incomplete model drain')
+local late=N.new('late-ACK',100);late:feed(1,0,'');late:model_entry('entity_scan');latch(late,function()late:drained()end,'incomplete model drain')
+local wrong=N.new('wrong-compressed-op',100);wrong:model_entry('entity_scan');latch(wrong,function()wrong:feed(1,0,query_stream(0,18,1,0))end,'model callback join')
+local alternation=N.new('alternating-budget',100);for i=1,100000 do alternation:model_entry(i%2==0 and 'entity_scan' or 'entity_pose') end
+latch(alternation,function()alternation:model_entry('entity_pose')end,'undrained model operation runs')
+local retired=N.new('retired-budget',100);for i=1,100000 do retired:model_entry(i%2==0 and 'entity_scan' or 'entity_pose') end
+retired:feed(1,0,'');retired:drained();assert(retired:model_entry('entity_pose')==100001);retired:feed(2,100,'');retired:drained();assert(retired:finish().model_calls==100001)
 local poisoned=N.new('prefix-latch',100);assert(poisoned:prefix(1)==nil)
 local ok,reason=pcall(function()poisoned:model_entry('bad_operation')end);assert(not ok)
-for _,resume in ipairs({function()poisoned:prefix(1)end,function()poisoned:feed(1,0,'')end,function()poisoned:finish()end,function()poisoned:model_entry('scene')end,function()poisoned:failure('other')end}) do
+for _,resume in ipairs({function()poisoned:drained()end,function()poisoned:prefix(1)end,function()poisoned:feed(1,0,'')end,function()poisoned:finish()end,function()poisoned:model_entry('scene')end,function()poisoned:failure('other')end}) do
  local accepted,same=pcall(resume);assert(not accepted and same==reason)
 end
 local f=assert(io.open(positive,'rb'));local text=f:read('*a');f:close()
@@ -104,6 +149,7 @@ assert(r.verdict.status=='FAIL' and r.counts.failed=='1')
 -- Coherent whole-driver transport positive then B. This stand-in delivers the
 -- explicitly SYNTHETIC codec stream, not a real normal campaign firing claim.
 local baseline=K.parse(text);local unregistered=false;local same_live=false;local other_live=false;local no_later=false;local prefix_fault;local reset_fault
+local boot_extra=0;local boot_query=false
 local options,binds,candidate_calls,y,lift_calls,move_calls
 local function patterns(row)return table.concat(row,',')end
 local function flag_request(phase,lane)
@@ -146,8 +192,10 @@ package.preload.eech_dc=function()return {prepare_installation=function()end,boo
  o.bind_mobile({member_key=1,group_key=1});o.bind_mobile({member_key=2,group_key=1})
  o.model('scene',1);o.model('entity_scan',0,nil,nil,nil,flag_request(19))
  for _=1,8 do o.model('scene',1) end
+ for _=1,boot_extra do o.model('scene',1) end -- synthetic Engine boot transport; provider delegates once per call
  if reset_fault then o.model('entity_scan',0,nil,nil,nil,request(22,0)) end
  local count=0;local pending=''
+ if boot_query then o.model('entity_pose',1);pending=query_stream(10+boot_extra,18,1,0) end
  local function prefix(tick)
   local e=baseline.evidence;local birth=K.unhex(e.birth);local fire=K.unhex(e.fire)
   if prefix_fault=='birth_pose' then birth=birth:gsub('pose=0x%x+','pose=0x3f800000',1)
@@ -158,6 +206,7 @@ package.preload.eech_dc=function()return {prepare_installation=function()end,boo
  local function query(later)
   local e=baseline.evidence;local tail=K.unhex(e.step)..'\n'..K.unhex(e.query)..'\n'..K.unhex(e.models)..K.unhex(e.query_end)..'\n'..K.unhex(e.step_end)..'\n'
   if later then tail=tail:gsub('seq=(%d+)',function(n)return 'seq='..(tonumber(n)+9)end):gsub('step=1','step=2'):gsub('query=1','query=2'):gsub('before=10','before=15'):gsub('after=15','after=20'):gsub('call=(%d+)',function(n)return 'call='..(tonumber(n)+5)end):gsub('tick=30100','tick=30200') end
+  if boot_extra>0 then tail=tail:gsub('before=(%d+)',function(n)return 'before='..(tonumber(n)+boot_extra)end):gsub('after=(%d+)',function(n)return 'after='..(tonumber(n)+boot_extra)end):gsub('call=(%d+)',function(n)return 'call='..(tonumber(n)+boot_extra)end) end
   return tail
  end
  return {clock=function()return {elapsed_seconds=count/10}end,close=function()end,
@@ -193,6 +242,19 @@ assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/transport-B.txt','rb'));local b=K.parse(e:read('*a'));e:close()
 assert(K.validate(b,{},T) and b.counts.changed=='1' and lift_calls==1)
 assert(K.paired(b,K.parse(healthy)))
+boot_extra=100001;host.args=args('healthy','/long-boot-driver.txt')
+assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
+local e=assert(io.open(root..'/long-boot-driver.txt','rb'));local long_driver=K.parse(e:read('*a'));e:close()
+assert(K.healthy(long_driver,{},T) and long_driver.counts.model_calls=='100016' and long_driver.selection.before=='100011')
+host.args=args('terrain_lift','/long-boot-driver-B.txt',root..'/long-boot-driver.txt')
+assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
+local e=assert(io.open(root..'/long-boot-driver-B.txt','rb'));local long_B=K.parse(e:read('*a'));e:close()
+assert(K.validate(long_B,{},T) and K.paired(long_B,long_driver) and lift_calls==1)
+boot_extra=0;boot_query=true;host.args=args('healthy','/boot-query.txt')
+assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
+local e=assert(io.open(root..'/boot-query.txt','rb'));local bad_boot=K.parse(e:read('*a'));e:close()
+assert(bad_boot.verdict.status=='FAIL' and bad_boot.counts.failed=='1' and bad_boot.counts.frames=='0' and K.unhex(bad_boot.verdict.reason):find('unsupported weapon query during boot',1,true))
+boot_query=false
 for _,fault in ipairs({'birth_pose','fire_actual','wrong_w','same_frame'}) do
  prefix_fault=fault; same_live=fault=='same_frame'
  host.args=args('terrain_lift','/prefix-'..fault..'.txt',root..'/transport-positive.txt')
@@ -230,3 +292,4 @@ assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/noncanonical.txt','rb'));local u=K.parse(e:read('*a'));e:close()
 assert(u.verdict.status=='UNREACHED' and u.counts.failed=='0' and u.counts.births=='1' and u.counts.moving=='0')
 print('normal_session_proof_gates=PASS semantic_faults=25 pre_effect_reference_faults=27 prefix_faults=4 same_cohort_later_healthy_B=2 no_later_and_other_cohort_UNREACHED=2 real_flag_store_calls='..#history..' flag_ACK_faults=3 ACK_failure_precedes_UNREACHED=3 retained_C_codec_births=1 synthetic_transport_healthy_B=2')
+print('boot_retention_controls=PASS real_provider_calls=200036 first_frame_and_next_frame_queries=2 partial_feed=1 drain_faults=2 wrong_op=1 alternating_overflow=1 retired_budget=1 driver_long_boot_healthy_B=2 boot_query_refused_before_frame1=1 continuation_surfaces=6')
