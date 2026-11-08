@@ -1,0 +1,74 @@
+{
+  "utc": "2026-11-08T09:41:34.509858+00:00",
+  "source_before": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "source_rows": 4023,
+  "source_fingerprint": "7651dbb2e1c96c8dc63d022b2630d99e8b054036033cb8fcfb5c0db8f2eca288",
+  "readers": {
+    "run-normal-fire-nf3p2-direct-20261108.py": "5d677e92663441798c4dccfda54c22e8948e4dffd936e172c633884bde3f7fc7",
+    "check-normal-fire-nf3p2-linux-20261108.sh": "ab1d4399e285b5031867754a1e939d2bf7b55479b7fb545c793fa37155ebe8fe",
+    "run-nf3p2-final-20261108.py": "1cec529994e4c08aff4d636b27660e7da1bec1818e7114f108cd5ef05fc3a05b",
+    "nf3p2-proof-20261108.py": "a2637223743e1b663c88ab5cdb9882496a5f0f7a4bb36641f18512363fbf794a",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "extras_count": 26,
+  "direct_exits": {
+    "s1-fmt": 0,
+    "s2-world-clippy": 0,
+    "s3-session-lua": 0,
+    "s4-profile-census": 0,
+    "s5-python": 0
+  },
+  "Rust_tests": 2,
+  "Python_tests": 8,
+  "Lua_semantic_faults": 25,
+  "before_output_reference_faults": 27,
+  "before_effect_prefix_faults": 4,
+  "actual_reference_FlagStore_calls": 16,
+  "ACK_faults": 3,
+  "ACK_failure_before_UNREACHED": 3,
+  "synthetic_healthy_B_pairs": 2,
+  "underreach_controls": 2,
+  "old_diagnostic_RED_exit": 1,
+  "reuse": {
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "prior_raw_map_sha256": "30267ce5f8cc7300ff9db201ae4752e57261a71b63842cd0f82ff27d9c8e632d",
+    "whole_relevant_product_build_Cargo_static_rows": 3816,
+    "product_map_sha256": "3902079c35b4ce199a4d43b8dd80b6efeaaa3a3070936299fa8b7eb2d32c5869",
+    "extra_producer_files": {
+      "eech-campaign/.cargo/config.toml": "19ecec09029c9181db4046ceef51e86fb10feadba3fb56e535e8eb6e700eafde",
+      "tools/generate_bitmap.py": "2cdb23ba3646286cd593fa1a9800d6f1458e8f3aca12055b16f6ed8b66f9d582"
+    },
+    "unchanged_prior_raw_rows": 4016,
+    "changed_prior_test_or_Lua_rows": [
+      "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+      "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-positive.txt",
+      "eech-campaign/crates/eech-world/tests/normal_fire_session.rs"
+    ],
+    "artifacts": {
+      "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "09e381d3be9c8ce6a8ce670373b6faf803eb0c337d35507bb400bb42c25f567d",
+      "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "a3704cc9018a771a0222d05beb9948cde43b6de2fd4fee1f64629f6b73a5998e",
+      "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+      "eech-campaign/tools/normal_fire_capture.py": "f9919158c045e17d6e0f2871bfad8c2feecc25e14c813165c1d7d235dc918e62",
+      "eech-campaign/tools/normal_fire_capture_controller.py": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+      "eech-campaign/tools/test_normal_fire_capture.py": "1841e703fa4c3b8619b729ac51cec435d07fa0866a00d1ea68e12c10cc59743c",
+      "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+      "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+      "eech-campaign/docs/d3-normal-fire-proof-gates.md": "af3e0c87231adc04ee70b9b7774a4657c7801b98a82bd0984422c91b082ec776"
+    },
+    "scope": "No C/Rust product/build/Cargo/static input change. Exact2fc runtime retains its source identity and97 unchanged payloads, including unsafe unexecuted old Lua. Four corrected literals/validator/controller are separate. Accepted prior C controls reused at their original scope; retained C bytes are codec replay only."
+  },
+  "maps": {
+    "PRE": {
+      "path": "R:\\d3-evidence\\nf3p2-inputmap-PRE-20261108.json",
+      "sha256": "45902b5db5ef4ae8de53c8ef6aebb28d621770eb729d302756834aab85da3855"
+    },
+    "POST": {
+      "path": "R:\\d3-evidence\\nf3p2-inputmap-POST-20261108.json",
+      "sha256": "45902b5db5ef4ae8de53c8ef6aebb28d621770eb729d302756834aab85da3855"
+    }
+  },
+  "scope": "THREE P2 source corrections UNREVIEWED; runtime remains2fc. No native/build/root/cutover/all10 closure. Root records actual agent completion separately."
+}

@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "STOP: nf3p2 THREE P2 diagnostic source corrections frozen; all5 final direct0/outer18582=0, PREPOST4023 equal/26extras/5readers. ONE SAME changed-material closure required. Runtime2fc/97payloads unchanged; corrected four literals separate, no native/cutover/all10 closure.",
+  "phase": "STOP for SAME THREE P2 changed-material closure: literal-LF nf3lf all5direct0/original37902outer0; PREPOST4023 equal/26extras/5readers. Original nf3p2 rawpass/freeze and failedpublicationjoin1 retained. SourceCODEe8cb; compiledRuntime2fc unchanged/no native/cutover/all10 closure.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "Retain required hosted-only raw TREE/FOREST/CLOUD extraction after its applicable gates;965 discharges finite boot CRT subfact only, removal remains uncleared. Sole open blocks_cutover GenericNative1 first requires natural moving public-path prerequisite/effect proof; D3G08 hierarchy remains separately required, not silently solved by Task50.",
@@ -1104,8 +1104,8 @@
     "cache_lease": "sole author Linux9d after explicit Root release; Windows target removed after retained identity checks",
     "native_launch": false,
     "physical_cutover": false,
-    "freeze": "R:/d3-evidence/D3-NORMAL-FIRE-PROOF-GATES-FROZEN-20261108.json",
-    "packet": "eech-campaign/reference/d3-entity-collision/normal-fire-proof-gates",
+    "freeze": "R:/d3-evidence/D3-NORMAL-FIRE-PROOF-GATES-LITERAL-FROZEN-20261108.json",
+    "packet": "eech-campaign/reference/d3-entity-collision/normal-fire-proof-gates-literal",
     "direct_exits": {
       "s1-fmt": 0,
       "s2-world-clippy": 0,
@@ -1114,9 +1114,18 @@
       "s5-python": 0
     },
     "source_rows": 4023,
-    "source_fingerprint": "7651dbb2e1c96c8dc63d022b2630d99e8b054036033cb8fcfb5c0db8f2eca288",
+    "source_fingerprint": "1a5235fd07bc067d09bff64352533a61892d5bce73efad1e69b5fa538f0e3c39",
     "extras_count": 26,
     "readers_count": 5,
-    "compiled_product_build_static_rows": 3816
+    "compiled_product_build_static_rows": 3816,
+    "literal_identity_followup": {
+      "family": "nf3lf",
+      "reason": "nf3p2 raw5pass/freeze retained; publication join STOPPED1 on changed diagnostic/test CRLF->GitLF mismatch. Normalize only driver/testLua/testPython to exact existingGitLF then fresh affected checks. No C/build change.",
+      "prior_raw_freeze": "R:/d3-evidence/D3-NORMAL-FIRE-PROOF-GATES-FROZEN-20261108.json",
+      "failure_receipt": "R:/d3-evidence/nf3p2-publication-join-failure-20261108.json",
+      "status": "FROZEN_ALL5PASS_UNREVIEWED",
+      "final_outer_session": 37902,
+      "source_raw_Git_qualifications": "only historical3 tree-geometry Lua fixtures; changed driver/testLua/testPython are exact GitLF"
+    }
   }
 }
