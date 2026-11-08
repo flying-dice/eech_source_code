@@ -1,0 +1,3 @@
+# Core CRT actual/source disposition (UNREVIEWED)
+
+See ../../../docs/d3-core-terrain-crt-actual-disposition.md (119 lines). Literal Root build/capture/review/receipt copies are indexed separately from the derived numeric projection. Raw35 reports/recordings/observations/full input manifests and producer binaries/archives stay private immutable/hash-bound; no retail assets or physical IDs copied. Interpreted source identities are explicitly enumerated. No new tests/build/native/cache action or runtime source change. Finite actual interpretation awaits SAME; all10/GenericNative1/prep2/Task49/D3 and both running fullpacks keep their gates. Root records actual service completion separately.

@@ -1,0 +1,40 @@
+{
+  "observed_utc": "2026-11-08T05:46:40.058012+00:00",
+  "profile": "core-terrain-crt-observer",
+  "source": "599958ce961111f01c946245572a3757d8fe4ea0",
+  "archives": [
+    {
+      "role": "Core",
+      "original": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-1ea4efb1596e0a08/out/libeech_engine.a",
+      "retained": "/evidence/retained-producer/libeech_engine.a",
+      "sha256": "5b0d7ed79cc1244fcab2ed5f1b3642f80d00867620ee7a6a9bf93990b3713914",
+      "bytes": 248153664,
+      "nm_argv": [
+        "x86_64-w64-mingw32-nm",
+        "-A",
+        "-g",
+        "--undefined-only",
+        "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-1ea4efb1596e0a08/out/libeech_engine.a"
+      ],
+      "nm_actual_exit": 0,
+      "nm_sha256": "9ca41908f930f7397765530c40dfd424b0fa4ae8c88ddbddc497be8d1702ac86"
+    },
+    {
+      "role": "World",
+      "original": "/target/x86_64-pc-windows-gnu/release/build/eech-world-aed98a75c8e38107/out/libeech_steps.a",
+      "retained": "/evidence/retained-producer/libeech_steps.a",
+      "sha256": "36b6eba7a6acca3ca2cdf8cbfbd0d87029ef377a89670c62fbce134f76274695",
+      "bytes": 1577088,
+      "nm_argv": [
+        "x86_64-w64-mingw32-nm",
+        "-A",
+        "-g",
+        "--undefined-only",
+        "/target/x86_64-pc-windows-gnu/release/build/eech-world-aed98a75c8e38107/out/libeech_steps.a"
+      ],
+      "nm_actual_exit": 0,
+      "nm_sha256": "9c8266abd39758ea7228351c1d482122e59d8b60ea7774ccca62578bcaff380d"
+    }
+  ],
+  "scope": "Literal actual producer retention/read-only symbol inventory from already-completed build. No new build/test/native capture or runtime/absence/HostCRT proof; source attribution must decide relevance."
+}

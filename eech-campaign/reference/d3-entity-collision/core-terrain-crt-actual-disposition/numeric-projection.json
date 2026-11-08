@@ -1,0 +1,381 @@
+{
+  "kind": "DERIVED_NUMERIC_PROJECTION_NOT_LITERAL_RAW_CRT",
+  "cases": [
+    {
+      "case": "georgia-observer",
+      "private_original": {
+        "case": "georgia-observer",
+        "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\crt.txt",
+        "sha256": "0de8d22509451b06d1f1090e8d0b9b3c5bcc2b0d76ea37bcb3f636f8185c1243",
+        "bytes": 2868,
+        "summary": "core-crt-summary schema=1 complete=1 problem=0 loads=1 ends=1 seeds=3 draws=1578750 pre=0 load=1578750 gap=0 digest=0xdea0d916 sites=11 marks=12 skins=2"
+      },
+      "summary": {
+        "complete": 1,
+        "problem": 0,
+        "loads": 1,
+        "ends": 1,
+        "seeds": 3,
+        "draws": 1578750,
+        "pre": 0,
+        "load": 1578750,
+        "gap": 0,
+        "sites": 11,
+        "marks": 12,
+        "skins": 2
+      },
+      "marks_with_scene_IDs_omitted": [
+        {
+          "kind": "seed",
+          "order": 1,
+          "draws": 0,
+          "a": 1,
+          "b": 120,
+          "c": 0
+        },
+        {
+          "kind": "seed",
+          "order": 2,
+          "draws": 0,
+          "a": 1,
+          "b": 120,
+          "c": 0
+        },
+        {
+          "kind": "load_begin",
+          "order": 3,
+          "draws": 0,
+          "a": 1,
+          "b": 2,
+          "c": 0
+        },
+        {
+          "kind": "ctor_begin",
+          "order": 4,
+          "draws": 0,
+          "a": 1,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "ctor_end",
+          "order": 5,
+          "draws": 0,
+          "a": 1,
+          "b": "PRIVATE_SCENE_ID_OMITTED",
+          "c": 0
+        },
+        {
+          "kind": "ctor_begin",
+          "order": 6,
+          "draws": 0,
+          "a": 2,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "ctor_end",
+          "order": 7,
+          "draws": 0,
+          "a": 2,
+          "b": "PRIVATE_SCENE_ID_OMITTED",
+          "c": 0
+        },
+        {
+          "kind": "load_end",
+          "order": 1578758,
+          "draws": 1578750,
+          "a": 3,
+          "b": 244,
+          "c": 116
+        },
+        {
+          "kind": "before_reinitialise",
+          "order": 1578759,
+          "draws": 1578750,
+          "a": 0,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "after_reinitialise",
+          "order": 1578760,
+          "draws": 1578750,
+          "a": 0,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "before_create",
+          "order": 1578761,
+          "draws": 1578750,
+          "a": 0,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "seed",
+          "order": 1578762,
+          "draws": 1578750,
+          "a": 1,
+          "b": 120,
+          "c": 2
+        }
+      ],
+      "load_sites": [
+        {
+          "staged_line": 847,
+          "original_line": 840,
+          "file": "terrdata.c",
+          "load_draws": 28304,
+          "first_load_ordinal": 8,
+          "last_ordinal": 1578724
+        },
+        {
+          "staged_line": 848,
+          "original_line": 841,
+          "file": "terrdata.c",
+          "load_draws": 28304,
+          "first_load_ordinal": 9,
+          "last_ordinal": 1578725
+        },
+        {
+          "staged_line": 865,
+          "original_line": 858,
+          "file": "terrdata.c",
+          "load_draws": 98605,
+          "first_load_ordinal": 10,
+          "last_ordinal": 1578750
+        },
+        {
+          "staged_line": 870,
+          "original_line": 863,
+          "file": "terrdata.c",
+          "load_draws": 98607,
+          "first_load_ordinal": 11,
+          "last_ordinal": 1578751
+        },
+        {
+          "staged_line": 878,
+          "original_line": 871,
+          "file": "terrdata.c",
+          "load_draws": 98605,
+          "first_load_ordinal": 12,
+          "last_ordinal": 1578752
+        },
+        {
+          "staged_line": 881,
+          "original_line": 874,
+          "file": "terrdata.c",
+          "load_draws": 245265,
+          "first_load_ordinal": 13,
+          "last_ordinal": 1578753
+        },
+        {
+          "staged_line": 882,
+          "original_line": 875,
+          "file": "terrdata.c",
+          "load_draws": 245265,
+          "first_load_ordinal": 14,
+          "last_ordinal": 1578754
+        },
+        {
+          "staged_line": 883,
+          "original_line": 876,
+          "file": "terrdata.c",
+          "load_draws": 245265,
+          "first_load_ordinal": 15,
+          "last_ordinal": 1578755
+        },
+        {
+          "staged_line": 884,
+          "original_line": 877,
+          "file": "terrdata.c",
+          "load_draws": 245265,
+          "first_load_ordinal": 16,
+          "last_ordinal": 1578756
+        },
+        {
+          "staged_line": 885,
+          "original_line": 878,
+          "file": "terrdata.c",
+          "load_draws": 245265,
+          "first_load_ordinal": 17,
+          "last_ordinal": 1578757
+        }
+      ],
+      "skins_with_scene_IDs_omitted": [
+        {
+          "role": "FOREST",
+          "animation": -1,
+          "season": 2,
+          "normal": 0,
+          "desert": 0,
+          "winter": 0,
+          "frames": -1,
+          "calls": 1,
+          "draws": 0
+        },
+        {
+          "role": "CLOUD",
+          "animation": -1,
+          "season": 2,
+          "normal": 0,
+          "desert": 0,
+          "winter": 0,
+          "frames": -1,
+          "calls": 1,
+          "draws": 0
+        }
+      ]
+    },
+    {
+      "case": "lebanon-observer",
+      "private_original": {
+        "case": "lebanon-observer",
+        "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\crt.txt",
+        "sha256": "0215f70639e6e62d1ae7a4b3668aa4319932bfc6a947bd52b160abb273004d92",
+        "bytes": 1202,
+        "summary": "core-crt-summary schema=1 complete=1 problem=0 loads=1 ends=1 seeds=3 draws=0 pre=0 load=0 gap=0 digest=0x811c9dc5 sites=1 marks=12 skins=2"
+      },
+      "summary": {
+        "complete": 1,
+        "problem": 0,
+        "loads": 1,
+        "ends": 1,
+        "seeds": 3,
+        "draws": 0,
+        "pre": 0,
+        "load": 0,
+        "gap": 0,
+        "sites": 1,
+        "marks": 12,
+        "skins": 2
+      },
+      "marks_with_scene_IDs_omitted": [
+        {
+          "kind": "seed",
+          "order": 1,
+          "draws": 0,
+          "a": 1,
+          "b": 120,
+          "c": 0
+        },
+        {
+          "kind": "seed",
+          "order": 2,
+          "draws": 0,
+          "a": 1,
+          "b": 120,
+          "c": 0
+        },
+        {
+          "kind": "load_begin",
+          "order": 3,
+          "draws": 0,
+          "a": 1,
+          "b": 4,
+          "c": 0
+        },
+        {
+          "kind": "ctor_begin",
+          "order": 4,
+          "draws": 0,
+          "a": 1,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "ctor_end",
+          "order": 5,
+          "draws": 0,
+          "a": 1,
+          "b": "PRIVATE_SCENE_ID_OMITTED",
+          "c": 0
+        },
+        {
+          "kind": "ctor_begin",
+          "order": 6,
+          "draws": 0,
+          "a": 2,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "ctor_end",
+          "order": 7,
+          "draws": 0,
+          "a": 2,
+          "b": "PRIVATE_SCENE_ID_OMITTED",
+          "c": 0
+        },
+        {
+          "kind": "load_end",
+          "order": 8,
+          "draws": 0,
+          "a": 5,
+          "b": 76,
+          "c": 92
+        },
+        {
+          "kind": "before_reinitialise",
+          "order": 9,
+          "draws": 0,
+          "a": 0,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "after_reinitialise",
+          "order": 10,
+          "draws": 0,
+          "a": 0,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "before_create",
+          "order": 11,
+          "draws": 0,
+          "a": 0,
+          "b": 0,
+          "c": 0
+        },
+        {
+          "kind": "seed",
+          "order": 12,
+          "draws": 0,
+          "a": 1,
+          "b": 120,
+          "c": 2
+        }
+      ],
+      "load_sites": [],
+      "skins_with_scene_IDs_omitted": [
+        {
+          "role": "FOREST",
+          "animation": -1,
+          "season": 4,
+          "normal": 0,
+          "desert": 0,
+          "winter": 0,
+          "frames": -1,
+          "calls": 1,
+          "draws": 0
+        },
+        {
+          "role": "CLOUD",
+          "animation": -1,
+          "season": 4,
+          "normal": 0,
+          "desert": 0,
+          "winter": 0,
+          "frames": -1,
+          "calls": 1,
+          "draws": 0
+        }
+      ]
+    }
+  ],
+  "scope": "No random values/retail scene IDs/positions/geometry published; compact Core observations, not Host CRT or full trace. Interpretation requires source join."
+}

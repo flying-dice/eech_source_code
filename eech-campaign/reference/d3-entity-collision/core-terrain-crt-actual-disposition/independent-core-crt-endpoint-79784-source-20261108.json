@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T05:28:01.310522+00:00",
+  "review_kind": "Independent same-finding changed-line/control review only",
+  "source": {
+    "commit": "79784f4b3758eb4c6c7fbd05c78dca0417de3bc6",
+    "metadata_HEAD": "599958ce961111f01c946245572a3757d8fe4ea0",
+    "source_before": "724183dbfa608aef75532fd8082d25239f56c4fb",
+    "compiled_observer_source": "552ee8e079b75626199c4e348ed0e986bc02b7ba",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_full_status": "clean; Root verifies exact upstream",
+    "Lua_sha256": "196081ee912daf7bdbb11b6258fed5ddc99b9111f22ec00329bd3240601e910c"
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/independent-core-crt-report-correction-b5cb-source-20261108.json",
+      "bytes": 12344,
+      "sha256": "e14d66d6d1c5b5c53992b9efa11d00ad1dfbfa445bc8e043fa192d07a25e7f1d"
+    },
+    {
+      "path": "R:/d3-evidence/independent-core-crt-observer-552ee-source-plan-20261108-v2.json",
+      "bytes": 17180,
+      "sha256": "4f01789a833c53d09e1029e6537ba3d8f7526dec949153c0b0a94b56b2798df5"
+    },
+    {
+      "path": "R:/d3-evidence/D3-CORE-CRT-ENDPOINT-CORRECTION-FROZEN-20261108.json",
+      "bytes": 6582,
+      "sha256": "48a99e120ca2308e0ec67f0e91f23c1a8107ff4914b8e5fab88090d3b8b33306"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-endpoint-Root-binding-20261108.json",
+      "bytes": 1330,
+      "sha256": "4f0d61b5372eddf70670da4e17efed79f18f18225808be120809fcd7149bb0f7"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-core-crt-endpoint-correction-20261108-completion.json",
+      "bytes": 1972,
+      "sha256": "653bd6035f8091c651b56cda6aaebdbd08692a04b5abe72ab5121f33d95b9b91"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+      "bytes": 11626,
+      "sha256": "196081ee912daf7bdbb11b6258fed5ddc99b9111f22ec00329bd3240601e910c"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/tests/core_terrain_crt_driver.rs",
+      "bytes": 12870,
+      "sha256": "2cce5d7e6ba6a2e3a99740d58e30e737395692b86f911d6c335b05ae7dba9977"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-core-terrain-crt-capture-plan.md",
+      "bytes": 8603,
+      "sha256": "057dc5c0485b6389d0696bef6822cf6830c2cf87cbc3f08906e130420bfd5523"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-endpoint-correction/publication-manifest.json",
+      "bytes": 5829,
+      "sha256": "bdd7dd2509b45b05540f9721361b71f7ae40a4e3b9821bb7c4e05b6f2a3963f6"
+    }
+  ],
+  "findings": [],
+  "finding_disposition": {
+    "id": "ENV-CORE-CRT-OBSERVER-REPORT-COMPLETE-1",
+    "status": "CLOSED_SOURCE",
+    "basis": "The entire Lua file equals the previously reviewed724 file with exactly one replacement: (count~=1 or s.last==latest) becomes (latest_count~=1 or s.last==latest). The reviewer independently checked this whole-file identity against immutable Git. A site whose final nonempty phase has one draw must now end at that phase first, including when it also drew in earlier phases. This is the necessary compact endpoint relation; no full draw trace is implied.",
+    "control": "New multi_phase_final_singleton_has_its_own_last_endpoint first accepts/copies the coherent load1/gap1 siteA and gap3 siteB report, with one boot and one summary query. It then changes only siteA last8 to9, where9 is an interior siteB draw; the corrected gate rejects at observer site last ordinal, writes no accepted report, and keeps the same boot/query count.",
+    "meaningful_RED_GREEN": "The same new control on the old gate genuinely failed101 because the one-field contradiction was accepted. After the one-line change it passes0. The complete existing driver target passes5 Rust tests, preserving the23 earlier single-fault controls and legitimate ordinary/earlier-seed/inactive-skin positives.",
+    "closure_limit": "Source-level report completeness within its declared compact consistency contract only. This closes neither actual Core retail CRT facts nor capture noninvasiveness, loader removal or all possible consumer/trace properties."
+  },
+  "correctness_clean_code_boundary": {
+    "correctness": "The condition uses the already computed final-phase count, matching the meaning of latest and last; it does not change phase selection, counters, domains, original C behavior or report output schema. The additional coherent positive and one-field negative target exactly the prior failure rather than weakening a baseline.",
+    "clean_code": "A single predicate change with a focused readable event-order fixture. Documentation states the same relation; no new parser framework or unrelated abstraction is added.",
+    "boundary_safety": "No provider, C/Rust product, CRT, staging/build/Cargo, FFI or loader algorithm changes. Existing no-poisoned-query/delegation/capacity/gating behavior retains its accepted scope; no closed C controls were replayed."
+  },
+  "identity_and_checks": {
+    "source_rows": 4010,
+    "raw_Git_exact_rows": 4007,
+    "inherited_uncompiled_Lua_CRLF_Git_LF_qualifications": 3,
+    "other_compiled_source_rows_unchanged": 4008,
+    "readers": 5,
+    "extras": 14,
+    "final_direct_exits": [
+      0,
+      0,
+      0
+    ],
+    "final_commands": [
+      "s1-fmt",
+      "s2-clippy",
+      "s3-driver"
+    ],
+    "selected_Rust_tests": 5,
+    "existing_single_fault_rejections": 23,
+    "new_endpoint_fault_rejected": true,
+    "actual_original_outer_session": 51019,
+    "actual_original_outer_exit": 0,
+    "publication": "39 publication-manifest entries/40 literal Git files, exact clean upstream599958. Root binds full PRE/POST/current/actualGit and exact one-line Lua delta; the compiled552ee observer inputs are unchanged.",
+    "service_completion": "Actual service FINAL/completed status is typed separately; no invented OS PID or CLI exit. Author released cache lease.",
+    "timing": "Final direct checks05:23:23 through05:23:38 at their sealed final input identity. Original RED/GREEN/control receipts remain literal at their own identities. No reviewer test or checker replay."
+  },
+  "decision": {
+    "status": "SOURCE_ENDPOINT_CORRECTION_ACCEPTED; WINDOWS_BUILD_ONLY_CONDITIONALLY_CLEARED",
+    "source_finding_closed": "ENV-CORE-CRT-OBSERVER-REPORT-COMPLETE-1",
+    "windows_build_clearance": true,
+    "windows_build_scope": "Only the dedicated observer build from a fresh exact599958 clean snapshot whose compiled observer input bytes remain552ee; set core.longpaths before checkout and verify full clean exact source identity. Root owns the cache exclusively. Use the reviewed explicit core-terrain-crt-observer feature recipe/image and fresh volume/output, exclude target-point/Original/all-features/OGRE or undeclared compiler overrides, retain direct exits/compiler features/staged bytes/COFF/private-export/full payload/build provenance. A snapshot job or source clearance is not a successful Windows build.",
+    "native_capture_launch_clearance": false,
+    "capture_accepted": false,
+    "loader_removal_clearance": false,
+    "generic_NativeAcceptance1_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "next_prerequisites_and_limits": [
+    "Root must finish its exact fresh frozen snapshot and actual Windows observer build/profile evidence. The old19e and724 snapshots remain immutable and unbuilt; none is silently relabelled599958.",
+    "Before native capture, separately bind/review actual observer bundle/literals, matched ordinary Georgia/Lebanon controls, exact unchanged arguments, fresh verified roots/outputs/full input/payload identities and concrete controller/plan. No new baseline/tolerance/window/actor/configuration hunt. The accepted finite capture-plan direction remains at its original scope.",
+    "The Core CRT constructor/cloud-loop draws, effective season/skin and first pre-reseed consumer fact remains REQUIRED OPEN until real retail evidence and complete noninvasiveness comparisons are reviewed. Compact schema/count consistency is not a full trace, digest/source-value truth or permission to remove the loader. UI/client reload remains source-blocked/unmeasured.",
+    "No current599958 CI or Windows/native result is inferred from earlier head evidence. All10/GenericNative1/remaining consumers and services/natural moving/DCS/final census/current40all8/four inputs/currentCI/review/normal merge/Task49/D3 remain OPEN as applicable.",
+    "Both original fullpacks and their immutable source/bin/root/output/process identities are preserved. Partial growing prefixes are not acceptance. No reviewer build/test/native/cache/source/Git mutation or nested delegation occurred; only this new external immutable JSON is written."
+  ]
+}

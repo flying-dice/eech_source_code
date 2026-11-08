@@ -1,0 +1,280 @@
+{
+  "features": [
+    "core-terrain-crt-observer"
+  ],
+  "actual_observer_symbols_defined_once": true,
+  "private_observer_DLL_exports_absent": true,
+  "staging_exact": true,
+  "objects": [
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-1ea4efb1596e0a08/out/67fd5db87f5aeca0-eech_engine.o",
+      "sha256": "4d617152e92b71ef66875f8e1fbf6e900b60d47a8479e070fe9c1398d5fbb529",
+      "bytes": 592647,
+      "retained": "/evidence/profile-audit-v2/objects/67fd5db87f5aeca0-eech_engine.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-1ea4efb1596e0a08/out/67fd5db87f5aeca0-eech_core_crt_observer.o",
+      "sha256": "2fa29f2c5db394850e2f791116d579a0af0de0a4b24f78a2e4236788ad50485a",
+      "bytes": 52155,
+      "retained": "/evidence/profile-audit-v2/objects/67fd5db87f5aeca0-eech_core_crt_observer.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-1ea4efb1596e0a08/out/b92d96176ddd7020-terrdata.o",
+      "sha256": "e6a32ca12939ea15924e69f1764a7aa64d7e244464c16a30e89c517b2b70c665",
+      "bytes": 118268,
+      "retained": "/evidence/profile-audit-v2/objects/b92d96176ddd7020-terrdata.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-1ea4efb1596e0a08/out/c2b6dee2337ed2ec-3dobjid.o",
+      "sha256": "b28e2d6d3311cc889a6d524bbd2669aa56f988b605063db7e28ad1eca6a449e8",
+      "bytes": 242747,
+      "retained": "/evidence/profile-audit-v2/objects/c2b6dee2337ed2ec-3dobjid.o"
+    },
+    {
+      "path": "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-1ea4efb1596e0a08/out/42123967e0b0cfb0-random.o",
+      "sha256": "a02450544df8d96a083b061cb35d000f9374f47de4521d288ca5c94ecc9029c0",
+      "bytes": 8029,
+      "retained": "/evidence/profile-audit-v2/objects/42123967e0b0cfb0-random.o"
+    }
+  ],
+  "staged": [
+    {
+      "path": "modules/3d/terrain/terrdata.c",
+      "raw_source_sha256": "bb770a8c6a2f39060d8beff57a1f4ad3bac7f342cab0bde06a55bfec89b9826f",
+      "actual_staged_sha256": "7453e5883809509e46524d641073600c016a59e29bcfae5f8921e34537d500f4",
+      "retained": "/evidence/profile-audit-v2/staged/modules/3d/terrain/terrdata.c"
+    },
+    {
+      "path": "modules/3d/3dobjid.c",
+      "raw_source_sha256": "7bd079ade2d5d5aab5b2800c9a9467069e55e1744eb2c254b7dc1fc10cb7f4dc",
+      "actual_staged_sha256": "f7f242adec9c2c21f07a7a577751c84e9af5ee150c0cf858e943bd01a078bc2b",
+      "retained": "/evidence/profile-audit-v2/staged/modules/3d/3dobjid.c"
+    }
+  ],
+  "toolchain": {
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "mingw": "x86_64-w64-mingw32-gcc (GCC) 12-posix"
+  },
+  "archive_sha256": "5b0d7ed79cc1244fcab2ed5f1b3642f80d00867620ee7a6a9bf93990b3713914",
+  "fingerprint_sha256": "81aec2581f717ae5ee94ae68edb1ac1728df1f485538553bf2aa0d199c26ccef",
+  "build_log_sha256": "bbf46c064c9e281f5f095d346705605fcd00520e1a14366710279fea5d6e46e4",
+  "files": [
+    {
+      "path": "3dobjid-machine.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "3dobjid-machine.stdout.txt",
+      "sha256": "7a8442cfb0f2487330b85d9e903ce2be66546902ada0a0e9694f3f46c9bbb978",
+      "bytes": 258
+    },
+    {
+      "path": "3dobjid-relocations.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "3dobjid-relocations.stdout.txt",
+      "sha256": "dab86cfc6c35682c9a345662ceccf3af80700f78c078ac584992ba59e1f58c46",
+      "bytes": 130627
+    },
+    {
+      "path": "Core-defined.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "Core-defined.stdout.txt",
+      "sha256": "ffbcfd4836cf1e185458ce5987d90c2203e4dca527d03c73f79f6d7881e1701d",
+      "bytes": 3549508
+    },
+    {
+      "path": "DLL-exports.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "DLL-exports.stdout.txt",
+      "sha256": "10f391d1dacc5f956f0590fb744b728c383b88c805936583ade3b4f8451264f4",
+      "bytes": 6195713
+    },
+    {
+      "path": "eech_core_crt_observer-machine.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "eech_core_crt_observer-machine.stdout.txt",
+      "sha256": "2c250faa9625cea4d4ad4ea259f046fd0d05f9ac6d7abd731e9894b53fae89c1",
+      "bytes": 273
+    },
+    {
+      "path": "eech_core_crt_observer-relocations.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "eech_core_crt_observer-relocations.stdout.txt",
+      "sha256": "f60dd8381ef81e9a57293291a010dbc8953af1f18e55513e0509f99b7633b9cd",
+      "bytes": 62191
+    },
+    {
+      "path": "eech_engine-machine.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "eech_engine-machine.stdout.txt",
+      "sha256": "0252ed7ba07c79a67741492b7a75f8b2e063f6f45599df05d634eeda7d853e4b",
+      "bytes": 262
+    },
+    {
+      "path": "eech_engine-relocations.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "eech_engine-relocations.stdout.txt",
+      "sha256": "489103abf00780913e589300f512306cd7bb1fb386ab3ed6b6f12377fb0f6e9e",
+      "bytes": 348800
+    },
+    {
+      "path": "objects/42123967e0b0cfb0-random.o",
+      "sha256": "a02450544df8d96a083b061cb35d000f9374f47de4521d288ca5c94ecc9029c0",
+      "bytes": 8029
+    },
+    {
+      "path": "objects/67fd5db87f5aeca0-eech_core_crt_observer.o",
+      "sha256": "2fa29f2c5db394850e2f791116d579a0af0de0a4b24f78a2e4236788ad50485a",
+      "bytes": 52155
+    },
+    {
+      "path": "objects/67fd5db87f5aeca0-eech_engine.o",
+      "sha256": "4d617152e92b71ef66875f8e1fbf6e900b60d47a8479e070fe9c1398d5fbb529",
+      "bytes": 592647
+    },
+    {
+      "path": "objects/b92d96176ddd7020-terrdata.o",
+      "sha256": "e6a32ca12939ea15924e69f1764a7aa64d7e244464c16a30e89c517b2b70c665",
+      "bytes": 118268
+    },
+    {
+      "path": "objects/c2b6dee2337ed2ec-3dobjid.o",
+      "sha256": "b28e2d6d3311cc889a6d524bbd2669aa56f988b605063db7e28ad1eca6a449e8",
+      "bytes": 242747
+    },
+    {
+      "path": "random-machine.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "random-machine.stdout.txt",
+      "sha256": "86a9b21e30d678a66d127e7c56d1c1772700b038e72097929ff1f7575312f14d",
+      "bytes": 257
+    },
+    {
+      "path": "random-relocations.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "random-relocations.stdout.txt",
+      "sha256": "20af3b22dd8218fe33ff947d6cd7b7f00932ed67894cd902555b695656f9a5e2",
+      "bytes": 8201
+    },
+    {
+      "path": "staged/modules/3d/3dobjid.c",
+      "sha256": "f7f242adec9c2c21f07a7a577751c84e9af5ee150c0cf858e943bd01a078bc2b",
+      "bytes": 28054
+    },
+    {
+      "path": "staged/modules/3d/terrain/terrdata.c",
+      "sha256": "7453e5883809509e46524d641073600c016a59e29bcfae5f8921e34537d500f4",
+      "bytes": 67984
+    },
+    {
+      "path": "staging-reader",
+      "sha256": "728a37795d649597640bbcee0dc7fd7e359361091600ea16df15b2589a706978",
+      "bytes": 4687608
+    },
+    {
+      "path": "staging-reader-actual.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "staging-reader-actual.stdout.txt",
+      "sha256": "d05f7a4f94ecd65a77f3be3fc59876535f10518624875bb885bac22912ca0adf",
+      "bytes": 207
+    },
+    {
+      "path": "staging-reader-compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "staging-reader-compile.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "staging-reader.rs",
+      "sha256": "bfa5d6a56b3063325a55893cc28d349ecc6f7ddb4a515c76964e7e3c8289e068",
+      "bytes": 769
+    },
+    {
+      "path": "terrdata-machine.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "terrdata-machine.stdout.txt",
+      "sha256": "07e40387984f31305fc34b893dd51bd6066e44cf3a6965d73b5c0422de9ea75c",
+      "bytes": 259
+    },
+    {
+      "path": "terrdata-relocations.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "terrdata-relocations.stdout.txt",
+      "sha256": "d41253a5617b64f117d5616fd8a8bb785aa59c9f59eb67f5737ef079ed0887b7",
+      "bytes": 192346
+    },
+    {
+      "path": "tool-cargo.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "tool-cargo.stdout.txt",
+      "sha256": "c35608815f43d0b8788a9b826fad2bb17384f49fb328dc4fe64da9db5f5ef4d6",
+      "bytes": 36
+    },
+    {
+      "path": "tool-mingw.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "tool-mingw.stdout.txt",
+      "sha256": "0b09aacbe791f2a68003127ffc81fe75b40dfd2764511c6c423dc7fc811c1230",
+      "bytes": 240
+    },
+    {
+      "path": "tool-rustc.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "tool-rustc.stdout.txt",
+      "sha256": "55cd0529c005d3f62869ea6e2271bfa9d5196f56dc65a8be00a371af114a4a98",
+      "bytes": 36
+    }
+  ],
+  "scope": "Actual Windows observer profile/feature/staging/COFF provenance only; no retail/native launch or physical authority/loader-removal/fullpack acceptance."
+}
