@@ -180,3 +180,26 @@ fn complete_report_requires_each_boundary_and_full_site_skin_phase_contract() {
     );
     assert!(wrongly_accepted.is_empty(), "damaged reports accepted: {wrongly_accepted:?}");
 }
+
+#[test]
+fn multi_phase_final_singleton_has_its_own_last_endpoint() {
+    // Real emitter event order: seed1, load2, ctor3, A4, end5, loadend6,
+    // B7, A8, B9, B10, closing seed11. B9 is an interior draw, not an endpoint.
+    let report = "core-crt-summary schema=1 complete=1 problem=0 loads=1 ends=1 seeds=2 draws=5 pre=0 load=1 gap=4 digest=0x12345678 sites=3 marks=6 skins=1\ncore-crt-mark kind=seed order=1 draws=0 a=1 b=10 c=0\ncore-crt-mark kind=load_begin order=2 draws=0 a=1 b=2 c=0\ncore-crt-mark kind=ctor_begin order=3 draws=0 a=2 b=0 c=0\ncore-crt-mark kind=ctor_end order=5 draws=1 a=2 b=2 c=0\ncore-crt-mark kind=load_end order=6 draws=1 a=5 b=4 c=4\ncore-crt-mark kind=seed order=11 draws=5 a=1 b=10 c=2\ncore-crt-site file=control.c line=10 pre=0 load=0 gap=0 first_pre=0 first_load=0 first_gap=0 last=0 first_value=0 last_value=0 gap_scene=0\ncore-crt-site file=control.c line=20 pre=0 load=1 gap=1 first_pre=0 first_load=4 first_gap=8 last=8 first_value=1 last_value=3 gap_scene=-1\ncore-crt-site file=control.c line=30 pre=0 load=0 gap=3 first_pre=0 first_load=0 first_gap=7 last=10 first_value=2 last_value=5 gap_scene=-1\ncore-crt-skin scene=2 animation=3 season=2 normal=4 desert=0 winter=0 ctor=2 frames=4 calls=1 draws=1\n";
+    let (result, out, boots, queries) = run(report, "");
+    assert!(result.is_ok(), "coherent multi-phase positive: {result:?}");
+    assert_eq!(out, report);
+    assert_eq!((boots, queries), (1, 1));
+    let from = "first_load=4 first_gap=8 last=8";
+    assert_eq!(report.matches(from).count(), 1);
+    let damaged = report.replacen(from, "first_load=4 first_gap=8 last=9", 1);
+    let (result, out, boots, queries) = run(&damaged, "");
+    println!(
+        "Endpoint controls: coherent_multiphase=1 one_field_mutation=last8_to9 accepted={}",
+        result.is_ok()
+    );
+    let error = result.expect_err("a site's sole final-phase draw must also be its last draw");
+    assert!(error.contains("observer site last ordinal"), "{error}");
+    assert!(out.is_empty());
+    assert_eq!((boots, queries), (1, 1));
+}

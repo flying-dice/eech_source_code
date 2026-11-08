@@ -87,6 +87,9 @@ order=draws+mark-index, load/phase totals, per-site first/count/last and draw-pr
 bounds, constructor balance/scene/skin calls, active versus inactive skin draws,
 and gap skin identities. Families occur in the C emitter's order; unknown kinds,
 missing load bounds, malformed fields and contradictions fail. The actual first
+draw in a site's final nonempty phase is also its last when that phase has one
+draw, even if the site drew in earlier phases; total site count cannot relax this.
+The actual first
 post-load seed closes the ordered boot-boundary prefix, including an empty prefix.
 These are internal consistency bounds on compact evidence, not a reconstruction
 of every draw, independent metadata truth, digest verification or consumer identity.

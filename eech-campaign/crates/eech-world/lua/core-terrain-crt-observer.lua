@@ -121,7 +121,7 @@ for i=1,summary.sites do
     if count==0 then
         assert(s.last==0 and s.first_value==0 and s.last_value==0 and s.gap_scene==0,'observer empty site fields')
     else
-        assert(s.last>=latest and s.last<marks[#marks].order and (count~=1 or s.last==latest),'observer site last ordinal')
+        assert(s.last>=latest and s.last<marks[#marks].order and (latest_count~=1 or s.last==latest),'observer site last ordinal')
         local last_phase=s.gap>0 and 3 or (s.load>0 and 2 or 1)
         assert(s.last<phase_end[last_phase] and draw_rank(s.last)-draw_rank(latest)+1>=latest_count,'observer site last phase/count')
         assert(not endpoints[s.last] or endpoints[s.last]==key,'duplicate site last ordinal');endpoints[s.last]=key

@@ -1,4 +1,14 @@
-# CURRENT — D3 Task49: Core CRT report-completeness correction frozen UNREVIEWED (8 November 2026)
+# CURRENT — D3 Task49: one Core CRT endpoint residual frozen UNREVIEWED (8 November 2026)
+
+**Same P2:** SAMEe14d supports the prior report-contract correction and leaves only ENV-CORE-CRT-OBSERVER-REPORT-COMPLETE-1's final-phase singleton endpoint. Lua now requires last==latest first whenever latest_count==1, including a site that drew in earlier phases. No other report relation changed. [Endpoint packet](eech-campaign/reference/d3-entity-collision/core-terrain-crt-endpoint-correction/README.md); [finite plan](eech-campaign/docs/d3-core-terrain-crt-capture-plan.md).
+
+**Actuals:** coherent multi-phase positive FIRST, then only siteA.last8→9 at siteB's interior draw. Old gate wrongly accepts, targeted RED101; one-word Lua fix GREEN0. Exact RED Lua/test bytes retained. Final format/strict world Clippy/affected Lua target all direct0, five Rust tests; new positive/mutant plus existing23 report controls pass. Original outer session51019 actual0; PRE/POST4,010 rows/five readers/14 extras equal, hygiene[]. Other4,008 raw rows unchanged; compiled C/Rust/staging remains exact552ee. Accepted contract and old C evidence reused without broad replay.
+
+**Next:** STOP for SAME changed-line/control review; original P2 stays OPEN pending that review. Root owns its untouched clean724 clone, separately cleared Windows build/provenance and concrete matched baseline/controller/payload/root plan. No Windows/native/retail capture/removal or baseline/config/auth change here. Actual Core draws/skin/first consumer remain unmeasured, reload source-blocked; compact consistency is not full trace or independent consumer truth.
+
+**Preserved:** all10/genericNative1/Task49/D3, remaining needed consumers/naturalmoving/wholeheight/sharedterrain/RNG/hierarchy/services/finalcensus/current40all8/fourinputs/currentCI/review/normalmerge remain OPEN as applicable. GenericNative1 blocks_cutover=true; SAME400c supported disposition already accepted SOURCE. Both original Root-owned fullpacks untouched/prefix PARTIAL only. Prep2 retained; no D4/D5/TypeScript. Root records actual agent completion separately.
+
+# HISTORICAL (endpoint residual supersedes this summary) — D3 Task49: Core CRT report-completeness correction frozen UNREVIEWED (8 November 2026)
 
 **Finding:** SAME4f017 V2 requires ENV-CORE-CRT-OBSERVER-REPORT-COMPLETE-1. The Lua driver now validates exact ordered schemas/domains, family order, summary/mark/site phases and ordinals, load/seed bounds, constructor/skin identity/calls/draws, and the legitimate early-reseed boot prefix. Compact consistency bounds do not reconstruct every draw, verify the digest or establish independent source metadata/consumer truth. [Updated finite plan](eech-campaign/docs/d3-core-terrain-crt-capture-plan.md); [literal correction packet](eech-campaign/reference/d3-entity-collision/core-terrain-crt-report-correction/README.md).
 

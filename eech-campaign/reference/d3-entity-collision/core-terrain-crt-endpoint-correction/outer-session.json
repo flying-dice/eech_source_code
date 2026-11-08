@@ -1,0 +1,12 @@
+{
+  "kind": "actual_exec_tool_session",
+  "session": 51019,
+  "actual_outer_exit": 0,
+  "actual_direct_exits": {
+    "s1-fmt": 0,
+    "s2-clippy": 0,
+    "s3-driver": 0
+  },
+  "no_invented_OS_PID_or_agent_CLI_exit": true,
+  "metadata_after_POST": true
+}
