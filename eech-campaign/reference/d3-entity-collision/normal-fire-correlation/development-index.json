@@ -1,0 +1,434 @@
+[
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d1-feature-check.json",
+    "sha256": "d05679838423000418be8e55361edad0ea69b651dd4b6c92812d58358f01bae6",
+    "actual_exit": 0,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d1-feature-check.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d1-feature-check.stderr.log",
+        "bytes": 289,
+        "sha256": "ae8f4f937669923dc5f84d53ac3f4c716dcbd0ebf69c8d62f5c85b1b63d927a8"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d10-normal-d2-and-detach.json",
+    "sha256": "fff7de240a2380c7788ec2be30d620a6e59f34c06231e6ccc6d9810e4ba2ceb6",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d10-normal-d2-and-detach.stdout.log",
+        "bytes": 750,
+        "sha256": "1d7270b7d53066168c74c3964c2a83edaa3622646e75ddd967eb1814f8ec9c66"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d10-normal-d2-and-detach.stderr.log",
+        "bytes": 1045,
+        "sha256": "721e02a5a6e59fcfbeca870c60b477e344f970dcd3b2158ae3eabc09473f601b"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d11-normal-d2-and-detach.json",
+    "sha256": "cb357c1220b27edd940aa001145cbe074385ed88e87bb77a4c8aade6446a8d4a",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d11-normal-d2-and-detach.stdout.log",
+        "bytes": 16,
+        "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d11-normal-d2-and-detach.stderr.log",
+        "bytes": 542,
+        "sha256": "5a461aad8904dcf8745ac02b1a9512ccb250813bbb2de91d805cae56a4957414"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d12-gdb.json",
+    "sha256": "015d45817d260f501b8039480568d2a03e28b0a040361fefb1bf960fa7222f04",
+    "actual_exit": 0,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d12-gdb.stdout.log",
+        "bytes": 10479,
+        "sha256": "04d8e3818c985761341652dbea71d75e5d8f6120cd8a2b38ed770645b1947eea"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d12-gdb.stderr.log",
+        "bytes": 272,
+        "sha256": "9ddfdbac1546b2bb8da997801077ce09ab65a57adab49fdf38a193f984d1a75d"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d13-normal-independent-capture.json",
+    "sha256": "2d1a8c4d4160b11fc69dff697ee50a82fc1255a7c7c91bf96d55d53f49633a3b",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d13-normal-independent-capture.stdout.log",
+        "bytes": 2061,
+        "sha256": "6efbaeca92b41b262c1b6d566fc40471cce52433987c48362c6061788a9211c5"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d13-normal-independent-capture.stderr.log",
+        "bytes": 2511,
+        "sha256": "06671e3aeb292106aeb1e23b9d83ad180446e070664c4f694cdc0ec9312403d7"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d14-normal-complete-context.json",
+    "sha256": "736907603ca128b1f4888cd0cd7ab48552c39d4d7bf84332f1cbb0b08413da97",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d14-normal-complete-context.stdout.log",
+        "bytes": 2186,
+        "sha256": "3feffc9a3f53dcf3092b783878fd47747927f1ae250f6481db3a44363f9092dc"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d14-normal-complete-context.stderr.log",
+        "bytes": 2667,
+        "sha256": "fa03b23bb13bd5391461faf901f2cbbbf0e5ab1d663eb85cc62288ec964e38a4"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d15-normal-env-attribution.json",
+    "sha256": "fc34f6c2b72b3216ac5c03841aecb8e474714f1886344263768995594dd8df51",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d15-normal-env-attribution.stdout.log",
+        "bytes": 2185,
+        "sha256": "864e81fe6cc99f6896d35c7ea83c53025e758a71af577c998120a30925fd3c20"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d15-normal-env-attribution.stderr.log",
+        "bytes": 2583,
+        "sha256": "0835664b679c35d2dec907b19b04a04efda3b0610250fb11127b325b5f61a0ef"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d16-normal-reference-wind.json",
+    "sha256": "dc0c29e8c2cacbac08bfdd9dff15ccbcd430fa63360149d8a4feb590e497fb40",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d16-normal-reference-wind.stdout.log",
+        "bytes": 302,
+        "sha256": "46077eea074b560d98f46f006c2edb8941538cec67f01a317758b34f794c7726"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d16-normal-reference-wind.stderr.log",
+        "bytes": 670,
+        "sha256": "79ca4e1590550abe0719ccc6a0c09cc8e0e507417560d9bf9945858c0321ef1a"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d17-normal-reference-environment.json",
+    "sha256": "955ad83c202087b488e326bf1fc97fb21801daeac9472128572b18e1a811674f",
+    "actual_exit": 0,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d17-normal-reference-environment.stdout.log",
+        "bytes": 5267,
+        "sha256": "6268f91d804b6b5b6a0ed11c718ee640f518ead388811d3de2927330413da18f"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d17-normal-reference-environment.stderr.log",
+        "bytes": 317,
+        "sha256": "3704887275351ac2fe1724981a4f5d3a61e6acc3eb1f5f4c16ebb4d6a17c214b"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d18-format.json",
+    "sha256": "6db498f14cca11409d8ea258c453533020033578b3acc8d459e65d8e63533aaa",
+    "actual_exit": 0,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d18-format.stdout.log",
+        "bytes": 46,
+        "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d18-format.stderr.log",
+        "bytes": 36,
+        "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d19-batched-controls.json",
+    "sha256": "fe34a8dd5b83d549ff2a6b3336e4037c3781e858e920694698765aa8cc017663",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d19-batched-controls.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d19-batched-controls.stderr.log",
+        "bytes": 24932,
+        "sha256": "787e7de9f4c91e22b9fab6545b3cba9d9f4e5f419a31bee1d84c9204bd72b431"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d2-detach-original.json",
+    "sha256": "9b8f89d7df8fb24e6a045f4d0c117b0acbaea6689a7d47093c137b9fa1c425d6",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d2-detach-original.stdout.log",
+        "bytes": 411,
+        "sha256": "6a243c38e6366fcc370797a2f5bd333575847e12ee88ae6894edae2b0faa712a"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d2-detach-original.stderr.log",
+        "bytes": 837,
+        "sha256": "da786abcc82e61174a61e7e8ba11fce56f73f94e59c9af41b259ed159b2c8594"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d20-portable-lua-controls.json",
+    "sha256": "656cd06dea5f4a36aa47170f9b1bc26b95cf0d7b533afa8be24421fabeed7923",
+    "actual_exit": 0,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d20-portable-lua-controls.stdout.log",
+        "bytes": 7195,
+        "sha256": "fd145182a5f5df82a95af230eff1a4db04c5d504063e912214c8506dd5c59141"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d20-portable-lua-controls.stderr.log",
+        "bytes": 397,
+        "sha256": "f03df6aa16e10cb153238cbbdfbdfaeaacc5da7b1fc0eff41803bbd14befc695"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d21-malformed-ineligible-red.json",
+    "sha256": "3a3bf57256b6acb6c57b934ab63abd16e5a1587238c6ac358eb7f14188f520db",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d21-malformed-ineligible-red.stdout.log",
+        "bytes": 4448,
+        "sha256": "d758dd06d23d8c5c1437e550aeeb95ba837660b86586a35cb274c7f10be401cf"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d21-malformed-ineligible-red.stderr.log",
+        "bytes": 809,
+        "sha256": "5c1dce96b915014b8f4fb20af17f676a86f2da8c096f05f2df02914d7a502830"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d22-malformed-ineligible-green.json",
+    "sha256": "6adc7fa112d90aff8be4be8f88290e73fe50e6483ece6d380969bb7d1434dc05",
+    "actual_exit": 0,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d22-malformed-ineligible-green.stdout.log",
+        "bytes": 4578,
+        "sha256": "ea2879aeca97eff5a9ed054cca90438948323a449242398bc7a34551679d92c1"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d22-malformed-ineligible-green.stderr.log",
+        "bytes": 231,
+        "sha256": "049a26625d6e06c09a33f7b7e07adc628f9d0ad0fae88060fe2366b48ed48e63"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d23-format-lint.json",
+    "sha256": "26b54dca5084ac9908a9f0b3526bf34eff40004e82329b832aadfb6bd0ad5c95",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d23-format-lint.stdout.log",
+        "bytes": 84,
+        "sha256": "0c7c47c5360e4b1dd21d3c2d291077bbe030256e914589ef025e9ced04777671"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d23-format-lint.stderr.log",
+        "bytes": 1292,
+        "sha256": "c3fddd157e8489bd30c6eb35efdf0101ea4faec9bef5cc6a857d7b425eb8cd15"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d24-format-lint-correction.json",
+    "sha256": "a133d660eaa165dc0d6b849c1aa41cb08f60dbbc498120500cdb8e3bc4526e9e",
+    "actual_exit": 0,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d24-format-lint-correction.stdout.log",
+        "bytes": 84,
+        "sha256": "0c7c47c5360e4b1dd21d3c2d291077bbe030256e914589ef025e9ced04777671"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d24-format-lint-correction.stderr.log",
+        "bytes": 320,
+        "sha256": "b58a75018cd26b51407b85a052eef286f45700f6a7ba5580331cabb2856fe410"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d3-detach-original-model.json",
+    "sha256": "6ab521dbf03a067bb5cb83ea91e5a475d1ab02e9fe54cbf1040236dae792456e",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d3-detach-original-model.stdout.log",
+        "bytes": 16,
+        "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d3-detach-original-model.stderr.log",
+        "bytes": 474,
+        "sha256": "6e88ecc6704ee48468181fcf3848ef823b98ed75af9607d49af1e1dee58417b7"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d4-gdb.json",
+    "sha256": "7ddcc97b2a9a32ca4b158b3f41789b3cce99947b9449d8ad3b7919d9910275a7",
+    "actual_exit": 0,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d4-gdb.stdout.log",
+        "bytes": 5393,
+        "sha256": "e5d6b674b79e3f09e716af7efbac973753abed1963dc5c795e6f54403cfdc17d"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d4-gdb.stderr.log",
+        "bytes": 272,
+        "sha256": "a4fccb78c44796e0f7cda60c6845cda78daccded61c7a5a19678dc472bd2972f"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d5-detach-original-filesystem.json",
+    "sha256": "992d9c253c2cacdcb279a7d8607de8757ea3e6808108729a506242ec806d3d22",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d5-detach-original-filesystem.stdout.log",
+        "bytes": 16,
+        "sha256": "daf071121a9ffe32bbce44190e37a068c96d08bff63fd7b660dd95b77d786dca"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d5-detach-original-filesystem.stderr.log",
+        "bytes": 474,
+        "sha256": "d8b76eb61cc89a3973a1275444e645a9be6c8b9492dc74d3440d56ac3c7ca6d4"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d6-gdb.json",
+    "sha256": "93e75da86ca92eb2dbab12524e3546831e97942dd0867802bc54aa5fea1911bd",
+    "actual_exit": 0,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d6-gdb.stdout.log",
+        "bytes": 5206,
+        "sha256": "19f90bd92c3087d887e067764c720df60ecdae9b0c2a94b3f2099c98d7fceb78"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d6-gdb.stderr.log",
+        "bytes": 272,
+        "sha256": "a4fccb78c44796e0f7cda60c6845cda78daccded61c7a5a19678dc472bd2972f"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d7-detach-original-textures.json",
+    "sha256": "9c8c1fd9773e0e7179284449d6c9aaf00a587e4d0a8da13c36a23f442fd30a55",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d7-detach-original-textures.stdout.log",
+        "bytes": 427,
+        "sha256": "60433ef982158a85dd29ca81d031e097b2ebd31ec9c2ac29715e93b9aa9b3e13"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d7-detach-original-textures.stderr.log",
+        "bytes": 869,
+        "sha256": "9cfdb471f6ed8d04ab84b3660ab969a092c84a9a98ec83dc6f8d97cada46141b"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d8-detach-original-callback.json",
+    "sha256": "4c7372f7e0c8e18b82ca4057c5ab985e8a20f9099c765207daf9fbd4de164307",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d8-detach-original-callback.stdout.log",
+        "bytes": 740,
+        "sha256": "9910759aadac055e3c896ee700c7df10b3c70820550b0ef3590c0870a977d09f"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d8-detach-original-callback.stderr.log",
+        "bytes": 1063,
+        "sha256": "80169d7058bd2d4af38d3e12ef33d8aaf1959a47a58516458d1e345d42da27b7"
+      }
+    ]
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nfcD419-d9-normal-d2-and-detach.json",
+    "sha256": "9dab559292ecc14e9107759ac8df4559bf9a75c5eaf0a13a25d140ba25344db9",
+    "actual_exit": 101,
+    "scope": "unsealed development; debugger exit is not test success",
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d9-normal-d2-and-detach.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nfcD419-d9-normal-d2-and-detach.stderr.log",
+        "bytes": 869,
+        "sha256": "6ff5c522281eb582aa5dded03c85aca46eebae1911dc6b465df5ba3bf9a217a5"
+      }
+    ]
+  }
+]

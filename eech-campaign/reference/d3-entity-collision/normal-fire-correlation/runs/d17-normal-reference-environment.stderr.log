@@ -1,0 +1,4 @@
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.75s
+     Running tests/normal_fire.rs (/target/t/debug/deps/normal_fire-c91d7342c5c64535)
+     Running tests/normal_fire.rs (/target/t/debug/deps/normal_fire-0d696b2db6031db0)

@@ -1,0 +1,8 @@
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.84s
+     Running tests/normal_fire.rs (/target/t/debug/deps/normal_fire-b955f79f884912cc)
+
+thread 'real_normal_fire_uses_model_devices_and_real_d2_before_correlated_birth' (148) panicked at crates/eech-engine/tests/normal_fire.rs:392:10:
+called `Result::unwrap()` on an `Err` value: RuntimeError("[string \"crates/eech-engine/tests/normal_fire.rs:386...\"]:1: assertion failed!\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"crates/eech-engine/tests/normal_fire.rs:386...\"]:1: in main chunk")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-engine --test normal_fire`

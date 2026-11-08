@@ -1,0 +1,117 @@
+{
+  "utc": "2026-11-08T07:36:58.689948+00:00",
+  "source_before": "d419afb575adac32b1d6fd1b2fe2706ffb5efcf1",
+  "source_rows": 4016,
+  "source_fingerprint": "4d16a8d4ee3c1661032d060d537a1e0b1f0372689a4cb0cae80b17d84548788b",
+  "PRE_POST_equal": true,
+  "readers": {
+    "run-normal-fire-nfcD419-direct-20261108.py": "f3269cf37aaeb4b5fa30272612fde58049e4d69f1e804d3af8cbdc0825aa6676",
+    "check-normal-fire-nfcD419-linux-20261108.sh": "bb184cbc8a957336ed446de4f40c340c4d90b7509b19bdc6d6802889ec4cdf84",
+    "run-nfcD419-final-20261108.py": "9aa1537174a699e447999fd0abf61c40fa8c2396feaacf6b8644471f527bd80e",
+    "nfcD419-proof-20261108.py": "c6e12330163b39ebbaf4c23a08631cd107ac14ca3513ba6e8496e1c1c6c6e9e8",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "extras": {
+    "run-normal-fire-nfcD419-direct-20261108.py": "f3269cf37aaeb4b5fa30272612fde58049e4d69f1e804d3af8cbdc0825aa6676",
+    "check-normal-fire-nfcD419-linux-20261108.sh": "bb184cbc8a957336ed446de4f40c340c4d90b7509b19bdc6d6802889ec4cdf84",
+    "run-nfcD419-final-20261108.py": "9aa1537174a699e447999fd0abf61c40fa8c2396feaacf6b8644471f527bd80e",
+    "nfcD419-proof-20261108.py": "c6e12330163b39ebbaf4c23a08631cd107ac14ca3513ba6e8496e1c1c6c6e9e8",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+    "independent-natural-moving-d419-plan-20261108.json": "36b249649c827f2c529e217928401746d369f1fda1eba851e79a70e61a72937a",
+    "natural-moving-plan-d419-Root-binding-20261108.json": "662b592bf0295e39c792e865d8beba379b79557091eecb96b86c1cecceff544c",
+    "codex-d3-natural-moving-public-path-20261108-completion.json": "44afc1201f4ee77a1c44a14e5fe5f85c71f52bf23017c96727c9e6aa53027c5c",
+    "codex-d3-normal-fire-correlation-20261108-process.json": "e3d3766202d854253406a0cfc37f5733328b8e3745cb91aa307b450fb2943678",
+    "natural-moving-d419-all9-CI-readback-20261108.json": "784fa88382a53497979b50d4c17ffd470f8102ac425285150661e3749541dacc",
+    "nfcD419-family-20261108.json": "d1f3d33c4cd61954209867ffb4fc09783a0e5f676df9a709ce0c41fda4aa3fa9",
+    "nfcD419-runner-before-seal-draft1.py": "3a72f9be0752e56bb2940c4de5226999a801b5a84872885394cc9473cafd534c",
+    "nfcD419-original-d419-plan.literal.md": "7b514149a6447fe077325f6371226a05ffe40f17e19b0604883d2b7affd78c65",
+    "nfcD419-d21-RED-normal-fire-correlation.lua": "2d993a7b663ab8c3255cd3ec13baa93c18c91fc0228a09ddfa17757e35a82c10",
+    "nfcD419-d21-RED-normal_fire.rs": "8cd32a697759b6d0d9ccd7bebf23754280018b96ab3ea7daaa477b9564535c1c",
+    "D3-REQUIREMENTS.json": "3165482fd5994e66db90e30c75b633de2d8c24380ce2948b694df66f0b14433c",
+    "eech-campaign/docs/d3-normal-fire-correlation.md": "62d320f57f8e1f0f6fb384d98b502cb9a8626e4e1842ae6f29d02859baa88e98"
+  },
+  "changed_sources": [
+    "aphavoc/source/entity/mobile/vehicle/vh_wpn.c",
+    "aphavoc/source/entity/mobile/weapon/weapon.c",
+    "aphavoc/source/entity/mobile/mb_normalfirefx.h",
+    "eech-campaign/Cargo.lock",
+    "eech-campaign/crates/eech-dc/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_normal_fire_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_normal_fire_d2_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/normal_fire.rs",
+    "eech-campaign/crates/eech-engine/Cargo.toml",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-engine/tests/normal_fire.rs",
+    "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua"
+  ],
+  "source_audit": {
+    "source_before": "d419afb575adac32b1d6fd1b2fe2706ffb5efcf1",
+    "compiled_producer": "aphavoc/source/entity/mobile/vehicle/vh_wpn.c",
+    "disabled_not_compiled": "aphavoc/source/entity/mobile/vehicle/routed/rv_wpn.c",
+    "caller_order": [
+      "update_vehicle_weapon_system_ready (en);",
+      "update_entity_weapon_systems (en);",
+      "update_entity_weapon_system_weapon_and_target_vectors (en);",
+      "update_vehicle_weapon_fire (en);"
+    ],
+    "default_bodies": {
+      "aphavoc/source/entity/mobile/vehicle/vh_wpn.c": {
+        "raw_current_sha256": "04266b535689dd01d3e2530ff70f65ac49ced63ff1ff164e59e1f6685ea6d31a",
+        "default_body_equals_original": true,
+        "original_sha256": "f5932d9ea5cab891ccfc1c0ca7d25802e749b3fbec70637f15fd580f81333565"
+      },
+      "aphavoc/source/entity/mobile/weapon/weapon.c": {
+        "raw_current_sha256": "81057b0d979a85e4810fc7938597f83107cd89c3322910fc7fefe26cff3fb229",
+        "default_body_equals_original": true,
+        "original_sha256": "6404b7b85e7ab83f80f4a29c415c1105dac2ba3c4f8959484902c902cf7ad05c"
+      }
+    },
+    "engine_production_prefix_literal_unchanged": true,
+    "hooks_no_initializer_reset_allocation_IO_RNG_or_lazy_identity": true,
+    "all10_preserved": true,
+    "generic_parent_open_blocks_cutover": true
+  },
+  "final_direct_exits": {
+    "s1-fmt": 0,
+    "s2-clippy": 0,
+    "s3-controls": 0,
+    "s4-shipping-check": 0
+  },
+  "Rust_tests": 2,
+  "portable_Lua_controls": 9,
+  "single_field_faults": 5,
+  "observer_rounding_modes": 4,
+  "unique_model_fallback_cases": 5,
+  "actual_model_case_executions": 10,
+  "actual_D2_requests": {
+    "birth": 2,
+    "command": 3,
+    "figures": 82,
+    "forecast": 12,
+    "ready": 3,
+    "release": 1,
+    "required": 2,
+    "step": 2,
+    "vectors": 3
+  },
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "private_maps": [
+    {
+      "path": "R:\\d3-evidence\\nfcD419-inputmap-PRE-20261108.json",
+      "sha256": "91ba3d5a8924313fd58070f9741603df9f82073b9e32912b8c6a4da04e0eb347"
+    },
+    {
+      "path": "R:\\d3-evidence\\nfcD419-inputmap-POST-20261108.json",
+      "sha256": "91ba3d5a8924313fd58070f9741603df9f82073b9e32912b8c6a4da04e0eb347"
+    }
+  ],
+  "hygiene_problems": [],
+  "scope": "UNREVIEWED read-only correlation prerequisite. Private Original model/control world + real reference D2 only. No Engine boot/native/natural/Windows/case/controller/cutover/removal/all10 closure. Agent completion is Root-owned and separate."
+}

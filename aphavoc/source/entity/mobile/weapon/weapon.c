@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_normalfirefx.h"
 #include "entity/mobile/mb_aimfx.h"
 #include "entity/mobile/mb_hostaim.h"
 
@@ -368,6 +369,7 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 	found = FALSE;
 
+	NF_DETACH_BEGIN (launcher, weapon_sub_type, burst_size)
 	package_status = (weapon_package_status *) get_local_entity_ptr_value (launcher, PTR_TYPE_WEAPON_PACKAGE_STATUS_ARRAY);
 
 	if (package_status)
@@ -387,6 +389,7 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 		//
 		if (found_package_number > 0)
 		{
+			NF_PACKAGE (config_type, found_package, &package_status[found_package])
 			inst3d = (object_3d_instance *) get_local_entity_ptr_value (launcher, PTR_TYPE_INSTANCE_3D_OBJECT);
 
 			ASSERT (inst3d);
@@ -404,11 +407,13 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 			if (find_object_3d_sub_object (&search_weapon_system_heading) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
 			{
+				NF_DEVICE (1)
 				search_weapon_system_pitch.search_depth = weapon_config_database[config_type][found_package].pitch_depth;
 				search_weapon_system_pitch.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_PITCH;
 
 				if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_heading, &search_weapon_system_pitch) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
 				{
+					NF_DEVICE (2)
 					unsigned weapon_device = FALSE;
 
 					search_weapon_system_weapon.search_depth = weapon_config_database[config_type][found_package].number - package_status[found_package].number;
@@ -416,6 +421,8 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 					if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_pitch, &search_weapon_system_weapon) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
 					{
+						NF_DEVICE (4)
+						NF_STATION (search_weapon_system_weapon.result_sub_object)
 						search_weapon_system_weapon.result_sub_object->visible_object = FALSE;
 
 						get_3d_sub_object_world_viewpoint (&search_weapon_system_weapon, vp);
@@ -443,6 +450,7 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 					if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_pitch, &search_weapon_system_muzzle) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
 					{
+						NF_DEVICE (8)
 						if (!weapon_device)
 							get_3d_sub_object_viewpoint (&search_weapon_system_muzzle, vp, TRUE);
 
@@ -552,6 +560,7 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 							// do not interrupt an on-going animation
 							//
 
+							NF_FLASH (&package_status[found_package].muzzle_flash_timer)
 							if (package_status[found_package].muzzle_flash_timer == 0.0)
 							{
 								muzzle_flash_type = weapon_config_database[config_type][found_package].muzzle_flash_type;
@@ -626,6 +635,7 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 	{
 		if (!point_inside_map_volume (&vp->position))
 		{
+			NF_FALLBACK (1)
 			//
 			// the launcher origin must be on the map (else the position would debug fatal)
 			//
@@ -672,6 +682,7 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 	if (vp->position.y < terrain_elevation)
 	{
+			NF_FALLBACK (2)
 		vp->position.y = terrain_elevation + 1.0;
 
 		#if DEBUG_MODULE
@@ -687,6 +698,7 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 		#endif
 	}
+	NF_DETACH_END (launcher, vp)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

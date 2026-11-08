@@ -1,0 +1,17 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 29s
+     Running tests/normal_fire.rs (/target/t/debug/deps/normal_fire-733c5467b8762a11)
+
+thread 'real_model_detachment_preserves_device_absence_fallbacks_and_observes_effects' (3941) panicked at crates/eech-engine-sys/tests/normal_fire.rs:15:5:
+assertion `left == right` failed: real collaborator control failed: detach case=0 ammo=1000->999 origin_fallback=0 position=500,100,501
+detach case=1 ammo=1000->999 origin_fallback=1 position=500,100,500
+detach case=2 ammo=1000->999 origin_fallback=1 position=500,100,500
+detach case=3 ammo=1000->999 origin_fallback=0 position=500,100,502
+detach case=4 ammo=1000->999 origin_fallback=0 position=500,100,501
+collaborator_checks=5 terrain_queries=5 failures=0
+MISSING_OBSERVATION normal_detach
+
+  left: 1
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-engine-sys --test normal_fire`

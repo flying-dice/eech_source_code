@@ -14692,3 +14692,53 @@ mod case_refusal_bridge_tests {
         assert!(matches!(keep_case_reason(Ok(()), &full), Ok(ref report) if report == "xxxx"));
     }
 }
+
+/// Private fixture bridge over this library instance's actual aim converter.
+/// No boot, MODEL replacement or shipping entry is exposed.
+#[cfg(feature = "normal-fire-check")]
+#[allow(clippy::expect_used)] // private test seam: invariant failures abort this control
+pub mod normal_fire_check {
+    use super::*;
+    pub fn with_boundary<A, R>(
+        answer: &mut A,
+        environment: EnvProvider,
+        call: impl FnOnce(sys::eech_aim_callback, sys::eech_environment_callback, *mut c_void) -> R,
+    ) -> R
+    where
+        A: FnMut(AimRequest) -> Result<AimReply, String>,
+    {
+        ENVIRONMENT.with(|slot| {
+            let mut slot = slot.borrow_mut();
+            assert!(slot.is_none(), "private fixture requires no installed environment");
+            *slot = Some(environment);
+        });
+        struct EnvironmentLease;
+        impl Drop for EnvironmentLease {
+            fn drop(&mut self) {
+                ENVIRONMENT.with(|slot| {
+                    slot.borrow_mut().take();
+                });
+            }
+        }
+        let _lease = EnvironmentLease;
+        let mut bind = |_: MemberDescriptor| Err("normal-fire fixture serves no bind".into());
+        let mut loss = |_: LossDescriptor| Err("normal-fire fixture serves no loss".into());
+        let mut supply = |_: SupplyReachDescriptor| Err("normal-fire fixture serves no supply".into());
+        let mut movement = |_: MovementStep| Err("normal-fire fixture serves no movement".into());
+        let mut los = |_: LosMessage| Err("normal-fire fixture serves no los".into());
+        let mut sense = |_: SenseMessage| Err("normal-fire fixture serves no sense".into());
+        let mut output = None;
+        with_host(&mut bind, &mut loss, &mut supply, &mut movement, &mut los, &mut sense, answer, |host| {
+            // SAFETY: with_host owns this context for this closure's whole call.
+            let host = unsafe { &*host };
+            output = Some(call(
+                host.aim.expect("with_host installs aim"),
+                host.environment.expect("with_host installs environment"),
+                host.user,
+            ));
+            0
+        })
+        .expect("private fixture bridge call returns OK");
+        output.expect("with_host calls the fixture once")
+    }
+}

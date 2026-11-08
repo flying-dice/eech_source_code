@@ -46,6 +46,8 @@
 #include "entity/mobile/mb_wpnfx.h"
 #include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_hostplace.h"
+#include "entity/mobile/mb_normalfirefx.h"
+#include <errno.h>
 
 #define SAMPLE_SLOTS 2
 #define SAMPLE_COUNT 256
@@ -375,6 +377,122 @@ static void log_event (const char *format, ...)
 	}
 	log_count++;
 }
+
+
+#ifdef EECH_NORMAL_FIRE_CORRELATION
+/* One owner-thread call interval. Pointers stay private and valid only inside
+ * the normal fire/detach stack. Roster lookup is pure; never lazy-identify an
+ * actor or call another host merely to observe it. Integer formatting only. */
+static struct {
+    entity *source, *target, *detaching;
+    int active, weapon, detaching_weapon, config, package, mask, ammo, burst, visible, volume, ground;
+    const object_3d_sub_instance *station;
+    const float *flash; uint32_t flash_before;
+    const weapon_package_status *status;
+    unsigned long long fire, detach, births;
+} nf;
+static unsigned long long nf_fire_sequence, nf_detach_sequence;
+/* Independent capture lifetime: legacy ready()/trace_reset never owns these
+ * records. No reset/initializer/host call runs from a producer hook. The read
+ * entry drains this stream in its own sequence, not the legacy wpn sequence. */
+#define NF_EVENTS 8192
+static char nf_records[NF_EVENTS][LOG_TEXT];
+static unsigned nf_count,nf_drained,nf_overflow,nf_overflow_reported;
+static unsigned long long nf_sequence;
+static void nf_log_event(const char *format,...) __attribute__((format(printf,1,2)));
+static void nf_log_event(const char *format,...) {
+    va_list args;int used,n;
+    ++nf_sequence;
+    if(nf_count==NF_EVENTS) {++nf_overflow;return;}
+    used=snprintf(nf_records[nf_count],LOG_TEXT,"normal-ev seq=%llu tick=%u ",nf_sequence,eech_headless_time_ms());
+    va_start(args,format);n=vsnprintf(nf_records[nf_count]+used,(size_t)(LOG_TEXT-used),format,args);va_end(args);
+    if(n<0 || n>=LOG_TEXT-used) {
+        ++nf_overflow;snprintf(nf_records[nf_count],LOG_TEXT,"normal-ev seq=%llu tick=%u kind=normal_error reason=truncated",nf_sequence,eech_headless_time_ms());
+    }
+    ++nf_count;
+}
+static int nf_drain(char *text,int capacity,int *used) {
+    while(nf_drained<nf_count) {
+        int n=(int)strlen(nf_records[nf_drained]);
+        if(*used+n+2>capacity) return 1;
+        memcpy(text+*used,nf_records[nf_drained],(size_t)n);*used+=n;text[(*used)++]='\n';text[*used]=0;++nf_drained;
+    }
+    if(nf_overflow && !nf_overflow_reported) {
+        char error[128];int n=snprintf(error,sizeof(error),"normal-ev seq=%llu tick=%u kind=normal_error reason=overflow\n",nf_sequence+1,eech_headless_time_ms());
+        if(*used+n+1>capacity) return 1;
+        memcpy(text+*used,error,(size_t)n+1);*used+=n;nf_overflow_reported=1;
+    }
+    return 0;
+}
+static const char *nf_id(entity *en) {
+    const char *id = en ? campaign_roster_host_id(en) : NULL;
+    return id && id[0] ? id : "none";
+}
+static uint32_t nf_word(const float *value) {
+    uint32_t word; memcpy(&word,value,sizeof(word)); return word;
+}
+static void nf_pose(char *text,size_t capacity,const viewpoint *vp) {
+    uint32_t words[12]; int i;
+    _Static_assert(sizeof(vp->position)==3*sizeof(uint32_t), "position words");
+    _Static_assert(sizeof(vp->attitude)==9*sizeof(uint32_t), "attitude words");
+    memcpy(words,&vp->position,sizeof(vp->position));
+    memcpy(words+3,&vp->attitude,sizeof(vp->attitude));
+    text[0]=0;
+    for(i=0;i<12;i++) text_append(text,capacity,"%s0x%08x",i?",":"",words[i]);
+}
+void eech_nf_fire(entity *source,entity *target,int weapon,int is_ready,
+    const vec3d *actual,const vec3d *intercept,const float *angle,const float *maximum) {
+    int saved_errno=errno;
+    if(nf.active) { nf_log_event("kind=normal_error reason=nested_fire");errno=saved_errno;return; }
+    memset(&nf,0,sizeof(nf));nf.active=1;nf.source=source;nf.target=target;
+    nf.weapon=weapon;nf.package=-1;nf.fire=++nf_fire_sequence;
+    nf_log_event("kind=normal_fire fire=%llu launcher=%s target=%s weapon=%d ready=%d actual=0x%08x,0x%08x,0x%08x intercept=0x%08x,0x%08x,0x%08x angle=0x%08x maximum=0x%08x",
+        nf.fire,nf_id(source),nf_id(target),weapon,is_ready,
+        nf_word(&actual->x),nf_word(&actual->y),nf_word(&actual->z),
+        nf_word(&intercept->x),nf_word(&intercept->y),nf_word(&intercept->z),nf_word(angle),nf_word(maximum));
+    errno=saved_errno;
+}
+void eech_nf_fire_end(entity *source) {
+    int saved_errno=errno;
+    if(!nf.active || nf.source!=source || nf.detaching) nf_log_event("kind=normal_error reason=fire_context");
+    else nf_log_event("kind=normal_end fire=%llu births=%llu",nf.fire,nf.births);
+    memset(&nf,0,sizeof(nf));errno=saved_errno;
+}
+void eech_nf_detach_begin(entity *source,int weapon,int burst) {
+    int saved_errno=errno;
+    if(nf.detaching) nf_log_event("kind=normal_error reason=nested_detach");
+    nf.detaching=source;nf.detaching_weapon=weapon;nf.detach=++nf_detach_sequence;nf.package=-1;nf.mask=0;nf.status=NULL;nf.ammo=-1;nf.config=-1;nf.burst=burst;nf.station=NULL;nf.flash=NULL;nf.volume=nf.ground=0;
+    if(nf.active && (source!=nf.source || weapon!=nf.weapon)) nf_log_event("kind=normal_error reason=detach_identity");
+    errno=saved_errno;
+}
+void eech_nf_package(int config,int package,const weapon_package_status *status) {
+    nf.config=config;nf.package=package;nf.status=status;nf.ammo=status->number;
+}
+void eech_nf_device(int device) { nf.mask|=device; }
+void eech_nf_station(const object_3d_sub_instance *station) {nf.station=station;nf.visible=station->visible_object;}
+void eech_nf_flash(const float *timer) {nf.flash=timer;nf.flash_before=nf_word(timer);}
+void eech_nf_fallback(int kind) {if(kind==1) nf.volume=1;else if(kind==2) nf.ground=1;}
+void eech_nf_detach_end(entity *source,const viewpoint *vp) {
+    int saved_errno=errno;char pose[160];
+    if(nf.detaching!=source) nf_log_event("kind=normal_error reason=detach_context");
+    nf_pose(pose,sizeof(pose),vp);
+    nf_log_event("kind=normal_detach fire=%llu detach=%llu launcher=%s weapon=%d config=%d package=%d devices=%d burst=%d ammo_before=%d ammo_after=%d visible_before=%d visible_after=%d flash_present=%d flash_before=0x%08x flash_after=0x%08x volume=%d ground=%d pose=%s",
+        nf.active?nf.fire:0,nf.detach,nf_id(source),nf.detaching_weapon,nf.config,nf.package,nf.mask,nf.burst,nf.ammo,nf.status?nf.status->number:-1,nf.station?nf.visible:-1,nf.station?(int)nf.station->visible_object:-1,nf.flash!=NULL,nf.flash?nf.flash_before:0,nf.flash?nf_word(nf.flash):0,nf.volume,nf.ground,pose);
+    nf.detaching=NULL;nf.status=NULL;nf.station=NULL;nf.flash=NULL;errno=saved_errno;
+}
+static void nf_birth(const entity *en,const weapon *raw,int ordinal,int submunition) {
+    int saved_errno=errno;char pose[160];viewpoint vp;int match;
+    (void)en;
+    if(submunition) {errno=saved_errno;return;}
+    memcpy(&vp.position,&raw->mob.position,sizeof(vp.position));memcpy(vp.attitude,raw->mob.attitude,sizeof(vp.attitude));
+    nf_pose(pose,sizeof(pose),&vp);
+    match=nf.active && raw->launched_weapon_link.parent==nf.source && raw->mob.sub_type==nf.weapon && raw->mob.target_link.parent==nf.target;
+    if(match) ++nf.births;
+    nf_log_event("kind=normal_birth fire=%llu detach=%llu w=%d launcher=%s target=%s weapon=%d matched=%d pose=%s",
+        match?nf.fire:0,nf.detach,ordinal,nf_id(raw->launched_weapon_link.parent),nf_id(raw->mob.target_link.parent),raw->mob.sub_type,match,pose);
+    errno=saved_errno;
+}
+#endif
 
 static const char *type_name (int type)
 {
@@ -979,6 +1097,9 @@ void eech_wpn_birth_end (entity *en, const weapon *raw, int submunition)
 	note_range (R_BIRTH_VELOCITY, (double) raw->mob.velocity);
 	note_range (R_BIRTH_LIFETIME, (double) raw->weapon_lifetime);
 	note_range (R_BIRTH_DECOY_TIMER, (double) raw->decoy_timer);
+#ifdef EECH_NORMAL_FIRE_CORRELATION
+	nf_birth (en, raw, t ? t->ordinal : -1, submunition);
+#endif
 	text[0] = 0;
 	text_append (text, sizeof (text),
 		"kind=birth w=%d type=%s launcher=%s target=%s submunition=%d velocity=%.9g lifetime=%.9g decoy_timer=%.9g pos=%.9g,%.9g,%.9g "
@@ -1784,6 +1905,9 @@ int eech_wpn_events_get (char *text, int capacity)
 		text[used] = 0;
 		log_drained++;
 	}
+#ifdef EECH_NORMAL_FIRE_CORRELATION
+    if(nf_drain(text,capacity,&used)) return 1;
+#endif
 	return log_drained < log_count ? 1 : 0;
 }
 

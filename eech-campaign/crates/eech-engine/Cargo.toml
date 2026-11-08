@@ -10,6 +10,10 @@ eech-engine-sys = { path = "../eech-engine-sys" }
 serde = { workspace = true }
 
 [features]
+# TEST-ONLY own-library bridge for the real normal-fire collaborator control.
+normal-fire-check = ["eech-engine-sys/normal-fire-check"]
+# TEST-ONLY normal-fire/package/muzzle/birth correlation; no shipping API.
+normal-fire-correlation = ["weapon-fixture", "eech-engine-sys/normal-fire-correlation"]
 # TEST-ONLY Core loader CRT observer; never a shipping profile.
 core-terrain-crt-observer = ["eech-engine-sys/core-terrain-crt-observer"]
 physical-flags-lifetime-check = ["eech-engine-sys/physical-flags-lifetime-check"]
@@ -56,9 +60,15 @@ target-point-fixture = ["eech-engine-sys/target-point-fixture"]
 # TEST-ONLY (EEDCS-49, D3, Task49): the supply arrival descriptor control of the UPDATED word: see eech-engine-sys. With it on, `eech_engine::supply_check` hands the engine's OWN `supply_reached` boundary to the test; absent from every other build.
 physical-flags-supply-check = ["eech-engine-sys/physical-flags-supply-check"]
 
+[[test]]
+name = "normal_fire"
+path = "tests/normal_fire.rs"
+required-features = ["normal-fire-check", "normal-fire-correlation", "model-fixture"]
+
 [dev-dependencies]
 # the flag control's test host: the REAL store of eech-world behind the engine's model callback (the same support file as eech-engine-sys/tests/physical_flags_consumer.rs)
 eech-world = { path = "../eech-world" }
+mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

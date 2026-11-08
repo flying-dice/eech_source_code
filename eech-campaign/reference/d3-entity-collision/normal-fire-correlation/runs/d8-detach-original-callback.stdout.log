@@ -1,0 +1,19 @@
+
+running 1 test
+detach case=0 ammo=1000->999 origin_fallback=0 position=500,100,501
+detach case=1 ammo=1000->999 origin_fallback=1 position=500,100,500
+detach case=2 ammo=1000->999 origin_fallback=1 position=500,100,500
+detach case=3 ammo=1000->999 origin_fallback=0 position=500,100,502
+detach case=4 ammo=1000->999 origin_fallback=0 position=500,100,501
+collaborator_checks=5 terrain_queries=5 failures=0
+MISSING_OBSERVATION normal_detach
+
+test real_model_detachment_preserves_device_absence_fallbacks_and_observes_effects ... FAILED
+
+failures:
+
+failures:
+    real_model_detachment_preserves_device_absence_fallbacks_and_observes_effects
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+

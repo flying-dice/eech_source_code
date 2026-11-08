@@ -1,0 +1,33 @@
+{
+  "observed_utc": "2026-11-08T06:16:59.450915+00:00",
+  "HEAD": "d419afb575adac32b1d6fd1b2fe2706ffb5efcf1",
+  "clean_exact_upstream": true,
+  "document_lines": 115,
+  "document_sha256": "7b514149a6447fe077325f6371226a05ffe40f17e19b0604883d2b7affd78c65",
+  "runtime_changes": false,
+  "changed_metadata_paths": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/docs/d3-natural-moving-public-path-plan.md",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/.gitattributes",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/D3-NATURAL-MOVING-PUBLIC-PATH-PLAN-FROZEN-20261108.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/README.md",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/codex-d3-core-crt-actual-disposition-20261108-completion.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/codex-d3-natural-moving-public-path-20261108-process.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/core-crt-disposition-495114-Root-binding-20261108.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/core-crt-post-review-cutover-guard-20261108.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/evidence-index.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/independent-core-crt-495114-actual-disposition-20261108.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/manifest.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/nmp495-family-20261108.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/prior-moving-unreached-safe-facts.json",
+    "eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/source-identities.json"
+  ],
+  "interpreted_sources_unchanged_Git_literal": 13,
+  "manifest_entries": 12,
+  "packet_files_Git_literal": 13,
+  "literal_external_copies": 7,
+  "new_tests_build_native_cache_calls": 0,
+  "new_native_case_selected": false,
+  "scope": "Mechanical source/prerequisite PLAN publication join only; no implementation/capture/normalfire/moving/hierarchy authority or physicalcutover clearance. Prior underreach/closedproof scopes preserved; all10/GenericNative1/fullpacks remainOPEN."
+}

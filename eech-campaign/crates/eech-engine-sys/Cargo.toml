@@ -8,6 +8,10 @@ links = "eech_engine"
 build = "build/main.rs"
 
 [features]
+# TEST-ONLY real Core weapon detach/model collaborator control.
+normal-fire-check = []
+# TEST-ONLY normal-fire/package/muzzle/birth correlation; no shipping API.
+normal-fire-correlation = ["weapon-fixture"]
 # TEST-ONLY Core loader CRT observer; never a shipping profile.
 core-terrain-crt-observer = []
 physical-flags-lifetime-check = []
@@ -158,6 +162,11 @@ required-features = ["tree-dialogue-check"]
 cc = { version = "1.2", features = ["parallel"] }
 
 # TEST-ONLY (Task49): the hosted profile of the real-C flag controls asks the REAL host store (`eech_world::model_host::flag_answer`), so the test serves the engine's model provider with it (tests/support/flags_host.rs)
+[[test]]
+name = "normal_fire"
+path = "tests/normal_fire.rs"
+required-features = ["normal-fire-check", "model-fixture"]
+
 [dev-dependencies]
 eech-world = { path = "../eech-world" }
 # the collision control's test bridge drives the real reference provider (`host.model`) from a Lua state of its own (tests/support/lua_provider.rs)
