@@ -1,0 +1,33 @@
+
+running 9 tests
+test nr395_bad_delegated_positive_name_or_pose_never_requests_a_read ... ok
+test nr395_old_group_latch_predicate_fails_the_new_optional_group_transaction ... ok
+test nr395_optional_group_ack_is_carried_to_the_exact_read_and_no_eligible_is_not_pass ... ok
+test nr395_full_request_is_checked_before_delegation_with_raw_sector_word_exception ... ok
+test nr395_positive_first_extra_stationary_read_and_real_destructive_store_then_changed_carry ... ok
+Python report validator read_probe_control: actual_exit=Some(0)
+Python report validator read_changed: actual_exit=Some(0)
+test nr395_single_field_damaged_complete_reference_is_refused_before_any_effect ... ok
+Python report validator read_withheld: actual_exit=Some(0)
+test nr395_all_five_refusals_are_immediate_and_late_callback_or_normal_return_is_failure ... ok
+Python report validator read_malformed: actual_exit=Some(0)
+test nr395_every_callable_is_wrapped_and_unrelated_callbacks_never_complete_selection_or_refusal ... ok
+Python report validator read_wrong_state: actual_exit=Some(0)
+Python report validator read_wrong_array: actual_exit=Some(0)
+Python report validator read_wrong_word: actual_exit=Some(0)
+Python controller offline actual_exit=Some(0)
+test_full_bundle_inventory_and_every_one_of_91_bytes_are_required (__main__.Controls.test_full_bundle_inventory_and_every_one_of_91_bytes_are_required) ... ok
+test_manifest_paths_do_not_escape_and_relative_write_targets_are_refused (__main__.Controls.test_manifest_paths_do_not_escape_and_relative_write_targets_are_refused) ... ok
+test_real_lua_positive_and_every_new_record_join (__main__.Controls.test_real_lua_positive_and_every_new_record_join) ... ok
+test_reference_hash_checked_before_child_work_even_for_plausible_edit (__main__.Controls.test_reference_hash_checked_before_child_work_even_for_plausible_edit) ... ok
+test_unmaterialized_plan_refuses_before_any_path_or_process_action (__main__.Controls.test_unmaterialized_plan_refuses_before_any_path_or_process_action) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.035s
+
+OK
+
+test nr395_independent_python_validator_and_controller_offline_controls_use_actual_lua_reports ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+

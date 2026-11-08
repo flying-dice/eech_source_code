@@ -1,0 +1,18 @@
+
+running 7 tests
+test nr395_old_group_latch_predicate_fails_the_new_optional_group_transaction ... ok
+test nr395_bad_delegated_positive_name_or_pose_never_requests_a_read ... ok
+test nr395_positive_first_extra_stationary_read_and_real_destructive_store_then_changed_carry ... ok
+test nr395_optional_group_ack_is_carried_to_the_exact_read_and_no_eligible_is_not_pass ... ok
+test nr395_single_field_damaged_complete_reference_is_refused_before_any_effect ... ok
+test nr395_all_five_refusals_are_immediate_and_late_callback_or_normal_return_is_failure ... ok
+Python report validator read_probe_control: actual_exit=Some(0)
+test nr395_independent_python_validator_and_controller_offline_controls_use_actual_lua_reports ... FAILED
+
+failures:
+
+failures:
+    nr395_independent_python_validator_and_controller_offline_controls_use_actual_lua_reports
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+

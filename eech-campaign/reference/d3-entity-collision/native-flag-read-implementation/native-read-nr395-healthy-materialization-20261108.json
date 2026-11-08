@@ -1,0 +1,68 @@
+{
+  "observed_utc": "2026-11-08T02:40:41.819893+00:00",
+  "kind": "Root materialization ONLY; no native launch or source/controller clearance",
+  "runtime": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+  "source_snapshot": "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source",
+  "source_binary": "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\target\\windows-supply-boolean-3abf-ordinary",
+  "build_receipt": "R:\\d3-evidence\\supply-boolean-native-windows-3abf-20261107-completion.json",
+  "build_receipt_sha256": "dc632ab7b5f80f8a1f412aff7019b9b4e84fe3154cb6daf832f167baeecf0358",
+  "binary_dir": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\bin",
+  "payloads_verified": 91,
+  "bundle_manifest": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\metadata\\bundle-manifest.json",
+  "bundle_manifest_sha256": "bf1eafc4157854c1c51e89e817751fa655a9c106412940dd2eeeef9d0c8af98a",
+  "build_info_metadata_copy": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\metadata\\source-BUILD-INFO.txt",
+  "build_info_sha256": "1f208f4963b01135d1a9525f28f4bfd644931be996b2fbf6cc1351d21e94b4dc",
+  "pristine": "R:\\eech-regression-20261025\\roots\\lebanon",
+  "input_tool": "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\tools\\input-manifest.py",
+  "input_tool_sha256": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+  "input_reference": "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+  "input_reference_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+  "healthy_root": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\healthy-root",
+  "root_base": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\child-roots",
+  "out_base": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs",
+  "literal_dir": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\literals",
+  "literal_state": "UNCREATED until final source freeze; expected exactly new Lua and transaction module",
+  "input_checks": [
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-I",
+        "-B",
+        "-X",
+        "utf8",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\eech-regression-20261025\\roots\\lebanon",
+        "--compare",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\metadata\\pristine-pre-inputs.json"
+      ],
+      "actual_exit": 0,
+      "manifest": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\metadata\\pristine-pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-I",
+        "-B",
+        "-X",
+        "utf8",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\tools\\input-manifest.py",
+        "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\healthy-root",
+        "--compare",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\metadata\\healthy-pre-inputs.json"
+      ],
+      "actual_exit": 0,
+      "manifest": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\metadata\\healthy-pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    }
+  ],
+  "healthy_inputs": 1179,
+  "healthy_input_bytes": 102239559,
+  "children_roots_and_outputs_uncreated": true,
+  "native_runs_started": false,
+  "active_fullpack_paths_mutated": false
+}

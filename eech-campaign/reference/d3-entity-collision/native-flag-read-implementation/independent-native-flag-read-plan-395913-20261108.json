@@ -1,0 +1,132 @@
+{
+  "schema": "independent-source-informed-plan-review/v1",
+  "reviewed_utc": "2026-11-08T02:17:22.411352+00:00",
+  "scope": "Only new source-informed documentation plan/identities and current protocol legality/finite proof conditions; correctness, clean code and boundary review together. No implementation, tests/build/native/checker replay, cache operation, tracked edit or delegation.",
+  "source": {
+    "plan_commit": "395913f9a3c877a894a0030257730153fe0bd579",
+    "parent": "7e6bed4c702869611ead639610c47abc3d86aa08",
+    "observed_full_status_clean": true,
+    "runtime_commit": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+    "changed_files": 5,
+    "new_executable_files_created": false
+  },
+  "evidence": {
+    "plan": {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-native-flag-read-plan.md",
+      "bytes": 11866,
+      "sha256": "1c472eec613c09041491617d692c91b957568a21d18d9137c316ea1cfebe7352"
+    },
+    "identities": {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/native-flag-read-plan/identities.json",
+      "bytes": 5378,
+      "sha256": "9c5d97e59c22f8bfc4c58136587b0a83bb3a81a36c27b5c23bee16b3da02a6e7"
+    },
+    "Root_binding": {
+      "path": "R:/d3-evidence/native-read-plan-395913-Root-binding-20261108.json",
+      "bytes": 1563,
+      "sha256": "793dba47b99ff85763e9ab8bb366893d131a62fb5239f4cdba31fa049564bc59"
+    },
+    "typed_service_completion": {
+      "path": "R:/d3-evidence/codex-d3-native-read-plan-20261108-completion.json",
+      "bytes": 1471,
+      "sha256": "f1f6148c95074eed570a14fc0669eb3133e11fcf72c6d3b41bb4cf111850a95a"
+    }
+  },
+  "protocol_identity_join": [
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "git_blob": "6cb491fcaf8df631ea1560507e682a11b165c7c2",
+      "sha256": "48354a1e2f58df6b91bb1a3b701b7b1fd8d8781a9e2046aaa13e744791c7216a",
+      "same_at_runtime_and_reviewed_head": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "git_blob": "847b6d87fbc09eceac222104f4f23ace7a961be7",
+      "sha256": "96bad27212f2c30690812ba33e0860867721d6def844415d66fa0ebaa1d3291f",
+      "same_at_runtime_and_reviewed_head": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+      "git_blob": "7ded54db8b878c6a8e6d6105bae6fdf7b215b05c",
+      "sha256": "03c7b8644dc2980d57c93a429e21a949ee3fecbc3317b24cf145deaa17ab422f",
+      "same_at_runtime_and_reviewed_head": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "git_blob": "bc77f7417f58235dc43127176a36026ce0196763",
+      "sha256": "0b82441d74216b8dffe628712796077a7e08e8d8663480977ed480f1242d06e1",
+      "same_at_runtime_and_reviewed_head": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "git_blob": "871f688768c828826798d0153a3d18e79a25e86c",
+      "sha256": "11e3d49625a49b6f4ad3e92e50258f84f73eb74d5032a8e008c58df2bc911648",
+      "same_at_runtime_and_reviewed_head": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "git_blob": "7a55ce5434020711e8d20213b7f4d6ed65b4f826",
+      "sha256": "d86b00281356782c8e0dfd2c530fc344775f47f6bdc85e1e58734e94fb247ce5",
+      "same_at_runtime_and_reviewed_head": true
+    }
+  ],
+  "findings": [],
+  "decision": {
+    "status": "PLAN_ACCEPTED_WITH_EXPLICIT_UNIMPLEMENTED_LAUNCH_GATES",
+    "plan_feasible_at_declared_scope": true,
+    "native_launch_clearance": false,
+    "controller_launch_clearance": false,
+    "public_native_READ_accepted": false,
+    "GenericNativeAcceptanceRow": "OPEN",
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false,
+    "meaning": "Proceed only to bounded implementation/freeze/review of this strategy and strict positive/reference/refusal controls. No native process is authorized by a plan with uncreated/unhashed Lua/controller."
+  },
+  "legality_and_feasibility": [
+    {
+      "topic": "Lawful service demand",
+      "evidence": "mb_hostentity.h187-193; mb_hostoffer.h183-199; entity_candidate_step.c325-330",
+      "result": "Core accepts NEED_UPDATED for mobile/non-city candidate whose fact20 is not yet asked, without speed threshold. The reference solver naturally demands it only in the moving branch; selecting a real stationary eligible mobile is lawful diagnostic service demand. This is an additional destructive READ and altered diagnostic host behavior, not unchanged default conformance."
+    },
+    {
+      "topic": "Real canonical record prerequisite",
+      "evidence": "model_host.rs598-714",
+      "result": "Delegating exact initial mobile request to real host.model before intervention reaches canonical SharedMovers lookup and rejects missing/unknown/retired/incomplete/busy records. Strictly valid non-refused delegated result plus actual bind registration tuple can establish the real selected record; arbitrary semantic name/guessed scene or fabricated pose cannot substitute."
+    },
+    {
+      "topic": "Public path and carried answer",
+      "evidence": "module.rs4129-4146; mb_hostmodel.c2134-2184,2220-2233; mb_hostoffer.h193-199",
+      "result": "Bridge permits need_updated/name/no pose. Core invokes real UPDATED getter once, optionally opening an unbound flag group first. It converts returned raw int zero/nonzero into fact20=1/2 then immediately re-asks candidate in same offer loop. Offer pose observation precedes the loop, not an intervening callback between this demand and re-ask. Match actual fields/registration and optionalGROUP→READ→samecandidate; no invented generation field is needed."
+    },
+    {
+      "topic": "Store effect versus answered value",
+      "result": "Reference flag_answer performs real store destructive W→W&M. The changed-reply case must change only returned valid raw0/mask, leaving the real store at real W&M; carried fact must follow answered value, and differ from its real-word fact. Traffic oracle is declared derived observation, not an independent snapshot or extra inspection READ/reset."
+    },
+    {
+      "topic": "Finite outcome and causality",
+      "result": "Healthy first at fixed35-frame window establishes actual eligible transaction or honest UNREACHED. Changed answer proves a carried service fact only, not necessarily physical collision change. Five valid-read-first singlefaults can target existing refusal channels; sameentry intervention latch/nextcallback/normalreturn checks prevent unrelated fatal credit. Request/reply/oracle/correlation errors take precedence over cleanabsence."
+    }
+  ],
+  "implementation_and_launch_acceptance_conditions": [
+    "Create the NEW opt-in Lua strategy, tests and strict report validator/controller; freeze exact source/literal/blob/SHA and conduct changed-material review before native. The old30ad driver does not implement the proposed option and must not be passed ignored arguments as coverage.",
+    "Before eligibility/effect, validate full current request and complete delegated positive answer including scene/name/result/pose contract. Correlate actual registration tuple and monotonic selection ordinal. Carry latch through only resulting optionalGROUP with strict issuedkeyACK and selectedREAD; reject unrelated callbacks/record changes, exact request mismatch or repeated intervention.",
+    "Validate complete healthy file/setup/runtime/Lua/plan identity and canonical schema/count/order/selection/full44word request/re-ask/phase/traffic/oracle relations BEFORE child output/root/boot/provider work. Positive-first single-field damaged-reference and no-eligible/intervention/unrelatedfatal controls must fail for intended reasons.",
+    "Complete healthy control must carry the same selected transaction fact exactly before any child is created/launched. Six children share that full pre-intervention tuple/reference hash; no later candidate, frame/seed/window/scenario hunt or replacement actor. If healthy eligible transaction absent, all children remain NOT_LAUNCHED_UNREACHED and stop.",
+    "Preserve exact raw-word helpers/reference arithmetic profile, delegate selectedREAD exactlyonce before each change/refusal, classify real versus answered words separately, and use all callable-surface continuation latch. No getters/counters/close through poisoned engine; expectedcaughtrefusal0 is diagnostic success, not healthy campaign continuation.",
+    "Reuse only a NEW immutable fully verified copy of all91 ordinary3abf payloads, exact production/profile/build identities and separately materialized reviewed Lua. Bind concrete controller and each fresh retail root/full pre/post manifest, command/PID/birth/exits/reference hash. Do not mutate either active fullpack source/bin/root/output. No rebuild is implied by this plan alone; later incompatible compiled changes require own gates.",
+    "A later actual-evidence review must establish any publicREAD/carried-answer/refusal closure. This plan and existing old17PASS/6UNREACHED cannot establish new runtime facts."
+  ],
+  "evidence_accuracy": [
+    "Plan, identities and.gitattributes plusSTATUS/card are the actual five changed files. No README exists in this packet; Root dispatch wording was imprecise, not an implemented artifact. No executable/test/build/Lua bytes changed.",
+    "Six named protocol blobs are literal equal at reviewed395913 and true runtime3abf. Root also binds three named binary hashes and identity receipts; identities explicitly requires future verification/copy of all91 payloads rather than claiming three hashes constitute whole-bundle proof.",
+    "Typed service completion is completed via FINAL/list_agents, not fabricated CLI PID/exit. No tests are required/reported for the documentation-only plan. New Lua/controller remain UNCREATED/unhashed and launch blocked.",
+    "Old020/5d2c17PASS and six not-launched READ cases retain actual runtime/driver/source scope. No new Original paired3abf claim, firsteligible frame estimate or M5frame2277READ evidence is inferred."
+  ],
+  "limits": [
+    "Supported first actual transaction and fixed diagnostic setup only. No natural moving-weapon integration, natural-read frequency, collision outcome, unchangeddefault claim or all consumer authority.",
+    "No new epoch/generation/replacement/thread/VM/session lifecycle or complete FPU guarantee. Prior finite lifetime/motion/Tacview/default/source reviews stay closed at original scopes without replay.",
+    "All ten D3 requirements, NativeAcceptance1/publicREAD until actualproof, wholeheight/sharedterrain/RNG/hierarchy/services/DCS/finalCURRENT40/all8/fourinputs/currentCI/review/census/normalmerge/Task49/D3 remain open. Both original fullpacks are untouched; partialprefixes not acceptance.",
+    "Reviewer only wrote this new external report; Root owns implementation/caches/canonical disposition/publication. No generic launch, formalapproval, merge or delivery acceptance."
+  ]
+}

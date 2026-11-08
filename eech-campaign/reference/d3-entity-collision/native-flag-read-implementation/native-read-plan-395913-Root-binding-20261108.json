@@ -1,0 +1,39 @@
+{
+  "observed_utc": "2026-11-08T02:15:54.460921+00:00",
+  "HEAD": "395913f9a3c877a894a0030257730153fe0bd579",
+  "parent": "7e6bed4c702869611ead639610c47abc3d86aa08",
+  "clean_pushed": true,
+  "five_changed_files_literal": [
+    {
+      "path": "STATUS.md",
+      "bytes": 1480163,
+      "sha256": "c2f3f11dcc3aa4a0cc00b7de0d573a23b63397dd3b7b24f3de974c4f8a6e4be6"
+    },
+    {
+      "path": "docs/handover/ACTIVE-EXTRACTION.json",
+      "bytes": 280562,
+      "sha256": "a0be9e15cf5415c7c101f707ea6a202124409de1a6f6d265bc57a0f7961517f2"
+    },
+    {
+      "path": "eech-campaign/docs/d3-native-flag-read-plan.md",
+      "bytes": 11866,
+      "sha256": "1c472eec613c09041491617d692c91b957568a21d18d9137c316ea1cfebe7352"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/native-flag-read-plan/.gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/native-flag-read-plan/identities.json",
+      "bytes": 5378,
+      "sha256": "9c5d97e59c22f8bfc4c58136587b0a83bb3a81a36c27b5c23bee16b3da02a6e7"
+    }
+  ],
+  "protocol_files_identical_to_runtime": 6,
+  "named_binaries_readonly_matched": 3,
+  "identity_receipts_matched": 3,
+  "plan_sha256": "1c472eec613c09041491617d692c91b957568a21d18d9137c316ea1cfebe7352",
+  "build_tests_native_replayed": false,
+  "scope": "Source-informed plan only; new Lua/controller uncreated; no launch clearance or publicREAD/allD3 acceptance"
+}

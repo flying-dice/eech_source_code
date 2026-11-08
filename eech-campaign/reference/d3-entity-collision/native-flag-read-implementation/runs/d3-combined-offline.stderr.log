@@ -1,0 +1,23 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.79s
+     Running tests/physical_flags_read_driver.rs (/target/t/debug/deps/physical_flags_read_driver-b20bed42a77e539b)
+
+thread 'nr395_independent_python_validator_and_controller_offline_controls_use_actual_lua_reports' (128) panicked at crates/eech-world/tests/physical_flags_read_driver.rs:155:39:
+read_changed: 
+Traceback (most recent call last):
+  File "/src/eech-campaign/crates/eech-world/../../tools/native_flag_read.py", line 170, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/src/eech-campaign/crates/eech-world/../../tools/native_flag_read.py", line 169, in main
+    r=validate(Path(a.report).read_bytes(),expected,a.mode,ref);print(json.dumps({'status':r['verdict']['status'],'mode':a.mode}))
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/src/eech-campaign/crates/eech-world/../../tools/native_flag_read.py", line 82, in validate
+    for k,value in wanted.items():check(i.get(k)==value,'identity mismatch '+k)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/src/eech-campaign/crates/eech-world/../../tools/native_flag_read.py", line 30, in check
+    if not ok: raise Invalid(why)
+               ^^^^^^^^^^^^^^^^^^
+Invalid: identity mismatch reference
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-world --test physical_flags_read_driver`

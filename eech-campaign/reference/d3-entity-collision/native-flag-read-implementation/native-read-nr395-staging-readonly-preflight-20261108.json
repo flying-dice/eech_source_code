@@ -1,0 +1,44 @@
+{
+  "observed_utc": "2026-11-08T02:55:10.111084+00:00",
+  "scope": "Root staged stable-hash source literals and concrete plan; read-only preflight ONLY. Final source Git/freeze review remains required; no native clearance",
+  "plan": "R:\\d3-evidence\\native-read-nr395-materialized-plan-20261108.json",
+  "plan_sha256": "eecd985c9f25ce08221b75c9aa724ffa7334ebdb4ce6d01492a6230517e8c3e4",
+  "artifacts": {
+    "controller": {
+      "source": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\native_flag_read_controller.py",
+      "sha256": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd"
+    },
+    "validator": {
+      "source": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\native_flag_read.py",
+      "sha256": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d"
+    },
+    "binding": {
+      "source": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\native-flag-read-runtime.json",
+      "sha256": "3c27e9aaed8bfadb6a60c577d054790f74604fbab905515a4b80a24bf6af6084"
+    },
+    "lua": {
+      "source": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\crates\\eech-world\\lua\\physical-flags-read-witness.lua",
+      "sha256": "2e8ccebca6f0255543b76d4e42b44a17c1bf649ed51a7e4a01043f600843931c"
+    },
+    "protocol": {
+      "source": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\crates\\eech-world\\lua\\physical-flags-read-transaction.lua",
+      "sha256": "3a18cfe7ca647da6bd3f6c6c567fe0517b529271b7b2229a25fba8ac1ef4f2e7"
+    }
+  },
+  "staged_literals": {
+    "lua": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\literals\\physical-flags-read-witness.lua",
+    "protocol": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\literals\\physical-flags-read-transaction.lua"
+  },
+  "command": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\native_flag_read_controller.py",
+    "R:\\d3-evidence\\native-read-nr395-materialized-plan-20261108.json"
+  ],
+  "actual_exit": 0,
+  "children_roots_and_outputs_uncreated": true,
+  "native_started": false
+}

@@ -1,0 +1,26 @@
+{
+  "files": {
+    "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "eech-campaign/tools/native-flag-read-runtime.json": "3c27e9aaed8bfadb6a60c577d054790f74604fbab905515a4b80a24bf6af6084",
+    "eech-campaign/tools/test_native_flag_read.py": "980721fadaa79675297d9706cdfa68da659385149f706054a4abaa4d92423c42",
+    "eech-campaign/docs/d3-native-flag-read-implementation.md": "1ec5fdf3b191def0d85c77cf0cd9edbbc2aefb5b14346748c36914c3895c938d",
+    "eech-campaign/docs/d3-native-flag-read-plan.md": "1c472eec613c09041491617d692c91b957568a21d18d9137c316ea1cfebe7352",
+    "eech-campaign/rustfmt.toml": "478e818c64a27dc341fffc827ee4b00c5aeef237ab8745efc9690f87ad245de9",
+    "nr395-derive-new-driver-20261108.py": "e75d4bbbb361604809216b5b93abadd4736a62289caab8ab628cd99b8bf2f17c",
+    "nr395-runtime-binding-20261108.py": "6716fe415db426b25ff3de49ad03cddc2bb49b9c497edecba29a211ed149f35d",
+    "run-physical-flags-nr395-direct-20261108.py": "1279ebcbe0b9b8ad19d094be3d80c28ac6f15abe5ea8de4b17f600b17ebe2f93",
+    "check-physical-flags-nr395-linux-20261108.sh": "f61689d0e380418f17ae12ab56fa77d0dfd05cd7f6e798ee6ed7ab12bfc6e38d",
+    "run-nr395-final-20261108.py": "0dae7cc23343136f19e23de79682019749d57f7e70e1eb7c358e7e03e68ba037",
+    "nr395-proof-20261108.py": "3d49bc31f040b7f37bf9a84d74f3ee9ea0417491712f43455bd6fe0ee59aebd2",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+    "codex-d3-native-read-implementation-20261108-process.json": "9fe9fd474d55dba8a71465e4f786324851209c0902da36f0a5f8c6bdeb099a5c",
+    "independent-native-flag-read-plan-395913-20261108.json": "dde3b645568861122d4d897a48980162cb5db25e444a63b5bc5a9695787255ba",
+    "native-read-plan-395913-Root-binding-20261108.json": "793dba47b99ff85763e9ab8bb366893d131a62fb5239f4cdba31fa049564bc59",
+    "codex-d3-native-read-plan-20261108-completion.json": "f1f6148c95074eed570a14fc0669eb3133e11fcf72c6d3b41bb4cf111850a95a",
+    "native-read-nr395-healthy-materialization-20261108.json": "2576082c28a938be06d402116007b6fc0acc324e8b6e5d0f1b67dcdaecbe9382",
+    "native-read-nr395-materialized-plan-20261108.json": "eecd985c9f25ce08221b75c9aa724ffa7334ebdb4ce6d01492a6230517e8c3e4",
+    "native-read-nr395-staging-readonly-preflight-20261108.json": "1c57d255f3527f3deddcf84f252eb70a9b2eee1908d8d80d185385e8b9c22748"
+  },
+  "aggregate": "537f5cccbd03af068cefe1317fb15afab37ca27c7e0bd1518565762851fb9d09"
+}
