@@ -1,0 +1,16 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+error[E0599]: no method named `to_bits` found for reference `&u32` in the current scope
+  --> crates/eech-engine/src/flag_lifetime_check.rs:71:54
+   |
+71 |         let words: Vec<u32> = facts.iter().map(|x| x.to_bits()).collect();
+   |                                                      ^^^^^^^
+   |
+help: there is a method `to_be` with a similar name
+   |
+71 -         let words: Vec<u32> = facts.iter().map(|x| x.to_bits()).collect();
+71 +         let words: Vec<u32> = facts.iter().map(|x| x.to_be()).collect();
+   |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `eech-engine` (lib test) due to 1 previous error

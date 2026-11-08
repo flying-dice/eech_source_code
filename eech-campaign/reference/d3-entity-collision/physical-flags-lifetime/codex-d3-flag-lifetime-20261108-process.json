@@ -1,0 +1,12 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T01:29:25.139955+00:00",
+  "started_time_qualification": "Root observed service agent running after followup_task/list_agents; not an OS process creation time",
+  "source_before": "667ff97e5f619ec67d6a3e6c362d8c67181581a1",
+  "scope": "ONE finite flag provider/callback/session supported lifetime contract FIRST actualownership/TLS/oneboot/acceptedreuse, smallestmissingrealentry/store case ifneeded. Noepoch/resetframework/semanticfix/nativewindowhunt. fl667 cleanfreeze push STOPforSAMEreview; preservebothfullpacks/all10/noauthchanges.",
+  "actual_OS_process_identity": "Not applicable to Codex service agent; no fabricated PID/CLI exit."
+}

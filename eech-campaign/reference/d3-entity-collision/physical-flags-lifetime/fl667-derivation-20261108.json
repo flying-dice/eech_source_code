@@ -1,0 +1,14 @@
+[
+  {
+    "source": "run-physical-flags-mfr332-direct-20261107.py",
+    "source_sha256": "2497ae53ba661cf8ace454fe5ca5caba1535bf6b457346457604f711a5104e3a",
+    "derived": "run-physical-flags-fl667-direct-20261108.py",
+    "sha256": "651a156786ee41328f5969be29c8846e82af2de17501af6fe506bb4b4782d9d7"
+  },
+  {
+    "source": "check-physical-flags-mfr332-linux-20261107.sh",
+    "source_sha256": "7f33d12c8111423f45879521623d8f00048ba285fb483f0378601c9a35178867",
+    "derived": "check-physical-flags-fl667-linux-20261108.sh",
+    "sha256": "5b0a45e57e5d018f4dfbb184f2564314f94507fa11f14d27bb887daf903e8252"
+  }
+]

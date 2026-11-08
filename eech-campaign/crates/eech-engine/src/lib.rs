@@ -15,6 +15,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 static BOOTED: AtomicBool = AtomicBool::new(false);
 
+#[cfg(all(test, feature = "physical-flags-lifetime-check"))]
+mod flag_lifetime_check;
+
 #[derive(Debug)]
 pub enum EngineError {
     /// EECH called debug_fatal; the engine is poisoned

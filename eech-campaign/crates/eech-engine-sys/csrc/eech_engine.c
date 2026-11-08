@@ -177,6 +177,8 @@ static inline void engine_write_mxcsr (uint32_t value)
 	engine_write_mxcsr (caller_mxcsr); \
 	return (RESULT)
 
+#include "eech_flags_lifetime_check.h"
+
 const char *eech_engine_fatal_message (void)
 {
 	return eech_fatal_message;

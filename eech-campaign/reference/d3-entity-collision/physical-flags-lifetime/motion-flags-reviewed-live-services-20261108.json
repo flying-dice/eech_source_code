@@ -1,0 +1,24 @@
+{
+  "utc": "2026-11-08T01:26:28.014Z",
+  "ledger": {
+    "page": "14548994",
+    "snapshot": "v:191",
+    "previous_characters": 540989,
+    "entire_previous_body_literal_prefix": true,
+    "all_five_macro_parameters_literal": true,
+    "new_section_equal_ignoring_generated_new_IDs": true
+  },
+  "jira": {
+    "issue": "EEDCS-49",
+    "comment": "11022",
+    "body_exact_expected": true,
+    "whole_previous_comment_preserved": true
+  },
+  "pr": {
+    "number": 109,
+    "body_exact_expected": true,
+    "head": "667ff97e5f619ec67d6a3e6c362d8c67181581a1",
+    "state": "open",
+    "draft": true
+  }
+}

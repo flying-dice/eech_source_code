@@ -8,6 +8,7 @@ links = "eech_engine"
 build = "build/main.rs"
 
 [features]
+physical-flags-lifetime-check = []
 # TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
 dependent-fixture = []
 # TEST-ONLY red build: dependent-fixture with the pre-EEDCS-40 boolean apply guard, applied to the staged copy only.

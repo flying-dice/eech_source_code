@@ -1,0 +1,8 @@
+
+running 3 tests
+test entries_retain_only_the_model_callback_and_the_reference_roster_clear_keeps_flags ... ok
+test the_private_preboot_entry_and_unit_control_are_confined_to_the_empty_feature ... ok
+test the_safe_boot_owns_a_single_thread_local_provider_before_argument_validation ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+

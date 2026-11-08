@@ -10,6 +10,7 @@ eech-engine-sys = { path = "../eech-engine-sys" }
 serde = { workspace = true }
 
 [features]
+physical-flags-lifetime-check = ["eech-engine-sys/physical-flags-lifetime-check"]
 # TEST-ONLY (EEDCS-40): see eech-engine-sys.
 dependent-fixture = ["eech-engine-sys/dependent-fixture"]
 dependent-fixture-old-guard = ["eech-engine-sys/dependent-fixture-old-guard"]

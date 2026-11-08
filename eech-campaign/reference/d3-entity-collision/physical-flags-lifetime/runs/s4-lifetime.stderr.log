@@ -1,0 +1,3 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.20s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_engine-c2c493919761858d)
+eech: debug_fatal: host model: [fl667:withheld] the flag answer was withheld

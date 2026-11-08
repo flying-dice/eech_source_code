@@ -1,0 +1,11 @@
+
+running 1 test
+test flag_lifetime_check::retained_flag_provider_survives_entry_contexts_and_refuses_a_second_boot_and_post_fatal_entry ... FAILED
+
+failures:
+
+failures:
+    flag_lifetime_check::retained_flag_provider_survives_entry_contexts_and_refuses_a_second_boot_and_post_fatal_entry
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 123 filtered out; finished in 0.00s
+
