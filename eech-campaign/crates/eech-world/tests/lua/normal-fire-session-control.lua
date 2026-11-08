@@ -84,6 +84,29 @@ local function damage(triple)
  return table.concat(rows,'\n')..'\n'
 end
 for _,triple in ipairs(faults) do assert(not pcall(function()K.healthy(K.parse(damage(triple)),{},T)end)) end
+-- Coherent TEST positive FIRST, then exactly one raw field changed. The real
+-- transaction request/answer checks are the domain oracle; no copied validator.
+local function test_domain(original,index,value)
+ local r=K.parse(original);local ce=K.unhex(r.evidence.candidate)
+ local raw=assert(ce:match('test_request=([^%s]+)'));local words=assert(K.patterns(raw,44));words[index]=value
+ ce=ce:gsub('test_request=[^%s]+','test_request='..table.concat(words,','),1);r.evidence.candidate=T.hex(ce)
+ local rows={};for _,kind in ipairs({'identity','counts','accounting','selection','evidence','verdict'}) do rows[#rows+1]=K.row(kind,r[kind]) end
+ return table.concat(rows,'\n')..'\n'
+end
+for _,value in ipairs({'0x00000000','0x80000000','0x3f800000','0x40000000'}) do
+ assert(K.healthy(K.parse(test_domain(test_domain(text,21,value),13,'0x7fc00000')),{},T))
+end
+local city_role=test_domain(text,10,'0x3f800000');assert(K.healthy(K.parse(city_role),{},T))
+local domain_references={}
+for _,fault in ipairs({{text,21,'0x40400000','candidate invalid UPDATED state'},
+ {text,7,'0x00000000','moving pose for nonmobile'},{text,9,'0x3f800000','a city has a nonzero scene'},
+ {city_role,9,'0x3f800000','candidate incompatible city roles'}}) do
+ local bad=test_domain(fault[1],fault[2],fault[3]);local r=K.parse(bad);local ce=K.unhex(r.evidence.candidate)
+ local q,reason=T.request(tonumber(r.selection.scene),nil,nil,nil,assert(ce:match('test_request=([^%s]+)'))..' '..r.selection.target,K.patterns)
+ if q then reason=T.answer(q,{result='test',name=K.unhex(r.selection.name),p=r.selection.pose},{[q.scene]=K.unhex(r.selection.name)},K.patterns) end
+ assert(reason==fault[4],tostring(reason));assert(not pcall(function()K.healthy(r,{},T)end))
+ domain_references[#domain_references+1]=bad
+end
 for _,pair in ipairs({{'target=eech%-world:2','target=eech-world:3'},{'carry=13','carry=14'},{'failed=0','failed=1'},{'frames=1500','frames=1499'},{'position=10,100,20','position=11,100,20'}}) do
  local bad,n=text:gsub(pair[1],pair[2],1);assert(n==1 and not pcall(function()K.healthy(K.parse(bad),{},T)end))
 end
@@ -106,6 +129,9 @@ local ok,why=pcall(assert(loadfile(base..'/normal-fire-session.lua')))
 assert(not ok and tostring(why):find('output touched',1,true) and calls.output==1 and calls.prepare==0)
 calls.output=0
 local references={damaged,same_frame}
+for i,bad in ipairs(domain_references) do
+ local path=root..'/TEST-domain-'..i..'.txt';local file=assert(io.open(path,'wb'));assert(file:write(bad));assert(file:close());references[#references+1]=path
+end
 for i,triple in ipairs(faults) do
  local path=root..'/semantic-'..i..'.txt';local file=assert(io.open(path,'wb'));assert(file:write(damage(triple)));assert(file:close());references[#references+1]=path
 end
@@ -371,4 +397,5 @@ print('normal_session_proof_gates=PASS semantic_faults=25 pre_effect_reference_f
 print('boot_retention_controls=PASS real_provider_calls=200036 first_frame_and_next_frame_queries=2 partial_feed=1 drain_faults=2 wrong_op=1 alternating_overflow=1 retired_budget=1 driver_long_boot_healthy_B=2 boot_query_refused_before_frame1=1 continuation_surfaces=6')
 print('signed_query_selector=PASS domains=3 invalid_domains=7 real_provider_contexts=3 selected_cohort_gates_unchanged=1')
 print('public_session_contract=PASS phantom_close_removed=1 no_getter_after_failure=1 real_flags_scanned_candidate_healthy_B=2 separate_target_histories=1 candidate_registration_flag_pose_faults=4 stationary_and_other_mode_UNREACHED=2 locked_candidate_no_fallback=1 bounded_numeric_accounting=1')
+print('actual_TEST_domain=PASS raw_UPDATED_positives=4 raw_unknown_height_preserved=1 single_field_domain_faults=4 before_output_prepare_boot=4 real_transaction_domain=1')
 print('existing_move_causality=PASS late_move_UNREACHED=1 repeated_and_overwritten_healthy_B=4 wrong_late_or_identity_B_before_effect=2 actual_all_callback_ordinal=1 immutable_at_NEED=1')

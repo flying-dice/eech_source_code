@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "pfb502 facade/scanned-candidate version2 FROZEN; all6 final direct0/outer0, PREPOST4023 equal/29extras/6readers. STOP for ONE combined SAME correctness/extraction-boundary review; oldFAIL1500 retained, no native/cutover/all10 closure.",
+  "phase": "pde333 TEST domain parity/profile test correction FROZEN; all7direct0/outer0, Python13/Rust3/PREPOST4023 equal/28extras/6readers. STOP for SAME changed material; prior e333 five CI failures/raw1500FAIL preserved, no native/cutover/all10 closure.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "Retain required hosted-only raw TREE/FOREST/CLOUD extraction after its applicable gates;965 discharges finite boot CRT subfact only, removal remains uncleared. Sole open blocks_cutover GenericNative1 first requires natural moving public-path prerequisite/effect proof; D3G08 hierarchy remains separately required, not silently solved by Task50.",
@@ -890,9 +890,25 @@
       "evidence": "Actual reviewed b5021500frame healthyFAIL: engine:close methodnil; real LuaEngine userdata has only frame/clock/wpn_events driver methods, no close. Synthetic Engine invented close. Root363f terminal binding; B neverprepared/launched.",
       "missing_fact": "Actual public facade finalization plus lead210 consumer alignment: separate birth/current targets from actual moving scannedcandidate; exact pre-NEED movement snapshot/callback ordinal and complete reference/accounting gates; fixed26 past raw lacks live movement/reply facts.",
       "next_fix": "Freeze combined facade/candidate contract version2 with real proxy/FlagStore/temporal controls; 3815 rawrows unchanged+1cfg(test)-excluded seam+2 configs; ONE SAME boundary/source review then Root exactmaterializedreview, no immediate retail rerun."
+    },
+    {
+      "id": "ENV-PUBLIC-SESSION-TEST-REFERENCE-DOMAIN-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "SAMEd2ff Python misses actual TEST UPDATED/city-role/scene/mobile16 domain.",
+      "missing_fact": "Coherent positive-first/domain-negative validation before B and actual userdata default/observer profile contract.",
+      "next_fix": "Bounded independent Python domain parity and profile-aware cfg(test) proxy; focused tests, one freeze/review; no production API or native replay."
+    },
+    {
+      "id": "ENV-PUBLIC-SESSION-FACADE-PROFILE-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Exacte333 CI five platform jobs 75pass/1fail: test wrongly assumes wpn_events present in default, actual module.rs gates it by weapon-fixture.",
+      "missing_fact": "Coherent positive-first/domain-negative validation before B and actual userdata default/observer profile contract.",
+      "next_fix": "Bounded independent Python domain parity and profile-aware cfg(test) proxy; focused tests, one freeze/review; no production API or native replay."
     }
   ],
-  "next_action": "STOP for ONE SAME combined facade/scanned-candidate source/controller and extraction-boundary review, then Root exact materialized review before any new native plan. No rerun solely to reclassify oldFAIL as UNREACHED; all10/Generic1/prep2 remain OPEN.",
+  "next_action": "STOP for ONE SAME TEST-domain parity/default-observer test correction review, then Root exact materialized review before any new native plan. All10/Generic1/prep2 remain OPEN; old failures never reclassified.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -1247,5 +1263,30 @@
       "post_POST": "STOP/publication metadata only"
     }
   },
-  "old764_default_scope": "Accepted SAMEbbaf OLD764only:40PASS/all8COMPLETE/final4inputs0/90payloads; notcurrent3ab/wholeheight/Generic1/all10. Current3abfullpack remainsRootowned/running."
+  "old764_default_scope": "Accepted SAMEbbaf OLD764only:40PASS/all8COMPLETE/final4inputs0/90payloads; notcurrent3ab/wholeheight/Generic1/all10. Current3abfullpack remainsRootowned/running.",
+  "public_session_test_domain_profile_correction": {
+    "status": "FROZEN_STOP_FOR_SAME",
+    "source_review": "independent-public-session-candidate-contract-e333-source-20261108.json SHAd2ff2626",
+    "findings": [
+      "ENV-PUBLIC-SESSION-TEST-REFERENCE-DOMAIN-1",
+      "ENV-PUBLIC-SESSION-FACADE-PROFILE-1"
+    ],
+    "freeze": "D3-PUBLIC-SESSION-TEST-DOMAIN-PROFILE-FROZEN-20261108.json",
+    "packet": "eech-campaign/reference/d3-entity-collision/public-session-test-domain-profile/",
+    "direct_commands": 7,
+    "all_actual_zero": true,
+    "Python_tests": 13,
+    "Rust_tests": 3,
+    "TEST_domain_faults": 4,
+    "actual_facade_profiles": [
+      "default",
+      "normal-fire-correlation"
+    ],
+    "PRE_POST_rows": 4023,
+    "extras": 28,
+    "readers": 6,
+    "compiled_reuse": "3815 literal rawrows+1existingcfg(test)-excluded testseam exception+2 unchangedconfigs; runtime2fc unchanged",
+    "native_launch": false,
+    "physical_cutover": false
+  }
 }

@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T12:53:19.206036+00:00",
+  "review_kind": "One combined changed-material correctness, clean-code, boundary-safety and evidence review; no execution or closed-proof replay",
+  "source": {
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "before_commit": "b50203d48cb46be1dbe52e062b0516d0afa587e4",
+    "code_commit": "6821894e9dd7fcd8f859f5a0a490573bc7c0138d",
+    "metadata_commit": "e333fa14bc73529d51fa597ac229272546fc96ea",
+    "observed_HEAD": "e333fa14bc73529d51fa597ac229272546fc96ea",
+    "full_status_clean": true,
+    "immutable_source_binding": "Root joins exact Git bytes to reviewed current files; current HEAD/full status independently inspected",
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "diagnostic_report_schema": 2,
+    "execution_artifacts": {
+      "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "8e3bae602c1d66fb814306df52d9abc537d35e42e394a89172b424daffc753a0",
+      "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "0381bd8a3725bae9d35fa3f3148a24c692548fadc961c2a94abdf10a3a354ddf",
+      "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "2c23602c82ce5f864e2496acd0b3922e6ad83659671aab084b7c23f69685188c",
+      "eech-campaign/tools/normal_fire_capture.py": "ba73e22d56a75cf2584813869277c4cb9f48dbfda27577edcd6aee1c35f4fc12",
+      "eech-campaign/tools/normal_fire_capture_controller.py": "63cb77991bbc1243d0326513448b363a6e588a4f1f4714517f17952b488fa63a",
+      "eech-campaign/tools/test_normal_fire_capture.py": "71f34b940ae768488bc0228ce611847202086a20f8a20474a424bc5f6128e64e",
+      "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+      "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+      "eech-campaign/docs/d3-public-session-finalization.md": "aa1fdc4b197d827ddf4c2a643ca3e232c3a05e54ba73abf11a6055899d84173c"
+    }
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-PUBLIC-SESSION-CANDIDATE-CONTRACT-FROZEN-20261108.json",
+      "bytes": 15348,
+      "sha256": "56dee86e18d846d0916ddd8a06c8be34c282817ae57daa2f15b1dbdfbb80bbb4"
+    },
+    {
+      "path": "R:/d3-evidence/public-session-candidate-contract-e333-Root-binding-20261108.json",
+      "bytes": 2000,
+      "sha256": "87e3307f05a32be84e002d5ae58166c82569cc6a92e7dccf9b01040619eb52c7"
+    },
+    {
+      "path": "R:/d3-evidence/pfb502-publication-checkpoint-20261108.json",
+      "bytes": 22284,
+      "sha256": "80d31da859c70370cfe59192c8989271b05750b72cce066393601b0aee1c6a16"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-public-session-finalization-fix-20261108-completion.json",
+      "bytes": 1012,
+      "sha256": "2535fe1e7582882eca0a11e0e900bc55fda310070265f17f7842f6660ef716e3"
+    },
+    {
+      "path": "R:/d3-evidence/scanned-candidate-lead-decision-live-services-v210-20261108.json",
+      "bytes": 570,
+      "sha256": "ac00f83b3960aca72c65ba893d7ba8f3a0cf3eace6066868e5d422939efcf2c4"
+    },
+    {
+      "path": "R:/d3-evidence/normal-query-b502-terminal-Root-binding-20261108.json",
+      "bytes": 27765,
+      "sha256": "363f2f2e0ae3888be1d9011444794c83bc940508718f15109d217b82f35825b5"
+    },
+    {
+      "path": "R:/d3-evidence/independent-normal-query-selector-b502-source-20261108.json",
+      "bytes": 12347,
+      "sha256": "5db4d73e9a26c1758589cb7459656c9029c6bc9c3d72808cc492042c6b237114"
+    },
+    {
+      "path": "R:/d3-evidence/independent-normal-fire-boot-retention-56d1b-source-20261108.json",
+      "bytes": 13431,
+      "sha256": "f0a85a15cf9dd0f1c334dd53b3b1c5cb0827c69cfd963ba31f78a191765ae1b2"
+    },
+    {
+      "path": "R:/d3-evidence/normal-fire-first-native-426de-Root-binding-20261108.json",
+      "bytes": 4574,
+      "sha256": "31446aeb8620aa65a35f7f9a70320731b8335295df7056c0f4eecdabc2f2305b"
+    },
+    {
+      "path": "R:/d3-evidence/normal-fire-observer-2fcf69-build-Root-binding-20261108.json",
+      "bytes": 1789,
+      "sha256": "0de38f5621dd75176f688c96b3572af6942113ca1c2dc1f05a4fbc2e080ea057"
+    }
+  ],
+  "findings": [
+    {
+      "id": "ENV-PUBLIC-SESSION-TEST-REFERENCE-DOMAIN-1",
+      "severity": "P2",
+      "status": "OPEN",
+      "title": "Python accepts an actual TEST request that the child Lua reference validator rejects",
+      "locations": [
+        {
+          "path": "eech-campaign/tools/normal_fire_capture.py",
+          "line": 179
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua",
+          "line": 141
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua",
+          "line": 31
+        },
+        {
+          "path": "eech-campaign/tools/normal_fire_capture_controller.py",
+          "line": 120
+        }
+      ],
+      "trigger": "Starting with a coherent schema-2 healthy PASS, change only candidate evidence test_request word21 (zero-based20, UPDATED) to finite 3.0, or change its mobile flag word7 (zero-based6) to zero while retaining the selected 16-word TEST pose. Keep framing, all identities, selection, model intervals and other evidence unchanged.",
+      "observed_source_behavior": "Python validates 44 words, finiteness except height, and ten boolean domains only. It does not validate the UPDATED state domain, city-role/scene constraints, or the mobile requirement for a 16-word TEST pose. These mutations do not affect its subsequent checks. Lua K.validate calls existing T.request and T.answer and rejects the same malformed reference.",
+      "impact": "The controller healthy_reference gate can accept malformed complete-positive evidence before creating the B root/output and launching the child; the child then rejects the reference. The promised whole-positive pre-child gate is incomplete. This is a diagnostic validation defect, not a demonstrated production physical-state defect.",
+      "basis": "Static branch and field-dependency inspection; no mutant, test, checker or native execution performed by reviewer.",
+      "minimum_fix": "Apply the existing TEST request/answer domain in the independent Python validator: exact UPDATED zero/signed-zero/one/two domain, existing city-role/scene restrictions, and mobile=true for this nonzero-scene 16-word TEST. Preserve raw-word semantics and the raw height exception; no new physical oracle, production C/Rust change or framework is needed.",
+      "required_focused_controls": [
+        "Coherent schema-2 distinct-scanned-candidate healthy/B pair remains accepted.",
+        "Single-field UPDATED=3.0, mobile=false with 16-word pose, city=true with nonzero scene, and incompatible city-role mutations are rejected by both validators for the intended domain reason.",
+        "Controller-facing healthy gate rejects each malformed positive before any B directory/root/copy/boot/provider execution; preserve existing legitimate cases and failure precedence."
+      ]
+    }
+  ],
+  "source_disposition": {
+    "actual_Lua_facade_correction": "SOURCE_CORRECT at reviewed finite scope: remove phantom close; retain session handle through script completion. Existing cfg(test)-only real LuaEngine proxy checks the three actual consumed userdata methods and six real serde movement tags without Engine construction, boot, unsafe entry or global reset.",
+    "scanned_candidate_contract": "SOURCE_SUPPORTED: real wn_move collision lookup passes source and NULL target, so physical candidate need not equal immutable birth or current step target. The lead-authorized schema-2 separation preserves each own C history, real normal birth cohort, actual scanned candidate registration/scene and lawful flag exchange; no campaign policy, solver, target link, actor or baseline was changed.",
+    "selection_and_timing": "Reviewed first qualifying cohort/candidate/scene lock and no-fallback scope; snapshots copy position/motion at the actual NEED callback. Every move entry has its own ordinal, including unsupported modes and repeated same actor; frame/model ordinals and observed-mode invalidation prevent later-frame or shared-table overwrite. B checks exact earlier observed birth prefix and exact candidate move identity/frame/mode/ordinal/preceding model ordinal before its one terrain-input effect.",
+    "boundaries": "No additional physical getter, world sidecar, synthetic flag answer or new public API. Host model/move delegates retain real calls. Existing request/reask/pose, fatal-before-getter, complete-drain ACK, first-cohort, exact prefix, destructive flag and reset controls remain at their accepted scopes.",
+    "accounting": "Numeric outcome and first-query facts describe only traversed existing callbacks. Multiple candidate decisions can exceed query count; schema is explicitly versioned. Unsupported movement routes and stationary/no-later-candidate cases remain UNREACHED rather than alternate selection.",
+    "clean_code": "No additional actionable clean-code or boundary finding found in this delta beyond the Python domain mismatch; retain narrowly scoped independent validator parity rather than broadening production policy."
+  },
+  "actual_evidence_disposition": {
+    "new_checks": {
+      "direct_exits": {
+        "s1-profile-census": 0,
+        "s2-python": 0,
+        "s3-fmt": 0,
+        "s4-world-clippy": 0,
+        "s5-actual-facade": 0,
+        "s6-session-lua": 0
+      },
+      "Rust_tests": 3,
+      "Python_tests": 12,
+      "original_outer_actual_exit": 0,
+      "original_outer_session": 25606
+    },
+    "check_time_identity": "4023 PRE/POST rows literal-equal and current-bound; 4020 raw Git exact plus three inherited uncompiled Lua CRLF/Git-LF qualifications. All29 extras and six readers stable/current. All ten execution artifacts Git LF.",
+    "publication": "72 manifest entries /73 literal Git packet files /68 literal external copies, joined by Root. Producer completion is actual service FINAL/completed, not an invented OS PID or CLI exit.",
+    "retained_failures": "Prior b502 completed all1500 frames then FAILED at phantom Lua engine.close; 297 normal fires/births, 26 queries, zero accepted moving witness, B absent. It remains FAILED, not accepted UNREACHED. Older boot and selector failures retain their original scopes.",
+    "retained_native_proof": "Prior completed 35-frame standard default remains actual native0 and all three COMPLETE files byte-identical to retained3abf/80fd, with its original inputs/config/payload bindings. It does not measure this corrected diagnostic or a1500-frame default.",
+    "current_CI": "Latest parent observation supplied for exact e333: loss workflow success, campaign and TS in progress. No all9 success claim or CI-only wait; this P2 is independent of CI status."
+  },
+  "reuse": {
+    "compiled_input_equivalence_accepted": true,
+    "compiled_runtime_identity_preserved": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "raw_compiled_rows_equal": 3815,
+    "explicit_exception": {
+      "path": "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+      "before_sha256": "16bc4fc41e4bccfad76acb0c06d4ac8284ea721f1a4a1fbf31cec68af21fd0b5",
+      "current_sha256": "04b93bcd813662ecb6de5ae8d7e63a798e06705e93dae2628b2eafe2ef646cde",
+      "cfg_test_importer": "eech-campaign/crates/eech-dc/src/module.rs",
+      "importer_raw_sha256": "d39bcab66d7324a4f3102b01f2c51b98de1b24dea641f90c68e048951ca0cfc1",
+      "production_excluded": true,
+      "old_test_body_literal_unchanged": true
+    },
+    "two_producer_configs_equal": true,
+    "qualification": "One existing raw Rust test-only file changes, with literal cfg(test) importer and unchanged old nr602 body; do not claim all3816 raw rows equal. Product C/Rust/module/build/Cargo and two producer configurations are unchanged. Retained97 payloads remain runtime2fc, not e333.",
+    "retained_default_reuse_accepted": true,
+    "default_scope": "Only the already accepted fixed35-frame standard campaign default at its measured runtime2fc identity. No default, Windows, C-matrix or failed native replay is required solely for this validator-only residual.",
+    "future_materialization": "Corrected four Lua literals and tools must remain separate from the immutable97 built payloads. Fresh schema-2 literal/validator/controller hashes, actual reference/bundle/roots and a concrete plan require their own bounded launch review."
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "bounded_prerequisite_source_accepted": false,
+    "retained_build_reuse_accepted": true,
+    "retained_default_reuse_accepted": true,
+    "new_windows_build_required_by_this_delta": false,
+    "native_launch_clearance": false,
+    "native_controller_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "natural_moving_acceptance": false,
+    "generic_native_acceptance_1_closed": false,
+    "Task49_acceptance": false,
+    "whole_D3_acceptance": false,
+    "delivery_acceptance": false
+  },
+  "limits": [
+    "This is one combined changed-material source/check review only. No reviewer tests, builds, checker/scanner/native/controller replay, cache operations, source/Git writes or nested agents.",
+    "Lead contract correction is source-backed and authorized, not retrospective acceptance of old failures or proof of actual moving-candidate reachability.",
+    "Synthetic real-provider/FlagStore and actual-userdata controls are not public retail Engine boot, natural moving weapon, collision outcome, complete hierarchy/device ownership, all modes/consumers/lifetimes/FPU or DCS proof.",
+    "No current schema-2 native or materialized launch acceptance. B must still be positive-first, same locked cohort/candidate, exact already observed prefix, fixed1500/100ms/seed1/30+120 bounds, no fallback/window hunt.",
+    "All ten requirements, GenericNative1, whole height, Task49/D3, final current fullpack/all8/four inputs/census/review/normal merge and delivery remain open at their respective scopes. Older764 accepted fullpack and active3abf fullpack retain distinct identities; no process touched.",
+    "No D4/D5/TypeScript work, formal GitHub approval, service/card closure or merge authorization."
+  ]
+}

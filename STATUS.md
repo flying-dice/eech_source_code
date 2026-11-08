@@ -1,4 +1,12 @@
-# CURRENT — D3 Task49: facade/scanned-candidate contract FROZEN; STOP for SAME (8 November 2026)
+# CURRENT — D3 Task49: TEST reference domain/profile correction FROZEN; STOP for SAME (8 November 2026)
+
+SAMEd2ff on e333 found ONE P2 ENV-PUBLIC-SESSION-TEST-REFERENCE-DOMAIN-1: independent Python lacked existing Lua TEST UPDATED/city-role/scene/mobile16 domain. Exact e333 CI five platform failures also exposed a test-only assumption that wpn_events exists in default; actual registration gates it by weapon-fixture. All five failed75pass/1fail, preserved separately from product behavior. Two named fix-blocker guards0; no production API/feature/C/build change.
+
+Coherent-positive-first Python oldgate RED1 (four single-field faults) then13PASS0; portable Lua real transaction domain validates the same four and rejects before output/prepare/boot. Signedzero/unknownrawheight valid. Actual userdata test checks default absence and observer presence of wpn_events, frame/clock and no invented teardown in both. All SEVEN final direct0/outer0: Python13, fmt, strictClippy default+observer, actual userdata default+observer (one each), portable Lua1. REALPRE/POST4023 equal fingerprint f7daf897...,28extras/6sealedreaders stable, active changed artifacts GitLF. D3-PUBLIC-SESSION-TEST-DOMAIN-PROFILE-FROZEN-20261108.json and reference/d3-entity-collision/public-session-test-domain-profile/ bind directactuals. PostPOST changes are STOP/publication metadata only. Compiled2fc reuse stays3815 rawsame+1existingcfg(test)-excluded seam+2configs. Old1500FAIL staysFAIL; no new native/default/Windows run or roots. ONE SAME changed-material review required.
+
+All TEN/prep2/GenericNative1/blocks_cutover/D3G08/coreloader/wholeheight/finalcurrent40/all8/fourinputs/census/currentCI/formalreview/normalmerge/Task49/D3 remain OPEN as applicable. Older764 acceptance OLDdefault only; current3abfullpack Root-owned/running. No D4/D5/TS/authchanges.
+
+# HISTORICAL — D3 Task49: facade/scanned-candidate contract FROZEN; STOP for SAME (8 November 2026)
 
 Actual reviewed b502/controller20700/native9036/Root37060 all1 after1500frames:297fires/births,155296step pairs,26queries,19714996provider calls,moving0/failed1/changed0. Phantom engine:close is absent from realuserdata. OldFAIL staysFAIL, notacceptedUNREACHED; Babsent. Root363f terminal binding/input1179+configs/97+10artifacts preserved. Prior5db/ae76/all9bb81/defaultCOMPLETE scopes remain; no native/default replay.
 

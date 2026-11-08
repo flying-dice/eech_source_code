@@ -52,6 +52,12 @@ def damage_event(report,role,field,value):
     bad=copy.deepcopy(report);text=R.unhex(bad['evidence'][role]);token=next(x for x in text.split() if x.startswith(field+'='))
     bad['evidence'][role]=encoded(text.replace(token,field+'='+value,1));return bad
 
+def damage_test_request(report,index,value):
+    bad=copy.deepcopy(report);ce=R.tokens(R.unhex(bad['evidence']['candidate'])[17:],R.CANDIDATE_FIELDS)
+    words=ce['test_request'].split(',');words[index]=value;ce['test_request']=','.join(words)
+    bad['evidence']['candidate']=encoded('normal-candidate '+' '.join(k+'='+ce[k] for k in R.CANDIDATE_FIELDS.split()))
+    return bad
+
 SEMANTIC_FAULTS=[
     ('detach','devices','garbage'),('detach','devices','2'),('detach','ammo_after','garbage'),('detach','ammo_after','2'),
     ('detach','config','741'),('detach','package','32'),('detach','burst','0'),('detach','visible_after','1'),
@@ -64,6 +70,27 @@ SEMANTIC_FAULTS=[
 ]
 
 class Controls(unittest.TestCase):
+    def test_actual_TEST_domain_before_any_child_effect(self):
+        f=fixture();R.validate(emit(f),f['identity'])
+        # Existing domain accepts signed zero and raw unknown height. These are
+        # TEST inputs, separate from the earlier NEED request and carried fact.
+        for value in ('0x00000000','0x80000000','0x3f800000','0x40000000'):
+            good=damage_test_request(f,20,value);good=damage_test_request(good,12,'0x7fc00000')
+            R.validate(emit(good),f['identity'])
+        role=damage_test_request(f,9,'0x3f800000');R.validate(emit(role),f['identity'])
+        large_scene=copy.deepcopy(f);large_scene['selection']['scene']='2147483648';sync_candidate(large_scene)
+        with self.assertRaisesRegex(ValueError,'scene native index domain'):R.validate(emit(large_scene),f['identity'])
+        faults=[(f,20,'0x40400000','UPDATED'),(f,6,'0x00000000','nonmobile'),
+                (f,8,'0x3f800000','nonzero scene'),(role,8,'0x3f800000','incompatible city roles')]
+        with tempfile.TemporaryDirectory(prefix='normal-TEST-domain-') as d:
+            p=Path(d)/'healthy.txt';p.write_bytes(emit(f));C.healthy_reference(p,C.sha(p),f['identity'])
+            for positive,index,value,reason in faults:
+                bad=damage_test_request(positive,index,value);p.write_bytes(emit(bad))
+                with self.subTest(index=index,reason=reason):
+                    with self.assertRaisesRegex(ValueError,reason):R.validate(emit(bad),f['identity'])
+                    with self.assertRaisesRegex(ValueError,reason):C.healthy_reference(p,C.sha(p),f['identity'])
+                    self.assertEqual(sorted(x.name for x in Path(d).iterdir()),['healthy.txt'])
+
     def test_scanned_candidate_is_distinct_from_immutable_target_history(self):
         f=fixture();R.validate(emit(f),f['identity'])
         f['selection'].update(target='eech-world:3',member='3',bind='3',step_target='none',end_target='none')

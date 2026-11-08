@@ -94,3 +94,7 @@ and immutable runtime2fc remain unchanged. No Windows/retail/default/native repl
 is authorized by this batch. STOP for ONE SAME combined boundary/source review,
 then separate exact materialized launch review. All ten/GenericNative1/preparation2,
 fullpacks, physical cutover, Task49 and whole D3 remain OPEN.
+
+E333 residual correction (pde333, UNREVIEWED): independent Python TEST44 now mirrors existing T.request UPDATED {raw +0,-0,1,2}, incompatible city roles/city nonzero-scene restrictions and T.answer mobile16 requirement. Four single-field faults are rejected before B output/root/boot; signed zero and raw unknown height remain valid. No new physical oracle.
+
+Exact e333 CI five platform failures all came from the actual userdata test assuming wpn_events in shipping/default. Existing module.rs registers it only under weapon-fixture; normal-fire-correlation enables that dependency. The test now checks default absence and diagnostic presence, retaining actual frame/clock and absent teardown checks. Lesson: an actual-consumer seam must test each supported feature profile, including deliberate API absence; a successful diagnostic-profile test does not establish default compatibility. No production registration or feature change.
