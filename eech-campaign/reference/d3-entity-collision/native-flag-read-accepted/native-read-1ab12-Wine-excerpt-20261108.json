@@ -1,0 +1,24 @@
+{
+  "commit": "1ab12d0efc6e088b483ba30e0f12ec74c9ffa2ca",
+  "workflow_run": 42442256266,
+  "job": 128613769463,
+  "retained_decoded_log": "native-read-1ab12-Wine-job-128613769463-20261108.log",
+  "retained_log_sha256": "84d0299ea4259f5afd66b2e3418fc5a459b80bab3463659188d2be973115954c",
+  "actual_target_rows": [
+    "2026-11-08T03:26:37.1896564Z      Running tests/physical_flags_read_driver.rs (target/x86_64-pc-windows-gnu/debug/deps/physical_flags_read_driver-ec52c8ab32107573.exe)",
+    "2026-11-08T03:26:37.2346373Z running 8 tests",
+    "2026-11-08T03:26:37.2566369Z test nr395_bad_delegated_positive_name_or_pose_never_requests_a_read ... ok",
+    "2026-11-08T03:26:37.2735890Z test nr395_full_request_is_checked_before_delegation_with_raw_sector_word_exception ... ok",
+    "2026-11-08T03:26:37.2788431Z test nr395_old_group_latch_predicate_fails_the_new_optional_group_transaction ... ok",
+    "2026-11-08T03:26:37.2984965Z test nr395_optional_group_ack_is_carried_to_the_exact_read_and_no_eligible_is_not_pass ... ok",
+    "2026-11-08T03:26:37.3009195Z test nr395_positive_first_extra_stationary_read_and_real_destructive_store_then_changed_carry ... ok",
+    "2026-11-08T03:26:37.3454585Z test nr395_all_five_refusals_are_immediate_and_late_callback_or_normal_return_is_failure ... ok",
+    "2026-11-08T03:26:37.3523205Z test nr395_single_field_damaged_complete_reference_is_refused_before_any_effect ... ok",
+    "2026-11-08T03:26:37.3811503Z test nr395_every_callable_is_wrapped_and_unrelated_callbacks_never_complete_selection_or_refusal ... ok",
+    "2026-11-08T03:26:37.3812489Z test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s"
+  ],
+  "actual_converter_unit": [
+    "2026-11-08T03:24:35.7241063Z test module::native_flag_read_refusal_check::nr602_real_delegated_refusal_preserves_the_public_converter_domain_and_reason ... ok"
+  ],
+  "scope": "Eight actual Lua controls and actual converter unit passed under Wine; Unix-only Python aggregate is not claimed executed there. Full decoded log retained outsideGit."
+}

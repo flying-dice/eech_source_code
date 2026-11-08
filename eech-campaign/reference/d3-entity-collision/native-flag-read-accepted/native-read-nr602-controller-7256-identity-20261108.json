@@ -1,0 +1,14 @@
+{
+  "source": "Root actual Get-CimInstance Win32_Process while native controller was running",
+  "process_id": 7256,
+  "parent_process_id": 14936,
+  "creation_utc": "2026-11-08T03:24:30.861433+00:00",
+  "command_line": "\"C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe\" -I -B -X utf8 R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/native_flag_read_controller.py R:/d3-evidence/native-read-nr602-materialized-plan-v2-20261108.json --execute --clearance R:/d3-evidence/independent-native-flag-read-correction-04bf-source-controller-20261108.json",
+  "tool_session": 27818,
+  "controller_sha256": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+  "plan_sha256": "4ee21a2c6598787c598247f6059f3f1339a49333ad737ac4b6df1857c8e87d53",
+  "review_sha256": "4cda90703989cde0350a99e3dceea8a98ea768247d8d62a647bd10c5deb04838",
+  "process_receipt": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/process.json",
+  "completion_receipt": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/completion.json",
+  "native_child_identity": "Original controller records actual Windows GetProcessTimes births, exact argv/cwd, direct exits and raw log hashes for every stage. No restart or inferred numeric exit."
+}

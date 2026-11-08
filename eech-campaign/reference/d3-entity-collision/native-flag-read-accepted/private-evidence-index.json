@@ -1,0 +1,399 @@
+{
+  "raw_run_files": 63,
+  "full_input_observations": 14,
+  "files_per_observation": 1179,
+  "distinct_roots": 7,
+  "items": [
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\01-read_probe_control\\native.stderr.log",
+      "bytes": 41621,
+      "sha256": "6bbd97feef892abec13f23cef35c61e05f5777bb4f6c2295f7be1424ea2e82ab",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\01-read_probe_control\\native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\01-read_probe_control\\post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\01-read_probe_control\\post-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\01-read_probe_control\\post-inputs.stdout.log",
+      "bytes": 324,
+      "sha256": "f3165986fae02c2400de3551b15a91d458818f247970a4c9e93aebd1b099671e",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\01-read_probe_control\\pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\01-read_probe_control\\pre-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\01-read_probe_control\\pre-inputs.stdout.log",
+      "bytes": 324,
+      "sha256": "f3165986fae02c2400de3551b15a91d458818f247970a4c9e93aebd1b099671e",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\01-read_probe_control\\witness.txt",
+      "bytes": 3528,
+      "sha256": "9d17c0553fe25cd29f9bb4e48e611b8dbeae20be711f55fe0da191191292e62e",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\02-read_changed\\native.stderr.log",
+      "bytes": 45243,
+      "sha256": "1af43aff2098d7b9ba8a1a386c2c09d6365333b6e62ea909a48c99440685af51",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\02-read_changed\\native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\02-read_changed\\post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\02-read_changed\\post-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\02-read_changed\\post-inputs.stdout.log",
+      "bytes": 339,
+      "sha256": "d4773f723246543887c4b09bbd561f2dacab93085038a12f222e640c6b8edf89",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\02-read_changed\\pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\02-read_changed\\pre-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\02-read_changed\\pre-inputs.stdout.log",
+      "bytes": 339,
+      "sha256": "d4773f723246543887c4b09bbd561f2dacab93085038a12f222e640c6b8edf89",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\02-read_changed\\witness.txt",
+      "bytes": 3661,
+      "sha256": "9d04de8220e7895960a032efa40317018b2bd172b09da1645ff3ddefc5af1747",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\03-read_withheld\\native.stderr.log",
+      "bytes": 46016,
+      "sha256": "4f5538dada7fc8324fc89750ac9071a7299c5db4c8ff51f43911e2e5b3ce3946",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\03-read_withheld\\native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\03-read_withheld\\post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\03-read_withheld\\post-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\03-read_withheld\\post-inputs.stdout.log",
+      "bytes": 340,
+      "sha256": "afc6e220ee5bbea7b2f5bc624312afc092d485da7214be9695e4dffa281b0ff6",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\03-read_withheld\\pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\03-read_withheld\\pre-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\03-read_withheld\\pre-inputs.stdout.log",
+      "bytes": 340,
+      "sha256": "afc6e220ee5bbea7b2f5bc624312afc092d485da7214be9695e4dffa281b0ff6",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\03-read_withheld\\witness.txt",
+      "bytes": 3205,
+      "sha256": "20fcfe87d1d6dd10eef5ed638794a59ac2705c81e581dd2f87ed6e286fc9b59e",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\04-read_malformed\\native.stderr.log",
+      "bytes": 45829,
+      "sha256": "4594e9f1cea8dd4e47dd23eaa18927bf85652ab620f1519c7454353dd9b638d7",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\04-read_malformed\\native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\04-read_malformed\\post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\04-read_malformed\\post-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\04-read_malformed\\post-inputs.stdout.log",
+      "bytes": 341,
+      "sha256": "7ffdbe4ac2afefc1072dea6304c0e028f2dc59b2833d5132b2b306b5a54c3a74",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\04-read_malformed\\pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\04-read_malformed\\pre-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\04-read_malformed\\pre-inputs.stdout.log",
+      "bytes": 341,
+      "sha256": "7ffdbe4ac2afefc1072dea6304c0e028f2dc59b2833d5132b2b306b5a54c3a74",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\04-read_malformed\\witness.txt",
+      "bytes": 3209,
+      "sha256": "d49b7bdff5533554fb81a67ba585a6899cf0648442880feccab41152aa67fb8e",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\05-read_wrong_state\\native.stderr.log",
+      "bytes": 46337,
+      "sha256": "e0c444935eef1b249a6319bf42a5334faf0a97fa6fd134f6efac569ed37c8085",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\05-read_wrong_state\\native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\05-read_wrong_state\\post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\05-read_wrong_state\\post-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\05-read_wrong_state\\post-inputs.stdout.log",
+      "bytes": 343,
+      "sha256": "741827a5fdc4d5d1393bd214cf8f905f5907c05399f855cdbc670e4a33449bdb",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\05-read_wrong_state\\pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\05-read_wrong_state\\pre-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\05-read_wrong_state\\pre-inputs.stdout.log",
+      "bytes": 343,
+      "sha256": "741827a5fdc4d5d1393bd214cf8f905f5907c05399f855cdbc670e4a33449bdb",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\05-read_wrong_state\\witness.txt",
+      "bytes": 3238,
+      "sha256": "e438ffff1b923b9719624590e5a350ad78ef45590d9ad4f67a543eb4907805ed",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\06-read_wrong_array\\native.stderr.log",
+      "bytes": 46304,
+      "sha256": "839f97263b24e3327745a13c7d45f72a600707d5f7fd9009cf47a2be55bf58e9",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\06-read_wrong_array\\native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\06-read_wrong_array\\post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\06-read_wrong_array\\post-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\06-read_wrong_array\\post-inputs.stdout.log",
+      "bytes": 343,
+      "sha256": "7163605cc1771926ae125a4d3ef61b0924b85b22a7f043bef93e06671aacaf68",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\06-read_wrong_array\\pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\06-read_wrong_array\\pre-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\06-read_wrong_array\\pre-inputs.stdout.log",
+      "bytes": 343,
+      "sha256": "7163605cc1771926ae125a4d3ef61b0924b85b22a7f043bef93e06671aacaf68",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\06-read_wrong_array\\witness.txt",
+      "bytes": 3199,
+      "sha256": "48108ed2080c400435c83dbbb3b8022f43b3f623ca34ba2e9dbe1f4cfcd07de3",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\07-read_wrong_word\\native.stderr.log",
+      "bytes": 46103,
+      "sha256": "1554d12126e644524a360d14a52fe070429658260249bdb4ae2c610415bbdf4c",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\07-read_wrong_word\\native.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\07-read_wrong_word\\post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\07-read_wrong_word\\post-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\07-read_wrong_word\\post-inputs.stdout.log",
+      "bytes": 342,
+      "sha256": "b224b4d29382ca11c14b59e2a5a8c4568e2d68916f279b2cb307f92899a4e29f",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\07-read_wrong_word\\pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\07-read_wrong_word\\pre-inputs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\07-read_wrong_word\\pre-inputs.stdout.log",
+      "bytes": 342,
+      "sha256": "b224b4d29382ca11c14b59e2a5a8c4568e2d68916f279b2cb307f92899a4e29f",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs\\07-read_wrong_word\\witness.txt",
+      "bytes": 3235,
+      "sha256": "a809b75bda654dc3a7bf0862d6be9b61631229e0d4eab430e7be27e6033b5656",
+      "retention": "Immutable private raw; not copied into Git"
+    },
+    {
+      "path": "R:\\d3-evidence\\native-read-nr602-native-Root-binding-20261108.json",
+      "bytes": 40757,
+      "sha256": "b0d782efa4bdca51b48dd32fe11fa4a30e838234cf7c5ee880a8dd115442deb0",
+      "retention": "Immutable private original; safe projection/excerpt published"
+    },
+    {
+      "path": "R:\\d3-evidence\\native-read-1ab12-Wine-job-128613769463-20261108.log",
+      "bytes": 537935,
+      "sha256": "84d0299ea4259f5afd66b2e3418fc5a459b80bab3463659188d2be973115954c",
+      "retention": "Immutable private original; safe projection/excerpt published"
+    }
+  ],
+  "note": "This publication does not re-run the Root audit, report validator or input tool. Hashes/pointers preserve original evidence; no retail asset, binary, full input manifest or decoded CI assembly log copied."
+}

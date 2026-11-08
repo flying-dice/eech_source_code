@@ -1,0 +1,12 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T03:35:18.748446+00:00",
+  "started_time_qualification": "Root observed service agent running after followup/list_agents; not OS process creation",
+  "source_before": "1ab12d0efc6e088b483ba30e0f12ec74c9ffa2ca",
+  "scope": "Metadataonly npp1ab: publish accepted7native READ/carriedfact/refusal evidence/SAME400394/source4cda/current1abCI9/Wineexcerpt, literalmanifest+STATUS/card. No sourcecode/tests/build/cache/native orscopechange; all10/genericNative1/Task49D3open. CleanpushSTOP.",
+  "actual_OS_process_identity": "Not applicable to Codex service agent; no fabricated PID/CLI exit."
+}

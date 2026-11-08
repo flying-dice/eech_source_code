@@ -1,0 +1,12 @@
+{
+  "observation": "Root resumed the original unified exec session with write_stdin and received final exit_code0",
+  "tool_session": 27818,
+  "actual_outer_exit": 0,
+  "original_stdout": "{\"actual_exit\": 0, \"cases\": 7}",
+  "controller_pid": 7256,
+  "controller_identity": "native-read-nr602-controller-7256-identity-20261108.json",
+  "original_process_receipt": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/process.json",
+  "original_completion_receipt": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/completion.json",
+  "rerun": false,
+  "scope": "Actual original outer exit only; seven-case outcomes, immutable identities and scope require separate read-only audit/review."
+}

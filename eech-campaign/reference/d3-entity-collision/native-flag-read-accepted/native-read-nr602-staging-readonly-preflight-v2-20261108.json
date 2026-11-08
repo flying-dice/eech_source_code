@@ -1,0 +1,32 @@
+{
+  "observed_utc": "2026-11-08T03:15:31.586490+00:00",
+  "scope": "Restage corrected two Lua literals only, source/controller review still required; no native execution",
+  "prior_plan_retained_sha256": "eecd985c9f25ce08221b75c9aa724ffa7334ebdb4ce6d01492a6230517e8c3e4",
+  "plan": "R:\\d3-evidence\\native-read-nr602-materialized-plan-v2-20261108.json",
+  "plan_sha256": "4ee21a2c6598787c598247f6059f3f1339a49333ad737ac4b6df1857c8e87d53",
+  "hashes": {
+    "controller": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "validator": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "binding": "3c27e9aaed8bfadb6a60c577d054790f74604fbab905515a4b80a24bf6af6084",
+    "lua": "3bfbeab0e336c2ffe9b8784c3e818c0cded329e9dc30562f939cb6fdfeaf9e7d",
+    "protocol": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "input_tool": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+    "input_reference": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+  },
+  "literal_dir": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\literals-nr602-v2",
+  "binary_and_unconsumed_healthy_root_reused": true,
+  "materialization": "native-read-nr395-healthy-materialization-20261108.json",
+  "command": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\native_flag_read_controller.py",
+    "R:\\d3-evidence\\native-read-nr602-materialized-plan-v2-20261108.json"
+  ],
+  "actual_exit": 0,
+  "child_roots_and_outputs_uncreated": true,
+  "raw_module_identity_qualification": "Current eech-dc/module.rs has a new cfg(test) unit include; no claim that all six current raw protocol files equal old3abf. Runtime remains true3abf; production converter unchanged as qualified by correction source evidence.",
+  "native_started": false
+}

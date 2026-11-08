@@ -1,0 +1,285 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T03:31:36.208217+00:00",
+  "review_kind": "Independent new actual-evidence review only; finite public flag READ/carry/refusal diagnostics",
+  "source_identity": {
+    "runtime_commit": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+    "diagnostic_source_commit": "04bf5b82c514932358552b2ff100136c25804b63",
+    "diagnostic_metadata_HEAD": "1ab12d0efc6e088b483ba30e0f12ec74c9ffa2ca",
+    "source_review_sha256": "4cda90703989cde0350a99e3dceea8a98ea768247d8d62a647bd10c5deb04838",
+    "plan_sha256": "4ee21a2c6598787c598247f6059f3f1339a49333ad737ac4b6df1857c8e87d53",
+    "controller_sha256": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "lua_sha256": "3bfbeab0e336c2ffe9b8784c3e818c0cded329e9dc30562f939cb6fdfeaf9e7d",
+    "protocol_sha256": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "validator_sha256": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "binding_sha256": "3c27e9aaed8bfadb6a60c577d054790f74604fbab905515a4b80a24bf6af6084",
+    "qualification": "The current diagnostic source is not a rebuilt runtime identity. All91 copied ordinary3abf payloads and the separately staged two Lua literals are bound unchanged."
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/independent-native-flag-read-correction-04bf-source-controller-20261108.json",
+      "bytes": 14174,
+      "sha256": "4cda90703989cde0350a99e3dceea8a98ea768247d8d62a647bd10c5deb04838"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-nr602-materialized-plan-v2-20261108.json",
+      "bytes": 2286,
+      "sha256": "4ee21a2c6598787c598247f6059f3f1339a49333ad737ac4b6df1857c8e87d53"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-nr602-native-Root-binding-20261108.json",
+      "bytes": 40757,
+      "sha256": "b0d782efa4bdca51b48dd32fe11fa4a30e838234cf7c5ee880a8dd115442deb0"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-nr602-original-outer-completion-20261108.json",
+      "bytes": 722,
+      "sha256": "2112f1d4693dea4f81b1b76fac94f8e5243eb55b1ceb20df75dd4aaf7d565a43"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-nr602-controller-7256-identity-20261108.json",
+      "bytes": 1323,
+      "sha256": "16febb355574581af972da44ef0dfff457ff4a7b5d5b8d2c4235963c8d1ad25c"
+    },
+    {
+      "path": "R:/d3-evidence/audit-native-read-nr602-actual-Root-20261108.py",
+      "bytes": 7630,
+      "sha256": "2a266a2e7e29d7e30e453300fef2127dcc7c9338f06ec56283a5456d49d7b923"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/process.json",
+      "bytes": 39426,
+      "sha256": "d3c4a25e5e6a922a073b76f1ff9a56ae062ec78317184f0efadbadf15f88eeda"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/completion.json",
+      "bytes": 39424,
+      "sha256": "87cacf3c2a9515be3f6a5a8ca026255cf3425d6cf677f12cd34cea91c1f42668"
+    }
+  ],
+  "findings": [],
+  "actual_execution": {
+    "single_original_invocation": true,
+    "original_tool_session": 27818,
+    "actual_outer_exit": 0,
+    "actual_controller_exit": 0,
+    "actual_native_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "all_preinput_native_postinput_stage_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "started_utc": "2026-11-08T03:24:31.184048+00:00",
+    "completed_utc": "2026-11-08T03:27:43.617299+00:00",
+    "cases_PASS": 7,
+    "UNREACHED_cases": 0,
+    "not_launched_cases": 0,
+    "identity_receipt": "Original controller PID7256/actual CIM creation/argv plus each native child actual GetProcessTimes birth, argv, cwd, direct exit and raw log hashes. No inferred zero or restart is used.",
+    "fixed_window": "The cleared35-frame maximum/hours0.001/100ms/seed1/Lebanon setup was unchanged. Every case reached its selected service in frame16; the healthy control completed before every child launch. Stopping after the positive transaction did not change or search the cap."
+  },
+  "cases": [
+    {
+      "mode": "read_probe_control",
+      "report": {
+        "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/01-read_probe_control/witness.txt",
+        "bytes": 3528,
+        "sha256": "9d17c0553fe25cd29f9bb4e48e611b8dbeae20be711f55fe0da191191292e62e"
+      },
+      "native_exit": 0,
+      "status": "PASS",
+      "frames": 16,
+      "selected_READ_attempts": 1,
+      "real_provider_READ_answers": 1,
+      "accepted_unaltered_READ_replies": 1,
+      "altered_answers": 0,
+      "changed_answers_accepted": 0,
+      "oracle_mismatches": 0,
+      "expected_refusal_marker": null,
+      "immediate_same_entry_no_callback": null
+    },
+    {
+      "mode": "read_changed",
+      "report": {
+        "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/02-read_changed/witness.txt",
+        "bytes": 3661,
+        "sha256": "9d04de8220e7895960a032efa40317018b2bd172b09da1645ff3ddefc5af1747"
+      },
+      "native_exit": 0,
+      "status": "PASS",
+      "frames": 16,
+      "selected_READ_attempts": 1,
+      "real_provider_READ_answers": 1,
+      "accepted_unaltered_READ_replies": 0,
+      "altered_answers": 1,
+      "changed_answers_accepted": 1,
+      "oracle_mismatches": 0,
+      "expected_refusal_marker": null,
+      "immediate_same_entry_no_callback": null
+    },
+    {
+      "mode": "read_withheld",
+      "report": {
+        "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/03-read_withheld/witness.txt",
+        "bytes": 3205,
+        "sha256": "20fcfe87d1d6dd10eef5ed638794a59ac2705c81e581dd2f87ed6e286fc9b59e"
+      },
+      "native_exit": 0,
+      "status": "PASS",
+      "frames": 16,
+      "selected_READ_attempts": 1,
+      "real_provider_READ_answers": 1,
+      "accepted_unaltered_READ_replies": 0,
+      "altered_answers": 1,
+      "changed_answers_accepted": 0,
+      "oracle_mismatches": 0,
+      "expected_refusal_marker": "entity_scan.callback",
+      "immediate_same_entry_no_callback": true
+    },
+    {
+      "mode": "read_malformed",
+      "report": {
+        "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/04-read_malformed/witness.txt",
+        "bytes": 3209,
+        "sha256": "d49b7bdff5533554fb81a67ba585a6899cf0648442880feccab41152aa67fb8e"
+      },
+      "native_exit": 0,
+      "status": "PASS",
+      "frames": 16,
+      "selected_READ_attempts": 1,
+      "real_provider_READ_answers": 1,
+      "accepted_unaltered_READ_replies": 0,
+      "altered_answers": 1,
+      "changed_answers_accepted": 0,
+      "oracle_mismatches": 0,
+      "expected_refusal_marker": "entity_scan.answer",
+      "immediate_same_entry_no_callback": true
+    },
+    {
+      "mode": "read_wrong_state",
+      "report": {
+        "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/05-read_wrong_state/witness.txt",
+        "bytes": 3238,
+        "sha256": "e438ffff1b923b9719624590e5a350ad78ef45590d9ad4f67a543eb4907805ed"
+      },
+      "native_exit": 0,
+      "status": "PASS",
+      "frames": 16,
+      "selected_READ_attempts": 1,
+      "real_provider_READ_answers": 1,
+      "accepted_unaltered_READ_replies": 0,
+      "altered_answers": 1,
+      "changed_answers_accepted": 0,
+      "oracle_mismatches": 0,
+      "expected_refusal_marker": "entity_scan.state",
+      "immediate_same_entry_no_callback": true
+    },
+    {
+      "mode": "read_wrong_array",
+      "report": {
+        "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/06-read_wrong_array/witness.txt",
+        "bytes": 3199,
+        "sha256": "48108ed2080c400435c83dbbb3b8022f43b3f623ca34ba2e9dbe1f4cfcd07de3"
+      },
+      "native_exit": 0,
+      "status": "PASS",
+      "frames": 16,
+      "selected_READ_attempts": 1,
+      "real_provider_READ_answers": 1,
+      "accepted_unaltered_READ_replies": 0,
+      "altered_answers": 1,
+      "changed_answers_accepted": 0,
+      "oracle_mismatches": 0,
+      "expected_refusal_marker": "flag.answer",
+      "immediate_same_entry_no_callback": true
+    },
+    {
+      "mode": "read_wrong_word",
+      "report": {
+        "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/07-read_wrong_word/witness.txt",
+        "bytes": 3235,
+        "sha256": "a809b75bda654dc3a7bf0862d6be9b61631229e0d4eab430e7be27e6033b5656"
+      },
+      "native_exit": 0,
+      "status": "PASS",
+      "frames": 16,
+      "selected_READ_attempts": 1,
+      "real_provider_READ_answers": 1,
+      "accepted_unaltered_READ_replies": 0,
+      "altered_answers": 1,
+      "changed_answers_accepted": 0,
+      "oracle_mismatches": 0,
+      "expected_refusal_marker": "flag.word",
+      "immediate_same_entry_no_callback": true
+    }
+  ],
+  "causality_and_boundary_assessment": {
+    "selected_relation": "All seven private raw reports carry exactly the same complete selection/registration tuple, candidate pre-request44 words, issued flag key, array/lane, frame/entry, candidate ordinal, flag ordinal and four phase-counter prefix. The selected original delegated result is skip; the opt-in NEED_UPDATED request is explicitly diagnostic. No alternate actor or later eligible step substitutes for it.",
+    "healthy": "One real provider READ is answered and accepted, zero alteration/fault/oracle mismatches, then the same native candidate is re-asked. Direct comparison of its44 words shows only fact20 changed, carrying1.0 for the provider zero result. The full healthy report was the immutable, hash-bound prerequisite before each child root/output and process.",
+    "changed_answer": "The same real provider READ again returns zero. Only its returned answer is changed to the selected lane mask; the exact same re-ask carries fact20=2.0, with all other43 request words unchanged. Exactly one changed answer is accepted. The transcript-derived post-read word stays the real zero result; no second store write is credited.",
+    "five_refusals": "Each fault follows the same complete eligible precondition and a real positive provider READ, then exactly one altered/withheld reply. Actual markers are entity_scan.callback, entity_scan.answer, entity_scan.state, flag.answer and flag.word respectively. Each fatal is in the intervention entry, with no later host callback, normal return credit, re-ask or carried result. All expected caught-refusal diagnostics exit0; that is not healthy campaign continuation.",
+    "counter_precision": "In changed/fault cases answered_read=1 describes the observed real provider answer before intervention. accepted_read=0 is expected for the altered reply; it does not mean the READ never happened. changed_accepted=1 belongs only to the valid changed-answer case, zero in all five refusal cases.",
+    "store_limit": "The observed selected preword and real result are zero, so the real W&M relation here is the zero case. This run does not independently demonstrate nonzero raw-word return, bit31, all lanes/arrays, destruction of an actually populated neighbour bit, or a postfatal store snapshot. Destructive semantics remain supported at their separate accepted source/fixture scopes.",
+    "optional_group": "The selected actual transaction reused an issued group; it opened no optional GROUP. The optional-GROUP continuation retains only its existing offline fixture coverage, not new native credit.",
+    "postfatal": "No poisoned-engine getter/counter/metrics/close result is claimed. Fatal marker and boundary evidence comes from retained diagnostic reports/error text and the reviewed immediate continuation latch. Safe report summaries omit raw retail IDs, scene names, positions, full request words and private failure lines."
+  },
+  "input_runtime_and_provenance": {
+    "retained_raw_files_bound": 63,
+    "full_pre_post_manifest_observations": 14,
+    "distinct_retail_roots": 7,
+    "files_per_manifest": 1179,
+    "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "qualification": "Fourteen observations of seven distinct fresh roots, not14 separate roots or the fullpack four-root gate. Each complete input entry array matches the unchanged accepted reference; no new exclusions or input normalization.",
+    "payloads_preserved": 91,
+    "external_Lua_literals_preserved": 2,
+    "source_identity": "Root audit verifies clean unchanged diagnostic HEAD1ab12 and all cleared artifact hashes. Native runtime remains true3abf.",
+    "Root_audit": "The read-only retained audit joins exact original receipts, all seven strict reports, healthy reference hashes, stage logs/identities, full inputs and payload/literal identities. The reviewer inspected this audit and the actual raw reports/receipt relations without rerunning its validator/checker or any campaign.",
+    "recording_scope": "No diagnostic Tacview/observation/metrics baseline comparison is claimed. The separately accepted3abf ordinary/Original short defaults43fe retain only their true scope and were not rerun or promoted into diagnostic conformance."
+  },
+  "decision": {
+    "status": "ACCEPTED_FINITE_OBSERVED_PUBLIC_UPDATED_READ_CARRIED_FACT_AND_FIVE_IMMEDIATE_REFUSALS",
+    "finite_public_READ_transaction_accepted": true,
+    "changed_carried_service_fact_accepted": true,
+    "five_matched_refusals_accepted": true,
+    "generic_flags_NativeAcceptance1_accepted": false,
+    "natural_moving_or_collision_outcome_accepted": false,
+    "whole_flags_accepted": false,
+    "wholeheight_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "remaining_and_limits": [
+    "Acceptance is only one real selected UPDATED-array service lane at one observed frame/entry through the public Lua/native/host route, plus the matched changed return and five immediate refusals. No collision outcome, natural moving/weapon reach, all arrays/bits/consumers, lifetime/replacement/session/VM/thread, whole FPU or DCS conclusion follows.",
+    "Generic ENV-PHYSICAL-FLAGS-HOST-STORE-NATIVE-ACCEPTANCE-1 remains OPEN for its broader requirements. The earlier partial17PASS/six-UNREACHED results remain literal and are not rewritten as23PASS.",
+    "Exact1ab current CI was last reported as seven successful jobs and two pending. No all9/current-platform-green claim is made in this finite actual review; Root handles its separate readback. Prior602f failed CI remains failed.",
+    "Both original immutable fullpacks, all process identities, sources/binaries/roots/outputs and partial prefix evidence stay separate and unchanged. Neither full current40/all8/four inputs nor overall shipping is accepted here.",
+    "All ten D3 requirements and remaining physical services/consumers/census/current CI/normal review/merge/Task49/D3/delivery stay OPEN as applicable. No D4/D5/TypeScript work or new execution is authorized by this results report.",
+    "No reviewer build/test/native/controller/checker replay, cache/process/Git/tracked-source mutation occurred. Only this new external JSON report was written."
+  ]
+}

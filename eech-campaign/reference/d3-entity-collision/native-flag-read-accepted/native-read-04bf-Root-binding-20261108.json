@@ -1,0 +1,31 @@
+{
+  "observed_utc": "2026-11-08T03:21:38.455745+00:00",
+  "code": "04bf5b82c514932358552b2ff100136c25804b63",
+  "metadata": "1ab12d0efc6e088b483ba30e0f12ec74c9ffa2ca",
+  "source_rows": 4004,
+  "module_delta_exact_cfg_test_only": true,
+  "original_module_NUL_count": 3,
+  "other_five_protocols_equal_true_runtime": true,
+  "raw_Git_exact": 4001,
+  "inherited_Lua_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "all_other_parent_mapped_inputs_unchanged": 3998,
+  "fingerprint": "dab220a45de00a1d0b191b67ca3d2b1ed955d27c829d9a0f7a84598a7e19e1fe",
+  "extras": 32,
+  "extra_aggregate": "eee8b9f0937c76c3ee24ba5128523e9f74b2f317a29f949d51c021c8c456dbb7",
+  "readers": 9,
+  "final_direct_exits": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "Rust_tests": 11,
+  "independent_report_validations": 7,
+  "Python_controls": 5,
+  "scope": "Source/offline only, scripted boot/SCENE/candidates with real store. No native/campaign/publicREAD acceptance or replay."
+}
