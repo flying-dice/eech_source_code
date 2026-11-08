@@ -1,4 +1,14 @@
-# CURRENT — D3 Task49: corrected normal-fire source/controller FROZEN UNREVIEWED (8 November 2026)
+# CURRENT — D3 Task49: THREE normal-fire proof gates corrected; STOP for SAME (8 November 2026)
+
+Sealed SAME5fa215 identified THREE P2 diagnostic proof defects. nf3p2 now validates complete selected-event semantics/model sequence in Lua and independent Python; requires an already-observed byte-equal normal fire/detach/birth prefix BEFORE B; and preserves real GROUP reset eligibility/count ACK/destructive READ behavior. First otherwise-eligible moving-query cohort is locked; only THAT SAME cohort can qualify later within unchanged1500 frames. No alternative actor/window, forcing or production solver change.
+
+All FIVE final direct commands actual0 and original18582 outer0: fmt, world clippy, portable Lua target, existing67/2 profile census, Python8. REALPRE/POST4023 rows byteequal (7651dbb2...),26extras/5sealedreaders stable. Lua:25 semantic faults,27 before-output reference gates,4 before-effect prefix faults,16 actual FlagStore calls,3 ACK faults and3 failure-before-UNREACHED cases;2 synthetic healthy/B pairs plus no-later/other-cohort underreach. Old gate RED1 retained as diagnostic defect, not product RED. Exact receipts/counts/reuse are in eech-campaign/reference/d3-entity-collision/normal-fire-proof-gates/ and R:/d3-evidence/D3-NORMAL-FIRE-PROOF-GATES-FROZEN-20261108.json.
+
+Compiled runtime remains exact2fcf69f9b8972b4353687dc2ca1eaaac780836f3:97 original payloads unchanged, bundled old Lua unsafe/unexecuted. Whole relevant3816 product/build/Cargo/static rows plus producer configuration unchanged; four corrected diagnostic literals/validator/controller are separately bound. No C/Rust product/build/Cargo change, old C experiment replay, Windows/native/root creation or runtime relabel. See eech-campaign/docs/d3-normal-fire-proof-gates.md.
+
+STOP for ONE SAME changed-material closure of all three findings; they remain OPEN pending that review. Root owns later exact materialized-plan launch review, both immutable fullpacks and services/canonical. All TEN requirements, GenericNative1/blocks_cutover, preparation2, D3G-08, core-loader responsibility, full regression40/all8/four inputs/final census/currentCI/formal review/normal merge/Task49/wholeD3 remain OPEN as applicable. Prior6726/965/400c finite scopes remain accepted. No D4/D5/TypeScript/authentication changes.
+
+# HISTORICAL — D3 Task49: corrected normal-fire source/controller FROZEN UNREVIEWED (8 November 2026)
 
 [Isolation correction](eech-campaign/docs/d3-normal-fire-test-isolation.md) and [literal packet](eech-campaign/reference/d3-entity-collision/normal-fire-query-isolation/README.md) give the hosted query its own Cargo integration executable; the legacy target contains only its original test. Both FULL targets run unfiltered as distinct executables, without global reset or serial-order reliance. Prior b2a380/a384527/nqt2 source/proof remains literal. Its filtered actuals retain their scope; this correction supplies the missing unfiltered process isolation.
 

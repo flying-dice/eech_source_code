@@ -1,6 +1,10 @@
 """Root-only concrete normal-fire capture controller. Default is READ ONLY.
-The later materialized plan and SAME launch receipt bind the new frozen build,
-full payload/input manifests and four literal Lua files. No source/runtime hash
+The later materialized plan and SAME launch receipt bind the compiled build,
+full payload/input manifests and four separate corrected literal Lua files.
+source_revision/runtime always names the compiled source (2fc for the retained
+build); hashes name the later diagnostic literals/validator independently. The
+full original bundle, including its unexecuted old Lua, must stay byte-exact.
+No source/runtime hash
 is invented here; no action occurs at import or during offline validation.
 """
 import argparse

@@ -30,7 +30,7 @@ local function words(s,n,finite)
  if #out~=n then error('word count',0) end
  return out
 end
-local function identity(s) if not s:match('^eech%-world:[1-9]%d*$') then error('identity',0) end return s end
+local function identity(s) if #s>128 or not s:match('^eech%-world:[1-9]%d*$') then error('identity',0) end return s end
 local function parse(line)
  local body=line:match('^normal%-ev (.+)$');if not body then error('event prefix',0) end
  local e={};for token in body:gmatch('%S+') do
@@ -39,12 +39,53 @@ local function parse(line)
  local spec=schemas[e.kind];if not spec then error('event kind',0) end
  local allowed={seq=true,tick=true,kind=true};for key in spec:gmatch('%S+') do allowed[key]=true;if not e[key] then error('missing '..key,0) end end
  for key in pairs(e) do if not allowed[key] then error('extra '..key,0) end end
+ local canonical='normal-ev seq='..e.seq..' tick='..e.tick..' kind='..e.kind
+ for key in spec:gmatch('%S+') do canonical=canonical..' '..key..'='..e[key] end
+ assert(canonical==line,'event field order')
  e.seq=integer(e.seq,1,9007199254740991);e.tick=integer(e.tick,0,4294967295)
  return e
 end
--- Strict standalone grammar for a selected literal excerpt in a paired report.
--- Full live sequence/context checks remain in feed(), not this parser.
-function M.event(line) return parse(line) end
+-- Semantic event domains, shared by live capture and selected report excerpts.
+-- Bounds are the unchanged compiled enums in en_sbtyp.h and weapon.h at2fc.
+function M.event(line)
+ local e=parse(line);local function I(k,lo,hi)return integer(e[k],lo,hi or 2147483647)end
+ for _,k in ipairs({'launcher','target','hit_id'}) do if e[k] and e[k]~='none' then identity(e[k]) end end
+ if e.fire then I('fire',0,9007199254740991) end
+ if e.weapon then I('weapon',1,82) end
+ if e.w then I('w',1) end
+ if e.step then I('step',1,9007199254740991) end
+ if e.query then I('query',1,9007199254740991) end
+ if e.kind=='normal_fire' then
+  I('fire',1,9007199254740991);I('ready',1,1)
+  words(e.actual,3,true);words(e.intercept,3,true);words(e.angle,1,true);words(e.maximum,1,true)
+ elseif e.kind=='normal_detach' then
+  I('detach',1,9007199254740991);local config=I('config',-1,740);local package=I('package',-1,31)
+  local mask=I('devices',0,15);assert(({[0]=true,[1]=true,[3]=true,[7]=true,[11]=true,[15]=true})[mask],'device path')
+  local burst=I('burst',1);local before=I('ammo_before',-1);local after=I('ammo_after',-1)
+  if package>=0 then assert(config>=0 and before>0 and after==math.max(0,before-burst),'package effect')
+  else assert(config==-1 and before==-1 and after==-1 and mask==0,'absent package effect') end
+  local vb=I('visible_before',-1,1);local va=I('visible_after',-1,1)
+  if math.floor(mask/4)%2==1 then assert(vb>=0 and va==0,'station effect') else assert(vb==-1 and va==-1,'absent station effect') end
+  local flash=I('flash_present',0,1);words(e.flash_before,1,true);words(e.flash_after,1,true)
+  if flash==0 then assert(e.flash_before=='0x00000000' and e.flash_after=='0x00000000','absent flash effect')
+  else
+   assert(mask>=8,'flash without muzzle')
+   if tonumber(e.flash_before:sub(3),16)%2147483648==0 then assert(tonumber(e.flash_after:sub(3),16)>=2147483648,'new flash sign')
+   else assert(e.flash_after==e.flash_before,'ongoing flash changed') end
+  end
+  local volume=I('volume',0,1);I('ground',0,1);assert(volume==0 or mask>=3,'volume fallback without device');words(e.pose,12,true)
+ elseif e.kind=='normal_birth' then
+  I('detach',1,9007199254740991);local matched=I('matched',0,1);assert((e.fire=='0')==(matched==0),'birth match domain');words(e.pose,12,true)
+ elseif e.kind=='normal_end' then I('fire',1,9007199254740991);I('births',0)
+ elseif e.kind=='normal_step' or e.kind=='normal_step_end' then
+  words(e.pose,12,true);words(e.motion,3,true);words(e.velocity,1,true);words(e.lifetime,1,true);I('code',0,7)
+ elseif e.kind=='normal_query' then I('which',0);I('before',0,9007199254740991);words(e.segment,6,true)
+ elseif e.kind=='normal_model' then I('call',1,9007199254740991);I('op',1,18)
+ elseif e.kind=='normal_query_end' then
+  I('after',0,9007199254740991);local hit=I('hit',0,1);assert(hit==1 or e.hit_id=='none','miss carries hit identity')
+ elseif e.kind=='normal_error' then assert(e.reason:match('^[a-z_]+$'),'observer reason') end
+ return e
+end
 function M.new(capture,frame_ms)
  assert(type(capture)=='string' and #capture>0 and #capture<=128 and capture:match('^[%w_.:-]+$'),'capture identity')
  assert(frame_ms==100,'supported frame duration is 100ms')
@@ -53,6 +94,14 @@ function M.new(capture,frame_ms)
  local model_calls,model_pending,model_unread,model_cutoff=0,{},0,0
  local function fail(reason) problem=problem or ('normal-fire: '..tostring(reason));error(problem,0) end
  local function open() if problem then error(problem,0) end;if closed then fail('continuation after finalization') end end
+ -- Already delivered, completed normal birth; no C getter, lazy registration
+ -- or current-frame drain is performed from an intervention callback.
+ function self:prefix(w)
+  open();if type(w)~='number' or w<1 or w>2147483647 or w~=math.floor(w) then fail('prefix ordinal') end
+  local b=ordinals[w];local f=b and fire_records[b.fire]
+  if not f or not b.detachment then return nil end
+  return {frame=f.frame,fire=f.literal,detach=b.detachment.literal,birth=b.literal}
+ end
  -- Called at EVERY entry of the one real Lua model provider, from before boot.
  -- Return the exact ordinal for caller-owned request/reply records. No physical
  -- answer is chosen or changed; a later C record proves which query called it.
@@ -79,7 +128,7 @@ function M.new(capture,frame_ms)
    if type(text)~='string' or (#text>0 and text:sub(-1)~='\n') then error('event framing',0) end
    for line in text:gmatch('[^\n]+') do
     if line:match('^normal%-ev ') then
-     local e=parse(line)
+     local e=M.event(line)
      e.literal=line
      if sequence and e.seq~=sequence+1 then error('capture sequence',0) end;sequence=e.seq
      if e.tick~=clock then error('capture clock',0) end

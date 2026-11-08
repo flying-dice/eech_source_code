@@ -6,6 +6,7 @@ import hashlib
 import importlib.util
 import tempfile
 import unittest
+import re
 from pathlib import Path
 
 HERE=Path(__file__).resolve().parent
@@ -22,23 +23,73 @@ def fixture():
     moving=','.join(['0x41000000','0x42c80000','0x41a00000','0x41400000','0x42c80000','0x41a00000',one,zero,zero,zero,one,zero,zero,zero,one,two])
     def event(kind,seq,**values):
         row={k:'0' for k in R.EVENTS[kind].split()};row.update({k:str(v) for k,v in values.items()})
-        return f'normal-ev seq={seq} tick=30000 kind={kind} '+' '.join(k+'='+row[k] for k in R.EVENTS[kind].split())
+        return f'normal-ev seq={seq} tick={30000 if kind in ("normal_fire","normal_detach","normal_birth") else 30100} kind={kind} '+' '.join(k+'='+row[k] for k in R.EVENTS[kind].split())
     common=dict(launcher='eech-world:1',target='eech-world:2',weapon=70)
     fire=event('normal_fire',1,fire=1,ready=1,actual=f'{zero},{zero},{one}',intercept=f'{zero},{zero},{one}',angle=zero,maximum=one,**common)
     detach=event('normal_detach',2,fire=1,detach=1,launcher=common['launcher'],weapon=70,config=703,package=1,devices=15,burst=1,ammo_before=2,ammo_after=1,visible_before=1,visible_after=0,flash_present=1,flash_before=zero,flash_after='0xbe800000',pose=pose)
     birth=event('normal_birth',3,fire=1,detach=1,w=1,matched=1,pose=pose,**common)
-    step=event('normal_step',4,step=1,w=1,pose=pose,motion=f'{zero},{zero},{zero}',velocity='0x42480000',lifetime='0x40400000',**common)
-    query=event('normal_query',5,step=1,w=1,query=1,before=10,segment=','.join([zero]*6))
-    models='\n'.join(event('normal_model',6+i,step=1,w=1,query=1,call=11+i,op=op) for i,op in enumerate([16,17,16,18,16]))+'\n'
-    end=event('normal_query_end',11,step=1,w=1,query=1,after=15,hit=0,hit_id='none')
-    step_end=event('normal_step_end',12,step=1,w=1,pose=pose,motion=f'{zero},{zero},{one}',velocity='0x42480000',lifetime='0x4039999a',**common)
+    step=event('normal_step',5,step=1,w=1,pose=pose,motion=f'{zero},{zero},{zero}',velocity='0x42480000',lifetime='0x40400000',**common)
+    query=event('normal_query',6,step=1,w=1,query=1,before=10,segment=','.join([zero]*6))
+    models='\n'.join(event('normal_model',7+i,step=1,w=1,query=1,call=11+i,op=op) for i,op in enumerate([16,17,16,18,16]))+'\n'
+    end=event('normal_query_end',12,step=1,w=1,query=1,after=15,hit=0,hit_id='none')
+    step_end=event('normal_step_end',13,step=1,w=1,pose=pose,motion=f'{zero},{zero},{one}',velocity='0x42480000',lifetime='0x4039999a',**common)
     identity=dict(schema='1',mode='healthy',capture='fixture:healthy',runtime='b'*40,bundle='a'*64,driver='a'*64,collector='a'*64,transaction='a'*64,contract='a'*64,reference='none',profile='reference-hosted',scenario='lebanon_retail',seed='1',frame_ms='100',warmup='30',settle='120')
     counts=dict(frames='1500',fires='1',births='1',steps='1',queries='1',model_calls='15',moving='1',failed='0',changed='0')
-    selection={k:'1' for k in R.SCHEMA['selection'].split()};selection.update(frame='301',birth_frame='301',before='10',after='15',need='11',read='12',carry='13',test='15',launcher=common['launcher'],target=common['target'],weapon='70',scene='1',name=encoded('fixture-scene1'),member='2',group='1',bind='2',key='f1',lane='1',word=zero,fact=one,pose=moving,request=','.join(request),reask=','.join(carry),position='10,100,20',motion='2,0,0',base='100',ceiling='10000',previous='30',current='30.100000381469727')
+    selection={k:'1' for k in R.SCHEMA['selection'].split()};selection.update(frame='302',birth_frame='301',before='10',after='15',need='11',read='12',carry='13',test='15',launcher=common['launcher'],target=common['target'],weapon='70',scene='1',name=encoded('fixture-scene1'),member='2',group='1',bind='2',key='f1',lane='1',word=zero,fact=one,pose=moving,request=','.join(request),reask=','.join(carry),position='10,100,20',motion='2,0,0',base='100',ceiling='10000',previous='30.100000381469727',current='30.200000762939453')
     evidence={k:encoded(value) for k,value in dict(fire=fire,detach=detach,birth=birth,step=step,query=query,models=models,query_end=end,step_end=step_end).items()}
     return dict(identity=identity,counts=counts,selection=selection,evidence=evidence,verdict=dict(status='PASS',reason=encoded('healthy normal cohort')))
 
+def damage_event(report,role,field,value):
+    bad=copy.deepcopy(report);text=R.unhex(bad['evidence'][role]);token=next(x for x in text.split() if x.startswith(field+'='))
+    bad['evidence'][role]=encoded(text.replace(token,field+'='+value,1));return bad
+
+SEMANTIC_FAULTS=[
+    ('detach','devices','garbage'),('detach','devices','2'),('detach','ammo_after','garbage'),('detach','ammo_after','2'),
+    ('detach','config','741'),('detach','package','32'),('detach','burst','0'),('detach','visible_after','1'),
+    ('detach','flash_present','0'),('detach','flash_before','0x3f800000'),('detach','ground','2'),
+    ('fire','actual','0x7fc00000,0x00000000,0x3f800000'),('fire','ready','0'),
+    ('birth','matched','0'),('step','code','8'),('step','velocity','0x7f800000'),
+    ('step_end','target','eech-world:3'),('step_end','launcher','eech-world:3'),('step_end','weapon','71'),
+    ('query','which','-1'),('query_end','hit_id','eech-world:2'),
+    ('models','seq','6'),('models','seq','9999'),('models','seq','garbage'),('models','op','19'),
+]
+
 class Controls(unittest.TestCase):
+    def test_complete_event_semantics_before_child_effect(self):
+        f=fixture();R.validate(emit(f),f['identity'])
+        with tempfile.TemporaryDirectory(prefix='normal-semantic-gate-') as d:
+            p=Path(d)/'synthetic.txt';p.write_bytes(emit(f));C.healthy_reference(p,C.sha(p),f['identity'])
+            for role,key,value in SEMANTIC_FAULTS:
+                with self.subTest(role=role,field=key,value=value):
+                    bad=damage_event(f,role,key,value);p.write_bytes(emit(bad))
+                    with self.assertRaises(ValueError):R.validate(emit(bad),f['identity'])
+                    # Recomputed report hash intentionally passes the byte gate:
+                    # rejection must be semantic, before any child effect.
+                    with self.assertRaises(ValueError):C.healthy_reference(p,C.sha(p),f['identity'])
+                    self.assertEqual(sorted(x.name for x in Path(d).iterdir()),['synthetic.txt'])
+
+    def test_earlier_birth_and_unchanged_common_prefix(self):
+        f=fixture();healthy=R.validate(emit(f),f['identity'])
+        same=copy.deepcopy(f);same['selection']['birth_frame']=same['selection']['frame']
+        with self.assertRaisesRegex(ValueError,'earlier observed birth'):R.validate(emit(same),f['identity'])
+        b=copy.deepcopy(f);b['identity'].update(mode='terrain_lift',capture='fixture:terrain_lift',reference='c'*64);b['counts']['changed']='1';b['verdict']['reason']=encoded('same-cohort terrain effect')
+        s=b['selection'];s['position']='10,600,20'
+        for key in ('request','reask'):
+            w=s[key].split(',');w[14]='0x44160000';s[key]=','.join(w)
+        w=s['pose'].split(',');w[1]=w[4]='0x44160000';s['pose']=','.join(w)
+        R.validate(emit(b),b['identity'],healthy)
+        changed=damage_event(b,'birth','pose','0x3f800000,'+R.unhex(b['evidence']['birth']).split('pose=')[1].split(', ',1)[0].split(',',1)[1])
+        with self.assertRaisesRegex(ValueError,'paired common prefix'):R.validate(emit(changed),b['identity'],healthy)
+
+    def test_pinned_event_enum_domains_match_unchanged_compiled_headers(self):
+        base=HERE.parents[1]
+        for name,last,count in [('aphavoc/source/entity/system/en_types/en_sbtyp.h','NUM_ENTITY_SUB_TYPE_WEAPONS',83),('aphavoc/source/entity/mobile/weapon/weapon.h','NUM_WEAPON_CONFIG_TYPES',741),('aphavoc/source/entity/mobile/weapon/weapon.h','NUM_WEAPON_KILL_CODES',8)]:
+            text=re.sub(r'/\*.*?\*/|//[^\n]*','',(base/name).read_text(),flags=re.S);end=text.index(last);body=text[text.rfind('{',0,end)+1:end];value=-1
+            for row in body.split(','):
+                if row.strip():
+                    parts=row.strip().split('=');value=int(parts[1].strip(),0) if len(parts)>1 else value+1
+            self.assertEqual(value+1,count)
+
     def test_coherent_positive_then_single_field_damage(self):
         f=fixture();R.validate(emit(f),f['identity'])
         for row,key,value in [('selection','target','eech-world:3'),('selection','carry','14'),('selection','word','0x00000002'),('selection','position','11,100,20'),('counts','failed','1'),('counts','frames','1499'),('identity','seed','2'),('selection','before','9')]:

@@ -1,0 +1,36 @@
+{
+  "controller_pid": 3348,
+  "started_utc": "2026-11-08T09:41:00.424492+00:00",
+  "state": "terminal",
+  "commands": [
+    [
+      "s1-fmt",
+      "rustup component add rustfmt && cargo fmt --version && cargo fmt --all -- --check"
+    ],
+    [
+      "s2-world-clippy",
+      "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world --all-targets -- -D warnings"
+    ],
+    [
+      "s3-session-lua",
+      "cargo test --locked -p eech-world --test normal_fire_session -- --nocapture"
+    ],
+    [
+      "s4-profile-census",
+      "cargo test --locked -p eech-world --test host_callbacks every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not -- --nocapture"
+    ],
+    [
+      "s5-python",
+      null
+    ]
+  ],
+  "actual_exits": {
+    "s1-fmt": 0,
+    "s2-world-clippy": 0,
+    "s3-session-lua": 0,
+    "s4-profile-census": 0,
+    "s5-python": 0
+  },
+  "completed_utc": "2026-11-08T09:41:17.285027+00:00",
+  "actual_exit": 0
+}

@@ -1,0 +1,16 @@
+{
+  "controller_pid": 10412,
+  "started_utc": "2026-11-08T09:12:32.248834+00:00",
+  "command": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "R:\\d3-evidence\\nf3p2-red-python-20261108.py"
+  ],
+  "scope": "Old diagnostic gate RED, not product RED",
+  "pid": 5428,
+  "actual_exit": 1,
+  "completed_utc": "2026-11-08T09:12:32.412063+00:00"
+}
