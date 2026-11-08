@@ -1,0 +1,112 @@
+{
+  "kind": "nr7e6 source-only UNREVIEWED plan; no implementation/build/native/launch clearance",
+  "utc": "2026-11-08T02:14:23.520919+00:00",
+  "plan_source_before": "7e6bed4c702869611ead639610c47abc3d86aa08",
+  "plan_path": "eech-campaign/docs/d3-native-flag-read-plan.md",
+  "plan_sha256": "1c472eec613c09041491617d692c91b957568a21d18d9137c316ea1cfebe7352",
+  "runtime_source": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+  "protocol_sources": {
+    "aphavoc/source/entity/mobile/mb_hostentity.h": {
+      "git_blob": "6cb491fcaf8df631ea1560507e682a11b165c7c2",
+      "sha256": "48354a1e2f58df6b91bb1a3b701b7b1fd8d8781a9e2046aaa13e744791c7216a",
+      "identical_at_runtime_and_plan_source": true
+    },
+    "aphavoc/source/entity/mobile/mb_hostoffer.h": {
+      "git_blob": "847b6d87fbc09eceac222104f4f23ace7a961be7",
+      "sha256": "96bad27212f2c30690812ba33e0860867721d6def844415d66fa0ebaa1d3291f",
+      "identical_at_runtime_and_plan_source": true
+    },
+    "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c": {
+      "git_blob": "7ded54db8b878c6a8e6d6105bae6fdf7b215b05c",
+      "sha256": "03c7b8644dc2980d57c93a429e21a949ee3fecbc3317b24cf145deaa17ab422f",
+      "identical_at_runtime_and_plan_source": true
+    },
+    "eech-campaign/crates/eech-world/src/entity_host.rs": {
+      "git_blob": "bc77f7417f58235dc43127176a36026ce0196763",
+      "sha256": "0b82441d74216b8dffe628712796077a7e08e8d8663480977ed480f1242d06e1",
+      "identical_at_runtime_and_plan_source": true
+    },
+    "eech-campaign/crates/eech-world/src/model_host.rs": {
+      "git_blob": "871f688768c828826798d0153a3d18e79a25e86c",
+      "sha256": "11e3d49625a49b6f4ad3e92e50258f84f73eb74d5032a8e008c58df2bc911648",
+      "identical_at_runtime_and_plan_source": true
+    },
+    "eech-campaign/crates/eech-dc/src/module.rs": {
+      "git_blob": "7a55ce5434020711e8d20213b7f4d6ed65b4f826",
+      "sha256": "d86b00281356782c8e0dfd2c530fc344775f47f6bdc85e1e58734e94fb247ce5",
+      "identical_at_runtime_and_plan_source": true
+    }
+  },
+  "existing_binary_directory": "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\target\\windows-supply-boolean-3abf-ordinary",
+  "named_binaries": {
+    "eech_dc.dll": {
+      "path": "eech_dc.dll",
+      "sha256": "208ebca3033481dcf5474bc9343beacdb4bf2eeaa6e6abd43b09d9c2bbaf8a43",
+      "bytes": 18784373,
+      "actual_readonly_hash_matches": true
+    },
+    "eech-world.exe": {
+      "path": "eech-world.exe",
+      "sha256": "2b4d06b9083e9cbc9268501b2ed565e4e3ee4e73bcc250234d67945d6f82b65a",
+      "bytes": 4561953,
+      "actual_readonly_hash_matches": true
+    },
+    "lua.dll": {
+      "path": "lua.dll",
+      "sha256": "ad9a305565905b4ea1421f7c053f9ebd6ebec9bb5439b89f117451f1e90ece36",
+      "bytes": 615397,
+      "actual_readonly_hash_matches": true
+    }
+  },
+  "complete_bundle_payloads_from_existing_build_receipt": 91,
+  "build_receipt": "supply-boolean-native-windows-3abf-20261107-completion.json",
+  "build_receipt_sha256": "dc632ab7b5f80f8a1f412aff7019b9b4e84fe3154cb6daf832f167baeecf0358",
+  "whole_bundle_copy_and_91_payload_verification": "REQUIRED before launch; only the three named files were newly hash-read here",
+  "old_Lua": {
+    "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+    "git_blob": "add513356a6fd4eb00f7138dd95b93b5863c2145",
+    "sha256": "30adcae241d43deddb710d014ac4585b3c0f282a7309b833c77c08cc71881ad7",
+    "bytes": 60874,
+    "strategy_implemented": false
+  },
+  "new_Lua": {
+    "proposed_name": "physical-flags-read-witness.lua",
+    "state": "UNCREATED; no commit/blob/hash; implementation plus literal/controller/source review REQUIRED before launch"
+  },
+  "setup": {
+    "scenario": "lebanon_retail",
+    "map": "..\\common\\maps\\map5",
+    "campaign": "LEBANON.CHC",
+    "seed": 1,
+    "frame_ms": 100,
+    "hours": "0.001",
+    "maximum_established_frames": 35,
+    "profile": "ordinary HOSTED x86_64-pc-windows-gnu release, Lua5.1.5, reference arithmetic"
+  },
+  "old_actuals_reused": {
+    "runtime": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "driver": "5d2c54f38d3232c172f3ef7e47f0add3778fca58",
+    "accepted_scope": "17PASS; six READ-dependent cases NOT_LAUNCHED_UNREACHED",
+    "unreached_steps": [
+      3,
+      10,
+      11,
+      12,
+      21,
+      22
+    ],
+    "review": "independent-physical-flags-witness-5d2c-native-20261107.json",
+    "review_sha256": "1ae3698d34e3178b1215f35e23c852a64f649aaa989274790aa3effc43536e05",
+    "actual_READs": 0,
+    "first_eligible_candidate_frame": "UNKNOWN; old report has no eligibility census",
+    "replay": false
+  },
+  "authority_receipt": "flag-lifetime-reviewed-live-services-20261108.json",
+  "authority_receipt_sha256": "154bb374cea0af901d02e26395bb8e7bd39d68f456f4131d6d5d7e8d5e397329",
+  "process_receipt": "codex-d3-native-read-plan-20261108-process.json",
+  "process_receipt_sha256": "5d880f52b4a9eb207954c3d270cd5499f21ca0fb4f02c63a17b07b7ece7008c9",
+  "prefix_exclusivity_receipt_sha256": "ce16f39258bfd6c30974de578eb3f8eab7948151aa5443861668f7cd20ac87a6",
+  "publication_helper_sha256": "07970cb6e0af9d5bbbf637d72d30887fe8c0fb2e617a66cf74d351a234c90fd3",
+  "tests": "Not required/run for this source-informed documentation plan. No product/Cargo/Lua implementation bytes changed.",
+  "next": "STOP for SAME plan review; all10/NativeAcceptance1/Task49/D3 OPEN"
+}
