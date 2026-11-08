@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T10:33:04.985832+00:00",
+  "reviewer": "SAME independent Task49 reviewer /root/d3_environment_review",
+  "scope": "ONE exact NEW materialized healthy/B launch prerequisite. Source boot-retention f0a85a15 and earlier closed proof/controller findings reused unchanged; no source re-review or completed experiment replay.",
+  "plan_sha256": "9bc2f29a955f120c172fbb275ce5a242a80ea679426fc4ec720a01d75b5285ba",
+  "controller_sha256": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+  "artifact_hashes": {
+    "driver": "73b3d2cc847f3274a28067ca79338fa47db50e7fc9181cbc10f21f9c761913aa",
+    "collector": "5b4deb11bae278c5d51c707d707785e4c9386f28c76c761ff46722633ac78848",
+    "transaction": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "contract": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+    "controller": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+    "validator": "f9919158c045e17d6e0f2871bfad8c2feecc25e14c813165c1d7d235dc918e62",
+    "common": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "common_validator": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "input_tool": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+    "input_reference": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4"
+  },
+  "evidence": [
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-fire-56d1b-20261108-materialized/capture-plan.json",
+      "bytes": 5513,
+      "sha256": "9bc2f29a955f120c172fbb275ce5a242a80ea679426fc4ec720a01d75b5285ba"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-fire-56d1b-20261108-materialized/tools/normal_fire_capture_controller.py",
+      "bytes": 11061,
+      "sha256": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-fire-56d1b-20261108-materialized/preparation.json",
+      "bytes": 3577,
+      "sha256": "71ede3006a2b42a4b5bd4a178710975215b0efa2c776223656fa87cc42c75bc4"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-fire-56d1b-20261108-materialized/healthy-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-fire-426de-20261108-materialized/bundle-manifest.json",
+      "bytes": 31356,
+      "sha256": "904f40638bebd8e21cd5b8d8747c53c1152a8188e164bffa20afdcabd599c28d"
+    },
+    {
+      "path": "R:/d3-evidence/independent-normal-fire-boot-retention-56d1b-source-20261108.json",
+      "bytes": 13431,
+      "sha256": "f0a85a15cf9dd0f1c334dd53b3b1c5cb0827c69cfd963ba31f78a191765ae1b2"
+    }
+  ],
+  "reuse_receipts": [
+    {
+      "path": "R:\\d3-evidence\\independent-normal-fire-boot-retention-56d1b-source-20261108.json",
+      "sha256": "f0a85a15cf9dd0f1c334dd53b3b1c5cb0827c69cfd963ba31f78a191765ae1b2"
+    },
+    {
+      "path": "R:\\d3-evidence\\normal-fire-first-native-426de-Root-binding-20261108.json",
+      "sha256": "31446aeb8620aa65a35f7f9a70320731b8335295df7056c0f4eecdabc2f2305b"
+    },
+    {
+      "path": "R:\\d3-evidence\\normal-fire-boot-retention-56d1b-Root-binding-20261108.json",
+      "sha256": "6822fa9d916ef8ac5cbb98bd1e83a87aa2229ed3d7d3b8a894468d4ab5217b38"
+    },
+    {
+      "path": "R:\\d3-evidence\\codex-d3-normal-fire-boot-retention-fix-20261108-completion.json",
+      "sha256": "01a794e05f1712b7cf311bd5191e4a53ea4cc8e0d760bd380bd9f85aae74a606"
+    },
+    {
+      "path": "R:\\d3-evidence\\D3-NORMAL-FIRE-BOOT-RETENTION-FROZEN-20261108.json",
+      "sha256": "a0e2547f4c86364a5864af33b75aa9cd960f28f94987af26b6550cf9e3ed51b8"
+    },
+    {
+      "path": "R:\\d3-evidence\\nb426-publication-checkpoint-v2-20261108.json",
+      "sha256": "b67fccb2257b9e4aec6386b05ea5542f6d9a71945b046f743cc00155166ec9a4"
+    }
+  ],
+  "findings": [],
+  "materialized_assessment": {
+    "runtime_and_literals": "Compiled source_revision2fcf69f9b8972b4353687dc2ca1eaaac780836f3 remains distinct from diagnostic56d1b7e31c8e4c4b45ed41f45c0e984ce7bbe6d8. Full original97-payload bundle and manifest904f4063 remain reused unchanged; no payload copy/rebuild/overlay or binary relabel. Corrected driver73b3d2cc/collector5b4deb11 and unchanged transaction/contract are four separately materialized Git-LF literals.",
+    "identities_checked": "Actual plan/controller SHA, all ten execution artifacts and six reuse-receipt hashes match. Corrected driver/collector match source-closure identities. Preparation matches the exact capture plan, controller and compiled/diagnostic identities. Controller is byte-identical to the previously reviewed69ae artifact.",
+    "fresh_root": "New healthy root normal-fire-healthy-56d1b-20261108-root has actual preparation input-tool exit0 and full1179-entry input array matching the accepted reference; manifest SHA62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1. All five prepared engine-written identities match the accepted default rows. Old consumed426de healthy/default roots and failure outputs remain separate.",
+    "uncreated_state": "At reviewer observation, new B root parent and capture output parent do not exist. Pristine, fresh healthy, output/root parents, literal and runtime directories are distinct under the reviewed controller preflight contract.",
+    "default_reuse": "The previously completed true2fc35-frame default native0/COMPLETE ACMI+observations+metrics comparison is explicitly accepted by f0a85a15 for unchanged bundle/standard client/args/config. Reviewer rechecked all three files in completed2fc default, retained3ab and accepted80fd against their pinned sizes/SHA and direct complete bytes. This is read-only evidence identity verification, not a default replay. No outer default relaunch is authorized or needed.",
+    "readonly_preflight": "Root reported existing controller read-only preflight actual0; reviewer checked concrete plan/bindings/preparation without executing the controller, input tool, native or tests.",
+    "materializer_failure_qualification": "The retained precompile-v1 duplicate metadata keyword error occurred before any directory creation. materializer_sha256 rename corrected the helper, then compile/materialization0; it is not a campaign failure or evidence of recopy/replay. No source/cache/runtime change follows from that preparation-reader correction."
+  },
+  "decision": {
+    "status": "CONDITIONAL_EXACT_HEALTHY_THEN_GATED_B_LAUNCH_CLEARANCE",
+    "native_controller_launch_clearance": true,
+    "native_launch_clearance": true,
+    "retained_default_reuse_accepted_at_prior_measured_scope": true,
+    "native_acceptance": false,
+    "natural_moving_accepted": false,
+    "physical_cutover_clearance": false,
+    "loader_removal_clearance": false,
+    "GenericNativeAcceptance1_closed": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "authorized_exact_sequence": [
+    "Run only this plan9bc2f29a/controller69ae with exact artifact_hashes and unchanged immutable runtime97-payload manifest. Healthy is the first native case on the NEW fresh root, not a restart of the old failed boot.",
+    "Fixed Lebanon seed1/frame100/30s warmup+120s settle=1500frames. Every actual callback still delegates exactly once and retains exact global op/ordinal proof with complete-drain ACK. A boot failure, budget/context/observer failure or unrelated native error is FAIL, not UNREACHED. Preserve actual PID/birth/argv/cwd/exits/raw stream/report and pre/post full inputs on completed native failure too; no automatic retry.",
+    "B must remain uncreated/unlaunched unless the COMPLETE healthy report passes exact artifact/setup/hash and semantic checks. Healthy UNREACHED stops B, and controller terminal0 labelled UNREACHED is not authority acceptance.",
+    "The first otherwise-eligible moving-query cohort stays locked; only a later eligible query of that SAME cohort inside the unchanged window may qualify. Before the single500m terrain-input lift/delegation, require exact already-observed earlier-frame fire/detach/birth prefix, same canonical registration and finite base+lift<=ceiling. Final paired common-prefix/cohort and actual position/moving-pose effect checks remain mandatory. No actor/window/seed/cohort fallback, launch/view/policy/readiness/flag forcing or widened resource claim."
+  ],
+  "limitations": [
+    "The earlier426de healthyBOOTFAIL1/outer1/beforeframe1 and absent B remain preserved. This new clearance does not repair or relabel that actual attempt, guarantee a successful corrected retail boot or prove any future natural reach.",
+    "No default replay, product rebuild, source/Git/cache mutation, controller/native/test execution, nested agent or process interference performed by reviewer. Only this unique external JSON is written. Root owns all execution and original fullpacks remain untouched; partial prefixes remain partial.",
+    "Finite default equality is a35-frame measured scope, not full1500 diagnostic noninvasiveness/natural-moving acceptance. Current exact56d CI is monitored separately by Root; no all-green or delivery waiver is inferred here.",
+    "All ten D3 requirements, GenericNative1/blocks_cutover, D3G08 physical hierarchy/device responsibility, other consumers/lifetimes/FPU/DCS, whole height, final current40/all8/four inputs/census/current CI/formal review/normal merge/Task49/D3/delivery remain open as applicable. No D4/D5/TypeScript or formal GitHub approval/merge."
+  ]
+}

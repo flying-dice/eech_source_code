@@ -85,7 +85,7 @@ def event(text):
         integer('detach',1,9007199254740991);matched=integer('matched',0,1);check((e['fire']=='0')==(matched==0),'birth match domain');physical('pose',12)
     elif kind in ('normal_step','normal_step_end'):
         physical('pose',12);physical('motion',3);physical('velocity',1);physical('lifetime',1);integer('code',0,7)
-    elif kind=='normal_query':integer('which',0);integer('before',0,9007199254740991);physical('segment',6)
+    elif kind=='normal_query':integer('which',-1,1);integer('before',0,9007199254740991);physical('segment',6)
     elif kind=='normal_query_end':
         integer('after',0,9007199254740991);hit=integer('hit',0,1);check(hit==1 or e['hit_id']=='none','miss carries hit identity')
     elif kind=='normal_model':integer('call',1,9007199254740991);integer('op',1,18)

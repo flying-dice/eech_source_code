@@ -1,0 +1,79 @@
+{
+  "observed_utc": "2026-11-08T10:12:04.122783+00:00",
+  "reader_sha256": "800b6cbdc57e54619883061813bd9848e3c103ef02aac645ee9fa84e5ef1e21d",
+  "session": 63994,
+  "outer_actual_exit": 1,
+  "outer_completion_sha256": "9a755fecabd75c47aa0b06708d9d2356b09153de517141c1da337651609fd2e7",
+  "capture_completion_sha256": "fa3481fccd7a13b9f320b569c644cf4450f8f61aeddc7bed5de73387a9f37a26",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "diagnostic_git": "426de7baf016e9dfbf54e1188622975fb5dcd8c2",
+  "default_native_actual_exit": 0,
+  "complete_comparisons": [
+    {
+      "file": "recording.acmi",
+      "bytes": 230871,
+      "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "complete_literal_equal": true
+    },
+    {
+      "file": "observations.jsonl",
+      "bytes": 1553674,
+      "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "complete_literal_equal": true
+    },
+    {
+      "file": "metrics.json",
+      "bytes": 7477,
+      "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "complete_literal_equal": true
+    }
+  ],
+  "post_inputs": [
+    {
+      "path": "D:\\EECH-Migration-Evidence\\normal-fire-default-426de-20261108-run\\pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "files": 1179
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\normal-fire-default-426de-20261108-run\\post-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "files": 1179
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\normal-fire-capture-426de-20261108-runs\\01-healthy\\pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "files": 1179
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\normal-fire-capture-426de-20261108-runs\\01-healthy\\post-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "files": 1179
+    }
+  ],
+  "payloads_unchanged": 97,
+  "artifacts_unchanged": {
+    "driver": "6dfd68dff527a271ee1adb5f4c74ff653cf1534fc85f6260394e33d5a2f2b4f4",
+    "collector": "a3704cc9018a771a0222d05beb9948cde43b6de2fd4fee1f64629f6b73a5998e",
+    "transaction": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "contract": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+    "controller": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+    "validator": "f9919158c045e17d6e0f2871bfad8c2feecc25e14c813165c1d7d235dc918e62",
+    "common": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "common_validator": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "input_tool": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+    "input_reference": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4"
+  },
+  "healthy_native_actual_exit": 1,
+  "healthy_report_sha256": "f9b0884dd8157c37c1beb776f8a654057787862c3430e37a27e9b931d5bd48d5",
+  "reason": "runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.callback] runtime error: normal-fire: undrained model entries\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t...108-materialized\\literal\\normal-fire-correlation.lua:95: in function 'fail'\n\t...108-materialized\\literal\\normal-fire-correlation.lua:111: in function 'model_entry'\n\t[string \"D:\\EECH-Migration-Evidence\\normal-fire-426d...\"]:32: in function 'provider'\n\t[string \"eech model bridge\"]:55: in function <[string \"eech model bridge\"]:54>\n\t[C]: in function 'boot'\n\t[string\nstack traceback:\n\t[C]: in function 'boot'\n\t[string \"D:\\EECH-Migration-Evidence\\normal-fire-426d...\"]:99: in function <[string \"D:\\EECH-Migration-Evidence\\normal-fire-426d...\"]:95>\n\t[C]: in function 'xpcall'\n\t[string \"D:\\EECH-Migration-Evidence\\normal-fire-426d...\"]:95: in main chunk\n",
+  "frames": 0,
+  "B_prepared": false,
+  "B_launched": false,
+  "original_process_ids_absent": [
+    20868,
+    21688,
+    15880,
+    23624
+  ],
+  "scope": "Root mechanical binding only: COMPLETE default noninvasiveness and honest boot diagnosticFAIL, NOT UNREACHED/native authority/physical cutover/all10/fullpack/D3 acceptance. Existing default PASS may be reused for unchanged compiled runtime and standard client; do not replay it to fix collector."
+}

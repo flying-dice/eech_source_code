@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "observed_utc": "2026-11-08T09:28:16.587573+00:00",
+  "source": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "plan_sha256": "b97d834efb2f93fa7e9c30cb201301fc75945558a273e0462c6052dfcab73bb3",
+  "review_sha256": "5fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf",
+  "original_outer_session": 86361,
+  "original_outer_actual_exit": 0,
+  "controller_exit": 0,
+  "child_stage_exit": 0,
+  "payloads": 97,
+  "full_three_binary_plus_all94Lua_inventory_verified": true,
+  "BUILD_INFO_sha256": "2a01e93e22635db16e525a5fd073b859344a386bbaa8f9b39964551ccdb9d1b3",
+  "build_log_sha256": "bf9768f3d63bddee611940dacd2fa1003d6601538e4cccfcc50c6c6186ad8639",
+  "profile_sha256": "3cb803db58db8464749f98aa60ded178be2d387e60be1b8cf40bce93a1a028ac",
+  "actual_features": [
+    "normal-fire-correlation",
+    "weapon-fixture"
+  ],
+  "private_symbols_defined_once": 14,
+  "private_DLL_exports_absent": true,
+  "COFF": 5,
+  "staged_source_header_joins": 5,
+  "retained_producer": "44dccd05393090d4846462d2ee20b02c6524819cccdf00925fb98ecab7b20ea6",
+  "retained_features": "881c3a4ac1ab91538b06f8e3bba4e79218a03edf0761141ad880628c84fd00e9",
+  "audit_v1": "actual1 launcher only before script: invalid R alias mount; retained stdout/stderr/completion. V2 physicalCpath actual0, no product rebuild.",
+  "cleanup_sha256": "be6d384a2154ec6590b8104158404254e544e49359039f8269fc42fd8a4730a3",
+  "cache_removed_after_retention_rehash": true,
+  "native_launched": false,
+  "scope": "Actual compiled2fc observer/profile provenance only. Bundled current Lua remains3P2/UNSAFE and unexecuted. Future corrected literals separate with whole product/build/Cargo equivalence; no binary source relabel, physical cutover, native authority or all10 acceptance."
+}

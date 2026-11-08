@@ -4,6 +4,13 @@ local T=assert(loadfile(base..'/physical-flags-read-transaction.lua'))()
 local rf=assert(io.open(retained,'rb'));local real_events=rf:read('*a');rf:close()
 local codec=N.new('retained-real-C',100);codec:feed(1,0,real_events);assert(codec:prefix(1))
 local original=codec:finish();assert(original.births==1 and #original.queries==1) -- replay codec only, no new C execution
+local selector_query=assert(real_events:match('(normal%-ev [^\n]+kind=normal_query [^\n]+)'))
+for _,which in ipairs({'0','1','-1'}) do
+ local line,n=selector_query:gsub('which=0','which='..which,1);assert(n==1 and N.event(line).which==which)
+end
+for _,which in ipairs({'-2','2','-2147483648','2147483647','1.5','garbage','-0'}) do
+ local line=selector_query:gsub('which=0','which='..which,1);assert(not pcall(function()N.event(line)end))
+end
 -- Real reference-provider traffic with the same entity_scan op as the retained
 -- native boot failure; the empty-store RESET is a valid metadata request.
 -- This is boot-shaped private traffic, not a retail/campaign boot claim.
@@ -35,6 +42,11 @@ boot_traffic(long,1,200003);assert(#long:feed(2,100,query_stream(200003,17,2,100
 assert(long:finish().model_calls==200004)
 local split=N.new('partial-drain',100);split:model_entry('entity_scan')
 local stream=query_stream(0,17,1,0);local cut=assert(stream:find('normal%-ev seq=3'))
+for _,which in ipairs({'0','1','-1'}) do
+ local c=N.new('selector-'..which,100);boot_traffic(c,1)
+ local selected_stream,n=stream:gsub('which=0','which='..which,1);assert(n==1)
+ local q=c:feed(1,0,selected_stream);assert(#q==1 and q[1].which==which);c:drained();assert(c:finish().model_calls==1)
+end
 split:feed(1,0,stream:sub(1,cut-1));split:feed(1,0,stream:sub(cut));split:drained();assert(split:finish().model_calls==1)
 local function latch(c,operation,needle)
  local ok,why=pcall(operation);assert(not ok and tostring(why):find(needle,1,true),tostring(why))
@@ -62,7 +74,7 @@ local faults={
  {'detach','flash_present','0'},{'detach','flash_before','0x3f800000'},{'detach','ground','2'},
  {'fire','actual','0x7fc00000,0x00000000,0x3f800000'},{'fire','ready','0'},{'birth','matched','0'},
  {'step','code','8'},{'step','velocity','0x7f800000'},{'step_end','target','eech-world:3'},
- {'step_end','launcher','eech-world:3'},{'step_end','weapon','71'},{'query','which','-1'},
+ {'step_end','launcher','eech-world:3'},{'step_end','weapon','71'},{'query','which','-2'},
  {'query_end','hit_id','eech-world:2'},{'models','seq','6'},{'models','seq','9999'},{'models','seq','garbage'},{'models','op','19'}}
 local function damage(triple)
  local r=K.parse(text);local event=K.unhex(r.evidence[triple[1]])
@@ -293,3 +305,4 @@ local e=assert(io.open(root..'/noncanonical.txt','rb'));local u=K.parse(e:read('
 assert(u.verdict.status=='UNREACHED' and u.counts.failed=='0' and u.counts.births=='1' and u.counts.moving=='0')
 print('normal_session_proof_gates=PASS semantic_faults=25 pre_effect_reference_faults=27 prefix_faults=4 same_cohort_later_healthy_B=2 no_later_and_other_cohort_UNREACHED=2 real_flag_store_calls='..#history..' flag_ACK_faults=3 ACK_failure_precedes_UNREACHED=3 retained_C_codec_births=1 synthetic_transport_healthy_B=2')
 print('boot_retention_controls=PASS real_provider_calls=200036 first_frame_and_next_frame_queries=2 partial_feed=1 drain_faults=2 wrong_op=1 alternating_overflow=1 retired_budget=1 driver_long_boot_healthy_B=2 boot_query_refused_before_frame1=1 continuation_surfaces=6')
+print('signed_query_selector=PASS domains=3 invalid_domains=7 real_provider_contexts=3 selected_cohort_gates_unchanged=1')

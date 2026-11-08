@@ -1,0 +1,186 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T10:29:21.915379+00:00",
+  "reviewer": "SAME independent Task49 reviewer /root/d3_environment_review",
+  "scope": "ONE changed-material review of ENV-NORMAL-FIRE-BOOT-RETENTION-1 and the newly retained default/failed-boot evidence. Prior three source proof gates3c9b/24a9 and two outer gates60c9 are reused unchanged, not reopened.",
+  "source": {
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "source_before": "426de7baf016e9dfbf54e1188622975fb5dcd8c2",
+    "code_commit": "4ceb1006c714ed40a7e9ff2bb2c350cebb50df51",
+    "metadata_HEAD": "56d1b7e31c8e4c4b45ed41f45c0e984ce7bbe6d8",
+    "actual_HEAD_full_clean_status_observed": true,
+    "clean_pushed_actual_FINAL": "Root independently joined actual service FINAL/completed and released cache; no author OS PID/CLI exit fabricated.",
+    "compiled_runtime_reused": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3"
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-NORMAL-FIRE-BOOT-RETENTION-FROZEN-20261108.json",
+      "bytes": 4704,
+      "sha256": "a0e2547f4c86364a5864af33b75aa9cd960f28f94987af26b6550cf9e3ed51b8"
+    },
+    {
+      "path": "R:/d3-evidence/normal-fire-boot-retention-56d1b-Root-binding-20261108.json",
+      "bytes": 1837,
+      "sha256": "6822fa9d916ef8ac5cbb98bd1e83a87aa2229ed3d7d3b8a894468d4ab5217b38"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-normal-fire-boot-retention-fix-20261108-completion.json",
+      "bytes": 1071,
+      "sha256": "01a794e05f1712b7cf311bd5191e4a53ea4cc8e0d760bd380bd9f85aae74a606"
+    },
+    {
+      "path": "R:/d3-evidence/nb426-publication-checkpoint-v2-20261108.json",
+      "bytes": 16978,
+      "sha256": "b67fccb2257b9e4aec6386b05ea5542f6d9a71945b046f743cc00155166ec9a4"
+    },
+    {
+      "path": "R:/d3-evidence/nb426-final-completion-20261108.json",
+      "bytes": 1083,
+      "sha256": "1cbc21a08c87525220c433dfd163a274d4b8c77839dca3fc9475bf6ef18493b5"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/normal-fire-boot-retention/normal-fire-first-native-426de-Root-binding-20261108.json",
+      "bytes": 4574,
+      "sha256": "31446aeb8620aa65a35f7f9a70320731b8335295df7056c0f4eecdabc2f2305b"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+      "bytes": 17240,
+      "sha256": "5b4deb11bae278c5d51c707d707785e4c9386f28c76c761ff46722633ac78848"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+      "bytes": 12684,
+      "sha256": "73b3d2cc847f3274a28067ca79338fa47db50e7fc9181cbc10f21f9c761913aa"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-normal-fire-boot-retention.md",
+      "bytes": 4725,
+      "sha256": "89c4c87948d9fb3b3a02579dcce130f8a7c2782f258ed7e2e5f4a18838b3f128"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua",
+      "bytes": 22209,
+      "sha256": "a32321d7d93573b95a276ab9031433008bd99a270ce3ece951916d96bd139f92"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/test_normal_fire_capture.py",
+      "bytes": 11760,
+      "sha256": "1fb209e15e9d644e8ca75db8a631ba2662cf24fee1b4be62da61c7f6950bc1f9"
+    }
+  ],
+  "findings": [],
+  "finding_disposition": {
+    "id": "ENV-NORMAL-FIRE-BOOT-RETENTION-1",
+    "disposition": "CLOSED_SOURCE",
+    "reason": "Repeated model-provider operations retain exact first/after/op ranges instead of one pending table entry per callback. The explicit complete-drain acknowledgement releases that proof before subsequent callbacks, including the boot-to-first-frame handoff at the same frame/tick. Neither global ordinals nor query op/call/sequence/context checks are reset or bypassed. Actual new native boot remains unrun."
+  },
+  "correctness_clean_code_boundary": [
+    "Every real model entry still increments its global ordinal before unchanged delegation. Same-op runs preserve each ordinal's exact operation; monotonically queried calls advance a cursor through disjoint ordered ranges, and a wrong compressed op cannot satisfy a C query record. Query before bounds cannot refer to already acknowledged/drained ordinals.",
+    "The original100000 retained-record limit remains an explicit budget, now applied to op runs rather than every repeated callback. Arbitrarily long identical-op sequences do not allocate per callback.100001 alternating runs and numeric ordinal overflow fail and latch; compression is not a promise that every future retail boot or arbitrary traffic will fit.",
+    "drained() requires a successful feed at the current model-call boundary and no open fire/step/query. It clears only retained op-run storage and cursor, preserving global call counters, event sequence, cohort history, model roles and overflow/failure state. Early/open-interval ACK or a callback after feed cannot retire needed proof.",
+    "The ACK is the caller's declaration that the existing public Engine::wpn_events loop completed; it is not a new independently certified C drain API. The exact driver invokes it only after wpn_events has returned its complete more==0 stream, feed succeeded and selection completed. Partial feed controls keep proof until closed and acknowledged; no acknowledgement is made from a callback or partial getter chunk.",
+    "Boot delegates/validates real scene and flag effects once and retains their required scene/oracle state, without an all-boot question/answer dictionary. During frames only candidate and relevant GROUP/READ answers are retained for selection; unretained provider operations still participate in the exact C/Lua ordinal join. Selection safely skips non-candidate records and still requires candidate records at actual op16 entries.",
+    "The diagnostic explicitly fails if a completed weapon query appears in the boot drain, before frame1; open boot intervals also cannot drain. It does not silently discard or credit boot queries. This is a declared checked diagnostic restriction, not a universal assertion that legacy boot can never query a weapon.",
+    "No C/product Rust/build/Cargo/ABI, provider result, fire policy, flag/reset/destructive semantics, terrain input, RNG/FPU mode or physical baseline is changed. Current source failure/continuation latches remain in force; wrong-op/overflow/drain failures cannot become clean UNREACHED."
+  ],
+  "actual_affected_controls": {
+    "final_direct_exits": {
+      "s1-profile-census": 0,
+      "s2-python": 0,
+      "s3-fmt": 0,
+      "s4-world-clippy": 0,
+      "s5-session-lua": 0
+    },
+    "original_final_session": 33619,
+    "original_final_outer_actual_exit": 0,
+    "Rust_tests": 2,
+    "Python_tests": 9,
+    "real_reference_provider_calls": 200036,
+    "scope": "Private real reference FlagStore/provider calls; synthetic query framing uses retained original C physical fields. Not a new C/retail/Engine/native boot.",
+    "cases": [
+      "Coherent short real-provider positive before the old100001-call RED101; corrected long boot and first-frame traffic retain exact global ordinals200004 across two query handoffs.",
+      "Partial feed split with complete later join; early/open-interval ACK and late/callback-after-feed ACK refusal; wrong compressed op refusal; alternating-run overflow; budget retirement/reuse. Failure remains identical across six continuation surfaces.",
+      "Long-boot full synthetic healthy/B pair with100001 additional boot calls; independently validated report ordinals above100000; observed boot query explicitly FAIL before frame1.",
+      "Prior25 semantic faults/27 before-output gates/4 common-prefix faults and real reset-oracle16calls/3ACK faults remain covered by the affected Lua test."
+    ],
+    "retained_failures": "Actual old native bootFAIL1 and old collector RED101 remain failed. Intermediate nil-record GREEN attempt101 remains retained. No completed experiment replay or retrospective passing identity is inferred."
+  },
+  "mechanical_provenance": {
+    "Root_binding_actual_exit": 0,
+    "source_rows": 4023,
+    "raw_Git_literal": 4020,
+    "only_historical_uncompiled_Lua_CRLF_GitLF_qualifications": 3,
+    "PRE_POST_literal_equal": true,
+    "stable_extras": 28,
+    "stable_readers": 5,
+    "whole_product_build_Cargo_static_rows_equal_frozen_compiled_2fc": 3816,
+    "additional_producer_configs_equal": 2,
+    "active_artifacts_exact_Git": 10,
+    "publication_manifest_entries": 57,
+    "literal_Git_packet_files": 58,
+    "literal_external_copies": 53,
+    "publication_qualification": "V1 summary inherited stale26/45 counts. V2 reader-only checkpoint correctly records28extras/58files and dict external-copy table53 plus the publication reader. Original summaries/readers/receipts remain retained; no test/build/native replay. All active tested Lua is LF/Git-literal."
+  },
+  "retained_actual_default_and_failed_capture": {
+    "binding_sha256": "31446aeb8620aa65a35f7f9a70320731b8335295df7056c0f4eecdabc2f2305b",
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "diagnostic_used_in_failed_capture": "426de7baf016e9dfbf54e1188622975fb5dcd8c2",
+    "default_native_actual_exit": 0,
+    "default_complete_files_literal_equal_to_3ab_and_80fd": [
+      "recording.acmi",
+      "observations.jsonl",
+      "metrics.json"
+    ],
+    "default_complete_bytes": [
+      230871,
+      1553674,
+      7477
+    ],
+    "input_audits": {
+      "full_1179_observations": 4,
+      "meaning": "pre/post of the default root plus pre/post of the failed healthy root, not four fullpack roots",
+      "each_manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    "payloads_unchanged": 97,
+    "bound_artifacts_unchanged": 10,
+    "healthy_native_actual_exit": 1,
+    "frames": 0,
+    "outer_and_capture_failed": true,
+    "reason": "BOOT callback failed with undrained model entries before frame1. This is FAIL, not UNREACHED.",
+    "B_prepared": false,
+    "B_launched": false,
+    "original_processes_completed_absent_as_bound_by_Root": true,
+    "measurement_limit": "COMPLETE default noninvasiveness is accepted only for the unchanged accepted35-frame/3.5-second standard campaign client/args/config and true2fc observer binary. It does not prove a1500-frame diagnostic native run, natural moving, collision authority or all observer profiles."
+  },
+  "decision": {
+    "status": "BOOT_RETENTION_CLOSED_SOURCE; RETAINED_BUILD_AND_FINITE_DEFAULT_REUSE_ACCEPTED",
+    "bounded_prerequisite_source_accepted": true,
+    "windows_build_clearance_at_prior_scope_unchanged": true,
+    "retained_build_reuse_accepted": true,
+    "retained_default_complete_noninvasiveness_accepted_at_measured_scope": true,
+    "retained_default_reuse_accepted": true,
+    "prior_healthy_failed_boot_reclassified": false,
+    "native_launch_clearance": false,
+    "native_controller_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "loader_removal_clearance": false,
+    "natural_moving_accepted": false,
+    "GenericNativeAcceptance1_closed": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "reuse_and_next_gate": [
+    "Keep compiled source_revision2fc and its97 payloads immutable; the raw whole3816+2 join supports reuse because this correction changes only diagnostics/tests/docs. Do not relabel binaries as4ceb/56d or overwrite old sealed literals.",
+    "The completed standard default comparison may be reused without rerunning it solely for this Lua retention fix: same compiled runtime97payloads, same standard campaign client and accepted args/config remain exact. The old healthy root/output has been consumed by the failed boot and cannot be restarted as fresh evidence.",
+    "Root must separately materialize corrected56d four literals/tools with exact hashes, a NEW fresh healthy root and new output/plan identities, preserving the old failed attempt and B absence. SAME concrete launch review must bind that new plan/controller, complete inputs, reference/bundle/default reuse and positive-first/common-prefix/locked-cohort gates before execution.",
+    "Current exact56d CI is still monitored separately: latest supplied observation loss workflowPASS, campaign/TS running. Prior426 all9 success retains its scope; no current all-green claim or CI-only review loop is made."
+  ],
+  "limits": [
+    "All ten D3 requirements, GenericNative1/blocks_cutover, D3G08, other consumers/lifetimes/FPU/DCS, whole height, current full40/all8/four inputs/census/current CI/formal review/normal merge/Task49/D3/delivery remain open as applicable; prep2 unchanged. No D4/D5/TypeScript or formal GitHub self-approval/merge.",
+    "Both immutable original fullpacks and their original processes remain untouched. Partial prefixes are not completed shipping acceptance. No broad Host-zero/physical hierarchy/native authority/all-platform guarantee follows from these diagnostic controls.",
+    "Reviewer only inspected changed source and retained evidence and wrote this unique external JSON; no test/build/native/controller/cache/Git/source mutation or nested agents."
+  ]
+}

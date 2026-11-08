@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "STOP for SAME named boot/per-frame retention changed-material review: nb426 all5direct0/original33619outer0, PREPOST4023 equal/28extras/5readers, activeGitLF, compiled2fc3816+2 unchanged. Prior3P2closed3c9b/24a9/outer60c9; actual426 defaultCOMPLETEPASS+healthyBOOTFAIL retained; no new native/cutover/all10 closure.",
+  "phase": "STOPforSAME named signed query selector review: nq56 all5direct0/original40574outer0/PREPOST4023 equal/32extras/6readers/GitLF,3816+2compiled2fc unchanged. Real56d1bFAIL1497/Babsent/raw314092 preserved, complete private rawcodecRED1\u2192GREEN0; no newnative/cutover/all10 closure.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "Retain required hosted-only raw TREE/FOREST/CLOUD extraction after its applicable gates;965 discharges finite boot CRT subfact only, removal remains uncleared. Sole open blocks_cutover GenericNative1 first requires natural moving public-path prerequisite/effect proof; D3G08 hierarchy remains separately required, not silently solved by Task50.",
@@ -869,14 +869,22 @@
     },
     {
       "id": "ENV-NORMAL-FIRE-BOOT-RETENTION-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "Actual426 reviewed native healthy bootFAIL beforeframe1: real entity_scan callback crosses100000 undrained model entries; Root31446 binding normal-fire-first-native-426de-Root-binding-20261108.json. Default3COMPLETE PASS reused; B neverprepared.",
+      "evidence": "Actual426 reviewed native healthy bootFAIL beforeframe1: real entity_scan callback crosses100000 undrained model entries; Root31446 binding normal-fire-first-native-426de-Root-binding-20261108.json. Default3COMPLETE PASS reused; B neverprepared.; SAME f0 source/actual defaultreuse accepted; subsequent56d1b actual boot and1496 fullframes succeeded before separate selector defect.",
       "missing_fact": "Bounded collector boot/per-frame retention must preserve every actual provider ordinal/op and full query join without imposing total boot-call count as event capacity; no boot answer dictionary accumulation or previous-frame retention into next callbacks.",
       "next_fix": "Source-backed compact exact op runs plus explicit complete-drain handoff, query-relevant frame answer retention, coherent real-provider boot RED then GREEN and first-frame/partial/fault controls; unchanged2fc reuse; SAME closure before next Root launch."
+    },
+    {
+      "id": "ENV-NORMAL-FIRE-QUERY-SELECTOR-DOMAIN-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Reviewed56d1b real healthy attempt actual1/frame1497; retained normal_query which=-1 rejected by Lua integer domain; B neverprepared/launched. Root offline selected-codec scan normal-fire-56d1b-offline-event-domain-scan-20261108.json.",
+      "missing_fact": "Collector and independent report codec must accept exactly the true signed selector domain {-1,0,1} from ALL real collision-lookup producers while preserving selected cohort/identity/model/semantic/prefix/store gates.",
+      "next_fix": "Trace single WL_COLLISION producer/wf_target_which and all target_which writes; retained complete raw selected-codec RED/GREEN, portable positive/domain-bound negatives; Lua/Python/tests/docs only with unchanged3816+2 compiled2fc/default reuse, one SAME review before future native."
     }
   ],
-  "next_action": "ONE SAME changed-material review of frozen ENV-NORMAL-FIRE-BOOT-RETENTION-1 correction and exact2fc reuse. Root owns later corrected literal/root/plan materialization and separate reviewed launch; no default/control/C replay, runtime relabel, actor/window change or physical cutover.",
+  "next_action": "ONE SAME changed-material review of exact {-1,0,1} selector correction/retained full rawcodec RED-GREEN/inputreuse. Root owns later separately reviewed native/materialization; no default/C/native replay, runtime relabel or actor/window/seed/config changes; GenericNative1/all10 remainOPEN.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -1137,7 +1145,7 @@
     }
   },
   "normal_fire_boot_retention": {
-    "status": "FROZEN_UNREVIEWED_STOP",
+    "status": "CLOSED_SOURCE_SAME_F0",
     "blocker": "ENV-NORMAL-FIRE-BOOT-RETENTION-1",
     "document": "eech-campaign/docs/d3-normal-fire-boot-retention.md",
     "actual_attempt": "normal-fire-first-native-426de-Root-binding-20261108.json",
@@ -1167,6 +1175,40 @@
     "extras_count": 28,
     "sealed_readers": 5,
     "real_provider_calls": 200036,
+    "compiled_product_rows": 3816,
+    "extra_producer_files": 2
+  },
+  "normal_query_selector_correction": {
+    "status": "FROZEN_UNREVIEWED_STOP",
+    "blocker": "ENV-NORMAL-FIRE-QUERY-SELECTOR-DOMAIN-1",
+    "document": "eech-campaign/docs/d3-normal-query-selector.md",
+    "domain": [
+      -1,
+      0,
+      1
+    ],
+    "source": "wn_flight.c soleWL_COLLISION\u2192wf_target_which:!has_target=-1;target_which initial0/only assignment1;wn_move.c forwards lookup->a toNF_QUERY_BEGIN",
+    "actual_terminal_binding": "normal-fire-56d1b-terminal-Root-binding-20261108.json",
+    "retained_raw": "private109435851B/314092NFrecords,lasttick149600,315244totallines; reportedFAIL counterszero arefallback, notzeroactivity",
+    "offline_codec": "fullEOF RED1\u2192GREEN0/313796selected/296normal_end outsidePythonEVENTS;0selectors2,-1selectors6; noobservererrors",
+    "controls": "Lua3valid/7invaliddomains/3real-providercontexts; allcohort/prefix/semantic/retention/flagcontrols unchanged; Python10GREEN",
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "native_launch": false,
+    "physical_cutover": false,
+    "freeze": "R:/d3-evidence/D3-NORMAL-QUERY-SELECTOR-FROZEN-20261108.json",
+    "packet": "eech-campaign/reference/d3-entity-collision/normal-query-selector",
+    "direct_exits": {
+      "s1-profile-census": 0,
+      "s2-python": 0,
+      "s3-fmt": 0,
+      "s4-world-clippy": 0,
+      "s5-session-lua": 0
+    },
+    "source_rows": 4023,
+    "source_fingerprint": "bbd22cf1d59549f06c311268d8d679e9b77ccabd092665043033ffb29ba90006",
+    "extras_count": 32,
+    "sealed_readers": 6,
+    "publication_filter": "2 coordinate-bearing Root originals private/hash-bound; labelled safe projections, extra PUBONLY reader afterPOST; no testsource changes",
     "compiled_product_rows": 3816,
     "extra_producer_files": 2
   }

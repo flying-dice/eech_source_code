@@ -50,11 +50,19 @@ SEMANTIC_FAULTS=[
     ('fire','actual','0x7fc00000,0x00000000,0x3f800000'),('fire','ready','0'),
     ('birth','matched','0'),('step','code','8'),('step','velocity','0x7f800000'),
     ('step_end','target','eech-world:3'),('step_end','launcher','eech-world:3'),('step_end','weapon','71'),
-    ('query','which','-1'),('query_end','hit_id','eech-world:2'),
+    ('query','which','-2'),('query_end','hit_id','eech-world:2'),
     ('models','seq','6'),('models','seq','9999'),('models','seq','garbage'),('models','op','19'),
 ]
 
 class Controls(unittest.TestCase):
+    def test_query_selector_exact_signed_source_domain(self):
+        f=fixture();text=R.unhex(f['evidence']['query'])
+        for which in ('0','1','-1'):
+            line=text.replace('which=0','which='+which);self.assertEqual(R.event(line)['which'],which)
+            r=damage_event(f,'query','which',which);R.validate(emit(r),r['identity'])
+        for which in ('-2','2','-2147483648','2147483647','1.5','garbage','-0'):
+            with self.subTest(which=which),self.assertRaises(ValueError):R.event(text.replace('which=0','which='+which))
+
     def test_boot_ordinals_are_global_not_a_per_frame_call_limit(self):
         f=fixture();R.validate(emit(f),f['identity'])
         offset=100001;f['counts']['model_calls']=str(int(f['counts']['model_calls'])+offset)

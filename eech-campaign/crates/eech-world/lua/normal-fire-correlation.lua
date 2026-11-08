@@ -79,7 +79,7 @@ function M.event(line)
  elseif e.kind=='normal_end' then I('fire',1,9007199254740991);I('births',0)
  elseif e.kind=='normal_step' or e.kind=='normal_step_end' then
   words(e.pose,12,true);words(e.motion,3,true);words(e.velocity,1,true);words(e.lifetime,1,true);I('code',0,7)
- elseif e.kind=='normal_query' then I('which',0);I('before',0,9007199254740991);words(e.segment,6,true)
+ elseif e.kind=='normal_query' then assert(e.which~='-0','query selector grammar');I('which',-1,1);I('before',0,9007199254740991);words(e.segment,6,true)
  elseif e.kind=='normal_model' then I('call',1,9007199254740991);I('op',1,18)
  elseif e.kind=='normal_query_end' then
   I('after',0,9007199254740991);local hit=I('hit',0,1);assert(hit==1 or e.hit_id=='none','miss carries hit identity')
@@ -200,7 +200,7 @@ function M.new(capture,frame_ms)
        step.result=e;steps[#steps+1]=step;step=nil
       end
      elseif e.kind=='normal_query' then
-      e.step=integer(e.step,1,9007199254740991);e.query=integer(e.query,1,9007199254740991);e.w=integer(e.w,1,2147483647);integer(e.which,0,2147483647);words(e.segment,6,true)
+      e.step=integer(e.step,1,9007199254740991);e.query=integer(e.query,1,9007199254740991);e.w=integer(e.w,1,2147483647);integer(e.which,-1,1);words(e.segment,6,true)
       e.before=integer(e.before,model_drained,model_calls)
       if not step or query or e.step~=step.step or e.w~=step.w or e.query<=last_query then error('query context',0) end
       last_query=e.query;e.models={};e.birth=step.birth;e.step_record=step;e.normal_fire=e.birth and fire_records[e.birth.fire] or nil;e.frame=frame;e.capture=capture;query=e
