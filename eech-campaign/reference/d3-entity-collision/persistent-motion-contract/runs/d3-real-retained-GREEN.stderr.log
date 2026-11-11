@@ -1,0 +1,11 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.50s
+     Running tests/normal_fire_session.rs (/target/t/debug/deps/normal_fire_session-1904c73208ef1b9a)
+
+thread 'normal_session_validates_the_whole_reference_before_effects_and_failure_precedes_unreached' (101) panicked at crates/eech-world/tests/normal_fire_session.rs:51:5:
+exit status: 1
+
+Error: RuntimeError("[string \"/tmp/eech-normal-session-codec-100/transpor...\"]:144: assertion failed!\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-normal-session-codec-100/transpor...\"]:144: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-world --test normal_fire_session`

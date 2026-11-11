@@ -8,12 +8,12 @@ import struct
 SCHEMA = {
     'identity': 'schema mode capture runtime bundle driver collector transaction contract reference profile scenario seed frame_ms warmup settle',
     'counts': 'frames fires births steps queries model_calls moving failed changed',
-    'accounting': 'processed decisions outcomes first_query first_code first_frame first_selector first_models first_candidates first_need first_reads first_reasks first_tests first_mode first_registered first_type',
-    'selection': 'frame birth_frame fire detach w step query move_call move_before move_after before after need read carry test launcher birth_target step_target end_target target weapon scene name member group bind key lane word fact pose request reask position motion base ceiling previous current',
+    'accounting': 'processed decisions outcomes first_query first_code first_frame first_selector first_models first_candidates first_need first_reads first_reasks first_tests first_mode first_registered first_type first_birth_frame first_move_frame first_move_call first_latest_call first_later_call first_receipt',
+    'selection': 'query_frame move_frame birth_frame fire detach w step query move_call move_before move_after before after need read carry test launcher birth_target step_target end_target target weapon scene name member group bind key lane word fact pose request reask position motion base ceiling previous current',
     'evidence': 'fire detach birth step query models query_end step_end candidate',
     'verdict': 'status reason',
 }
-CANDIDATE_FIELDS='call scene identity member group bind move_identity move_call move_before move_after mode frame name read_call read_key lane word carry_call carry_identity carry_scene request reask test_call test_identity test_scene test_request pose'
+CANDIDATE_FIELDS='call scene identity member group bind move_identity move_call move_before move_after mode move_frame query_frame name read_call read_key lane word carry_call carry_identity carry_scene request reask test_call test_identity test_scene test_request pose'
 EVENTS = {
     'normal_fire': 'fire launcher target weapon ready actual intercept angle maximum',
     'normal_detach': 'fire detach launcher weapon config package devices burst ammo_before ammo_after visible_before visible_after flash_present flash_before flash_after volume ground pose',
@@ -108,7 +108,8 @@ def accounting(r):
     n={k:uint(v) for k,v in a.items() if k not in ('outcomes','first_selector')}
     check(len(outcomes)==21 and sum(outcomes)==n['decisions'] and n['decisions']>=n['processed'],'accounting outcomes')
     check(a['first_selector'] in ('-1','0','1'),'accounting selector')
-    check(n['first_mode']<=10 and n['first_registered']<=1 and n['first_type']<=2147483647,'accounting tags')
+    check(n['first_receipt']<=5 and n['first_move_frame']<=n['first_frame'] and n['first_birth_frame']<=n['first_frame'],'receipt accounting')
+    check(n['first_mode']<=11 and n['first_registered']<=1 and n['first_type']<=2147483647,'accounting tags')
     check(n['first_tests']<=n['first_reasks']<=n['first_reads']<=n['first_need']<=n['first_candidates']<=n['first_models'],'accounting first chain')
     if not n['processed']:check(all(v==0 for v in n.values()) and a['first_selector']=='0','empty accounting first')
     else:check(n['first_query']>0 and 1<=n['first_code']<=21 and outcomes[n['first_code']-1]>0 and 1<=n['first_frame']<=1500,'accounting first query')
@@ -119,7 +120,7 @@ def validate(raw, expected, healthy=None):
     r = parse(raw); a, c, v = r['identity'], r['counts'], r['verdict']
     check(all(a.get(k) == str(value) for k, value in expected.items()), 'artifact/setup identity')
     check(a['mode'] in ('healthy', 'terrain_lift'), 'mode')
-    fixed = dict(schema='2', profile='reference-hosted', scenario='lebanon_retail', seed='1', frame_ms='100', warmup='30', settle='120')
+    fixed = dict(schema='3', profile='reference-hosted', scenario='lebanon_retail', seed='1', frame_ms='100', warmup='30', settle='120')
     check(all(a[k] == value for k, value in fixed.items()), 'fixed setup')
     check(re.fullmatch('[0-9a-f]{40}', a['runtime']), 'runtime source')
     check(all(re.fullmatch('[0-9a-f]{64}', a[k]) for k in ('bundle', 'driver', 'collector', 'transaction', 'contract')), 'artifact hash')
@@ -138,10 +139,11 @@ def validate(raw, expected, healthy=None):
     check(counts['changed'] == (0 if a['mode'] == 'healthy' else 1), 'input intervention count')
     check(all(counts[k] > 0 for k in ('fires', 'births', 'steps', 'queries', 'model_calls', 'moving')), 'positive traffic')
     check(reason == ('healthy normal cohort' if a['mode'] == 'healthy' else 'same-cohort terrain effect'), 'positive reason')
-    n = {k: uint(s[k]) for k in 'frame birth_frame fire detach w step query move_call move_before move_after before after need read carry test weapon scene member group bind lane'.split()}
-    check(300 < n['birth_frame'] < n['frame'] <= 1500 and n['before'] < n['need'] < n['read'] and n['read'] + 1 == n['carry'] <= n['test'] <= n['after'] <= counts['model_calls'], 'earlier observed birth/window/callback order')
+    n = {k: uint(s[k]) for k in 'query_frame move_frame birth_frame fire detach w step query move_call move_before move_after before after need read carry test weapon scene member group bind lane'.split()}
+    check(300 < n['birth_frame'] < n['query_frame'] <= 1500 and n['before'] < n['need'] < n['read'] and n['read'] + 1 == n['carry'] <= n['test'] <= n['after'] <= counts['model_calls'], 'earlier observed birth/window/callback order')
     check(counts['moving']<=counts['queries'] and n['step']<=counts['steps'] and n['query']<=counts['queries'],'capture count bounds')
     check(all(n[k]>0 for k in ('fire','detach','w','step','query','weapon','scene','member','group','bind')),'positive selected indices')
+    check(n['birth_frame']<n['move_frame']<=n['query_frame'],'completed MOVE after observed birth and before query')
     check(n['move_call']>0 and n['move_before']<=n['move_after']<n['need'],'existing movement callback order')
     check(all(re.fullmatch(r'eech-world:[1-9][0-9]*', s[k]) for k in ('launcher', 'target')) and s['launcher'] != s['target'], 'canonical cohort')
     check(all(s[k]=='none' or re.fullmatch(r'eech-world:[1-9][0-9]*',s[k]) for k in ('birth_target','step_target','end_target')),'target history identity')
@@ -174,7 +176,7 @@ def validate(raw, expected, healthy=None):
     check(f['target']==b['target']==s['birth_target'] and st['target']==s['step_target'] and se['target']==s['end_target'],'immutable target history')
     candidate_text=unhex(e['candidate']);check(candidate_text.startswith('normal-candidate '),'candidate evidence prefix')
     ce=tokens(candidate_text[17:],CANDIDATE_FIELDS)
-    equal=dict(call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',frame='frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose')
+    equal=dict(call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',move_frame='move_frame',query_frame='query_frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose')
     check(all(ce[k]==s[v] for k,v in equal.items()) and ce['mode']=='move','actual physical candidate evidence')
     test_request=words(ce['test_request'],44)
     check(n['scene']<=2147483647,'actual TEST scene native index domain')
@@ -188,13 +190,13 @@ def validate(raw, expected, healthy=None):
     check(uint(f['seq'])<uint(d['seq'])<uint(b['seq'])<uint(st['seq'])<uint(q['seq'])<uint(qe['seq'])<uint(se['seq']), 'C event order')
     check(all(math.isfinite(number(x)) for event in (d,b,st,se) for x in words(event['pose'],12)), 'finite C poses')
     check(all(uint(x['tick']) == (n['birth_frame'] - 1) * 100 for x in (f,d,b)), 'normal birth frame')
-    check(all(x['w'] == s['w'] and x['step'] == s['step'] and uint(x['tick']) == (n['frame']-1)*100 for x in (st,q,qe,se)), 'step/query frame')
+    check(all(x['w'] == s['w'] and x['step'] == s['step'] and uint(x['tick']) == (n['query_frame']-1)*100 for x in (st,q,qe,se)), 'step/query frame')
     check(q['query'] == qe['query'] == s['query'] and q['before'] == s['before'] and qe['after'] == s['after'], 'query interval')
     models = []
     model_text=unhex(e['models']);check(model_text.endswith('\n') and '\n\n' not in model_text,'model framing')
     for line in model_text.splitlines():
         x=event(line);models.append(x)
-        check(x['kind'] == 'normal_model' and all(x[k] == s[k] for k in ('step','query','w')) and uint(x['call']) == n['before']+len(models) and 1 <= uint(x['op']) <= 18 and uint(x['tick']) == (n['frame']-1)*100, 'complete model callback interval')
+        check(x['kind'] == 'normal_model' and all(x[k] == s[k] for k in ('step','query','w')) and uint(x['call']) == n['before']+len(models) and 1 <= uint(x['op']) <= 18 and uint(x['tick']) == (n['query_frame']-1)*100, 'complete model callback interval')
         check(uint(x['seq'])==uint(q['seq'])+len(models) and uint(x['seq'])<uint(qe['seq']),'model sequence envelope')
     check(len(models) == n['after'] - n['before'] > 0, 'model count')
     check(uint(qe['seq'])==uint(q['seq'])+len(models)+1,'query sequence closure')
@@ -202,7 +204,7 @@ def validate(raw, expected, healthy=None):
     if a['mode'] == 'terrain_lift':
         check(healthy is not None and healthy['verdict']['status'] == 'PASS' and healthy['identity']['mode'] == 'healthy', 'healthy first')
         old = healthy['selection']
-        check(all(s[k] == old[k] for k in 'frame birth_frame fire detach w step query launcher birth_target target move_call move_before weapon scene member group bind'.split()), 'same selected cohort')
+        check(all(s[k] == old[k] for k in 'query_frame move_frame birth_frame fire detach w step query launcher birth_target target move_call move_before weapon scene member group bind'.split()), 'same selected cohort')
         check(all(e[k]==healthy['evidence'][k] for k in ('fire','detach','birth')),'paired common prefix')
         check(s['pose'] != old['pose'] and s['position'] != old['position'], 'real pose effect')
     return r

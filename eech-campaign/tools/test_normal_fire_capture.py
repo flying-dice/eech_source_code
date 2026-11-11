@@ -17,7 +17,7 @@ R=module('normal_fire_capture');C=module('normal_fire_capture_controller')
 def encoded(s):return 'h'+s.encode().hex()
 
 def sync_candidate(r):
-    s=r['selection'];equal=dict(call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',frame='frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose')
+    s=r['selection'];equal=dict(call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',move_frame='move_frame',query_frame='query_frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose')
     placed=s['reask'].split(',');placed[43]=placed[27]=placed[31]=placed[35]='0x3f800000'
     row={k:('move' if k=='mode' else ','.join(placed) if k=='test_request' else s[equal[k]]) for k in R.CANDIDATE_FIELDS.split()}
     r['evidence']['candidate']=encoded('normal-candidate '+' '.join(k+'='+row[k] for k in R.CANDIDATE_FIELDS.split()))
@@ -40,12 +40,12 @@ def fixture():
     models='\n'.join(event('normal_model',7+i,step=1,w=1,query=1,call=11+i,op=op) for i,op in enumerate([16,17,16,18,16]))+'\n'
     end=event('normal_query_end',12,step=1,w=1,query=1,after=15,hit=0,hit_id='none')
     step_end=event('normal_step_end',13,step=1,w=1,pose=pose,motion=f'{zero},{zero},{one}',velocity='0x42480000',lifetime='0x4039999a',**common)
-    identity=dict(schema='2',mode='healthy',capture='fixture:healthy',runtime='b'*40,bundle='a'*64,driver='a'*64,collector='a'*64,transaction='a'*64,contract='a'*64,reference='none',profile='reference-hosted',scenario='lebanon_retail',seed='1',frame_ms='100',warmup='30',settle='120')
+    identity=dict(schema='3',mode='healthy',capture='fixture:healthy',runtime='b'*40,bundle='a'*64,driver='a'*64,collector='a'*64,transaction='a'*64,contract='a'*64,reference='none',profile='reference-hosted',scenario='lebanon_retail',seed='1',frame_ms='100',warmup='30',settle='120')
     counts=dict(frames='1500',fires='1',births='1',steps='1',queries='1',model_calls='15',moving='1',failed='0',changed='0')
-    selection={k:'1' for k in R.SCHEMA['selection'].split()};selection.update(frame='302',birth_frame='301',before='10',after='15',need='11',read='12',carry='13',test='15',launcher=common['launcher'],birth_target=common['target'],step_target=common['target'],end_target=common['target'],target=common['target'],move_call='1',move_before='10',move_after='10',weapon='70',scene='1',name=encoded('fixture-scene1'),member='2',group='1',bind='2',key='f1',lane='1',word=zero,fact=one,pose=moving,request=','.join(request),reask=','.join(carry),position='10,100,20',motion='2,0,0',base='100',ceiling='10000',previous='30.100000381469727',current='30.200000762939453')
+    selection={k:'1' for k in R.SCHEMA['selection'].split()};selection.update(query_frame='302',move_frame='302',birth_frame='301',before='10',after='15',need='11',read='12',carry='13',test='15',launcher=common['launcher'],birth_target=common['target'],step_target=common['target'],end_target=common['target'],target=common['target'],move_call='1',move_before='10',move_after='10',weapon='70',scene='1',name=encoded('fixture-scene1'),member='2',group='1',bind='2',key='f1',lane='1',word=zero,fact=one,pose=moving,request=','.join(request),reask=','.join(carry),position='10,100,20',motion='2,0,0',base='100',ceiling='10000',previous='30.100000381469727',current='30.200000762939453')
     evidence={k:encoded(value) for k,value in dict(fire=fire,detach=detach,birth=birth,step=step,query=query,models=models,query_end=end,step_end=step_end).items()}
     outcomes=['0']*21;outcomes[20]='1'
-    account=dict(processed='1',decisions='1',outcomes=','.join(outcomes),first_query='1',first_code='21',first_frame='302',first_selector='0',first_models='5',first_candidates='3',first_need='1',first_reads='1',first_reasks='1',first_tests='1',first_mode='1',first_registered='1',first_type='0')
+    account=dict(processed='1',decisions='1',outcomes=','.join(outcomes),first_query='1',first_code='21',first_frame='302',first_selector='0',first_models='5',first_candidates='3',first_need='1',first_reads='1',first_reasks='1',first_tests='1',first_mode='1',first_registered='1',first_type='0',first_birth_frame='301',first_move_frame='302',first_move_call='1',first_latest_call='1',first_later_call='0',first_receipt='1')
     return sync_candidate(dict(identity=identity,counts=counts,accounting=account,selection=selection,evidence=evidence,verdict=dict(status='PASS',reason=encoded('healthy normal cohort'))))
 
 def damage_event(report,role,field,value):
@@ -70,6 +70,22 @@ SEMANTIC_FAULTS=[
 ]
 
 class Controls(unittest.TestCase):
+    def test_completed_cross_frame_receipt_and_pre_child_refusals(self):
+        f=fixture();f['selection'].update(query_frame='303',move_frame='302',previous='30.2',current='30.3')
+        f['accounting']['first_frame']='303'
+        for role in ('step','query','models','query_end','step_end'):
+            f['evidence'][role]=encoded(R.unhex(f['evidence'][role]).replace('tick=30100','tick=30200'))
+        sync_candidate(f);R.validate(emit(f),f['identity'])
+        with tempfile.TemporaryDirectory(prefix='persistent-pre-child-') as d:
+            p=Path(d)/'healthy.txt';p.write_bytes(emit(f));C.healthy_reference(p,C.sha(p),f['identity'])
+            for key,value in [('move_frame','301'),('move_frame','304'),('query_frame','302'),('move_call','0'),('move_after','11')]:
+                bad=copy.deepcopy(f);bad['selection'][key]=value;sync_candidate(bad);p.write_bytes(emit(bad))
+                with self.subTest(key=key,value=value):
+                    with self.assertRaises(ValueError):C.healthy_reference(p,C.sha(p),f['identity'])
+                    self.assertEqual([x.name for x in Path(d).iterdir()],['healthy.txt'])
+        old=copy.deepcopy(f);old['identity']['schema']='2'
+        with self.assertRaisesRegex(ValueError,'fixed setup'):R.validate(emit(old),old['identity'])
+
     def test_actual_TEST_domain_before_any_child_effect(self):
         f=fixture();R.validate(emit(f),f['identity'])
         # Existing domain accepts signed zero and raw unknown height. These are
@@ -104,7 +120,7 @@ class Controls(unittest.TestCase):
 
     def test_rejection_accounting_is_bounded_and_cannot_credit_a_missing_witness(self):
         f=fixture();R.validate(emit(f),f['identity'])
-        for key,value in [('processed','2'),('first_code','0'),('first_tests','2'),('first_mode','11'),('first_registered','2'),('first_selector','2'),('outcomes',','.join(['0']*21))]:
+        for key,value in [('processed','2'),('first_code','0'),('first_tests','2'),('first_mode','12'),('first_registered','2'),('first_selector','2'),('outcomes',','.join(['0']*21))]:
             bad=copy.deepcopy(f);bad['accounting'][key]=value
             with self.subTest(key=key),self.assertRaises(ValueError):R.validate(emit(bad),f['identity'])
         under=copy.deepcopy(f);under.pop('selection');under.pop('evidence');under['counts']['moving']='0'
@@ -151,7 +167,7 @@ class Controls(unittest.TestCase):
 
     def test_earlier_birth_and_unchanged_common_prefix(self):
         f=fixture();healthy=R.validate(emit(f),f['identity'])
-        same=copy.deepcopy(f);same['selection']['birth_frame']=same['selection']['frame']
+        same=copy.deepcopy(f);same['selection']['birth_frame']=same['selection']['query_frame']
         with self.assertRaisesRegex(ValueError,'earlier observed birth'):R.validate(emit(same),f['identity'])
         b=copy.deepcopy(f);b['identity'].update(mode='terrain_lift',capture='fixture:terrain_lift',reference='c'*64);b['counts']['changed']='1';b['verdict']['reason']=encoded('same-cohort terrain effect')
         s=b['selection'];s['position']='10,600,20'

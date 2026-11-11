@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T13:40:33.934636+00:00",
+  "review_kind": "One new terminal actual-evidence correctness, causality and boundary review; no source or experiment replay",
+  "source_identity": {
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "diagnostic_git": "d2bde13d52377811483b2428e9537036e8db9689",
+    "report_schema": 2,
+    "plan_sha256": "bcedd62654881fd3983f6ee8281a75f6bb3bd9f9bd42aa58ecc1fd21fcc13185",
+    "controller_sha256": "63cb77991bbc1243d0326513448b363a6e588a4f1f4714517f17952b488fa63a",
+    "launch_review_sha256": "1d9dfe9f4b34827b9756cc96b31877f92602c09eecb69163c7fca03016b3161a"
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/public-domain-pde333-terminal-Root-binding-20261108.json",
+      "bytes": 4189,
+      "sha256": "a76e8a65fab31c2e9090af626fda835a61b260474e852763b5a2518b28d906f1"
+    },
+    {
+      "path": "R:/d3-evidence/public-domain-pde333-outer-completion-20261108.json",
+      "bytes": 335,
+      "sha256": "3f67453686d6f3eb3609c2e8acaf70b0aabe25f25bc06fb124f1e630378315bb"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/public-domain-capture-pde333-20261108-runs/completion.json",
+      "bytes": 5953,
+      "sha256": "a3db615fc92e6d3cd54b143ab22fdec4a0e27aa477cd6c9f1b1947dca983074e"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/public-domain-capture-pde333-20261108-runs/01-healthy/capture.txt",
+      "bytes": 1149,
+      "sha256": "7d3955c7e6bc1ee20996eb4e4e8394b089cbea5f34b161b0b402b965481df208"
+    },
+    {
+      "path": "R:/d3-evidence/independent-public-domain-profile-d2bde-source-20261108.json",
+      "bytes": 10176,
+      "sha256": "2dee558ab3e429a822528ed8bd2b22bebd0e924549026becd0d0df15f4fa455d"
+    },
+    {
+      "path": "R:/d3-evidence/independent-public-domain-pde333-materialized-launch-20261108.json",
+      "bytes": 9503,
+      "sha256": "1d9dfe9f4b34827b9756cc96b31877f92602c09eecb69163c7fca03016b3161a"
+    },
+    {
+      "path": "R:/d3-evidence/public-domain-d2bde-all9-CI-readback-20261108.json",
+      "bytes": 3079,
+      "sha256": "ba66057d78bc25b80a5d9c2aeacb76861de6ab259bc758f53fe28612b1aedf14"
+    }
+  ],
+  "findings": [],
+  "actual_execution": {
+    "original_outer_session": 15445,
+    "outer_actual_exit": 0,
+    "controller_pid": 16304,
+    "controller_actual_exit": 0,
+    "native_pid": 6280,
+    "native_actual_exit": 1,
+    "native_completed_utc": "2026-11-08T13:36:37.823944+00:00",
+    "pre_input_actual_exit": 0,
+    "post_input_actual_exit": 0,
+    "controller_verdict": "UNREACHED",
+    "controller_error": null,
+    "report": {
+      "bytes": 1149,
+      "sha256": "7d3955c7e6bc1ee20996eb4e4e8394b089cbea5f34b161b0b402b965481df208",
+      "status": "UNREACHED",
+      "reason": "no eligible normal moving cohort",
+      "frames": 1500,
+      "fires": 297,
+      "births": 297,
+      "step_pairs": 155296,
+      "queries": 26,
+      "provider_calls": 19714996,
+      "moving": 0,
+      "failed": 0,
+      "changed": 0,
+      "selected_evidence_present": false
+    },
+    "B": {
+      "status": "NOT_LAUNCHED_UNREACHED",
+      "root_prepared": false,
+      "output_prepared": false,
+      "native_executed": false
+    },
+    "disposition": "The native nonzero is the reviewed clean UNREACHED contract, not an unexplained accepted native0. Controller/outer0 mean the fixed sequence completed and correctly stopped before B; they do not imply a moving witness. Original PID/birth/argv/stage receipts and final absence are bound by Root; no restart or changed window is evidenced."
+  },
+  "accounting": {
+    "processed_queries": 26,
+    "decisions": 40,
+    "outcomes": {
+      "8_no_lawful_NEED_UPDATED_offer": 24,
+      "9_no_routed_move": 16,
+      "all_other_codes": 0
+    },
+    "first_query": {
+      "query": 1,
+      "frame": 1477,
+      "selector": 0,
+      "model_entries": 504,
+      "candidate_offers": 241,
+      "traversed_NEED": 8,
+      "traversed_READ": 0,
+      "traversed_reask": 0,
+      "traversed_TEST": 0,
+      "observed_move_mode_code": 0,
+      "registered": 1,
+      "registered_type_word": 23
+    },
+    "meaning": "Decision totals include multiple rejected physical candidates inside one query, so40 versus26 is consistent. The sixteen code9 rejections concern absence of the required eligible routed movement snapshot in the diagnostic’s actual callback scope. Mode0 denotes no observed qualifying snapshot, not measured zero motion. No code14 stationary rejection occurred; stationarity is unproved.",
+    "traversal_limit": "The zero first-query READ/reask/TEST counters describe only the predicates traversed before candidate rejection. They do not independently establish zero Core op17/other model traffic or zero physical flag reads. Type23 is a registration word, not proof that its routed callback was delivered at the needed time."
+  },
+  "raw_complete_stream": {
+    "private_path": "D:\\EECH-Migration-Evidence\\public-domain-capture-pde333-20261108-runs\\01-healthy\\capture.txt.events",
+    "bytes": 110076923,
+    "sha256": "1fd73aa2f08338eeeabbcb3500137f884ede4762522233e2284261f26b706898",
+    "Root_complete_EOF_and_consecutive_records": true,
+    "normal_records": 319569,
+    "last_tick_ms": 149900,
+    "event_counts": {
+      "normal_fire": 297,
+      "normal_detach": 297,
+      "normal_birth": 297,
+      "normal_end": 297,
+      "normal_step": 155296,
+      "normal_step_end": 155296,
+      "normal_query": 26,
+      "normal_model": 7737,
+      "normal_query_end": 26
+    },
+    "query_selectors": {
+      "0": 2,
+      "-1": 24
+    },
+    "prior_failed_b502_comparison": "Root directly compared both complete byte streams to both EOF, not merely hashes; exact equality at the same input/runtime/seed/frame/window is retained. Prior b502 failed only at its diagnostic finalization and remains FAILED. Its raw is not a newly accepted baseline.",
+    "noninterference_scope": "Accept equality of this complete captured C event stream. Do not generalize it to all world state, all Host callbacks, physical movement outcomes, recordings, default conformance or new authority. The stream lacks the live movement snapshots needed to answer the remaining timing question.",
+    "reviewer_activity": "Read the terminal report/receipts and Root reader/proof; did not rescan, replay a checker, recompare110MB raw, invoke a validator, or rerun the native capture. Detailed raw remains private."
+  },
+  "provenance_and_boundaries": {
+    "retail_inputs": "Both actual pre/post audits0 and two full1179 input-row manifests match the pinned reference; five engine-written config rows match pre/post and actual final root, independently bound by Root. This is one native root with two observations, not fullpack four-root acceptance.",
+    "immutable_artifacts": "Root rehashed all97 retained runtime2fc payloads and all ten separately materialized artifacts; final identities unchanged. The compiled runtime was not relabeled as diagnosticd2bde. Prior source2dee and launch1d9d findings[] remain accepted only at their scopes.",
+    "completed_current_CI": "Exactd2bde all three workflows/all nine jobs succeeded per bound CI readback ba66057d78bc25b80a5d9c2aeacb76861de6ab259bc758f53fe28612b1aedf14. The earlier e333 five failed jobs remain failed. This is current CI fact, not natural-moving or shipping acceptance.",
+    "processes": "Original outer/controller/native and input child stage identities are retained in original receipts. Root observed no remaining original capture identities. Ongoing3abf fullpack is independent and untouched.",
+    "runtime_checkpoint": "D3-CURRENT still described the capture as running when read; actual terminal receipts supersede that observation. Root owns the next bounded runtime/tracked checkpoint reconciliation; reviewer made no tracking edit."
+  },
+  "decision": {
+    "status": "ACCEPTED_COMPLETE_UNREACHED_EVIDENCE_ONLY",
+    "completed_planned_capture_evidence_accepted": true,
+    "complete_UNREACHED_disposition_accepted": true,
+    "captured_C_stream_noninterference_accepted": true,
+    "moving_witness_accepted": false,
+    "B_counterfactual_accepted": false,
+    "native_launch_clearance": false,
+    "native_controller_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "natural_moving_acceptance": false,
+    "generic_native_acceptance_1_closed": false,
+    "all10_closed": false,
+    "Task49_acceptance": false,
+    "whole_D3_acceptance": false,
+    "delivery_acceptance": false
+  },
+  "remaining_gate": "Establish from the actual routed-vehicle update/Host callback path why an eligible same-frame routed move snapshot is absent at the lawful candidate NEED. This evidence alone does not prove a stationary actor, a hierarchy defect, an absent getter, a callback-order bug or the appropriate fix. Root’s separately assigned bounded source analysis may determine direction; no new implementation or retail replay is authorized by this report.",
+  "limits": [
+    "No source/test/build/native/controller/scanner/checker/cache/Git or process mutation, no nested agents, and no completed experiment replay by reviewer. Only this new immutable report was written.",
+    "No change to actor, target, mode, policy, physical flags, window, motion threshold, seed, frame, bounds, baseline or tolerance; no hunt for a different positive is authorized.",
+    "Earlier boot, selector and phantom-close native failures remain failures. Accepted prior default, flag, height, CoreCRT, old764 fullpack and source proofs are not reopened or promoted to this missing natural-moving gate.",
+    "All ten requirements, GenericNative1/preparation2, wholeheight, finalCURRENT40/all8/four inputs/currentCI/census/normal merge, Task49/D3 and delivery remain open at their own scopes. No D4/D5/TypeScript, formal approval or merge authority."
+  ]
+}

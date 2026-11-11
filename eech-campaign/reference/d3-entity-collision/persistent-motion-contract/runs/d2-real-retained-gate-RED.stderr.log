@@ -1,0 +1,53 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.73s
+     Running tests/normal_fire_session.rs (/target/t/debug/deps/normal_fire_session-1904c73208ef1b9a)
+
+thread 'normal_session_validates_the_whole_reference_before_effects_and_failure_precedes_unreached' (102) panicked at crates/eech-world/tests/normal_fire_session.rs:51:5:
+exit status: 1
+normal_session_proof_gates=PASS semantic_faults=25 pre_effect_reference_faults=27 prefix_faults=4 same_cohort_later_healthy_B=2 no_later_and_other_cohort_UNREACHED=2 real_flag_store_calls=16 flag_ACK_faults=3 ACK_failure_precedes_UNREACHED=3 retained_C_codec_births=1 synthetic_transport_healthy_B=2
+boot_retention_controls=PASS real_provider_calls=200036 first_frame_and_next_frame_queries=2 partial_feed=1 drain_faults=2 wrong_op=1 alternating_overflow=1 retired_budget=1 driver_long_boot_healthy_B=2 boot_query_refused_before_frame1=1 continuation_surfaces=6
+signed_query_selector=PASS domains=3 invalid_domains=7 real_provider_contexts=3 selected_cohort_gates_unchanged=1
+public_session_contract=PASS phantom_close_removed=1 no_getter_after_failure=1 real_flags_scanned_candidate_healthy_B=2 separate_target_histories=1 candidate_registration_flag_pose_faults=4 stationary_and_other_mode_UNREACHED=2 locked_candidate_no_fallback=1 bounded_numeric_accounting=1
+actual_TEST_domain=PASS raw_UPDATED_positives=4 raw_unknown_height_preserved=1 single_field_domain_faults=4 before_output_prepare_boot=4 real_transaction_domain=1
+existing_move_causality=PASS late_move_UNREACHED=1 repeated_and_overwritten_healthy_B=4 wrong_late_or_identity_B_before_effect=2 actual_all_callback_ordinal=1 immutable_at_NEED=1
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+Error: RuntimeError("[string \"/tmp/eech-normal-session-codec-101/transpor...\"]:473: real retained-state consumer must qualify: ...mpaign/crates/eech-world/lua/normal-fire-session.lua:201: normal-fire-session: UNREACHED: fixed window has no eligible cohort UNREACHED\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-normal-session-codec-101/transpor...\"]:473: in function 'persistent_run'\n\t[string \"/tmp/eech-normal-session-codec-101/transpor...\"]:476: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-world --test normal_fire_session`

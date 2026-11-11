@@ -1,0 +1,11 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-11T00:23:25.522523+00:00",
+  "qualification": "Actual existing service agent reported successful tool execution and retook sole source/Linux9d cache; not OS PID/CLIexit",
+  "source_before": "d2bde13d52377811483b2428e9537036e8db9689",
+  "scope": "Continue preserved persistent-motion fixture repair then authorized ledger213 schema3 correction and concrete production progress. Claude desired Fable/Opus still auth-expired; fallback explicitly disclosed. No new retail/default/build replay."
+}

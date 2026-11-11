@@ -1,3 +1,4 @@
+local actual_bind,actual_move=host.bind_mobile,host.move_vehicle
 local K=assert(loadfile(base..'/normal-fire-session-contract.lua'))()
 local N=assert(loadfile(base..'/normal-fire-correlation.lua'))();K.event=N.event
 local T=assert(loadfile(base..'/physical-flags-read-transaction.lua'))()
@@ -108,7 +109,7 @@ for _,fault in ipairs({{text,21,'0x40400000','candidate invalid UPDATED state'},
  domain_references[#domain_references+1]=bad
 end
 for _,pair in ipairs({{'target=eech%-world:2','target=eech-world:3'},{'carry=13','carry=14'},{'failed=0','failed=1'},{'frames=1500','frames=1499'},{'position=10,100,20','position=11,100,20'}}) do
- local bad,n=text:gsub(pair[1],pair[2],1);assert(n==1 and not pcall(function()K.healthy(K.parse(bad),{},T)end))
+ local bad,n=text:gsub(' '..pair[1]..' ',' '..pair[2]..' ',1);assert(n==1 and not pcall(function()K.healthy(K.parse(bad),{},T)end))
 end
 local calls={prepare=0,boot=0,frame=0,clock=0,events=0,output=0};local fatal=false
 package.preload.eech_dc=function()return {
@@ -129,6 +130,10 @@ local ok,why=pcall(assert(loadfile(base..'/normal-fire-session.lua')))
 assert(not ok and tostring(why):find('output touched',1,true) and calls.output==1 and calls.prepare==0)
 calls.output=0
 local references={damaged,same_frame}
+for i,pair in ipairs({{'move_frame=302','move_frame=301'},{'move_frame=302','move_frame=303'},{'move_call=1','move_call=0'},{'move_after=10','move_after=11'}}) do
+ local bad,n=text:gsub(' '..pair[1]..' ',' '..pair[2]..' ',1);assert(n==1)
+ local path=root..'/receipt-domain-'..i..'.txt';local file=assert(io.open(path,'wb'));assert(file:write(bad));assert(file:close());references[#references+1]=path
+end
 for i,bad in ipairs(domain_references) do
  local path=root..'/TEST-domain-'..i..'.txt';local file=assert(io.open(path,'wb'));assert(file:write(bad));assert(file:close());references[#references+1]=path
 end
@@ -367,7 +372,7 @@ end
 prefix_fault=nil;same_live=true;host.args=args('healthy','/same-cohort-later.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/same-cohort-later.txt','rb'));local later=e:read('*a');local r=K.parse(later);e:close()
-assert(K.healthy(r,{},T) and r.selection.frame=='303' and r.selection.birth_frame=='302' and r.selection.w=='1')
+assert(K.healthy(r,{},T) and r.selection.query_frame=='303' and r.selection.birth_frame=='302' and r.selection.w=='1')
 host.args=args('terrain_lift','/same-cohort-later-B.txt',root..'/same-cohort-later.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/same-cohort-later-B.txt','rb'));local b=K.parse(e:read('*a'));e:close()

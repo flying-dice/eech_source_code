@@ -1,0 +1,16 @@
+{
+  "ledger_version": 213,
+  "prior_ledger_chars": 601232,
+  "entire_prior_ledger_literal": true,
+  "new_section_literal_after_generated_ids": true,
+  "all_five_report_wrappers_literal": true,
+  "jira_comment": "11023",
+  "jira_prior_literal": true,
+  "jira_new_section_literal": true,
+  "PR_open_draft": true,
+  "PR_head": "d2bde13d52377811483b2428e9537036e8db9689",
+  "PR_body_literal_prefix": true,
+  "current_CI": "d2bdeALL9SUCCESS",
+  "terminal": "def6 accepts COMPLETE_UNREACHED/observedrawstreamnoninterferenceONLY, moving0/Babsent/all10open",
+  "lead_decision": "Source-backed persistent completedMOVE receipt+allwriterinvalidation+immutableNEED+separateframes+exactalreadyobservedbirthprefix before500m effect. Cheap real controls/source review before separate future materializedreview. No new native."
+}

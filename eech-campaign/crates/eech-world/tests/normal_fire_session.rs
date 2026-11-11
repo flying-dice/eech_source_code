@@ -1,6 +1,9 @@
 //! Portable Lua gate/oracle controls. Engine/reference reports are explicitly
 //! synthetic transport data; retained real C events keep their original scope.
 use std::process::Command;
+#[allow(clippy::expect_used, clippy::indexing_slicing)]
+#[path = "support/model_root.rs"]
+mod model_root;
 
 #[test]
 fn normal_session_validates_the_whole_reference_before_effects_and_failure_precedes_unreached() {
@@ -27,14 +30,16 @@ fn normal_session_validates_the_whole_reference_before_effects_and_failure_prece
     std::fs::write(&retained_file, events).unwrap();
     let path = |p: &std::path::Path| format!("{:?}", p.to_string_lossy().replace('\\', "/"));
     let lua = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lua");
+    let model = model_root::Root::minimal();
     let prelude = format!(
-        "local base={};local positive={};local damaged={};local same_frame={};local retained={};local root={}\n",
+        "local base={};local positive={};local damaged={};local same_frame={};local retained={};local root={};local modelroot={}\n",
         path(&lua),
         path(&positive),
         path(&damaged),
         path(&same_frame),
         path(&retained_file),
-        path(&root)
+        path(&root),
+        path(&model.dir)
     );
     let script = prelude + include_str!("lua/normal-fire-session-control.lua");
     let file = root.join("transport.lua");
@@ -45,4 +50,38 @@ fn normal_session_validates_the_whole_reference_before_effects_and_failure_prece
     println!("{stdout}\n{stderr}");
     assert!(result.status.success(), "{}\n{stdout}\n{stderr}", result.status);
     assert!(stdout.contains("normal_session_proof_gates=PASS"));
+    // Fresh real reference host per healthy/B case: no identity/global reset.
+    let reference = root.join("persistent-healthy.txt");
+    for mode in [
+        "healthy",
+        "B",
+        "stop",
+        "place",
+        "routed_vector",
+        "retire",
+        "invalid",
+        "bind",
+        "prebirth",
+        "boot",
+        "future",
+        "wrong",
+        "unrelated",
+        "repeat",
+    ] {
+        let prelude = format!(
+            "local base={};local positive={};local root={};local modelroot={};local CASE={mode:?};local reference={}\n",
+            path(&lua),
+            path(&positive),
+            path(&root),
+            path(&model.dir),
+            path(&reference)
+        );
+        let file = root.join(format!("persistent-{mode}.lua"));
+        std::fs::write(&file, prelude + include_str!("lua/normal-fire-persistent-control.lua")).unwrap();
+        let result = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&file).output().unwrap();
+        let out = String::from_utf8_lossy(&result.stdout);
+        let err = String::from_utf8_lossy(&result.stderr);
+        println!("persistent {mode}: {out}\n{err}");
+        assert!(result.status.success(), "persistent {mode}: {out}\n{err}");
+    }
 }

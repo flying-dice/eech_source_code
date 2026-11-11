@@ -3,12 +3,12 @@ local K={}
 K.schemas={
  identity='schema mode capture runtime bundle driver collector transaction contract reference profile scenario seed frame_ms warmup settle',
  counts='frames fires births steps queries model_calls moving failed changed',
- accounting='processed decisions outcomes first_query first_code first_frame first_selector first_models first_candidates first_need first_reads first_reasks first_tests first_mode first_registered first_type',
- selection='frame birth_frame fire detach w step query move_call move_before move_after before after need read carry test launcher birth_target step_target end_target target weapon scene name member group bind key lane word fact pose request reask position motion base ceiling previous current',
+ accounting='processed decisions outcomes first_query first_code first_frame first_selector first_models first_candidates first_need first_reads first_reasks first_tests first_mode first_registered first_type first_birth_frame first_move_frame first_move_call first_latest_call first_later_call first_receipt',
+ selection='query_frame move_frame birth_frame fire detach w step query move_call move_before move_after before after need read carry test launcher birth_target step_target end_target target weapon scene name member group bind key lane word fact pose request reask position motion base ceiling previous current',
  evidence='fire detach birth step query models query_end step_end candidate',
  verdict='status reason'
 }
-K.candidate_fields='call scene identity member group bind move_identity move_call move_before move_after mode frame name read_call read_key lane word carry_call carry_identity carry_scene request reask test_call test_identity test_scene test_request pose'
+K.candidate_fields='call scene identity member group bind move_identity move_call move_before move_after mode move_frame query_frame name read_call read_key lane word carry_call carry_identity carry_scene request reask test_call test_identity test_scene test_request pose'
 function K.candidate_row(row)
  local out={'normal-candidate'};local allowed={}
  for key in K.candidate_fields:gmatch('%S+') do assert(row[key]~=nil,'candidate missing '..key);allowed[key]=true;out[#out+1]=key..'='..tostring(row[key]) end
@@ -73,7 +73,8 @@ function K.accounting(r)
  assert(#counts==21 and total==K.uint(a.decisions) and K.uint(a.decisions)>=K.uint(a.processed),'accounting outcomes')
  for k,v in pairs(a) do if k~='outcomes' and k~='first_selector' then K.uint(v) end end
  assert(a.first_selector=='-1' or a.first_selector=='0' or a.first_selector=='1','accounting selector')
- assert(tonumber(a.first_mode)<=10 and tonumber(a.first_registered)<=1 and tonumber(a.first_type)<=2147483647,'accounting tags')
+ assert(tonumber(a.first_receipt)<=5 and tonumber(a.first_move_frame)<=tonumber(a.first_frame) and tonumber(a.first_birth_frame)<=tonumber(a.first_frame),'receipt accounting')
+ assert(tonumber(a.first_mode)<=11 and tonumber(a.first_registered)<=1 and tonumber(a.first_type)<=2147483647,'accounting tags')
  assert(tonumber(a.first_candidates)<=tonumber(a.first_models) and tonumber(a.first_need)<=tonumber(a.first_candidates) and tonumber(a.first_reads)<=tonumber(a.first_need) and tonumber(a.first_reasks)<=tonumber(a.first_reads) and tonumber(a.first_tests)<=tonumber(a.first_reasks),'accounting first chain')
  if a.processed=='0' then
   for k,v in pairs(a) do if k~='outcomes' then assert(v=='0','empty accounting first') end end
@@ -88,7 +89,7 @@ function K.validate(r,expected,T)
  for k,v in pairs(expected) do assert(a[k]==tostring(v),'reference identity '..k) end
  assert(a.mode=='healthy' or a.mode=='terrain_lift','mode')
  assert((a.mode=='healthy' and a.reference=='none') or (a.mode=='terrain_lift' and #a.reference==64 and a.reference:match('^[0-9a-f]+$')),'reference')
- assert(a.schema=='2' and a.profile=='reference-hosted' and a.scenario=='lebanon_retail' and a.seed=='1' and a.frame_ms=='100' and a.warmup=='30' and a.settle=='120','fixed setup')
+ assert(a.schema=='3' and a.profile=='reference-hosted' and a.scenario=='lebanon_retail' and a.seed=='1' and a.frame_ms=='100' and a.warmup=='30' and a.settle=='120','fixed setup')
  assert(#a.capture>=1 and #a.capture<=128 and a.capture:match('^[%w_.:-]+$'),'capture identity')
  for _,k in ipairs({'runtime'}) do assert(#a[k]==40 and a[k]:match('^[0-9a-f]+$'),'source identity') end
  for _,k in ipairs({'bundle','driver','collector','transaction','contract'}) do assert(#a[k]==64 and a[k]:match('^[0-9a-f]+$'),'artifact identity') end
@@ -98,8 +99,9 @@ function K.validate(r,expected,T)
  assert(r.verdict.status=='PASS' and K.unhex(r.verdict.reason)==(a.mode=='healthy' and 'healthy normal cohort' or 'same-cohort terrain effect'),'positive required')
  assert(s and e,'positive witness missing')
  for _,k in ipairs({'fires','births','steps','queries','model_calls','moving'}) do assert(K.uint(c[k])>0,'missing traffic '..k) end
- for _,k in ipairs({'frame','birth_frame','fire','detach','w','step','query','move_call','move_before','move_after','before','after','need','read','carry','test','weapon','scene','member','group','bind','lane'}) do K.uint(s[k]) end
- assert(tonumber(s.birth_frame)>300 and tonumber(s.birth_frame)<tonumber(s.frame) and tonumber(s.frame)<=1500,'earlier observed birth/window')
+ for _,k in ipairs({'query_frame','move_frame','birth_frame','fire','detach','w','step','query','move_call','move_before','move_after','before','after','need','read','carry','test','weapon','scene','member','group','bind','lane'}) do K.uint(s[k]) end
+ assert(tonumber(s.birth_frame)<tonumber(s.move_frame) and tonumber(s.move_frame)<=tonumber(s.query_frame),'completed MOVE after observed birth and before query')
+ assert(tonumber(s.birth_frame)>300 and tonumber(s.birth_frame)<tonumber(s.query_frame) and tonumber(s.query_frame)<=1500,'earlier observed birth/window')
  assert(tonumber(c.moving)<=tonumber(c.queries) and tonumber(s.step)<=tonumber(c.steps) and tonumber(s.query)<=tonumber(c.queries),'capture count bounds')
  for _,k in ipairs({'fire','detach','w','step','query','weapon','scene','member','group','bind'}) do assert(tonumber(s[k])>=1,'positive selected '..k) end
  assert(tonumber(s.move_call)>0 and tonumber(s.move_before)<=tonumber(s.move_after) and tonumber(s.move_after)<tonumber(s.need),'existing movement callback order')
@@ -136,13 +138,13 @@ function K.validate(r,expected,T)
  for _,x in ipairs({f,b,st,se}) do assert(x.launcher==s.launcher and x.weapon==s.weapon,'cohort evidence') end
  assert(f.target==s.birth_target and b.target==s.birth_target and st.target==s.step_target and se.target==s.end_target,'immutable target history')
  local ce=tokens(assert(events.candidate:match('^normal%-candidate (.+)$'),'candidate evidence prefix'));assert(K.candidate_row(ce)==events.candidate,'candidate evidence grammar')
- local equal={call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',frame='frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose'}
+ local equal={call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',move_frame='move_frame',query_frame='query_frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose'}
  for key,selected in pairs(equal) do assert(ce[key]==s[selected],'actual physical candidate '..key) end;assert(ce.mode=='move','supported routed candidate')
  local test_q=assert(T.request(tonumber(ce.test_scene),nil,nil,nil,ce.test_request..' '..ce.test_identity,K.patterns));assert(not T.answer(test_q,{result='test',name=name,p=ce.pose},{[test_q.scene]=name},K.patterns),'actual TEST request')
- for _,x in ipairs({st,qev,qe,se}) do assert(x.w==s.w and x.step==s.step and tonumber(x.tick)==(tonumber(s.frame)-1)*100,'frame evidence') end
+ for _,x in ipairs({st,qev,qe,se}) do assert(x.w==s.w and x.step==s.step and tonumber(x.tick)==(tonumber(s.query_frame)-1)*100,'frame evidence') end
  assert(qev.query==s.query and qe.query==s.query and qev.before==s.before and qe.after==s.after,'query bounds')
  assert(events.models:sub(-1)=='\n' and not events.models:find('\n\n'),'model framing')
- local count=0;local calls={};for line in events.models:gmatch('[^\n]+') do K.event(line);local x=tokens(assert(line:match('^normal%-ev (.+)$')));count=count+1;assert(x.kind=='normal_model' and x.w==s.w and x.step==s.step and x.query==s.query and tonumber(x.call)==tonumber(s.before)+count and tonumber(x.tick)==(tonumber(s.frame)-1)*100,'provider interval');assert(tonumber(x.seq)==tonumber(qev.seq)+count and tonumber(x.seq)<tonumber(qe.seq),'model sequence envelope');calls[x.call]=x.op end
+ local count=0;local calls={};for line in events.models:gmatch('[^\n]+') do K.event(line);local x=tokens(assert(line:match('^normal%-ev (.+)$')));count=count+1;assert(x.kind=='normal_model' and x.w==s.w and x.step==s.step and x.query==s.query and tonumber(x.call)==tonumber(s.before)+count and tonumber(x.tick)==(tonumber(s.query_frame)-1)*100,'provider interval');assert(tonumber(x.seq)==tonumber(qev.seq)+count and tonumber(x.seq)<tonumber(qe.seq),'model sequence envelope');calls[x.call]=x.op end
  assert(count==tonumber(s.after)-tonumber(s.before) and count>0,'complete provider interval')
  assert(tonumber(qe.seq)==tonumber(qev.seq)+count+1,'query sequence closure')
  assert(calls[s.need]=='16' and calls[s.read]=='17' and calls[s.carry]=='16' and calls[s.test]=='16','callback roles')
@@ -157,7 +159,7 @@ end
 function K.paired(r,healthy)
  assert(healthy.identity.mode=='healthy' and healthy.verdict.status=='PASS','healthy first')
  for _,k in ipairs({'fire','detach','birth'}) do assert(r.evidence[k]==healthy.evidence[k],'paired common '..k..' prefix differs') end
- for _,k in ipairs({'frame','birth_frame','fire','detach','w','step','query','launcher','birth_target','target','move_call','move_before','weapon','scene','member','group','bind'}) do assert(r.selection[k]==healthy.selection[k],'paired identity '..k) end
+ for _,k in ipairs({'query_frame','move_frame','birth_frame','fire','detach','w','step','query','launcher','birth_target','target','move_call','move_before','weapon','scene','member','group','bind'}) do assert(r.selection[k]==healthy.selection[k],'paired identity '..k) end
  assert(r.selection.pose~=healthy.selection.pose and r.selection.position~=healthy.selection.position,'paired pose effect')
  return true
 end

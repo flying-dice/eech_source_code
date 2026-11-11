@@ -1,0 +1,100 @@
+{
+  "utc": "2026-11-11T00:35:04.286028+00:00",
+  "source_before": "d2bde13d52377811483b2428e9537036e8db9689",
+  "source_rows": 4024,
+  "source_fingerprint": "b21d33f30b93fe20cb32a2a625376f8dbae93fc08344aacd6db73c834b7df0fa",
+  "readers": {
+    "run-normal-fire-pmd2bde-direct-20261108.py": "6fb5efe277df5b831d3ef22193bd66599bcc07c075e2f700f27611e0c6738d71",
+    "check-normal-fire-pmd2bde-linux-20261108.sh": "1d03811ed2e007627390749b21099e396b0be4b734365aba7218e85c832f5469",
+    "run-pmd2bde-final-20261108.py": "c0619e90f0198630bcf022010c4078a068b13ce7d5f64fb09a36f03260fefe20",
+    "pmd2bde-proof-20261108.py": "fa681bfc15532e0f21f09fd7523bc7a85eecfd2a888fd6268b8e7d252333b2e5",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "extras_count": 30,
+  "direct_exits": {
+    "s1-python": 0,
+    "s2-fmt": 0,
+    "s3-clippy": 0,
+    "s4-session-lua": 0
+  },
+  "Rust_tests": 1,
+  "Python_tests": 14,
+  "real_reference_host_cases": [
+    "healthy",
+    "B",
+    "stop",
+    "place",
+    "routed_vector",
+    "retire",
+    "invalid",
+    "bind",
+    "prebirth",
+    "boot",
+    "future",
+    "wrong",
+    "unrelated",
+    "repeat"
+  ],
+  "real_collaborator_scope": "Actual movement/SharedMovers/model/FlagStore; synthetic Engine/C-event transport only, fresh process per case; not retail boot/fire authority",
+  "report_schema": 3,
+  "receipt_provenance_states": 6,
+  "receipt_reference_Lua_faults": 4,
+  "receipt_reference_Python_faults": 5,
+  "reuse": {
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "prior_raw_map_sha256": "ef65bae49d091f82d159c9575fce7e1cb7a4448a22bf5afd8fc38ab9d4fd0479",
+    "whole_relevant_product_build_Cargo_static_rows": 3815,
+    "cfg_test_raw_exception": {
+      "path": "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+      "before_sha256": "16bc4fc41e4bccfad76acb0c06d4ac8284ea721f1a4a1fbf31cec68af21fd0b5",
+      "current_sha256": "603af48ea5ac8bb69ab1e37b9b85df505d4fbd184a871f723adc723bb6783001",
+      "cfg_test_importer": "eech-campaign/crates/eech-dc/src/module.rs",
+      "importer_raw_sha256": "d39bcab66d7324a4f3102b01f2c51b98de1b24dea641f90c68e048951ca0cfc1",
+      "production_excluded": true,
+      "old_test_body_literal_unchanged": true
+    },
+    "product_map_sha256": "0f8c5314764725d4d947cd5ba03241248f6c50cd38c6db1923569ea662357237",
+    "extra_producer_files": {
+      "eech-campaign/.cargo/config.toml": "19ecec09029c9181db4046ceef51e86fb10feadba3fb56e535e8eb6e700eafde",
+      "tools/generate_bitmap.py": "2cdb23ba3646286cd593fa1a9800d6f1458e8f3aca12055b16f6ed8b66f9d582"
+    },
+    "unchanged_prior_raw_rows": 4016,
+    "changed_prior_test_or_Lua_rows": [
+      "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+      "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-positive.txt",
+      "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-same-frame.txt",
+      "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua",
+      "eech-campaign/crates/eech-world/tests/normal_fire_session.rs"
+    ],
+    "artifacts": {
+      "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "5210f4328136e6fc38eb64d36ede6949766461559ba071aaa870dbe91fb4248c",
+      "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "0381bd8a3725bae9d35fa3f3148a24c692548fadc961c2a94abdf10a3a354ddf",
+      "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "e62fb66c11392b0a507324a1a5871a2ad060c651795f777c8c5e8782e475ab11",
+      "eech-campaign/tools/normal_fire_capture.py": "2255aafdff6d70dbe09cea820111749a6195117e7e66ad4f4ea464cc5df79771",
+      "eech-campaign/tools/normal_fire_capture_controller.py": "fd7b3ebcb001821ed17f2a30a5b6e9fbb06808f90fa04e3331a53b4edebcd980",
+      "eech-campaign/tools/test_normal_fire_capture.py": "efc1d7df7b46dbe1c3e048d82703cef9abf4a59dc748b919bed312762d7f1876",
+      "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+      "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+      "eech-campaign/docs/d3-public-session-finalization.md": "65375b1a6a044f59d057dfb4153c247148b727d317a979399bfb86644b5aa6bc",
+      "eech-campaign/crates/eech-world/tests/normal_fire_session.rs": "fcf29b4a67616215a583507af5bb51e138e0b870c228a77efa9cd5e357abb6f8",
+      "eech-campaign/crates/eech-world/tests/lua/normal-fire-persistent-control.lua": "2329fa73348adafcbb591a60c68e9ee5053929fd502ab6ca16a7b369c157ab40"
+    },
+    "scope": "All3815 product/build/Cargo/static rows unchanged; one existing cfg(test)-excluded raw source exception is explicit. Exact2fc runtime retains its source identity and97 unchanged payloads, including unsafe unexecuted old Lua. Four corrected literals/validator/controller are separate. Accepted prior C controls reused at their original scope; retained C bytes are codec replay only."
+  },
+  "maps": {
+    "PRE": {
+      "path": "R:\\d3-evidence\\pmd2bde-inputmap-PRE-20261108.json",
+      "sha256": "7b47736eb0e3e5d7bd30814498c119cb7f62e6d9d6fc02b03d68897a83e3d356"
+    },
+    "POST": {
+      "path": "R:\\d3-evidence\\pmd2bde-inputmap-POST-20261108.json",
+      "sha256": "7b47736eb0e3e5d7bd30814498c119cb7f62e6d9d6fc02b03d68897a83e3d356"
+    }
+  },
+  "old_development": "d1 setup101; d2 genuine oldsameframe diagnosticRED101; d3/d4 schema/fixture errors101; d8 mutant anchor fixture101. All raw retained.",
+  "reused": "Closed schema2 source2dee and COMPLETE_UNREACHED def6 retain finite scopes; fixed producer census67/2/facade and old C matrices reused without replay.",
+  "scope": "Persistent completed-MOVE diagnostic correction underlead213/214 UNREVIEWED. TerrainB/prefix/firstpair unchanged; schema2 history literal. No runtime/C/default/Windows/native replay or root/cutover/all10 closure; Root agent completion separate."
+}

@@ -1,0 +1,111 @@
+{
+  "observed_utc": "2026-11-08T13:36:54.189322+00:00",
+  "reader_sha256": "d28f8bde1bb793bed4045feb804f1a03ea2c1e7bbbead69aec0c4439c8c9a914",
+  "outer_actual_exit": 0,
+  "controller_actual_exit": 0,
+  "controller_verdict": "UNREACHED",
+  "controller_error": null,
+  "plan_sha256": "bcedd62654881fd3983f6ee8281a75f6bb3bd9f9bd42aa58ecc1fd21fcc13185",
+  "controller_sha256": "63cb77991bbc1243d0326513448b363a6e588a4f1f4714517f17952b488fa63a",
+  "launch_review_sha256": "1d9dfe9f4b34827b9756cc96b31877f92602c09eecb69163c7fca03016b3161a",
+  "completion_sha256": "a3db615fc92e6d3cd54b143ab22fdec4a0e27aa477cd6c9f1b1947dca983074e",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "diagnostic_git": "d2bde13d52377811483b2428e9537036e8db9689",
+  "payloads_final_unchanged": 97,
+  "artifacts_final_unchanged": 10,
+  "stages": [
+    {
+      "label": "pre-inputs",
+      "state": "terminal",
+      "pid": 1260,
+      "created_utc": "2026-11-08T13:11:34.866810+00:00",
+      "actual_exit": 0
+    },
+    {
+      "label": "native",
+      "state": "terminal",
+      "pid": 6280,
+      "created_utc": "2026-11-08T13:11:35.920855+00:00",
+      "actual_exit": 1
+    },
+    {
+      "label": "post-inputs",
+      "state": "terminal",
+      "pid": 6708,
+      "created_utc": "2026-11-08T13:36:37.840514+00:00",
+      "actual_exit": 0
+    }
+  ],
+  "cases": [
+    {
+      "mode": "healthy",
+      "native_actual_exit": 1,
+      "status": "UNREACHED",
+      "report_sha256": "7d3955c7e6bc1ee20996eb4e4e8394b089cbea5f34b161b0b402b965481df208",
+      "event_bytes": 110076923,
+      "event_sha256": "1fd73aa2f08338eeeabbcb3500137f884ede4762522233e2284261f26b706898",
+      "complete_raw_EOF": true,
+      "consecutive_normal_records": 319569,
+      "last_normal_tick_ms": 149900,
+      "raw_event_counts": {
+        "normal_fire": 297,
+        "normal_detach": 297,
+        "normal_birth": 297,
+        "normal_end": 297,
+        "normal_step": 155296,
+        "normal_step_end": 155296,
+        "normal_query": 26,
+        "normal_model": 7737,
+        "normal_query_end": 26
+      },
+      "query_selectors": {
+        "0": 2,
+        "-1": 24
+      },
+      "counts": {
+        "frames": "1500",
+        "fires": "297",
+        "births": "297",
+        "steps": "155296",
+        "queries": "26",
+        "model_calls": "19714996",
+        "moving": "0",
+        "failed": "0",
+        "changed": "0"
+      },
+      "input_audits": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\public-domain-capture-pde333-20261108-runs\\01-healthy\\pre-inputs.json",
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "files": 1179,
+          "engine_configs": 5
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\public-domain-capture-pde333-20261108-runs\\01-healthy\\post-inputs.json",
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "files": 1179,
+          "engine_configs": 5
+        }
+      ],
+      "actual_final_inputs_configs_unchanged": true,
+      "prior_failed_same_input_raw_comparison": {
+        "path": "D:\\EECH-Migration-Evidence\\normal-query-capture-b502-20261108-runs\\01-healthy\\capture.txt.events",
+        "sha256": "1fd73aa2f08338eeeabbcb3500137f884ede4762522233e2284261f26b706898",
+        "byte_equal_through_both_EOF": true,
+        "scope": "Priorb502FAILEDfinalization raw at same inputs/compiledruntime/seed/frame/window; never an accepted baseline or authority proof."
+      }
+    },
+    {
+      "mode": "terrain_lift",
+      "status": "NOT_LAUNCHED_UNREACHED",
+      "native_executed": false
+    }
+  ],
+  "remaining_processes_observed": [],
+  "B_root_exists": false,
+  "B_output_exists": false,
+  "natural_moving_acceptance": false,
+  "physical_cutover": false,
+  "all10_closed": false,
+  "scope": "Root mechanical terminal joins only; SAME actual-evidence review required. UNREACHED is not acceptance. Existing failed histories and old764/current3ab scopes retained. No replay, new baseline, tolerance or raw coordinate export."
+}

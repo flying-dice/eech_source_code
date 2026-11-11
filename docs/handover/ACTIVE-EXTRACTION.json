@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "pde333 TEST domain parity/profile test correction FROZEN; all7direct0/outer0, Python13/Rust3/PREPOST4023 equal/28extras/6readers. STOP for SAME changed material; prior e333 five CI failures/raw1500FAIL preserved, no native/cutover/all10 closure.",
+  "phase": "pmd2bde schema3 FROZEN: final4direct0/outer0, Python14/Rusttarget1/14fresh reference-host cases; PREPOST4024 equal/30extras/5readers. STOP SAME changed-material review; no native/cutover/all10 closure.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "Retain required hosted-only raw TREE/FOREST/CLOUD extraction after its applicable gates;965 discharges finite boot CRT subfact only, removal remains uncleared. Sole open blocks_cutover GenericNative1 first requires natural moving public-path prerequisite/effect proof; D3G08 hierarchy remains separately required, not silently solved by Task50.",
@@ -893,22 +893,30 @@
     },
     {
       "id": "ENV-PUBLIC-SESSION-TEST-REFERENCE-DOMAIN-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "SAMEd2ff Python misses actual TEST UPDATED/city-role/scene/mobile16 domain.",
+      "evidence": "SAMEd2ff Python misses actual TEST UPDATED/city-role/scene/mobile16 domain. SOURCE closed SAME2dee, exactd2bde all9CI; no native authority closure.",
       "missing_fact": "Coherent positive-first/domain-negative validation before B and actual userdata default/observer profile contract.",
       "next_fix": "Bounded independent Python domain parity and profile-aware cfg(test) proxy; focused tests, one freeze/review; no production API or native replay."
     },
     {
       "id": "ENV-PUBLIC-SESSION-FACADE-PROFILE-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "Exacte333 CI five platform jobs 75pass/1fail: test wrongly assumes wpn_events present in default, actual module.rs gates it by weapon-fixture.",
+      "evidence": "Exacte333 CI five platform jobs 75pass/1fail: test wrongly assumes wpn_events present in default, actual module.rs gates it by weapon-fixture. SOURCE closed SAME2dee, exactd2bde all9CI; no native authority closure.",
       "missing_fact": "Coherent positive-first/domain-negative validation before B and actual userdata default/observer profile contract.",
       "next_fix": "Bounded independent Python domain parity and profile-aware cfg(test) proxy; focused tests, one freeze/review; no production API or native replay."
+    },
+    {
+      "id": "ENV-PUBLIC-SESSION-PERSISTENT-MOVE-PROVENANCE-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "SAMEdef6 COMPLETE_UNREACHED:24query code8/16candidate code9; source persistent canonical record versus witness frame-local receipt mismatch. Lead213 authorizes finite correction.",
+      "missing_fact": "Latest completed actual routed MOVE at NEED across frames, invalidated by every newer writer; exact earlier birth prefix before terrain B callback.",
+      "next_fix": "Real movement/model/FlagStore crossframe positive-first control/oldgate RED, schema3 with separateframes, bounded provenance/accounting, one freeze/review; no arbitrary age/native replay."
     }
   ],
-  "next_action": "STOP for ONE SAME TEST-domain parity/default-observer test correction review, then Root exact materialized review before any new native plan. All10/Generic1/prep2 remain OPEN; old failures never reclassified.",
+  "next_action": "STOP for ONE SAME correctness/clean-code/extraction-boundary review of persistent receipt correction. Then Root decides separate exactmaterializedreview/actual nextproductionstep. No unreviewed native/consumedroot replay.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -1288,5 +1296,29 @@
     "compiled_reuse": "3815 literal rawrows+1existingcfg(test)-excluded testseam exception+2 unchangedconfigs; runtime2fc unchanged",
     "native_launch": false,
     "physical_cutover": false
+  },
+  "persistent_motion_contract": {
+    "lead": "213/214",
+    "schema": 3,
+    "blocker": "ENV-PUBLIC-SESSION-PERSISTENT-MOVE-PROVENANCE-1",
+    "invalidation": "ANY newer same-ID mode at ENTRY + semantic member/group bind; unknown writer ineligible",
+    "timing": "birth_frame < move_frame <= query_frame; immutable atNEED/exact ordinals/pre-effect prefix",
+    "provenance_states": 6,
+    "actual_collaborators": "real main bind/move +SharedMovers+model/FlagStore; synthetic Engine/C-event transport only",
+    "old_results": "2dee SOURCEclosed; def6 COMPLETE_UNREACHED/captured-stream only; b502FAIL unchanged",
+    "compiled_reuse": "3815 product rawsame +1 inherited cfg(test)-excluded source exception +2 configs;2fc identity preserved",
+    "native_launch": false,
+    "status": "FROZEN_STOP_FOR_SAME",
+    "freeze": "D3-PERSISTENT-MOTION-CONTRACT-FROZEN-20261111.json",
+    "packet": "eech-campaign/reference/d3-entity-collision/persistent-motion-contract/",
+    "final_commands": 4,
+    "all_direct_zero": true,
+    "Python_tests": 14,
+    "Rust_target_tests": 1,
+    "real_reference_host_cases": 14,
+    "source_rows": 4024,
+    "extras": 30,
+    "readers": 5,
+    "post_POST": "STOP/publication metadata only"
   }
 }
