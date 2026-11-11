@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T09:55:12.096878+00:00",
+  "reviewer": "SAME independent Task49 reviewer /root/d3_environment_review",
+  "scope": "ONE changed-material closure of the three5fa P2s, exact compiled-input reuse and newly completed observer build/profile evidence. No earlier accepted C/kernel/observer controls replayed or re-reviewed.",
+  "source": {
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "prior_review_sha256": "5fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf",
+    "semantic_correction_commit": "e8cb7944e75af0ea3fbcbb4d4414015af3eb140c",
+    "LF_proof_commit": "e9991c85579b5aeda299ba88c6ebf859089e1099",
+    "metadata_HEAD": "426de7baf016e9dfbf54e1188622975fb5dcd8c2",
+    "actual_HEAD_and_full_clean_status_observed": true,
+    "clean_pushed_and_author_final": "Root verified actual FINAL/released service/cache; no fabricated OS PID/CLI exit."
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/normal-fire-e999-426de-Root-binding-20261108.json",
+      "bytes": 1983,
+      "sha256": "63d8f2f6134797e172ca7a89d6dbe091e98311758ee10dd4a3b3fc353b293669"
+    },
+    {
+      "path": "R:/d3-evidence/D3-NORMAL-FIRE-PROOF-GATES-LITERAL-FROZEN-20261108.json",
+      "bytes": 4396,
+      "sha256": "06fb13a9485b679c3cabade5c6414320c1ef28fd6ebaba9a7791443d2aa65be9"
+    },
+    {
+      "path": "R:/d3-evidence/normal-fire-observer-2fcf69-build-Root-binding-20261108.json",
+      "bytes": 1789,
+      "sha256": "0de38f5621dd75176f688c96b3572af6942113ca1c2dc1f05a4fbc2e080ea057"
+    },
+    {
+      "path": "R:/d3-evidence/nf3lf-final-completion-20261108.json",
+      "bytes": 1084,
+      "sha256": "46e8741a8e2299c3ffe8443de4549ab17652b5c908a37f84b99d81a7e6d31a74"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-normal-fire-proof-gates.md",
+      "bytes": 4777,
+      "sha256": "af3e0c87231adc04ee70b9b7774a4657c7801b98a82bd0984422c91b082ec776"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+      "bytes": 16409,
+      "sha256": "a3704cc9018a771a0222d05beb9948cde43b6de2fd4fee1f64629f6b73a5998e"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua",
+      "bytes": 13981,
+      "sha256": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+      "bytes": 12192,
+      "sha256": "6dfd68dff527a271ee1adb5f4c74ff653cf1534fc85f6260394e33d5a2f2b4f4"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua",
+      "bytes": 16579,
+      "sha256": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/normal_fire_capture.py",
+      "bytes": 13788,
+      "sha256": "f9919158c045e17d6e0f2871bfad8c2feecc25e14c813165c1d7d235dc918e62"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/normal_fire_capture_controller.py",
+      "bytes": 11061,
+      "sha256": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua",
+      "bytes": 16320,
+      "sha256": "4cc663974d7ed23ef5ed82f538174c94141feb96244b4cd49f9c9cba30d21b1c"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/test_normal_fire_capture.py",
+      "bytes": 10899,
+      "sha256": "35c0f5cb976827fbc654bd2adabf7b896d02879ab4fedd3639567029e23c9810"
+    }
+  ],
+  "findings": [],
+  "prior_finding_dispositions": [
+    {
+      "id": "ENV-NORMAL-FIRE-HEALTHY-REFERENCE-COMPLETE-1",
+      "prior_severity": "P2",
+      "disposition": "CLOSED_SOURCE",
+      "evidence": "normal-fire-correlation.lua::event; normal-fire-session-contract.lua::validate; normal_fire_capture.py::event/validate; positive-first Lua/Python matrices.",
+      "reason": "The live collector and Lua reference gate now share ordered semantic event validation. Python independently validates the selected field domains/effects. Both enforce actual weapon/config/kill enum bounds, finite physical words, package/ammunition/device/station/conditional-flash/fallback relationships, selected step-end cohort and positive selected indices/count bounds. Model records must have consecutive NF sequence numbers inside query/query_end in addition to complete op/call/frame/weapon interval and closure.",
+      "controls": "25 semantic single-field faults with coherent supported positive FIRST; 27 reference failures before output/prepare/boot; independent Python control recomputes the damaged report hash, so rejection is semantic rather than a hash mismatch. Enum-bound pins use the unchanged compiled headers. Detached and host birth poses remain legitimately distinct."
+    },
+    {
+      "id": "ENV-NORMAL-FIRE-PRE-EFFECT-COHORT-1",
+      "prior_severity": "P2",
+      "disposition": "CLOSED_SOURCE",
+      "evidence": "normal-fire-correlation.lua::prefix; normal-fire-session-contract.lua::common/paired; normal-fire-session.lua::choose/move; earlier-observed and same-locked-cohort transport controls.",
+      "reason": "A qualifying reference now requires birth_frame strictly earlier than query frame. The collector prefix accessor exposes only an already-delivered completed fire/detach/birth, without C calls or current-frame drain. B checks earlier frame and all three literal records against healthy before the input alteration/delegation; final Lua/Python paired validation repeats common-prefix equality and selected cohort/pose-effect checks.",
+      "selection_clarification": "The FIRST otherwise-eligible moving-query cohort locks exact fire/detach/weapon ordinal, launcher, target and weapon type. A birth-frame query may establish that lock but cannot qualify B. Only a later eligible query of the SAME cohort within unchanged1500frames may qualify. No later query or a different cohort leaves healthy UNREACHED; no alternate actor/window/cohort search is authorized.",
+      "controls": "Two explicitly synthetic healthy/B pairs (earlier birth and later query of the first locked cohort), no-later and different-cohort UNREACHED, four prefix faults (birth pose/fire input/wrong ordinal/same-frame unseen birth) all reject before changed input or move delegation. Prefix accessor shares the existing failure/closed continuation latch."
+    },
+    {
+      "id": "ENV-NORMAL-FIRE-FLAG-RESET-ORACLE-1",
+      "prior_severity": "P2",
+      "disposition": "CLOSED_SOURCE",
+      "evidence": "normal-fire-session-contract.lua::oracle; normal-fire-session.lua model delegate; real reference-host FlagStore controls.",
+      "reason": "GROUP eligibility is retained per issued key. RESET counts and clears only eligible groups in the named array, including already-zero eligible words, verifies the exact raw cleared-count ACK and leaves ineligible/high-word and other-array state intact. Destructive READ still clears only word-mate bits and preserves its own lane; no extra runtime READ or production store change is added.",
+      "controls": "16 actual reference-host store calls cover both eligibility classes, multiple arrays, bit31/high-word survival, zero-word reset count and destructive neighbor reads. Three damaged eligibility/count/array ACKs reject; all three also produce driver failure before UNREACHED."
+    }
+  ],
+  "clean_code_and_boundary_assessment": [
+    "Semantic event validation is now one Lua routine used by live capture and selected excerpts, while Python remains an independent implementation. Both supported validators reject the specific prior malformed-domain and model-order counterexamples. The prefix accessor is read-only over the already validated collector and inherits its poison/finalization latch.",
+    "The cohort-lock clarification is bounded by the first otherwise-eligible natural query and the same fixed total window. Waiting for a later query of that identical cohort is not an actor/window hunt. It makes the common pre-effect prefix check executable while retaining honest UNREACHED when the temporal prerequisite is unavailable.",
+    "The oracle remains transcript-derived metadata over the one real provider, not an authoritative replacement store. Delegate calls are unchanged and exactly once; diagnostic failure prevents later model/move delegation and post-frame getters/close. Existing source/kernel/store semantics and policy are not normalized or repaired.",
+    "The corrections do not add a launch/view/flag/readiness override, synthetic runtime encounter, new native API, C hook, product Rust/build/Cargo change or physical authority. Synthetic Engine/report controls and retained real-C codec replay remain explicitly labelled and distinct from fresh native execution."
+  ],
+  "source_and_check_provenance": {
+    "Root_binding_reused_without_replay": true,
+    "timed_PRE_POST_rows": 4023,
+    "PRE_POST_literal_equal": true,
+    "raw_Git_literal": 4020,
+    "only_inherited_uncompiled_Lua_CRLF_GitLF_qualifications": 3,
+    "stable_extras": 26,
+    "stable_readers": 5,
+    "whole_relevant_product_build_Cargo_static_rows_equal_to_actual_compiled_2fc_snapshot": 3816,
+    "additional_producer_files_equal": 2,
+    "corrected_artifacts_exact_Git": 10,
+    "publication_entries": 44,
+    "literal_packet_files": 45,
+    "literal_external_copies": 40,
+    "final_direct_exits": {
+      "s1-fmt": 0,
+      "s2-world-clippy": 0,
+      "s3-session-lua": 0,
+      "s4-profile-census": 0,
+      "s5-python": 0
+    },
+    "original_outer_session": 37902,
+    "original_outer_actual_exit": 0,
+    "fresh_Rust_tests": 2,
+    "Python_tests": 8,
+    "retained_failures": "Old Python diagnostic gate RED1 preserved. Prior nf3p2 raw-CRLF passing checks/freeze and stopped Git join1 remain literal at their original identities. Only three new raw files were normalized to their already-committed LF, then a fresh small five-check cycle bound actual tested LF to Git. No retrospective old-Git identity or C replay is claimed."
+  },
+  "actual_build_profile": {
+    "accepted_at_provenance_scope": true,
+    "compiled_source_identity": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "original_outer_session": 86361,
+    "outer_controller_container_Cargo_actual_exits": 0,
+    "complete_payloads": 97,
+    "inventory": "Three runtime binaries and all94 source-Lua payloads, derived and sealed; old bundled diagnostic Lua remains unexecuted.",
+    "actual_sys_features": [
+      "normal-fire-correlation",
+      "weapon-fixture"
+    ],
+    "profile_sha256": "3cb803db58db8464749f98aa60ded178be2d387e60be1b8cf40bce93a1a028ac",
+    "COFF": 5,
+    "staged_sources_headers": 5,
+    "private_NF_definitions_once": 14,
+    "private_DLL_exports_absent": true,
+    "reader_qualification": "V1 launcher R-alias mount failed before audit script. V2 physical-C/--exec reader audit passed with no product rebuild. Cache removed only after retention and rehash; source/binaries/retained producer/proofs remain.",
+    "native_launched": false
+  },
+  "separate_corrected_artifact_hashes": {
+    "driver_sha256": "6dfd68dff527a271ee1adb5f4c74ff653cf1534fc85f6260394e33d5a2f2b4f4",
+    "collector_sha256": "a3704cc9018a771a0222d05beb9948cde43b6de2fd4fee1f64629f6b73a5998e",
+    "transaction_sha256": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "contract_sha256": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+    "validator_sha256": "f9919158c045e17d6e0f2871bfad8c2feecc25e14c813165c1d7d235dc918e62",
+    "controller_sha256": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e"
+  },
+  "decision": {
+    "status": "THREE_P2S_CLOSED_SOURCE; BOUNDED_PREREQUISITE_SOURCE_ACCEPTED",
+    "bounded_prerequisite_source_accepted": true,
+    "windows_build_clearance": true,
+    "retained_2fc_compiled_input_reuse_accepted": true,
+    "actual_2fc_build_profile_provenance_accepted": true,
+    "native_controller_launch_clearance": false,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "loader_removal_clearance": false,
+    "natural_moving_accepted": false,
+    "GenericNativeAcceptance1_closed": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "reuse_and_remaining_launch_conditions": [
+    "The compiled runtime/report source_revision remains2fcf69. It must never be relabelled as semantic e8cb, LFproof e999 or metadata426de. Exact3816+2 input equivalence supports reuse of that actual observer binary; it does not make its old bundled unsafe Lua accepted for execution.",
+    "Root must materialize four distinct corrected Git-bound Lua literals at the hashes above and preserve the full original97-payload bundle unchanged, with independent validator/controller/common-reader hashes. Do not overlay corrected files into or reidentify sealed binaries/payloads.",
+    "Actual Root bundle/literal manifest, fresh verified healthy/pristine roots and full input reference, matched noninvasive/default-control disposition and a concrete immutable plan/controller/artifact binding must be separately reviewed before any native launch. This report is source/build/reuse closure only, not that materialized launch receipt.",
+    "Healthy FIRST at the fixed Lebanon seed1/100ms/30+120-second1500frame window. No alternative cohort/window/seed if locked-cohort later eligibility is absent. Complete healthy semantic validation must precede any B root/output/preparation/boot/provider; observed common prefix must precede its one terrain-input lift. Actual same-record moving/flag/candidate/pose effect remains unmeasured.",
+    "Current exact426de CI is monitored separately by Root; prior2fc all9CI proof retains its identity. No fresh426 all-green claim or CI-only wait is inferred. Both original immutable fullpacks and their original processes remain untouched; partial prefix equality is not acceptance."
+  ],
+  "limits": [
+    "All ten D3 requirements, GenericNative1/blocks_cutover, D3G-08 physical hierarchy/device viewpoints, other consumers/lifetimes/FPU/DCS, whole height, final current40/all8/four inputs/census/current CI/formal review/normal merge/Task49/D3/delivery remain open as applicable; prep2 unchanged.",
+    "No successful public native natural encounter, collision outcome, current default/conformance comparison, loader removal, all-platform FPU/lifetime or new DCS capability is proved by these source/private/synthetic controls.",
+    "Only this new external report is written. No source/Git/cache/build/test/native/controller mutation or execution, nested agents or completed experiment replay. Parent alone publishes/card-closes; no formal GitHub self-approval or merge."
+  ]
+}

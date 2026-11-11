@@ -1,0 +1,129 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+error[E0133]: call to unsafe function `std::ffi::CStr::from_ptr` is unsafe and requires unsafe block
+  --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:92:23
+   |
+92 |     let key = real_of(CStr::from_ptr(key).to_str().expect("a flag key is text"));
+   |                       ^^^^^^^^^^^^^^^^^^^ call to unsafe function
+   |
+   = note: consult the function's documentation for information on how to avoid undefined behavior
+note: an unsafe function restricts its caller, but its body is safe by default
+  --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:91:1
+   |
+91 | pub unsafe extern "C" fn observe(key: *const c_char, array: c_int) -> u32 {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+   = note: requested on the command line with `-D unsafe-op-in-unsafe-fn`
+
+error[E0133]: dereference of raw pointer is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:106:9
+    |
+106 |         *error.add(at) = *byte as c_char;
+    |         ^^^^^^^^^^^^^^ dereference of raw pointer
+    |
+    = note: raw pointers may be null, dangling or unaligned; they can violate aliasing rules and cause data races: all of these are undefined behavior
+note: an unsafe function restricts its caller, but its body is safe by default
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:102:1
+    |
+102 | unsafe fn put_error(error: *mut c_char, size: usize, text: &str) {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+error[E0133]: call to unsafe function `std::ptr::mut_ptr::<impl *mut T>::add` is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:106:10
+    |
+106 |         *error.add(at) = *byte as c_char;
+    |          ^^^^^^^^^^^^^ call to unsafe function
+    |
+    = note: consult the function's documentation for information on how to avoid undefined behavior
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+error[E0133]: dereference of raw pointer is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:108:5
+    |
+108 |     *error.add(count) = 0;
+    |     ^^^^^^^^^^^^^^^^^ dereference of raw pointer
+    |
+    = note: raw pointers may be null, dangling or unaligned; they can violate aliasing rules and cause data races: all of these are undefined behavior
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+error[E0133]: call to unsafe function `std::ptr::mut_ptr::<impl *mut T>::add` is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:108:6
+    |
+108 |     *error.add(count) = 0;
+    |      ^^^^^^^^^^^^^^^^ call to unsafe function
+    |
+    = note: consult the function's documentation for information on how to avoid undefined behavior
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+error[E0133]: dereference of raw pointer is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:120:20
+    |
+120 |     let request = &*request;
+    |                    ^^^^^^^^ dereference of raw pointer
+    |
+    = note: raw pointers may be null, dangling or unaligned; they can violate aliasing rules and cause data races: all of these are undefined behavior
+note: an unsafe function restricts its caller, but its body is safe by default
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:113:1
+    |
+113 | / pub unsafe extern "C" fn model(
+114 | |     request: *const sys::eech_model_request,
+115 | |     reply: *mut sys::eech_model_reply,
+116 | |     error: *mut c_char,
+117 | |     size: usize,
+118 | |     _user: *mut c_void,
+119 | | ) -> c_int {
+    | |__________^
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+error[E0133]: call to unsafe function `flags_host::put_error` is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:123:9
+    |
+123 | /         put_error(
+124 | |             error,
+125 | |             size,
+126 | |             "[test.flags] the flag control asked a question that is not an entity_scan of 16 facts",
+127 | |         );
+    | |_________^ call to unsafe function
+    |
+    = note: consult the function's documentation for information on how to avoid undefined behavior
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+error[E0133]: call to unsafe function `std::ffi::CStr::from_ptr` is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:131:28
+    |
+131 |     let identity = real_of(CStr::from_ptr(request.host_id.as_ptr()).to_str().expect("an identity is text"));
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ call to unsafe function
+    |
+    = note: consult the function's documentation for information on how to avoid undefined behavior
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+error[E0133]: call to unsafe function `flags_host::put_error` is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:135:9
+    |
+135 |         put_error(error, size, "[test.flags] no fresh host binding was made before the first question");
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ call to unsafe function
+    |
+    = note: consult the function's documentation for information on how to avoid undefined behavior
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+error[E0133]: dereference of raw pointer is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:172:30
+    |
+172 |             let reply = &mut *reply;
+    |                              ^^^^^^ dereference of raw pointer
+    |
+    = note: raw pointers may be null, dangling or unaligned; they can violate aliasing rules and cause data races: all of these are undefined behavior
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+error[E0133]: call to unsafe function `flags_host::put_error` is unsafe and requires unsafe block
+   --> crates/eech-engine/tests/../../eech-engine-sys/tests/support/flags_host.rs:209:13
+    |
+209 |             put_error(error, size, &reason);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ call to unsafe function
+    |
+    = note: consult the function's documentation for information on how to avoid undefined behavior
+    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html>
+
+For more information about this error, try `rustc --explain E0133`.
+error: could not compile `eech-engine` (test "physical_flags_supply") due to 11 previous errors

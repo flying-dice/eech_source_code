@@ -1,0 +1,12 @@
+Diff in /src/eech-campaign/crates/eech-world/src/entity_host.rs:421:
+     }
+     for (at, low, high) in [(6, 1, 16_777_216), (11, 0, 3), (12, 0, 16_777_216), (13, 0, 16_777_216), (14, 0, 1), (15, 0, 1)] {
+         if crate::roster::word_whole(words[at], low, high).is_none() {
+-            return Err(format!("fact {at} of an entity scan question must be a whole number within {}..{}", low as f32, high as f32));
++            return Err(format!(
++                "fact {at} of an entity scan question must be a whole number within {}..{}",
++                low as f32, high as f32
++            ));
+         }
+     }
+     for at in [0, 1, 2, 3, 4, 5, 7, 8, 9, 10] {

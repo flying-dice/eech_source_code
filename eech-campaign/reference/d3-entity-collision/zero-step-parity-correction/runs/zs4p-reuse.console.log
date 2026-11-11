@@ -1,0 +1,66 @@
+{
+  "base": "0e174c1a09a9d1f74c159ffe59378b77ce43e93a",
+  "receipt_code": "594ef61368e2c5a9cbe6ed9f27cfdbad51ac7a94",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "census_rows": 4024,
+  "census_rows_raw_equal_0e174_POST": 4024,
+  "census_fingerprint": "5d701ebaa4a332bd9e88ff2389e5e00c090f708f5188b878da19c4246737ae75",
+  "census_blobs_equal_CODE_and_BASE": true,
+  "extras_total": 38,
+  "extras_changed": [
+    "eech-campaign/docs/d3-public-session-finalization.md",
+    "eech-campaign/tools/normal_fire_capture.py",
+    "eech-campaign/tools/test_normal_fire_capture.py"
+  ],
+  "changed_paths": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/docs/d3-public-session-finalization.md",
+    "eech-campaign/tools/normal_fire_capture.py",
+    "eech-campaign/tools/test_normal_fire_capture.py"
+  ],
+  "reused_not_rerun": {
+    "s2-fmt": {
+      "actual_exit": 0,
+      "pid": 11440,
+      "started_utc": "2026-11-11T10:35:36.554120+00:00",
+      "completed_utc": "2026-11-11T10:35:43.392708+00:00",
+      "record_sha256": "fbdbf873c744534d1c4091ca6a2124bbf22cc5976e17b0944dd5823bffdab449",
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --all -- --check"
+    },
+    "s3-clippy": {
+      "actual_exit": 0,
+      "pid": 2420,
+      "started_utc": "2026-11-11T10:35:43.471693+00:00",
+      "completed_utc": "2026-11-11T10:35:46.509190+00:00",
+      "record_sha256": "b601054ebf85e36a92e82a4b760ace49135017c326e98fb4aa4dba2460c01f6f",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world --all-targets -- -D warnings"
+    },
+    "s4-session-lua": {
+      "actual_exit": 0,
+      "pid": 25148,
+      "started_utc": "2026-11-11T10:35:46.588731+00:00",
+      "completed_utc": "2026-11-11T10:35:52.300422+00:00",
+      "record_sha256": "befa74919ba434cd403bd73d93a67acde46a26b6f7124c6c95da09524b189ca3",
+      "command": "cargo test --locked -p eech-world --test normal_fire_session -- --nocapture"
+    },
+    "s5-facade-default": {
+      "actual_exit": 0,
+      "pid": 10268,
+      "started_utc": "2026-11-11T10:35:52.378936+00:00",
+      "completed_utc": "2026-11-11T10:35:55.938393+00:00",
+      "record_sha256": "09d9d921fb8216227dcd8c3c59cb256a446829079fa258e1b5d23542a331dae1",
+      "command": "cargo test --locked -p eech-dc --lib public_normal_session_driver_consumes_only_registered_userdata_methods -- --nocapture"
+    },
+    "s6-facade-observer": {
+      "actual_exit": 0,
+      "pid": 2732,
+      "started_utc": "2026-11-11T10:35:56.008738+00:00",
+      "completed_utc": "2026-11-11T10:35:59.482323+00:00",
+      "record_sha256": "42a807dab3039b0b361732db15fe828fa74210de670fb4d7fd3b87fbfb716a7f",
+      "command": "cargo test --locked -p eech-dc --lib --features normal-fire-correlation public_normal_session_driver_consumes_only_registered_userdata_methods -- --nocapture"
+    }
+  },
+  "reused_scope": "Lua/Rust tests/fixtures/compiled product rows/cfg(test) seam/producer configs byte-equal to the 0e174 inputs those receipts consumed; Python s1 is superseded by the new g1 run."
+}
+

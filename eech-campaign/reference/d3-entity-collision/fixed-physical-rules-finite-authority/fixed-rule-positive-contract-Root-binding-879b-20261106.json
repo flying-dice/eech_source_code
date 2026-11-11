@@ -1,0 +1,208 @@
+{
+  "created_utc": "2026-11-06T19:32:21.759995+00:00",
+  "code": "879b0ebde110250169513dfd9fecc4c83f3b7b01",
+  "metadata_commit": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+  "runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+  "code_delta_exactly_two_paths": true,
+  "production_Git_inputs_unchanged": true,
+  "shipping_campaign_unchanged": true,
+  "changed_paths": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "bytes": 228139,
+      "sha256": "8cb88ddf2ab548728abbbd99e64bdf4c41258fe144cf9607e9ba6efbf1867892",
+      "git_blob": "e27c2da83ee59dda1ac614a36d0755698f302722"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "bytes": 323854,
+      "sha256": "2086eb094d70d159fba9c8c4f14b56eb90ad4aa273bc8e0258cc6d61336cb5f8",
+      "git_blob": "240a1f6ef603221b82e31f03e2925adae712d59c"
+    }
+  ],
+  "literal_source": "879b0ebde110250169513dfd9fecc4c83f3b7b01",
+  "literal_git_blob": "e27c2da83ee59dda1ac614a36d0755698f302722",
+  "literal_sha256": "8cb88ddf2ab548728abbbd99e64bdf4c41258fe144cf9607e9ba6efbf1867892",
+  "external_freeze_sha256": "1648632f8a602627f1f3639f8ce691935debd0aa8a07d64ca63cc66058b8c3fd",
+  "tracked_freeze_sha256": "11545ef8725d17ff8866b4463caf0ba54c0a2bafede179681ede08ec2a2393cf",
+  "external_tracked_exact_relation": "Only publication and identity.meta_commit reset to tracked null placeholders.",
+  "manifest_sha256": "0778306ed85d27d204e379096a914b2046dd52c3000206ce43fafc86d226720a",
+  "listed_pack_files": 29,
+  "including_manifest": 30,
+  "all_pack_Git_and_working_bytes_literal": true,
+  "pack_files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 124,
+      "sha256": "7f7644bc8d960a176a5e50c98ab85a8e28a82472b3622eaaa8ed7cb7a5da3c25"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-green-positive-a.json",
+      "bytes": 885,
+      "sha256": "eb0c742ad66de21f00567c9bdce68357cf301e5c61d2882c7c293d2fb1a870ee"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-green-positive-a.stderr.log",
+      "bytes": 14069,
+      "sha256": "e876c9cca963ef718f0e1c86ab777bdd4a1133ceff1946d6c42124440457a065"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-green-positive-a.stdout.log",
+      "bytes": 11418,
+      "sha256": "d968ed97fca45d8d3314a69ce3ba4e32bbbfd0e1b837ddf78d66cff290ac2e60"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-final-clippy.json",
+      "bytes": 832,
+      "sha256": "67f83f015d6492c19fb7fc9dcc8a83636a6454e3229cc2855d09f6a7f5aafaee"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-final-clippy.stderr.log",
+      "bytes": 184,
+      "sha256": "869654c1730be6dbb694962075001daccb52611596261f291e6d5f6050a09060"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-final-clippy.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-final-fmt-check.json",
+      "bytes": 771,
+      "sha256": "aa37c8a4ce162f058908ab184eea67b80c85106b0df3f8c912c068a55b94266a"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-final-fmt-check.stderr.log",
+      "bytes": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-final-fmt-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-final-green-debug.json",
+      "bytes": 886,
+      "sha256": "46f48d5ef80a8658b52797789054abdf92715d6dda2e467b9db4b4f7eeba2aef"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-final-green-debug.stderr.log",
+      "bytes": 14069,
+      "sha256": "2a24bf877016bda350638e468d868528572d491d672ebfb8db8391ae3da2d7e2"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-final-green-debug.stdout.log",
+      "bytes": 11418,
+      "sha256": "ebc47707b4e0b8581058d15623840212e25823f9d846efeb01482aea27e37afb"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-fmt-apply.json",
+      "bytes": 750,
+      "sha256": "ea5689ab73d9f77bfd87335d50ffc7819afd36da6311c7c5e714b554053c01c7"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-fmt-apply.stderr.log",
+      "bytes": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-positive-fmt-apply.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-red-96cc-positive-a.json",
+      "bytes": 887,
+      "sha256": "f98165ce3f1c3613593010b9d9851d1e5b01d7b4bcfccd11adf047c4bdc1efba"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-red-96cc-positive-a.stderr.log",
+      "bytes": 14241,
+      "sha256": "0a0ecac3406ba3c1115642ef49cf769e5fb62c5b605fbb113d25396cafd15b42"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-red-96cc-positive-a.stdout.log",
+      "bytes": 16057,
+      "sha256": "82dd4452d5e551da7e88843ac0b477f31f7a649931f767f867a64bab012aabb2"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-red-96cc-positive-b.json",
+      "bytes": 887,
+      "sha256": "6c3551375fad11c378bb88e189e604bfdb6f402346539fff89d49203dc7503fa"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-red-96cc-positive-b.stderr.log",
+      "bytes": 14633,
+      "sha256": "1a049c436c84f5010cfbb9602dd169276792c2ba431f9cdec2fd291f7434a122"
+    },
+    {
+      "path": "direct-records/fixed-rule-witness-red-96cc-positive-b.stdout.log",
+      "bytes": 37501,
+      "sha256": "2ad7088cf0b2999e162151a63464b26166cbc78f13c3707616865c9f5ccc1408"
+    },
+    {
+      "path": "env/run-fixed-rule-witness-direct-20261106.py",
+      "bytes": 3294,
+      "sha256": "3a0b2c370a9386cfbc3329599f0119add2e1c40f95e867ea73b59a984eb7faab"
+    },
+    {
+      "path": "env/targetmap.py",
+      "bytes": 2723,
+      "sha256": "fa8b109e3fa936b939e524bad9b5849b867282307bb0a9745c5fb957598a17e1"
+    },
+    {
+      "path": "fixed-physical-rules-witness-positive-contract-CODE-FROZEN-20261106.json",
+      "bytes": 17633,
+      "sha256": "11545ef8725d17ff8866b4463caf0ba54c0a2bafede179681ede08ec2a2393cf"
+    },
+    {
+      "path": "independent-fixed-rule-witness-source-96cc-20261106.json",
+      "bytes": 13864,
+      "sha256": "870453bc42a9172e3c20fd05ba3da86bd101ad31dbeecbc0229882450362e8d2"
+    },
+    {
+      "path": "maps/positive-map-after-final.json",
+      "bytes": 3413,
+      "sha256": "42fd30276f8a04e105697972d017419376ada3f385b09d311a38f80209449f10"
+    },
+    {
+      "path": "maps/positive-map-before-final.json",
+      "bytes": 3414,
+      "sha256": "2708e1c8dd705c514ca1754da0e771134e4cf72558eecadd6bf86f7101bb7aa3"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6610,
+      "sha256": "658fdaf7bd026e7f46b32c69f410dd057b5e85124b00c1264b0f3646cc9118ae"
+    }
+  ],
+  "metadata_only_paths": 32,
+  "targeted_maps_equal": true,
+  "maps_precede_first_final_check": true,
+  "raw_mapping_scope": "Two changed raw inputs and immutable production Git identities, not a new full3953/9769 raw map.",
+  "final_receipts": [
+    {
+      "path": "fixed-rule-witness-positive-final-green-debug.json",
+      "actual_exit": 0,
+      "sha256": "46f48d5ef80a8658b52797789054abdf92715d6dda2e467b9db4b4f7eeba2aef",
+      "started_utc": "2026-11-06T19:28:00.282988+00:00",
+      "completed_utc": "2026-11-06T19:28:02.978109+00:00"
+    },
+    {
+      "path": "fixed-rule-witness-positive-final-fmt-check.json",
+      "actual_exit": 0,
+      "sha256": "aa37c8a4ce162f058908ab184eea67b80c85106b0df3f8c912c068a55b94266a",
+      "started_utc": "2026-11-06T19:28:03.070825+00:00",
+      "completed_utc": "2026-11-06T19:28:06.360822+00:00"
+    },
+    {
+      "path": "fixed-rule-witness-positive-final-clippy.json",
+      "actual_exit": 0,
+      "sha256": "67f83f015d6492c19fb7fc9dcc8a83636a6454e3229cc2855d09f6a7f5aafaee",
+      "started_utc": "2026-11-06T19:28:06.459271+00:00",
+      "completed_utc": "2026-11-06T19:28:09.015293+00:00"
+    }
+  ],
+  "scope": "Root source/evidence binding only. No independent/native clearance, native result, CI success, finite authority or wholeD3 acceptance."
+}

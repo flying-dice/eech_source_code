@@ -1,0 +1,47 @@
+{
+  "schema": "d3.independent.early-source-finding.v1",
+  "written_utc": "2026-11-06T03:12:49.665965+00:00",
+  "scope": "One early new-material confirmation only: withdrawal timing for city-child dependency diagnostic. City source remains unfinished; this is not its combined source review or clearance.",
+  "observed_HEAD": "7e0026b087927a3576dfbf901bcdbbd87a4d9bb6",
+  "identity_qualification": "Current source observations, not a frozen final candidate or built-source claim. Exact observed file hashes are retained below.",
+  "source_observations": [
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "bytes": 12416,
+      "sha256": "682984ff5980eb32e6447f917c36a5ca148fe38cc28a7a5b9c981b720a06591d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "bytes": 166495,
+      "sha256": "501663b9ac68c9da136183718fc3f0f4e75ed0fee7f6edef7112301898eb11ad"
+    }
+  ],
+  "finding": {
+    "id": "ENV-CITY-CHILD-WITHDRAW-CONTINUATION-1",
+    "severity": "P2",
+    "status": "CHANGES_REQUIRED_BEFORE_CITY_NATIVE_CLEARANCE",
+    "summary": "Removing a child immediately after serving FIRST/NEXT does not guarantee that the real caller next requests CHILD_NEXT for that child.",
+    "evidence": [
+      "mb_hostoffer.h:186 asks FIRST_BUILDING while obtaining fixed/city flags, before reading parent bounds at192-199 and before the subsequent Host decision. A parent-box rejection can end without a child walk.",
+      "mb_hostoffer.h:264-279 enters BUILDINGS only after the parent box passes; each child collision is attempted before NEXT_BUILDING. A hit returns at274-276 and therefore never requests NEXT for that child.",
+      "entity-authority.lua:984-1000 currently removes the just-returned real child after FIRST/NEXT and expects a later child_next. Intervening name/placement reads or a later FIRST are not the promised next-child continuation.",
+      "The real-provider synthetic CITY fixture drives its own immediate FIRST/NEXT sequence; its positive result cannot establish the actual C caller will take that continuation."
+    ],
+    "minimum_correction": [
+      "Wait for an actual well-formed CHILD_NEXT request whose city/child keys are joined to the previously served standing child. Finish current grammar/request-join checks before mutation; a bad request must not withdraw or credit the control.",
+      "Immediately before delegating that admitted NEXT, call the same real provider REMOVE for its exact parent/child keys and require the real removed acknowledgement. Keep this explicit action separate from campaign-event tracking and retain Core lists unchanged.",
+      "Delegate the same original NEXT arguments exactly once. Do not alter a FIRST/returned answer, synthesize an exception, query a separate store, or invent a campaign continuation. The expected actual provider refusal must name the ended child.",
+      "Attribute withdrawal and its next-operation credit to this already-reached NEXT, not to a future question. Require the primary entity_scan.refused plus roster.child/has ended, request0/reply1 with only scan reply: result refused, and no Engine/provider reads after fatal.",
+      "A healthy native control must positively reach a real eligible CHILD_NEXT. FIRST-only, hit-before-NEXT, parent-box-miss or absent continuation is honest UNREACHED; no actor/geometry/time hunt or scenario adjustment is required."
+    ],
+    "focused_existing_test_adaptation": "Use current driver tests to distinguish FIRST-only/no NEXT (no withdrawal/UNREACHED), eligible joined NEXT (real REMOVE then one unchanged NEXT/refusal), and invalid-join/unrelated-primary cases (no false credit). No new framework or native retry is requested here."
+  },
+  "decision": {
+    "native_launch_clearance": false,
+    "final_city_source_review_complete": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "prior_scope": "Closed sector-roster source/actual, FP/provider and numeric proofs remain at their own identities. No broad unfinished C/provider/source audit was performed.",
+  "operations": "Read-only targeted source inspection; only this safe early JSON was written. No source edits, builds, tests, native/process/cache operations or agents."
+}

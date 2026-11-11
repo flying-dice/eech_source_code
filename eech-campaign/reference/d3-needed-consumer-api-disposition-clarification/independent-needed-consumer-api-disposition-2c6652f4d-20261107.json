@@ -1,0 +1,118 @@
+{
+  "schema": "d3-independent-needed-consumer-api-disposition-review.v1",
+  "created_utc": "2026-11-07T01:28:43.288681+00:00",
+  "reviewer": "SAME sole independent Codex reviewer",
+  "scope": "One combined documentation/source-branch/API-declaration correctness, clean-code, boundary and evidence review. No builds/tests/native/war replay, agents, cache/process operations, tracked writes or reopening of closed finite physical proofs.",
+  "source": {
+    "commit": "2c6652f4dfcb1c31a0eb46bf74eb318976f4b9e6",
+    "metadata_commit": "2989a275b1793e58c9e6ebcd9205939dae2daa8e",
+    "parent": "c6426dc310796795a0d8c694cb985b65b86d8e7d",
+    "observed_HEAD_clean": true,
+    "new_material": "15-row matrix, narrative and source/API evidence packet; documentation/evidence only",
+    "runtime_C_Rust_Lua_build_ABI_delta": false,
+    "changed_raw_paths_including_metadata": 9
+  },
+  "decision": {
+    "status": "DOCUMENTATION_CHANGES_REQUIRED",
+    "findings": [
+      {
+        "id": "ENV-D3-DISPOSITION-CALLER-PROFILE-1",
+        "severity": "P2",
+        "title": "Service feature gates and runtime caller conditions are conflated",
+        "affected_rows": [
+          "D3G-01",
+          "D3G-02",
+          "D3G-06",
+          "D3G-07"
+        ],
+        "evidence": [
+          {
+            "location": "aphavoc/source/entity/mobile/mb_tgt.c:94,128,455,494; eech-engine-sys/build/main.rs:271",
+            "fact": "The two mb_tgt object-collision calls are in the legacy #else of HOST_LOS; the current builders define HOST_LOS. Active hosted campaign LOS goes through campaign_los_query and mb_hostlos.c:275. The matrix currently lists the legacy calls as current campaign caller class without that branch distinction."
+          },
+          {
+            "location": "eech-engine-sys/build/main.rs:271-273,323-339",
+            "fact": "HOST_LOS/TERRAIN/ENV are unconditionally defined by current builders. HOST_TREE is excluded only by collision-fixture; HOST_ENTITY is excluded by collision-fixture OR model-fixture. D3G-02 all-but-original-solver wording and D3G-07 generic with-HOST_ENTITY wording conflate distinct services."
+          },
+          {
+            "location": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c:1208-1247",
+            "fact": "The clearance read is compiled outside a conditional macro, but runtime-reached inside the task-leader and terrain_follow!=NONE branch. It is not an unconditional read on every waypoint step."
+          }
+        ],
+        "minimum_fix": "Correct the matrix, generated narrative and affected summary wording to distinguish legacy versus hosted source and each actual service macro. State runtime guards separately from compiled inclusion; qualify any repeated every-waypoint sentence in the referenced current contract rather than relabelling an old test result. Preserve active mb_hostlos work and all OPEN consumer questions. Documentation-only correction; no new builds, tests or caller census requested."
+      },
+      {
+        "id": "ENV-D3-DISPOSITION-MOVING-COVERAGE-1",
+        "severity": "P2",
+        "title": "Unqualified public-moving absence contradicts accepted configured query-service coverage",
+        "affected_rows": [
+          "D3G-06",
+          "D3G-13"
+        ],
+        "evidence": [
+          "The new matrix says the moving public path is not observed and no legitimate MOVING candidate has been observed on the public path. Its own R-FINITE simultaneously reuses the accepted configured moving-query scope.",
+          "The closed configured-speed query-service proof reached the real public get_line_of_sight_collision_entity/HostCandidate/NeedUpdated/moving16 path, with matched hosted/Original physical rows and a declared controlled host input. That finite proof did not establish a NATURAL campaign weapon engagement. It is reused at its own identity, not re-tested here."
+        ],
+        "minimum_fix": "Separate accepted configured public query-service coverage from the still-open natural campaign engagement and unreached-state obligations. Do not erase the accepted finite scope, broaden it into natural coverage, or close the long-run motion blocker."
+      }
+    ],
+    "source_API_documentation_disposition_approved": false,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "reviewed_boundaries": {
+    "status_of_rows": "All15 groups were considered as source-derived/declared planning. Fourteen remain OPEN or census/open residual; accepted reuse is per stated scope only, not a measured exhaustive migration census.",
+    "flags": "The whole-word &= getter and partial-byte memset are supported by mb_int.c:391-402/up_update.c:85-88,157-183. The stated first-quarter implication on the current32-bit unsigned layout is source-derived, not a newly measured reach result. No semantic cleanup is approved.",
+    "CRT": "The ordinary load -> reinitialise -> session creation -> get_session_random_start_time_of_day -> initialise_random_number_generator -> srand sequence is source-supported. Consumers before reseed, per-class effective draws/season and full downstream consequences remain unmeasured/open. A reseed/source grep alone does not authorize loader removal or future-absence claims.",
+    "hierarchy_setup_and_ownership": "Actual model-derived setup routes/patrol/regen and weapon presence/viewpoint consumers are retained as needed open work. Geometry/data sourcing and Core policy must be decided per consumer; the proposed versioned-data/workaround options are unimplemented, not accepted replacements or an exemption for physical transforms.",
+    "renderer": "Draw/player rows remain source-derived reach hypotheses and pending entry/dispatch/compiled census, including unenumerated event dispatch. Nothing here proves dormancy or waives shared-terrain/RNG side effects.",
+    "DCS": "Pinned author-maintained declarations are shapes, not implementation or live DCS guarantees. Unit bounds do not supply collision mesh/joints; StaticObject typed descriptor omits the example box; airbase runway/parking records do not establish route/anchor/helipad/carrier universality. Unsupported service cannot silently become miss/absence. Accepted Task50/52 and other scopes retain their own mapping qualifications."
+  },
+  "additional_primary_clarification": {
+    "response": {
+      "path": "R:/d3-evidence/Root-needed-consumer-api-reference-response-20261107.json",
+      "sha256": "394d31fdf292004eb90327dd053a6f2d7ede783979eac8ee3e6713fa3b810d6b"
+    },
+    "ref": "1179554fcafcef92d71313336cc09500febf8245",
+    "new_files_raw_SHA_and_Git_blob_verified": 5,
+    "facts": "Object.export declares named Category properties including SCENERY; world.export declares BOX/PYRAMID/SEGMENT/SPHERE VolumeType properties, each typed number. These new files do not provide numeric literal values, volume-parameter structures, complete object coverage or runtime guarantees. AI/index captures do not establish typed attack/fire/route task payload schemas.",
+    "required_publication_treatment": "Acknowledge this post-bundle primary response with its own provenance and update outstanding-file wording. Names are now declared; using a named property must not be confused with knowing or hard-coding a numeric constant. Missing params/physical data/coverage remain OPEN. Do not close a row merely because a named declaration exists or imply that those export files supplied schemas they did not.",
+    "original_bundle_preserved": true,
+    "OPEN_rows_closed_by_new_declarations": false
+  },
+  "evidence_identity": {
+    "freeze": {
+      "path": "R:/d3-evidence/D3-needed-consumer-api-disposition-CODE-FROZEN-20261107.json",
+      "sha256": "7d33d600d00419d1d0a030006787be552c4282cb5fec698917f587ceadad5cf7"
+    },
+    "freeze_external_repo_literal_equal": true,
+    "Root_source_pack_binding": {
+      "path": "R:/d3-evidence/needed-consumer-api-Root-binding-2c665-2989-20261107.json",
+      "sha256": "ccb336f30c250ec7387cc39d0e2a54e66ac0b3815d23d6de8304b5ef8f0f34e2"
+    },
+    "document_SHA256": "45d0f378b1cad4767ab28889cfc679c9b7fd76325a685a1d7639be1ab553c19b",
+    "matrix_SHA256": "54322da78c8a0f1946594e12956f4d6bf377e10bb5cf9ea592e31a6e77f2e85a",
+    "manifest_entries_literal_Git_verified": 5,
+    "frozen_output_identities": 4,
+    "cited_source_files": 64,
+    "source_anchors_declared": 110,
+    "API_refs_declared": 45,
+    "original_primary8_plus_separate_Airbase_raw_SHA_and_Git_blobs_verified": 9,
+    "authority": "Pinned live M5goal11534337v3/ledger14548994v171 snapshots declared with hashes; no live-page modification or measured API/runtime claim by this review.",
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-needed-consumer-api-disposition-20261107-completion.json",
+      "sha256": "0acca8a0ba97eb866baeade6e4ca13e7be0f698e6348c5565a45dbe50e923a8c"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_actual_model": "claude-sonnet-5-5",
+    "producer_completed_utc": "2026-11-07T01:21:39Z",
+    "no_checks_relabelled": "Generator hygiene passes and source/byte joins are not compiler, regression, runtime reachability or native authority tests."
+  },
+  "next": "One bounded relevant-context correction batch for the two findings and the new-primary annotation, then this SAME reviewer examines only that documentation delta/provenance. No additional optional preparation, prototype, test fleet or physical implementation is requested.",
+  "limits": "Preparation2of2 then STOP preparation; these necessary corrections stay within this completed batch. ENV-ENTITY-POSE-LONG-RUN-MOTION-1 remains OPEN/blocks_cutover=true until actual complete corrected pack and independent review. Georgia metrics/log output equality does not supply its missing actual exit or whole-pack acceptance; three original Lebanon jobs remain separate live work and must not be touched. All ten D3 requirements, remaining physical services/needed-consumer/API/DCS dispositions, natural moving integration, final current40/all8/full inputs/CI/review/normal merge/final census remain required. No D4/D5 or historical TypeScript work."
+}

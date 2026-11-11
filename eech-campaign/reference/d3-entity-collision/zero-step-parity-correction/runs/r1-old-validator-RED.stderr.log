@@ -1,0 +1,87 @@
+............FFFFFFFFFcandidate_receipt_only_refusals=0
+...
+======================================================================
+FAIL: test_schema4_candidate_receipt_only_mismatch_refused_before_child (__main__.Controls.test_schema4_candidate_receipt_only_mismatch_refused_before_child) (field='latest', report='healthy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\starscream\Documents\ChatGPT\Enemy Engaged DCS\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 277, in test_schema4_candidate_receipt_only_mismatch_refused_before_child
+    with self.assertRaisesRegex(ValueError,'actual physical candidate'):R.validate(emit(bad),h['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_schema4_candidate_receipt_only_mismatch_refused_before_child (__main__.Controls.test_schema4_candidate_receipt_only_mismatch_refused_before_child) (field='latest', report='controller')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\starscream\Documents\ChatGPT\Enemy Engaged DCS\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 280, in test_schema4_candidate_receipt_only_mismatch_refused_before_child
+    with self.assertRaisesRegex(ValueError,'actual physical candidate'):C.healthy_reference(p,C.sha(p),h['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_schema4_candidate_receipt_only_mismatch_refused_before_child (__main__.Controls.test_schema4_candidate_receipt_only_mismatch_refused_before_child) (field='latest', report='zero_step')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\starscream\Documents\ChatGPT\Enemy Engaged DCS\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 283, in test_schema4_candidate_receipt_only_mismatch_refused_before_child
+    with self.assertRaisesRegex(ValueError,'actual physical candidate'):R.validate(emit(bad_b),b['identity'],healthy)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_schema4_candidate_receipt_only_mismatch_refused_before_child (__main__.Controls.test_schema4_candidate_receipt_only_mismatch_refused_before_child) (field='prestate', report='healthy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\starscream\Documents\ChatGPT\Enemy Engaged DCS\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 277, in test_schema4_candidate_receipt_only_mismatch_refused_before_child
+    with self.assertRaisesRegex(ValueError,'actual physical candidate'):R.validate(emit(bad),h['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_schema4_candidate_receipt_only_mismatch_refused_before_child (__main__.Controls.test_schema4_candidate_receipt_only_mismatch_refused_before_child) (field='prestate', report='controller')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\starscream\Documents\ChatGPT\Enemy Engaged DCS\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 280, in test_schema4_candidate_receipt_only_mismatch_refused_before_child
+    with self.assertRaisesRegex(ValueError,'actual physical candidate'):C.healthy_reference(p,C.sha(p),h['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_schema4_candidate_receipt_only_mismatch_refused_before_child (__main__.Controls.test_schema4_candidate_receipt_only_mismatch_refused_before_child) (field='prestate', report='zero_step')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\starscream\Documents\ChatGPT\Enemy Engaged DCS\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 283, in test_schema4_candidate_receipt_only_mismatch_refused_before_child
+    with self.assertRaisesRegex(ValueError,'actual physical candidate'):R.validate(emit(bad_b),b['identity'],healthy)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_schema4_candidate_receipt_only_mismatch_refused_before_child (__main__.Controls.test_schema4_candidate_receipt_only_mismatch_refused_before_child) (field='delegated', report='healthy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\starscream\Documents\ChatGPT\Enemy Engaged DCS\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 277, in test_schema4_candidate_receipt_only_mismatch_refused_before_child
+    with self.assertRaisesRegex(ValueError,'actual physical candidate'):R.validate(emit(bad),h['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_schema4_candidate_receipt_only_mismatch_refused_before_child (__main__.Controls.test_schema4_candidate_receipt_only_mismatch_refused_before_child) (field='delegated', report='controller')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\starscream\Documents\ChatGPT\Enemy Engaged DCS\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 280, in test_schema4_candidate_receipt_only_mismatch_refused_before_child
+    with self.assertRaisesRegex(ValueError,'actual physical candidate'):C.healthy_reference(p,C.sha(p),h['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_schema4_candidate_receipt_only_mismatch_refused_before_child (__main__.Controls.test_schema4_candidate_receipt_only_mismatch_refused_before_child) (field='delegated', report='zero_step')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\starscream\Documents\ChatGPT\Enemy Engaged DCS\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 283, in test_schema4_candidate_receipt_only_mismatch_refused_before_child
+    with self.assertRaisesRegex(ValueError,'actual physical candidate'):R.validate(emit(bad_b),b['identity'],healthy)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.587s
+
+FAILED (failures=9)

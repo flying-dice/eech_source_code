@@ -1,0 +1,68 @@
+{
+  "prepared_utc": "2026-11-03T04:13:15.298612+00:00",
+  "state": "READY FOR NEXT BOUNDED GIT PUBLICATION, NOT YET COMMITTED",
+  "files": [
+    {
+      "file": "independent-tree-production-source-f0f928147-20261103.json",
+      "bytes": 8811,
+      "sha256": "ad1c1503522a324bdbb08ee7e8ca0ebe16d2cb04f93c36fe03bde622fbff4e3c",
+      "literal_LF_copy": true
+    },
+    {
+      "file": "independent-tree-authority-selection-3619cea4d-20261103.json",
+      "bytes": 7599,
+      "sha256": "f7b63681481adb458c878da42d5b1a4be6dfab66b44e4ef3e2f206e9f62893ce",
+      "literal_LF_copy": true
+    },
+    {
+      "file": "independent-tree-authority-view-eb2b2eb67-20261103.json",
+      "bytes": 8749,
+      "sha256": "5120c508b161e29409dc17a80846ecfff43bce61414919a69be867d00045ac2e",
+      "literal_LF_copy": true
+    },
+    {
+      "file": "independent-tree-view-healthy-actual-eb2-nativef0-20261103.json",
+      "bytes": 7830,
+      "sha256": "b6a845bd205f58af4bfe40280b72f93184b89796be1ec52b3d191ea93b2e127c",
+      "literal_LF_copy": true
+    },
+    {
+      "file": "independent-tree-production-authority-eb2-nativef0-20261103.json",
+      "bytes": 25135,
+      "sha256": "7ad1a698f7996012eda90584661aca717c6b34bf4817f48e2837f6c595fc1dca",
+      "literal_LF_copy": true
+    },
+    {
+      "file": "tree-f0-builds-and-payloads-20261103.json",
+      "bytes": 3097,
+      "sha256": "5890e13d2ae0cac0f2265b03a5ab72458daeed9c2a5b15b50ed1691a62e8ace6",
+      "scope": "Safe source/build/short/ledger metadata, not raw retail capture"
+    },
+    {
+      "file": "tree-ordinary-short-comparison-f0f928147f-20261103.json",
+      "bytes": 1903,
+      "sha256": "bb0dd20699708851c69e3fc826c26607f9dc7b7b87f5a1890a734bf7ab8c3964",
+      "scope": "Safe source/build/short/ledger metadata, not raw retail capture"
+    },
+    {
+      "file": "tree-view-eb2-nativef0-scope-and-focused-20261103.json",
+      "bytes": 1747,
+      "sha256": "752422d477e6478bca2aab0c8b9f9c75ee5c03697c8a6d06e6b3c88349042bdb",
+      "scope": "Safe source/build/short/ledger metadata, not raw retail capture"
+    },
+    {
+      "file": "ledger-tree-native-authority-v137-preservation-20261103.json",
+      "bytes": 324,
+      "sha256": "9a9ade23b794565bc1656aa574fa930d4bccfa7d397c601429d5d5b135a2173a",
+      "scope": "Safe source/build/short/ledger metadata, not raw retail capture"
+    },
+    {
+      "file": "finite-authority-summary.json",
+      "bytes": 3018,
+      "sha256": "d9d75db6de749eedd84e50f65a2802011382446b6196c150226158bf02a9a0d1"
+    }
+  ],
+  "instruction": "Publish with the sole author after its bounded entity batch; do not mutate the active worktree/branch concurrently. Verify all literal review Git blobs byte-identical after commit. Never copy private raw model.jsonl/controller roots/geometry/coordinates/binaries. Preserve older CHANGES_REQUIRED/UNREACHED reports.",
+  "native_source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+  "diagnostic_source": "eb2b2eb6781fefce7e6b76abdbbd4d947010a7f7"
+}

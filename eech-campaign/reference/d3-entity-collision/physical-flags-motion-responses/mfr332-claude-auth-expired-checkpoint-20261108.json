@@ -1,0 +1,57 @@
+{
+  "utc": "2026-11-08T00:59:23.804281+00:00",
+  "state": "CLAUDE_TERMINAL_AUTH_FAILURE_PARTIAL_PRESERVED",
+  "actual_claude_exit": 1,
+  "completion": "claude-d3-motion-flags-20261108-completion.json",
+  "cause": "OAuth session expired and could not be refreshed; NOT quota",
+  "HEAD": "33295557b72406f90127f7bed5626d0adab4cc07",
+  "status": " M aphavoc/source/entity/mobile/mb_hostmodel.c\n M eech-campaign/crates/eech-engine-sys/Cargo.toml\n M eech-campaign/crates/eech-engine-sys/build/main.rs\n M eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs\n M eech-campaign/docs/d3-physical-flags-contract.md\n?? eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_motion_check.c\n?? eech-campaign/crates/eech-engine-sys/tests/physical_flags_motion.rs\n",
+  "files": [
+    {
+      "source": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "checkpoint_copy": "R:\\d3-evidence\\checkpoints\\mfr332-claude-auth-expired-20261108\\0-mb_hostmodel.c",
+      "bytes": 96677,
+      "sha256": "7cab38d5fbb8a9a2d99ed83befdef6f624950fedfb69935a5a216e64cfa925ff"
+    },
+    {
+      "source": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "checkpoint_copy": "R:\\d3-evidence\\checkpoints\\mfr332-claude-auth-expired-20261108\\1-Cargo.toml",
+      "bytes": 9941,
+      "sha256": "9242ff02e4e1bd143688a2552aaa2c01376d0b6dff44207a474cc6c6cda3b318"
+    },
+    {
+      "source": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "checkpoint_copy": "R:\\d3-evidence\\checkpoints\\mfr332-claude-auth-expired-20261108\\2-main.rs",
+      "bytes": 27540,
+      "sha256": "5219e9145b0f4776296bfff11eb1085bb6cdde6004df94baef36af8bec320597"
+    },
+    {
+      "source": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+      "checkpoint_copy": "R:\\d3-evidence\\checkpoints\\mfr332-claude-auth-expired-20261108\\3-physical_flags_guard.rs",
+      "bytes": 53351,
+      "sha256": "0a69df035878e62bb30cba302d01743a6a71446579a438a7058046b60b9b83e2"
+    },
+    {
+      "source": "eech-campaign/docs/d3-physical-flags-contract.md",
+      "checkpoint_copy": "R:\\d3-evidence\\checkpoints\\mfr332-claude-auth-expired-20261108\\4-d3-physical-flags-contract.md",
+      "bytes": 69921,
+      "sha256": "94774e9a9e703dc7f5715f5486f84dff446c9be8eaae66c7c7d03bb82d348d3b"
+    },
+    {
+      "source": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_motion_check.c",
+      "checkpoint_copy": "R:\\d3-evidence\\checkpoints\\mfr332-claude-auth-expired-20261108\\5-eech_physical_flags_motion_check.c",
+      "bytes": 17748,
+      "sha256": "6402a66312f020a36b27ba5d0d2138a60b230220846c89ede4779a9edb8d2b13"
+    },
+    {
+      "source": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_motion.rs",
+      "checkpoint_copy": "R:\\d3-evidence\\checkpoints\\mfr332-claude-auth-expired-20261108\\6-physical_flags_motion.rs",
+      "bytes": 15051,
+      "sha256": "08e2d0082e2f724d209fb60a1edd2125abb0728288abfb238263bc22ff201ada"
+    }
+  ],
+  "tracked_patch_sha256": "efe0344d3055ffc392b62c864f732b2ea4ff34426283424a837fa389df7c07e5",
+  "no_authentication_changes": true,
+  "direct_development_evidence": "mfr332 d1compile101 attitude shape, d2Hosted0,d3Original0,d4guard0,d5fmt0,d6bothclippy0; no real PRE/finalset/freeze yet. Workingtestsource later changed guardcache; finalize current identity before final checks.",
+  "policy": "Root explicitly announced ONE GPT Sol High fallback for auth unavailability; no silent substitution/restart. Both shipping fullpacks remain original9 each."
+}

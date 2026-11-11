@@ -1,0 +1,13 @@
+{
+  "run-physical-flags-sdc5a-direct-20261107.py": "1a07d4e6f0ee0928e233814d60b626ab3168ce24320bb1c4f21f927c85c119ab",
+  "check-physical-flags-sdc5a-linux-20261107.sh": "f504f0caf2cb8af019583554a565549fdbbf422c92372d176c554d18046c6ede",
+  "run-sdc5a-final-set-20261107.sh": "2b128719bfa2e1f9a7954b361bf19367eafb28b5836d8e2a4436dc172b3a9504",
+  "sdc5a-extra-identity-20261107.py": "7c4bb9b5dc3b230c36990d55ad135a5950644633e48795ce49c84f5edcc73ae3",
+  "freeze-sdc5a-20261107.py": "881f4ecfdc03dbb8fc18d83976a2dece863338f29bd95e80772378d6793ea37c",
+  "publish-sdc5a-20261107.py": "fef0eb09c3ae808e38fae30cc188e554f85b950bfa118cc16a89d5429b380591",
+  "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+  "sho-compare-maps-20261107.py": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+  "preflight-receipts-20261107.py": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf",
+  "sdc5a-name-check-20261107.py": "764e3b4da003767a8640156844d6a73f8d6ec9c1074758ee399ac33605acef8e",
+  "derive-sdc5a-helpers-20261107.py": "3884138221b6afc23b4228cb7f338af43884bb31af20b7e01ba70080a7a0b923"
+}

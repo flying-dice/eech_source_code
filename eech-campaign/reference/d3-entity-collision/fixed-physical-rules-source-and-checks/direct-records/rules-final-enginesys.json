@@ -1,0 +1,20 @@
+{
+  "controller_pid": 5820,
+  "state": "terminal",
+  "started_utc": "2026-11-06T14:32:41.991677+00:00",
+  "command": "cargo test --release --locked --no-fail-fast -p eech-engine-sys --features entity-dialogue-check",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --release --locked --no-fail-fast -p eech-engine-sys --features entity-dialogue-check"
+  ],
+  "scope": "One scoped direct Cargo command. Separate stdout/stderr files: each has one Windows writer. WSL/helper return is the actual Cargo/docker stage exit, no trailing echo/pipeline used. Working-tree check only unless separately frozen/source-bound.",
+  "pid": 21644,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-06T14:34:07.430121+00:00"
+}

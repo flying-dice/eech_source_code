@@ -1,0 +1,271 @@
+{
+  "schema": 1,
+  "derived_from": "independent-entity-public-authority-b24-native7ead-20261105.json (literal, same folder) and the private Root audit (selected safe booleans/counts only)",
+  "derived_note": "A DERIVED projection, not a literal source. It carries exit codes, counts, hashes and outcome labels only; no coordinates, geometry, physical tuples, pointers or recordings.",
+  "native_source": "7ead34d09e05c394c56bc2ef0d8bd315929b312c",
+  "diagnostic_source": "b24ca9038b0aa3e2829f980e741cb24d6364f0ed",
+  "literal_git_blob": "dcf9c1eae1c7adacc5d33d7d9784a105405665c1",
+  "literal_sha256": "61b1cda03f0fc527feb7f0393f02dab7d73d63ad6e2fe511485ce507299213fa",
+  "private_root_audit": {
+    "sha256": "041d1a9577067e1246e162ef601b2df6cac58e6fd33d89e87dc7625fb8087e1b",
+    "bytes": 21666,
+    "published": false,
+    "reason": "contains physical tuples"
+  },
+  "reviewer_decision": {
+    "status": "FINITE_STATIONARY_ENTITY_HANDOFF_AUTHORITY_VERIFIED",
+    "findings": [],
+    "witness_source_review_no_blocking_findings": true,
+    "finite_public_stationary_authority_closed": true,
+    "finite_ordinary_short_conformance_closed": true,
+    "moving_candidate_native_parity_or_authority_closed": false,
+    "whole_entity_extraction_or_Task49_or_D3_accepted": false
+  },
+  "healthy_plus_matrix_controls": 7,
+  "full_input_checks": 14,
+  "payloads_each": 87,
+  "audit_booleans": {
+    "changed_forced_hit_physical_cohort": true,
+    "original_physical_cohort_equals_healthy": true
+  },
+  "cases": [
+    {
+      "name": "control",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified_unchanged": 87,
+      "controller_sha256": "4b6697a783112f430c43207eaefad60340b734d9bb7734e87f7900e4a4d54b41",
+      "native_log_sha256": "ef6f87088934dba3276a2840baac44df4a1371263f67cb6bfb639be2e703cd8b",
+      "armed_entity_questions": 279,
+      "stationary": 279,
+      "moving": 0,
+      "real_hits": 44,
+      "real_misses": 235,
+      "accepted_armed_alterations": 0,
+      "answered_hits": 0,
+      "answered_misses": 0,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "actual_weapon_entity_lookup_delta": 6,
+      "actual_weapon_entity_hit_delta": 0,
+      "cohort_size": 1,
+      "cohort_terminal_rows": 1,
+      "completed": true,
+      "named_failure_marker": "",
+      "original_fixture_api_present": false,
+      "raw_json": {
+        "bytes": 2024,
+        "sha256": "3aeac6641ef2c8625e2ab51b36411db90050f74649fd75fb9513be58e364a624",
+        "rows": 7
+      }
+    },
+    {
+      "name": "forced_hit",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified_unchanged": 87,
+      "controller_sha256": "84bc88a6e5b804c9b9c2ad0bd25c54797783b1d66b3e6c2cd83395401991fdfd",
+      "native_log_sha256": "c0ad8dbc02515d8ab6d095387a5f355ad822087656605847c8c105088e88470f",
+      "armed_entity_questions": 45,
+      "stationary": 45,
+      "moving": 0,
+      "real_hits": 0,
+      "real_misses": 45,
+      "accepted_armed_alterations": 45,
+      "answered_hits": 45,
+      "answered_misses": 0,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "actual_weapon_entity_lookup_delta": 1,
+      "actual_weapon_entity_hit_delta": 1,
+      "cohort_size": 1,
+      "cohort_terminal_rows": 1,
+      "completed": true,
+      "named_failure_marker": "",
+      "original_fixture_api_present": false,
+      "raw_json": {
+        "bytes": 2027,
+        "sha256": "13946da39d15c493af1c32ec309a378ee47407d9c35f8d1647765c5cd81bf337",
+        "rows": 7
+      }
+    },
+    {
+      "name": "forced_miss",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified_unchanged": 87,
+      "controller_sha256": "97de0ebcd27447d117dabd4f67d53d0b4ddc9688ac9cac9bc43daac3535bb2da",
+      "native_log_sha256": "51af1ccf5e4d3e51dc7972e5c544ed8c3b1da7846ef4a7c5ba8919aef26a82a3",
+      "armed_entity_questions": 749,
+      "stationary": 749,
+      "moving": 0,
+      "real_hits": 165,
+      "real_misses": 584,
+      "accepted_armed_alterations": 749,
+      "answered_hits": 0,
+      "answered_misses": 749,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "actual_weapon_entity_lookup_delta": 26,
+      "actual_weapon_entity_hit_delta": 0,
+      "cohort_size": 1,
+      "cohort_terminal_rows": 1,
+      "completed": true,
+      "named_failure_marker": "",
+      "original_fixture_api_present": false,
+      "raw_json": {
+        "bytes": 2249,
+        "sha256": "e0e9c2119cb1a0e14a79fa474667bcedfe9d3cc2db6c6abbba95e25dc57cc051",
+        "rows": 11
+      }
+    },
+    {
+      "name": "withheld_entity",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified_unchanged": 87,
+      "controller_sha256": "e3ee53460b5a48ed67d52d23742688d8eba58e5544cd0f080060fad83420a099",
+      "native_log_sha256": "d2f2c6a728160badee3a080abdda048c71fba3c19997e2fabd05626ed2edb966",
+      "armed_entity_questions": 1,
+      "stationary": 1,
+      "moving": 0,
+      "real_hits": 0,
+      "real_misses": 1,
+      "accepted_armed_alterations": 1,
+      "answered_hits": 0,
+      "answered_misses": 0,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "actual_weapon_entity_lookup_delta": -1,
+      "actual_weapon_entity_hit_delta": -1,
+      "cohort_size": 1,
+      "cohort_terminal_rows": 0,
+      "completed": false,
+      "named_failure_marker": "entity_collision.callback",
+      "original_fixture_api_present": false,
+      "raw_json": {
+        "bytes": 1957,
+        "sha256": "17843dd6679d50dad6b08663e0d499508023b7704b42adcdb7947a33863f49f1",
+        "rows": 6
+      }
+    },
+    {
+      "name": "bad_write_mask",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified_unchanged": 87,
+      "controller_sha256": "299d9767ddb2ce386a439d8c433134d998e55082ec2a81a5b92cc8dbf040cae4",
+      "native_log_sha256": "516c63123bf3247da5430461cf8d5b134aad1e94f721a7226fbf42d5d9f99623",
+      "armed_entity_questions": 1,
+      "stationary": 1,
+      "moving": 0,
+      "real_hits": 0,
+      "real_misses": 1,
+      "accepted_armed_alterations": 1,
+      "answered_hits": 1,
+      "answered_misses": 0,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "actual_weapon_entity_lookup_delta": -1,
+      "actual_weapon_entity_hit_delta": -1,
+      "cohort_size": 1,
+      "cohort_terminal_rows": 0,
+      "completed": false,
+      "named_failure_marker": "entity_collision.write_mask",
+      "original_fixture_api_present": false,
+      "raw_json": {
+        "bytes": 2011,
+        "sha256": "21bff8dbab2b8c4dd32905d83096d3d89338bcfc3ceb2a46a0d03a0a9fa01205",
+        "rows": 6
+      }
+    },
+    {
+      "name": "bad_answer",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified_unchanged": 87,
+      "controller_sha256": "d1458b05793e7e7b3eefa980acfde2a02c777af311593f3a92da20fd3b6342b0",
+      "native_log_sha256": "0bb84191172284c7ac9233c00a4eb30e29692dd7b36697ae82edd4d613ebeaf3",
+      "armed_entity_questions": 1,
+      "stationary": 1,
+      "moving": 0,
+      "real_hits": 0,
+      "real_misses": 1,
+      "accepted_armed_alterations": 1,
+      "answered_hits": 1,
+      "answered_misses": 0,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "actual_weapon_entity_lookup_delta": -1,
+      "actual_weapon_entity_hit_delta": -1,
+      "cohort_size": 1,
+      "cohort_terminal_rows": 0,
+      "completed": false,
+      "named_failure_marker": "entity_collision.answer",
+      "original_fixture_api_present": false,
+      "raw_json": {
+        "bytes": 1930,
+        "sha256": "ad8241b34bbe2f01069e1df8c7a42fdcd862d132a51944854d4de7a7729c91c7",
+        "rows": 6
+      }
+    },
+    {
+      "name": "original-control",
+      "native_exit": 1,
+      "controller_exit": 1,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified_unchanged": 87,
+      "controller_sha256": "97fb3dd3fc53078d4e0e0ca2be667f03e2ddf9f223f398f51a7b2873924d6d41",
+      "native_log_sha256": "31a9441cd3cdb877a02387d12b5a11202045637c5894d260c03308e346dca0e1",
+      "armed_entity_questions": 0,
+      "stationary": 0,
+      "moving": 0,
+      "real_hits": 0,
+      "real_misses": 0,
+      "accepted_armed_alterations": 0,
+      "answered_hits": 0,
+      "answered_misses": 0,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "actual_weapon_entity_lookup_delta": 6,
+      "actual_weapon_entity_hit_delta": 0,
+      "cohort_size": 1,
+      "cohort_terminal_rows": 1,
+      "completed": true,
+      "named_failure_marker": "",
+      "original_fixture_api_present": true,
+      "raw_json": {
+        "bytes": 2013,
+        "sha256": "aacaabf8f0c1d6b4a362383c8c9b7fbe8548ea85f4f768d755b47249bd3d3329",
+        "rows": 7
+      }
+    }
+  ]
+}

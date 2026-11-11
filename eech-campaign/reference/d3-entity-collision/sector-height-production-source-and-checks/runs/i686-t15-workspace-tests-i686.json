@@ -1,0 +1,21 @@
+{
+  "controller_pid": 22292,
+  "state": "terminal",
+  "started_utc": "2026-11-07T07:49:55.689425+00:00",
+  "command": "cargo test --locked --target i686-unknown-linux-gnu --no-fail-fast",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/tree-i686-raw-pass-through-20261106-env/check-tree-i686-linux.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked --target i686-unknown-linux-gnu --no-fail-fast"
+  ],
+  "image": "eech-d3-tree-i686-20261106:2",
+  "scope": "One Cargo command on the task-local i686 image. Working-tree check only unless separately frozen/source-bound.",
+  "pid": 18044,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T07:57:42.446588+00:00"
+}

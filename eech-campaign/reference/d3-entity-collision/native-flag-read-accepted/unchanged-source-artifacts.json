@@ -1,0 +1,12 @@
+{
+  "source_HEAD": "1ab12d0efc6e088b483ba30e0f12ec74c9ffa2ca",
+  "artifacts": {
+    "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "eech-campaign/tools/native-flag-read-runtime.json": "3c27e9aaed8bfadb6a60c577d054790f74604fbab905515a4b80a24bf6af6084",
+    "eech-campaign/crates/eech-world/lua/physical-flags-read-witness.lua": "3bfbeab0e336c2ffe9b8784c3e818c0cded329e9dc30562f939cb6fdfeaf9e7d",
+    "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748"
+  },
+  "all_current_raw_bytes_equal_recorded_hashes": true,
+  "metadata_only": true
+}

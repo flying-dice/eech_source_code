@@ -1,0 +1,36 @@
+{
+  "source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+  "actual_exit": 0,
+  "candidate": "D:\\EECH-Migration-Evidence\\city-box-healthy-4c0b89263-20261106",
+  "parent_source": "78ef839dd75d325c42acb3127d097fee400388c2",
+  "parent": "D:\\EECH-Migration-Evidence\\city-state-healthy-78ef839dd-20261106",
+  "native_helper_outer_exits": [
+    0,
+    0,
+    0
+  ],
+  "new_city_expansions_before": 54825,
+  "new_city_expansions_after": 0,
+  "all_expansions_answered": true,
+  "common_authority_fields": 186,
+  "changed_common_fields": {
+    "city_state_before": {
+      "old": 83408,
+      "new": 28583
+    }
+  },
+  "only_declared_city_state_before_delta": true,
+  "new_fields": [
+    "city_expand_after",
+    "city_expand_answered",
+    "city_expand_before",
+    "city_expand_total"
+  ],
+  "complete_terminal_literal_equal": true,
+  "complete_terminal_bytes": 180,
+  "complete_terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+  "request_faults": 0,
+  "reply_faults": 0,
+  "case_weapons_pending": 0,
+  "scope": "Finite healthy constructor positive eligibility and conformance only; no lifecycle retention, moving or wholeD3 acceptance."
+}

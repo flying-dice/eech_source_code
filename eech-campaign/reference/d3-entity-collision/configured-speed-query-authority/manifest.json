@@ -1,0 +1,50 @@
+{
+  "scope": "Finite configured-input source/actual closure and partial default evidence; literal originals, no whole acceptance",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 13,
+      "sha256": "9e8f041ed812cb5288282cc6b187de804e96b688d56647fdae181c49fec71863"
+    },
+    {
+      "path": "actual-review.json",
+      "bytes": 18342,
+      "sha256": "85390f0660ef0a90a26358b65f3c8b814fe8ff5a928e6e331c13716c3dc52e4f"
+    },
+    {
+      "path": "author-code-frozen.json",
+      "bytes": 14057,
+      "sha256": "99ec2f92f1fda3e6c12e1837a79497ff14fc6668c18814395765a41515d793d2"
+    },
+    {
+      "path": "closed-terrain-input-unreached-review.json",
+      "bytes": 7383,
+      "sha256": "c5def6de506c07b0f8481de9557406cf15b0b91c79f4299ddd1fce935957b2de"
+    },
+    {
+      "path": "compiled-literal-binding.json",
+      "bytes": 2082,
+      "sha256": "8ac54d158edb9eb4224a3dce94d955df30f376e8ad7523b085009872b5413aae"
+    },
+    {
+      "path": "default-partial-prefix.json",
+      "bytes": 1458,
+      "sha256": "bcb3b16f7e6868b44c743c651e3651c7ef03ed0b2347bad1ddb521248f2edf7b"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2769,
+      "sha256": "79226a9f78209729d79ec87cb7865d11fa483e341399f52c9196d3319c6b2615"
+    },
+    {
+      "path": "safe-actual-facts.json",
+      "bytes": 6259,
+      "sha256": "3d48f8c84ecb36d239ea37928615ccbac74b25ce53cc31b902d7dcf89387c406"
+    },
+    {
+      "path": "source-review.json",
+      "bytes": 13236,
+      "sha256": "742afe7329b400b7e807b25fa8cb0948a1d283cc7891b44dc091aabdbd5602c4"
+    }
+  ]
+}

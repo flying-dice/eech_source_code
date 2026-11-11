@@ -1,0 +1,596 @@
+{
+  "kind": "D3 PHYSICAL FLAGS CONSUMER BATCH CODE_FROZEN (UNREVIEWED; test-only feature-gated real-C consumer control, Rust runner, census test, prose correction; NO production flag moves; native UNRUN): ENV-PHYSICAL-FLAGS-RAWWORD-CONTRACT-1 and ENV-PHYSICAL-FLAGS-HIGH-INDEX-PERSISTENCE-1 stay OPEN until the SAME review",
+  "frozen_utc": "2026-11-07T16:25:34.158792+00:00",
+  "task": "EEDCS-49",
+  "stage": "ONE focused required-blocker batch: the prose correction of the ONE review c328 and the smallest REAL immediate-consumer control; preparation count stays 2; no production flag, no ABI/trait/layout/store chosen, no supply-descriptor repair, no boolean normalisation",
+  "source_before": "c2f05190487090377ef996dfd8e639669ec7bbf6",
+  "native": "this batch launched NO native job; the protected current shipping runtime (Root's 764 full 40/all 8 job) is contextual only and was not touched",
+  "findings": {
+    "ENV-PHYSICAL-FLAGS-RAWWORD-CONTRACT-1": "OPEN (blocks_cutover): the consumer gate is met for ONE consumer only",
+    "ENV-PHYSICAL-FLAGS-HIGH-INDEX-PERSISTENCE-1": "OPEN until the SAME reviewer accepts the prose correction"
+  },
+  "feedback_files": {
+    "at_start": [],
+    "at_freeze": [
+      "Root-physical-flags-consumer-feedback-20261107-1626.json"
+    ],
+    "read_before_freeze": {},
+    "unread_new_files_at_freeze": [
+      "Root-physical-flags-consumer-feedback-20261107-1626.json"
+    ]
+  },
+  "sealed_inputs": {
+    "independent-physical-flags-characterization-c328-20261107.json": {
+      "sha256": "3c81f334f7f44cd8614349dbc5312eeaf5769f55c10a3e011e939505c90f9a65"
+    },
+    "physical-flags-c328-Root-binding-20261107.json": {
+      "sha256": "cea5f62ddb28c18b22a14764bfd3191b836e3deaa318cb33e7574a37b82716e9"
+    },
+    "physical-flags-69f-publication-Root-20261107.json": {
+      "sha256": "af03a55a91acce4adb6885a4677209184815054968694678fb7ef882e06e76ca"
+    }
+  },
+  "root_feedback_files_present": [
+    "Root-city-relist-ack-review-feedback-20261106.json",
+    "Root-feedback-height-native-CI-20261107.json",
+    "Root-needed-consumer-api-disposition-feedback-20261107.json",
+    "Root-physical-flags-consumer-feedback-20261107-1626.json",
+    "Root-physical-flags-feedback-20261107-1550.json",
+    "Root-physical-flags-feedback-20261107-1558.json",
+    "Root-sector-height-production-feedback-20261107.json",
+    "Root-sector-height-public-baseline-fix-feedback-20261107.json",
+    "Root-sector-height-public-baseline-join-fix-feedback-20261107.json",
+    "Root-sector-height-review-feedback-20261106.json"
+  ],
+  "lease": {
+    "asserted_from_the_helper_text": {
+      "helper": "check-physical-flags-consumer-linux-20261107.sh",
+      "helper_sha256": "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65",
+      "volume": "eech-linux-d3-physical-flags-9d247-20261107",
+      "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3"
+    },
+    "root_leased_names": {
+      "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+      "volume": "eech-linux-d3-physical-flags-9d247-20261107"
+    },
+    "names_equal": true,
+    "warm_volume_reused": true,
+    "containers_before": [
+      "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+      "image_line=sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+      "volume_line=eech-linux-d3-physical-flags-9d247-20261107",
+      "containers_before=0"
+    ],
+    "containers_after": "containers_after=0",
+    "cache_cleanup": "none",
+    "tooling_note": "rustfmt and clippy were installed into each EPHEMERAL container by `rustup component add`; the image is the explicitly retained 9d247 image, measured in the runs, not the Root 3a3 Windows producer; old physical-flags-* helpers, receipts, freezes and maps were not overwritten"
+  },
+  "change": {
+    "prose": "docs/d3-physical-flags-contract.md and the sealed first control's comments: a high-index UPDATED bit SURVIVES the quarter-memset reset but is not permanent (the same &= getter clears high-index neighbours); the supply-descriptor reachability explanation qualified (still source-derived, UNCONFIRMED, UNFIXED; no boolean normalised); MOBILE_MOVING installed by both aircraft and vehicles",
+    "control": "csrc/eech_physical_flags_consumer_check.c (feature physical-flags-consumer-check, 56 expectations) + tests/physical_flags_consumer.rs: the ORIGINAL fw_msgs.c response_to_check_mobile_reached_guide through the real message dispatch",
+    "census": "tests/physical_flags_guard.rs gained one test (the consumer source: read order, the guide-position getter registration, the router order)",
+    "docs": "contract sections 5 and 7"
+  },
+  "consumer_gate": {
+    "met_for": "response_to_check_mobile_reached_guide (the original fixed-wing arrival response) only",
+    "not_run": [
+      "en_cllsn.c moving-mobile pass-through",
+      "gd_supply_arrival.c descriptor",
+      "the Tacview writers of MOVED/ROTATED",
+      "the weapon-vector (frand1) path",
+      "helicopter/vehicle/ship responses"
+    ],
+    "measured_source_fact": "the response reads the guide position from the FIXED-WING receiver, whose table keeps the engine's default getter (the zero vector)"
+  },
+  "red_green": {
+    "red": "none: a characterisation of the ORIGINAL passes it; no defect was invented",
+    "green": [
+      "k5 (199 + 56 expectations, 4 census tests)"
+    ]
+  },
+  "test_counts_final": {
+    "k1-fmt-check": 0,
+    "k2-clippy-engine-sys-default": 0,
+    "k3-clippy-engine-sys-both-features": 0,
+    "k4-engine-sys-default": 49,
+    "k5-flags-controls-and-census": 6
+  },
+  "retained_development_runs": {},
+  "runs": [
+    {
+      "label": "c1-consumer-check",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-consumer-check --test physical_flags_consumer --no-fail-fast -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T16:12:02.925678+00:00",
+      "completed_utc": "2026-11-07T16:13:13.587798+00:00",
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "targets": {
+        "tests/physical_flags_consumer.rs": 1
+      },
+      "stdout_sha256": "cd99767f315656498d810d6948cda094bd4fca69e10033ca0783b3a34ed0d89d",
+      "stderr_sha256": "b6a0e218d70fb9733e40780bc360e45eaf56aa7823924f86bcc7558d3e96e134"
+    },
+    {
+      "label": "c2-all-flags-tests",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check --test physical_flags --test physical_flags_consumer --test physical_flags_guard --no-fail-fast -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T16:14:26.989624+00:00",
+      "completed_utc": "2026-11-07T16:15:54.491898+00:00",
+      "tests_passed": 6,
+      "tests_failed": 0,
+      "targets": {
+        "tests/physical_flags.rs": 1,
+        "tests/physical_flags_consumer.rs": 1,
+        "tests/physical_flags_guard.rs": 4
+      },
+      "stdout_sha256": "52e98de75e5a89aa6ba3764d49092a8769e2cd66716daa30b867ff5042bf8ff2",
+      "stderr_sha256": "e5be53169e480093343273360f81b4158901dbcdddf3cf433bab858b72e95ab9"
+    },
+    {
+      "label": "c3-fmt-apply",
+      "final": false,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --all",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T16:16:10.252305+00:00",
+      "completed_utc": "2026-11-07T16:16:16.452363+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "label": "c4-clippy-features",
+      "final": false,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T16:16:16.635666+00:00",
+      "completed_utc": "2026-11-07T16:17:27.631709+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "72855d388a6d6321f7e0088ce8f4964d2bdaaa32ddc645b724dd63c078eb3b25"
+    },
+    {
+      "label": "k1-fmt-check",
+      "final": true,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T16:19:53.288105+00:00",
+      "completed_utc": "2026-11-07T16:19:59.334320+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "label": "k2-clippy-engine-sys-default",
+      "final": true,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T16:19:59.426676+00:00",
+      "completed_utc": "2026-11-07T16:21:19.948459+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "3ef3a3be7bb8a15a646702cd850923628a8767ff6a6c47cbbd1ad8a2a63deb21"
+    },
+    {
+      "label": "k3-clippy-engine-sys-both-features",
+      "final": true,
+      "command": "rustup component add clippy && cargo clippy --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T16:21:20.056656+00:00",
+      "completed_utc": "2026-11-07T16:21:25.132268+00:00",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "targets": {},
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "58b39fb953426a50afbb1bb8b7b957011552b28ee8b96de002b7f9ac68b3bae5"
+    },
+    {
+      "label": "k4-engine-sys-default",
+      "final": true,
+      "command": "cargo --version && cargo test --locked -p eech-engine-sys --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T16:21:25.226052+00:00",
+      "completed_utc": "2026-11-07T16:23:43.173208+00:00",
+      "tests_passed": 49,
+      "tests_failed": 0,
+      "targets": {
+        "src/lib.rs": 0,
+        "tests/entity_host_guard.rs": 5,
+        "tests/entity_pose_lifecycle_guard.rs": 4,
+        "tests/entity_roster_guard.rs": 20,
+        "tests/physical_flags_guard.rs": 4,
+        "tests/saved_campaign_load_guard.rs": 3,
+        "tests/sector_height_guard.rs": 7,
+        "tests/sector_height_witness_guard.rs": 4,
+        "tests/tree_host_guard.rs": 2,
+        "eech_engine_sys": 0
+      },
+      "stdout_sha256": "04f7ec68501cf366d7b6a58669b59f44cd7efab5491e5a2fd389db380d2b7a8f",
+      "stderr_sha256": "8669cbfab2f52f63e4bfe5fbeebdc8e6091794506c8264107931deb8bb7d6553"
+    },
+    {
+      "label": "k5-flags-controls-and-census",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check --test physical_flags --test physical_flags_consumer --test physical_flags_guard --no-fail-fast -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T16:23:43.284011+00:00",
+      "completed_utc": "2026-11-07T16:24:03.837770+00:00",
+      "tests_passed": 6,
+      "tests_failed": 0,
+      "targets": {
+        "tests/physical_flags.rs": 1,
+        "tests/physical_flags_consumer.rs": 1,
+        "tests/physical_flags_guard.rs": 4
+      },
+      "stdout_sha256": "80e8f4291580a8822d77fa1dea315e488ea0e53245d444baa86b87dcb5aa4d24",
+      "stderr_sha256": "74691e3851233b2691a8a5a9b7186d5290191479b52a708bca97006cd12d5daa"
+    }
+  ],
+  "guards": {
+    "generic": 0,
+    "production-cutover": 1,
+    "fix-blocker ENV-PHYSICAL-FLAGS-RAWWORD-CONTRACT-1": 0,
+    "fix-blocker ENV-PHYSICAL-FLAGS-HIGH-INDEX-PERSISTENCE-1": 0,
+    "fix-blocker ENV-SECTOR-HEIGHT-NATIVE-LOAD-ORDER-DIAGNOSTIC-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-NATIVE-CORE-LOAD-LIST-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-M5-ROUNDING-ORACLE-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-M6-PACK-RETRY-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-M6-SAVE-PATH-BOUND-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1": 1,
+    "fix-blocker ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1": 1,
+    "fix-blocker sector-height-host-move-open-facts": 0,
+    "deliver (expected unmet)": 1,
+    "characterize ENV-PHYSICAL-FLAGS-RAWWORD-CONTRACT-1 (the intended guard action)": 0
+  },
+  "input_maps": {
+    "files": {
+      "hwcons-inputmap-PRE-20261107.json": {
+        "bytes": 2044821,
+        "sha256": "87cbffa10a74d3e6680291d475c52ed4c72917cea7c40b40974e6e714ad1b27e",
+        "location": "external (full per-file rows)"
+      },
+      "hwcons-inputmap-POST-20261107.json": {
+        "bytes": 2044821,
+        "sha256": "87cbffa10a74d3e6680291d475c52ed4c72917cea7c40b40974e6e714ad1b27e",
+        "location": "external (full per-file rows)"
+      },
+      "hwcons-extra-identity-PRE-20261107.json": {
+        "bytes": 5937,
+        "sha256": "4eed590b5d16ea00d611167c6ecddf5ca79a4cbf3645c1f1cc7130958a1e30ee",
+        "location": "external (full per-file rows)"
+      },
+      "hwcons-extra-identity-POST-20261107.json": {
+        "bytes": 5937,
+        "sha256": "4eed590b5d16ea00d611167c6ecddf5ca79a4cbf3645c1f1cc7130958a1e30ee",
+        "location": "external (full per-file rows)"
+      },
+      "hwflags-inputmap-POST-20261107.json": {
+        "bytes": 2043416,
+        "sha256": "ffbec14c722d9a80293d587e3fedcc8778478d9482bb9d8c09ce73653ad9c05a",
+        "location": "external (full per-file rows)"
+      }
+    },
+    "compare_pre_post": {
+      "pre_fingerprint": "3fb0ce36ce4b0e5a8192116ce3a75f0de38b0444c6abae646937aed22d638d7f",
+      "post_fingerprint": "3fb0ce36ce4b0e5a8192116ce3a75f0de38b0444c6abae646937aed22d638d7f",
+      "file_count_pre": 3982,
+      "file_count_post": 3982,
+      "rows_only_in_pre": [],
+      "rows_only_in_post": [],
+      "rows_that_differ": [],
+      "all_rows_equal": true,
+      "head_sha": "c2f05190487090377ef996dfd8e639669ec7bbf6",
+      "changed_from_head_count": [
+        9,
+        9
+      ],
+      "deleted_from_head": [
+        [],
+        []
+      ],
+      "raw_vs_git_filtered_disagreements": {
+        "pre": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ],
+        "post": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ]
+      },
+      "extra_identity_equal": true,
+      "extra_identity_aggregate": [
+        "9b3c877f98ffe748cc94a3d0b2e3e140b5d1c1faf731bfe659032a9ccbbef6a0",
+        "9b3c877f98ffe748cc94a3d0b2e3e140b5d1c1faf731bfe659032a9ccbbef6a0"
+      ]
+    },
+    "pre_utc": "2026-11-07T16:19:43Z",
+    "post_utc": "2026-11-07T16:24:29Z",
+    "post_utc_note": "recorded by `date -u` immediately before the POST capture; not reconstructed from a file time",
+    "join_vs_reference": {
+      "kind": "explicit test-only join of the consumer batch against the reference POST map",
+      "reference_commit": "c2f05190487090377ef996dfd8e639669ec7bbf6",
+      "map_rows_changed": [
+        "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+        "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+        "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs"
+      ],
+      "map_rows_added": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+        "eech-campaign/crates/eech-engine-sys/tests/physical_flags_consumer.rs"
+      ],
+      "map_rows_removed": [],
+      "compiled_rows_changed": [
+        "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+        "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c"
+      ],
+      "compiled_rows_added": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c"
+      ],
+      "unchanged_compiled_rows": 3758,
+      "unchanged_compiled_aggregate_sha256": "8e8a4894105e552ff4fe31959180406d54be53317311f4fe011ef3c37f5931a0",
+      "checks": [
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+          "class": "manifest: ONLY added lines (the consumer feature and its [[test]] entry)",
+          "added_lines": 7,
+          "verified": true
+        },
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+          "class": "build script: ONLY the added block that defines the macro for the consumer feature",
+          "added_lines": 3,
+          "verified": true
+        },
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+          "class": "the sealed first control: COMMENTS ONLY (the high-index persistence wording); its code is byte-equal",
+          "code_equal_comments_differ": true,
+          "verified": true
+        },
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+          "class": "new translation unit wholly inside the consumer feature gate",
+          "verified": true
+        }
+      ],
+      "changed_in_git_since_reference": [
+        "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+        "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+        "eech-campaign/crates/eech-engine-sys/tests/physical_flags_consumer.rs",
+        "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+        "eech-campaign/docs/d3-physical-flags-contract.md",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/.gitattributes",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/README.md",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c1-consumer-check.json",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c1-consumer-check.stderr.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c1-consumer-check.stdout.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c2-all-flags-tests.json",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c2-all-flags-tests.stderr.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c2-all-flags-tests.stdout.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c3-fmt-apply.json",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c3-fmt-apply.stderr.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c3-fmt-apply.stdout.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c4-clippy-features.json",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c4-clippy-features.stderr.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c4-clippy-features.stdout.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/hwcons-final-set-20261107.progress",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/hwcons-final-set-lease-after-20261107.txt",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/hwcons-final-set-lease-before-20261107.txt",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k1-fmt-check.json",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k1-fmt-check.stderr.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k1-fmt-check.stdout.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k2-clippy-engine-sys-default.json",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k2-clippy-engine-sys-default.stderr.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k2-clippy-engine-sys-default.stdout.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k3-clippy-engine-sys-both-features.json",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k3-clippy-engine-sys-both-features.stderr.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k3-clippy-engine-sys-both-features.stdout.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k4-engine-sys-default.json",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k4-engine-sys-default.stderr.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k4-engine-sys-default.stdout.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k5-flags-controls-and-census.json",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k5-flags-controls-and-census.stderr.log",
+        "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k5-flags-controls-and-census.stdout.log"
+      ],
+      "conclusion": "every compiled-input change is test-only and inert without its feature (one new translation unit wholly inside the consumer gate, comments-only edits of the sealed first control, added manifest lines, one added define block); no original-campaign C source and no other compiled input changed; the ordinary, original and save shipping builds are unchanged in effect. Nothing is claimed natively.",
+      "problems": []
+    }
+  },
+  "literal_bytes": {
+    "changed_sources": {
+      "eech-campaign/crates/eech-engine-sys/Cargo.toml": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 7656,
+        "sha256": "2113c4011517573593a078b9bb2c68ed1d6bc24d5483dde3615a7284257b3be8",
+        "crlf_lines": 0
+      },
+      "eech-campaign/crates/eech-engine-sys/build/main.rs": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 26769,
+        "sha256": "72ca5555303ca9aea8883257f7343040190e214c3d109e95e9e5dafaf5b2e90a",
+        "crlf_lines": 0
+      },
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 18613,
+        "sha256": "7e10be74934711209242256077b874b4c074b02d3a868d35a98eefd50f1fe3f6",
+        "crlf_lines": 0
+      },
+      "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 14414,
+        "sha256": "bfbd184f3d2daadc9db94d24b28bf9eed21431e3e13e82ca22813a35f5940273",
+        "crlf_lines": 0
+      },
+      "eech-campaign/docs/d3-physical-flags-contract.md": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 15144,
+        "sha256": "f6daafe48d3672a1d364d37e4d123df15c55e7cc611d05e8dc7ba260ae4a9750",
+        "crlf_lines": 0
+      },
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 21912,
+        "sha256": "1be5497d040141d0db614229b879ef08ce2a94e7ba4dd5b35502063981172f80",
+        "crlf_lines": 0
+      },
+      "eech-campaign/crates/eech-engine-sys/tests/physical_flags_consumer.rs": {
+        "working_bytes_equal_git_index_blob_bytes": true,
+        "bytes": 2127,
+        "sha256": "b95057a5fe986736409480aaee4e75662e7fe241d1a0b58af36ae1a57aa1fc0c",
+        "crlf_lines": 0
+      }
+    },
+    "lua_crlf_raw_vs_git_exceptions": [
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+    ],
+    "core_filter_only_qualifications": [
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+      "modules/system/malloc.c.h",
+      "modules/system/nedmalloc.c"
+    ],
+    "older_packets_unchanged_against_HEAD": {
+      "eech-campaign/reference/d3-entity-collision/sector-height-proof-guards-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-finite-native-ci-reviewed": true,
+      "eech-campaign/reference/d3-ci-lua-download": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-reference-fix": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-reference-fix-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-core-load-fix": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-load-followup": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-core-load-and-m5-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/sector-height-m6-native-764-reviewed": true,
+      "eech-campaign/reference/d3-entity-collision/physical-flags-characterization": true,
+      "eech-campaign/reference/d3-entity-collision/physical-flags-c328-reviewed": true
+    }
+  },
+  "compiled_input_change": {
+    "statement": "every compiled-input change is test-only and inert without its feature (verified in the join from the Git diff and the file text); the shipping builds are unchanged in effect",
+    "compiled_rows_changed": [
+      "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c"
+    ],
+    "compiled_rows_added": [
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c"
+    ],
+    "unchanged_compiled_rows": 3758
+  },
+  "freeze_script_chronology_erratum": {
+    "script": "freeze-hwcons-20261107.py",
+    "sha256_at_PRE": "20d6cf2935f0052973618ddb783d5abfd7bc4947205b787d79b0558eca952d16",
+    "sha256_now": "ac5a761cd9f7c3ac3f896e4eb52005025e5a1b4e778a545082200c26ffabafc2",
+    "pre_version_retained": "freeze-hwcons-20261107.PRE-version.py",
+    "pre_version_sha256": "20d6cf2935f0052973618ddb783d5abfd7bc4947205b787d79b0558eca952d16",
+    "edited_after_post": true,
+    "cause": "the first freeze attempt (after POST 16:24:29Z, before any output file of the freeze was written) crashed copying the run records: one stale run-record prefix (`physical-flags-%s.%s`, the previous batch's) survived the author's text replace when this script was derived from the previous freeze (FileNotFoundError, traceback retained). The edit changes that one prefix to `flags-consumer-%s.%s` and adds this erratum; nothing else in the script and no other reader changed.",
+    "attempt1_stderr_retained": "hwcons-freeze-attempt1-20261107.stderr.txt",
+    "replay": "none: a publisher-only edit does not change any input of any check; the PRE and POST maps and extras are equal and the final checks ran before the edit"
+  },
+  "audit_reader_timing": "EXCEPT the freeze script's one erratum above (a publisher-only crash fix after POST), this freeze script, the join, the extra-identity script, the final-set runner, the runner, the check script, the batched map script and the comparer were FINAL before the PRE identity capture (their SHA-256 recorded at PRE and verified unchanged by this script); no reader changed after the POST capture",
+  "scripts": [
+    {
+      "name": "freeze-hwcons-20261107.PRE-version.py",
+      "sha256": "20d6cf2935f0052973618ddb783d5abfd7bc4947205b787d79b0558eca952d16"
+    },
+    {
+      "name": "hwcons-freeze-attempt1-20261107.stderr.txt",
+      "sha256": "8e295d7b320a0825c4998fb2ac89d99dfea2eaf5b27e4aeb5a9e411023a35472"
+    },
+    {
+      "name": "run-physical-flags-consumer-direct-20261107.py",
+      "sha256": "21ce62565b2776fce595e87a47d18298c147897175a182fa5c6b938894a8798b"
+    },
+    {
+      "name": "check-physical-flags-consumer-linux-20261107.sh",
+      "sha256": "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65"
+    },
+    {
+      "name": "run-hwcons-final-set-20261107.sh",
+      "sha256": "3ad92116901c5705ee254ca8e6666f50d8c939b486735d6b5241e86d71b5264c"
+    },
+    {
+      "name": "hwcons-join-20261107.py",
+      "sha256": "0deea98747775f8f348d694c137397471a0d71843715a04ec9cda7d02d31f3c6"
+    },
+    {
+      "name": "hwcons-extra-identity-20261107.py",
+      "sha256": "5ce233c49f753dbcc1ce3f0424395047b9e71a22873e91051aa6549a8c9984e7"
+    },
+    {
+      "name": "freeze-hwcons-20261107.py",
+      "sha256": "ac5a761cd9f7c3ac3f896e4eb52005025e5a1b4e778a545082200c26ffabafc2"
+    },
+    {
+      "name": "sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "name": "sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "name": "hwcons-retained-dev-runs-20261107.json",
+      "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+    },
+    {
+      "name": "hwcons-feedback-files-20261107.json",
+      "sha256": "5538baf756e6cd8e5c3046fbecc9d7252811349812164622e86cce1955c0ead5"
+    }
+  ],
+  "not_run": [
+    "native, Windows, retail or war launch (Root's; its 764 full-40 job is untouched)",
+    "the other consumers listed above",
+    "the 179/150/221 characterisations, the 16 matrices, campaign replays",
+    "i686, -O2 or other platforms",
+    "agents/MCP/authentication/model change",
+    "cache, image or process deletion outside the warm physical-flags volume",
+    "merge"
+  ],
+  "limits": [
+    "hand-made collaborators (declared in the control's header): the pool slots, the fixed_wing and guide raw records, system_delta_time, the SERVER comms model, an empty update list; the consumer's other policy is untouched",
+    "the shipping profile routes the arrival to campaign_supply_arrival_check / campaign_radius_arrival_check first, so the original response is the arrival the profile retains for the other cases",
+    "the bit-31 observation is the supported compiler profile's: not a portable strict-C, -O2 or signalling-NaN claim; no claim about the real heap lifecycle from re-giving one slot a record",
+    "the supply-descriptor mismatch stays a source-derived UNCONFIRMED, UNFIXED candidate; the original &= and quarter-memset are not fixed",
+    "fmt and clippy ran only because the components were installed into each ephemeral container of the retained image"
+  ],
+  "state": {
+    "claims": "no self-review, approval, native clearance, finding closure, whole Task49 or D3, delivery",
+    "D3-CURRENT.json": "not edited (Root owns it)"
+  },
+  "hygiene_problems_at_freeze": []
+}

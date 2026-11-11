@@ -1,0 +1,18 @@
+
+running 1 test
+test tmp_probe_listed_again ... FAILED
+
+failures:
+
+---- tmp_probe_listed_again stdout ----
+
+thread 'tmp_probe_listed_again' (152) panicked at crates/eech-world/tests/entity_authority.rs:6052:5:
+PROBE Err("runtime error: entity-authority: mode city_box_lifecycle failed in the engine at [model-provider:entity_scan.state]: runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.state] PROBE index 1 child 9 childhold never sectorhold held\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"entity-authority.lua\"]:2715: in main chunk")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tmp_probe_listed_again
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 108 filtered out; finished in 0.01s
+

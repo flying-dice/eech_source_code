@@ -1,0 +1,95 @@
+{
+  "captured_utc": "2026-11-06T19:40:53.570769+00:00",
+  "source": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+  "PR": {
+    "baseRefOid": "84775522f9eb9c7182ff89f75387115b9e3883fd",
+    "headRefOid": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+    "isDraft": true,
+    "state": "OPEN",
+    "url": "https://github.com/flying-dice/eech_source_code/pull/109"
+  },
+  "all_nine_current_checks_success": true,
+  "checks": [
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302143/job/128107383921",
+      "name": "verify",
+      "state": "SUCCESS",
+      "workflow": "eech-core-ts"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302073/job/128107375135",
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302073/job/128107374992",
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302073/job/128107375528",
+      "name": "test (i686-unknown-linux-gnu)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302073/job/128107375121",
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302073/job/128107375049",
+      "name": "evidence-selftest",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302073/job/128107374678",
+      "name": "dcs-probe-tools",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302073/job/128107374989",
+      "name": "windows-cross",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302058/job/128107234103",
+      "name": "Slice 1a historical equivalence",
+      "state": "SUCCESS",
+      "workflow": "eech-loss-structural"
+    }
+  ],
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 42280302073,
+      "headSha": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+      "name": "eech-campaign",
+      "status": "completed",
+      "url": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302073"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 42280302143,
+      "headSha": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+      "name": "eech-core-ts",
+      "status": "completed",
+      "url": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302143"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 42280302058,
+      "headSha": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+      "name": "eech-loss-structural",
+      "status": "completed",
+      "url": "https://github.com/flying-dice/eech_source_code/actions/runs/42280302058"
+    }
+  ],
+  "scope": "Exact97dc current CI only; does not change native/outer/recovery exits or accept delivery/fullpack/D3."
+}

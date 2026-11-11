@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05",
+  "scope": "Direct-exit Linux checks of the TEST-ONLY public ENTITY_SCAN authority witness (the extended lua/entity-authority.lua and tests/entity_authority.rs). The scripted collaborators prove the witness driver and its verdict logic, not the DLL, the heap getters or the kernel. NOT a native, Windows or retail run; the witness has not been run against a real module.",
+  "runtime_binaries_reused": "8b85230826ad1c1bea289f6d2592f31b705a03f6",
+  "source_commit": "ff608178070e247c8be5e5648b236d435884235d",
+  "lua": {
+    "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "git_blob": "3f476b5b3a1582c9c00be163b78c3825e0f220c3",
+    "sha256_raw": "13891b98e0dfb8aa1045009ecccba436f6e168724cc385bc9ce656f9eb63cc82"
+  },
+  "tests": {
+    "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "git_blob": "2d27ddf21e165d8d733ef3c937abbb14b38714bf",
+    "tests": 28,
+    "retained": 21,
+    "new": 7
+  },
+  "grammar": {
+    "facts": 16,
+    "states": [
+      "first",
+      "next",
+      "offer",
+      "done_none",
+      "done_hit"
+    ],
+    "scene": 0,
+    "first_carries_p_patterns": 2,
+    "others_carry_p": false
+  },
+  "modes": [
+    "control",
+    "scan_real",
+    "scan_none",
+    "withheld_scan",
+    "bad_scan_state",
+    "bad_scan_cursor",
+    "original-profile control (expected CAPABILITY RED, exit 1)"
+  ],
+  "script_inventory": {
+    "with_profile_scripts": 62,
+    "meaning": "the host_callbacks inventory assertion (62, 2) passes unchanged: no script was added"
+  },
+  "steps": [
+    {
+      "step": "fmt_check",
+      "child_exit": 0
+    },
+    {
+      "step": "entity_authority",
+      "child_exit": 0
+    },
+    {
+      "step": "tree_authority",
+      "child_exit": 0
+    },
+    {
+      "step": "host_callbacks",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy_eech_world",
+      "child_exit": 0
+    }
+  ],
+  "test_result_rows": 3,
+  "tests_passed": 127,
+  "tests_failed": 0,
+  "final_log_sha256": "afbc3882afb6ac48b653ced792cd3250c6f70af3ad2cc6c445fb905cb507d3a0",
+  "mutation_controls": {
+    "summary": [
+      "none-answers-real apply=0 cargo=entity_authority=101",
+      "hit-use-not-required apply=0 cargo=entity_authority=101",
+      "downstream-not-checked apply=0 cargo=entity_authority=101",
+      "cursor-not-altered apply=0 cargo=entity_authority=101",
+      "state-marker-misnamed apply=0 cargo=entity_authority=101",
+      "restored_equal=yes"
+    ],
+    "summary_sha256": "725e2b06c86b41a1322e408082c918b1ddb7c49e44d0f3beeeae3a8c97b915fc",
+    "meaning": "five mutants of the witness (the none answer used the real one, the forced hit not required, downstream questions not checked, the cursor not altered, the state marker misnamed) each failed entity_authority (exit 101); the file was restored byte for byte."
+  },
+  "defect_the_controls_caught": "run2: bad_scan_cursor stopped at entity_scan.callback, not entity_scan.cursor: a later-declared helper was called from the alteration, so the witness itself raised inside the provider callback. The mode marker check refused it; the alteration was rewritten without the helper.",
+  "source_identity": {
+    "rows_before": 2918,
+    "rows_after": 2918,
+    "filtered_before": "ca70270893916577d02c198bd18faed952c6aae3e01eaf420f0ccdb73d0b85e6",
+    "filtered_after": "ca70270893916577d02c198bd18faed952c6aae3e01eaf420f0ccdb73d0b85e6",
+    "raw_before": "7df409abb640d54fb334a44a8894c92c883e0c98320f243a89eda1a4e165b2bb",
+    "raw_after": "7df409abb640d54fb334a44a8894c92c883e0c98320f243a89eda1a4e165b2bb",
+    "shipping_inputs_vs_8b8523082": "git diff --name-only 8b8523082 over aphavoc, eech-campaign/crates, Cargo.toml, Cargo.lock and tools lists exactly lua/entity-authority.lua and tests/entity_authority.rs"
+  },
+  "not_claimed": [
+    "any native or retail result",
+    "scan authority",
+    "moving public path (NEED_UPDATED is 0 in the finite counts; no warmup is tuned after an UNREACHED)",
+    "backing/roster/synchronisation/live pose",
+    "city children",
+    "effectful UPDATED and shared terrain record",
+    "raw tree/forest/cloud/RNG",
+    "hierarchy/devices/muzzles/rotor/smoke/host identities",
+    "DCS mapping",
+    "whole Task 49 or D3"
+  ],
+  "native_command_for_root": "eech-world.exe <literal entity-authority.lua with the blob above> root=<fresh root> mode=control out=<new .jsonl>; the paired and failure modes only after the natural control reached"
+}

@@ -1,0 +1,4 @@
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.17s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_engine-803953b4d7304d71)
+   Doc-tests eech_engine

@@ -1,0 +1,30 @@
+{
+  "code_commit": "b5cbfc44e2718e790d3a72158b496979901ffbaa",
+  "source_rows": 4010,
+  "raw_equals_committed": 4007,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "source_fingerprint": "dcfa72e0bffab2cbeecf5af22655f0a19eda1d21f8bb9b6153c93438af42dd79",
+  "compiled_observer_source": "552ee8e079b75626199c4e348ed0e986bc02b7ba",
+  "other_raw_rows_unchanged": 4008,
+  "final_commands_direct0": 3,
+  "final_Rust_tests": 4,
+  "single_faults": 23,
+  "metadata_after_POST": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "outer-session.json",
+    "manifest.json",
+    "code-publication.json",
+    "publication-manifest.json"
+  ],
+  "literal_log_whitespace": "Raw logs retain CRLF and final blank lines; source/metadata whitespace check excludes runs.",
+  "publication_helper": {
+    "private_path": "R:\\d3-evidence\\crfix19e-publication-only-20261108.py",
+    "sha256": "8c3faa9fca37622cb4c5cbe0e2ddd32dfdd99fa456e88e3523bffa651f5a1511"
+  },
+  "scope": "Correction UNREVIEWED; no Windows/native/capture/removal or whole-D3 acceptance; Root records agent completion separately."
+}

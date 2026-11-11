@@ -1,0 +1,90 @@
+{
+  "kind": "explicit gated-addition join of the physical-flags characterisation against the reference POST map",
+  "reference_commit": "8c9e9b938838d52a5c98cc304e70206d357fabad",
+  "map_rows_changed": [
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs"
+  ],
+  "map_rows_added": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs"
+  ],
+  "map_rows_removed": [],
+  "compiled_rows_changed": [
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs"
+  ],
+  "compiled_rows_added": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c"
+  ],
+  "unchanged_compiled_rows": 3758,
+  "unchanged_compiled_aggregate_sha256": "8e8a4894105e552ff4fe31959180406d54be53317311f4fe011ef3c37f5931a0",
+  "gated_addition_checks": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "class": "manifest: ONLY added lines (the feature and its [[test]] entry)",
+      "added_lines": 7,
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "class": "build script: ONLY the added block that defines the macro for the feature",
+      "added_lines": 3,
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+      "class": "new translation unit wholly inside the feature gate (compiles to nothing without it)",
+      "verified": true
+    }
+  ],
+  "changed_in_git_since_reference": [
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/docs/d3-physical-flags-contract.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/.gitattributes",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/README.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f1-fmt-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f1-fmt-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f1-fmt-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f2-clippy-engine-sys-default.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f2-clippy-engine-sys-default.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f2-clippy-engine-sys-default.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f3-clippy-engine-sys-flags-feature.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f3-clippy-engine-sys-flags-feature.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f3-clippy-engine-sys-flags-feature.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f4-engine-sys-default.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f4-engine-sys-default.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f4-engine-sys-default.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f5-flags-control-and-guard.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f5-flags-control-and-guard.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f5-flags-control-and-guard.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/hwflags-final-set-20261107.progress",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/hwflags-final-set-lease-after-20261107.txt",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/hwflags-final-set-lease-before-20261107.txt",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p1-flags-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p1-flags-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p1-flags-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p2-flags-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p2-flags-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p2-flags-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p3-flags-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p3-flags-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p3-flags-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p4-flags-check-and-guard.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p4-flags-check-and-guard.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p4-flags-check-and-guard.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p5-fmt-apply.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p5-fmt-apply.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p5-fmt-apply.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p6-clippy-engine-sys-feature.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p6-clippy-engine-sys-feature.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p6-clippy-engine-sys-feature.stdout.log"
+  ],
+  "conclusion": "every compiled-input change is a test-only feature-gated ADDITION (one new translation unit that preprocesses to nothing without its feature, added manifest lines, one added define block); no original-campaign C source and no other compiled input changed; the ordinary, original and save shipping builds are unchanged in effect. Nothing is claimed natively.",
+  "problems": []
+}

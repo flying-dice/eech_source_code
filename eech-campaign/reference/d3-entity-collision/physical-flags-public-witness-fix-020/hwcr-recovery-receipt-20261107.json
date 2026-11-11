@@ -1,0 +1,50 @@
+{
+  "kind": "recovery receipt of an evidence-family name collision (Root supervision note Root-physical-flags-witness-fix-feedback-20261107-2056.json, read in full at 2026-11-07T20:57:09Z, again before this receipt)",
+  "written_utc": "2026-11-07T20:58:06.949925+00:00",
+  "collision": "the witness-correction batch generated its scripts from the previous family's by text replacing `hwwit` with `hwfix`, which the sealed 12:21Z-12:32Z sector-height native-witness-fix family already used. Overwritten external files of that family: freeze-hwfix-20261107.py (written 20:54:20Z), hwfix-extra-identity-20261107.py and run-hwfix-final-set-20261107.sh (written 20:53:54Z); one dry freeze run executed the colliding freeze script and wrote a throw-away -DRY packet into the working tree (untracked, never committed; removed). A dry `readers-pre` of the NEW family was written and removed. No other file of the old family was written: its PRE/POST maps, extras, readers-PRE record, UTC files, progress, lease facts, run records, receipts and Git packet keep their 12:21Z-12:32Z modification times.",
+  "order_deviation_stated": "Root's note asks to preserve the colliding versions BEFORE restoring. I restored from the accepted Git copies first (at 20:56:25Z) and moved the colliding content under a new name by a text replace beforehand: the colliding files themselves are therefore NOT preserved as stored bytes. What is preserved is their content under the new family name (the replace changed only the family name; two later declared edits were made to the renamed copies, the addition of the recovery receipt, preflight records and name-check script to their lists): `derived-*` here. They are derived, not original storage.",
+  "restored": [
+    {
+      "old_external_name": "freeze-hwfix-20261107.py",
+      "restored_sha256": "cfc428df6fdf947117944981a53f8c189eb258af32aec7567966828947511750",
+      "equals_published_git_copy": true,
+      "git_copy": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/scripts/freeze-hwfix-20261107.py",
+      "new_family_name": "freeze-hwcr-20261107.py",
+      "new_family_sha256_now": "429c3fc868afd38f8eb0ca2c5f3649bb7178aaee98021a41b84157c4ea7893eb",
+      "retained_copies": [
+        "restored-freeze.py",
+        "derived-freeze.py"
+      ]
+    },
+    {
+      "old_external_name": "hwfix-extra-identity-20261107.py",
+      "restored_sha256": "01c388b699c3e379e8039258d56561d4ef033301d294029f0d5b1c56fa2f9d6d",
+      "equals_published_git_copy": true,
+      "git_copy": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/scripts/hwfix-extra-identity-20261107.py",
+      "new_family_name": "hwcr-extra-identity-20261107.py",
+      "new_family_sha256_now": "6cd536b760c294752558a7306f22b1896f9c8966fff8bb9cdf149ccff1c95bea",
+      "retained_copies": [
+        "restored-extra.py",
+        "derived-extra.py"
+      ]
+    },
+    {
+      "old_external_name": "run-hwfix-final-set-20261107.sh",
+      "restored_sha256": "7c846cacf907210c6dc30e175173038ed41c7ff99b1adc6912f3a99bed5257cf",
+      "equals_published_git_copy": true,
+      "git_copy": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/scripts/run-hwfix-final-set-20261107.sh",
+      "new_family_name": "run-hwcr-final-set-20261107.sh",
+      "new_family_sha256_now": "5d5e7a5cba2b7c0c749ce634393c4fe2c2b442536f988ecda07807fe2e4e0abb",
+      "retained_copies": [
+        "restored-final.sh",
+        "derived-final.sh"
+      ]
+    }
+  ],
+  "restoration_basis": "each restored file is byte-equal to its published Git copy in the accepted packet sector-height-native-witness-fix; extra-identity 01c388b6... and final-set 7c846cac... equal that family's own readers-PRE record (hwfix-readers-PRE-20261107.json) and freeze-hwfix equals the sha256_now cfc428df... of that family's freeze-script erratum (its PRE version f54d678f..., retained untouched as freeze-hwfix-20261107.PRE-version.py). The old external files' storage metadata (creation time) is that of the filesystem and is not claimed original.",
+  "new_family": "hwcr (previously unused: no hwcr* file existed before this batch); scripts freeze-hwcr, publish-hwcr, hwcr-extra-identity, run-hwcr-final-set, hwcr-name-check; developer run receipts flags-witfix-* are distinct and unchanged",
+  "prevention": "hwcr-name-check-20261107.py fails if ANY intended output of this batch (and every old family's reader name) already exists, run before the real PRE; DRY artifacts live in the hwcr-dry- namespace only",
+  "effect_on_checks": "none: the overwrite preceded this batch's PRE, nothing was frozen with the colliding scripts, no source, test, build, native or default replay was needed; the Lua fixes and the developer results are unchanged",
+  "feedback_note_sha256": "407950d85f8435adad8aa261c84978c4bcc275e58e8360d18645fdbbb915e3d1",
+  "short_names_note": "the retained copies carry short names (restored-*, derived-*, old-freeze-PRE-version.py) because the long ones exceeded the Windows path length inside the repository packet (found by the dry freeze)"
+}

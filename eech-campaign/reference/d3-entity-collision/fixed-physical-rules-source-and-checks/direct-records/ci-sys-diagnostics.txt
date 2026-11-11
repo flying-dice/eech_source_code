@@ -1,0 +1,18 @@
+# eech-sys build with EECH_C_DIAGNOSTICS=1 on the UNCHANGED tree (90b38189): the compiler errors and the failure line (full log external, sha256 in the CODE_FROZEN report)
+warning: eech-sys@0.1.0: aphavoc/source/entity/system/en_funcs/en_list.c:498:3: error: implicit declaration of function 'campaign_place_insert' [-Werror=implicit-function-declaration]
+warning: eech-sys@0.1.0: aphavoc/source/entity/system/en_funcs/en_list.c:503:3: error: implicit declaration of function 'campaign_place_child_insert' [-Werror=implicit-function-declaration]
+warning: eech-sys@0.1.0: aphavoc/source/entity/system/en_funcs/en_list.c:571:4: error: implicit declaration of function 'campaign_place_remove' [-Werror=implicit-function-declaration]
+warning: eech-sys@0.1.0: aphavoc/source/entity/system/en_funcs/en_list.c:575:4: error: implicit declaration of function 'campaign_place_child_remove' [-Werror=implicit-function-declaration]
+warning: eech-sys@0.1.0: cc1: some warnings being treated as errors
+error: failed to run custom build command for `eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)`
+  cargo:warning=aphavoc/source/entity/system/en_funcs/en_list.c:498:3: error: implicit declaration of function 'campaign_place_insert' [-Werror=implicit-function-declaration]
+  cargo:warning=aphavoc/source/entity/system/en_funcs/en_list.c:503:3: error: implicit declaration of function 'campaign_place_child_insert' [-Werror=implicit-function-declaration]
+  cargo:warning=aphavoc/source/entity/system/en_funcs/en_list.c:571:4: error: implicit declaration of function 'campaign_place_remove' [-Werror=implicit-function-declaration]
+  cargo:warning=aphavoc/source/entity/system/en_funcs/en_list.c:575:4: error: implicit declaration of function 'campaign_place_child_remove' [-Werror=implicit-function-declaration]
+  cargo:warning=cc1: some warnings being treated as errors
+  error occurred in cc-rs: command did not execute successfully (status code exit status: 1): LC_ALL="C" "cc" "-O0" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-gdwarf-4" "-fno-omit-frame-pointer" "-mno-omit-leaf-frame-pointer" "-m64" "-I" "/target/release/build/eech-sys-3f5037c21acd5af4/out/eech/gen" "-I" "/src/eech-campaign/crates/eech-sys/csrc" "-I" "/src/aphavoc/source" "-I" "/src/modules" "-Wall" "-Werror=implicit-function-declaration" "-Werror=incompatible-pointer-types" "-Werror=int-conversion" "-Werror=return-type" "-Werror=pointer-to-int-cast" "-Werror=int-to-pointer-cast" "-std=gnu99" "-ffp-contract=off" "-fno-fast-math" "-o" "/target/release/build/eech-sys-3f5037c21acd5af4/out/1d6dd776fc624c8a-eech_extracted.o" "-c" "/target/release/build/eech-sys-3f5037c21acd5af4/out/eech/gen/eech_extracted.c"
+
+# the same build on the fixed extractor (d2f5027c9): implicit-declaration count and the last lines (full log external)
+implicit declaration lines: 0
+warning: eech-sys@0.1.0: aphavoc/source/entity/mobile/aircraft/ac_msgs.c:264:2: warning: enumeration value 'NUM_LIST_TYPES' not handled in switch [-Wswitch]
+    Finished `release` profile [optimized] target(s) in 6m 27s

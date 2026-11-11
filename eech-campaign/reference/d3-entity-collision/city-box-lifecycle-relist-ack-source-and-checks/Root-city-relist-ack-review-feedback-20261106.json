@@ -1,0 +1,101 @@
+{
+  "schema": "d3-independent-city-relist-ack-bounded-feedback.v1",
+  "created_utc": "2026-11-06T22:55:54.791294+00:00",
+  "source": {
+    "commit": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "metadata_commit": "a1ef80b05612f4b8f2d355ad024cef6037426e55"
+  },
+  "scope": "New retained actual and the immediately relevant C/Host/driver state-identity transitions only. Same sole independent reviewer; read-only immutable Git/evidence inspection. Not a corrected-source review or native acceptance.",
+  "actual": {
+    "receipt_path": "R:/d3-evidence/Root-city-lifecycle-354ab-relist-ack-failure-20261106.json",
+    "receipt_sha256": "0b29b0c3b6b1ab7cb976d9c998d24739f896051709be78d2476c70ab8700e56c",
+    "native_helper_outer_exits": [
+      1,
+      1,
+      1
+    ],
+    "completed_lifecycle": true,
+    "selected_BEFORE_consumptions": 1,
+    "selected_AFTER_consumptions": 1,
+    "retained_answers": 2,
+    "continuation_links": 2,
+    "expansions": 6,
+    "expansions_answered": 6,
+    "query_equal": 1,
+    "list_order_restored": 1,
+    "mirror_box_equal": 1,
+    "request_faults": 6,
+    "reply_faults": 0,
+    "fatal": false,
+    "interventions": 0,
+    "matched_negatives_launched": false,
+    "classification": "FAILED because request faults remain; not clean UNREACHED, not acceptance, not a read-only checker recovery."
+  },
+  "source_supported_diagnosis": {
+    "finding_id": "ENV-CITY-LIFECYCLE-RELIST-FIXED-ACK-1",
+    "classification": "The actual successful Host expansions plus the immediate compiled-source path support a diagnostic placement-key ACK mismatch, rather than evidence that Host expanded without held fixed state. Final correction/acceptance still needs exact frozen source and a new real control.",
+    "evidence": [
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+        "lines": "643-662",
+        "fact": "A child relist registers a fresh child placement, declares the existing sector/child relationship, then calls the actual fixed-state reporting function."
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+        "lines": "349-364,420-438",
+        "fact": "place_declare sends LINK with sector plus child when both exist. place_fixed_state deliberately reports under the sector key while it exists, otherwise under the child key; it does not promise a separate phase-13 ACK under every alias."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/roster.rs",
+        "lines": "562-602,957-962",
+        "fact": "A successful LINK merges the two placements into one canonical record and merges their fixed state, refusing inconsistent existing states. It does not create state from a candidate question."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/roster.rs",
+        "lines": "742-785",
+        "fact": "The real expansion joins the child to the current city record and requires FixedHold::Held on the child canonical record. Missing/withdrawn/wrong-parent state is refused before geometry lookup."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "lines": "1121-1143",
+        "fact": "Expanded is returned only after city_expansion provides the held building state and the real model-store expansion succeeds. Thus six actual answered expansions are evidence that the Host had required canonical fixed state, not proof that the driver had tracked its ACK correctly."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "lines": "1048-1057,1365-1369,1428-1431",
+        "fact": "The driver records fixed ACKs only at the literal report key and tests held[the new child key] for an expansion."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "lines": "1008-1015",
+        "fact": "Existing LINK tracking handles a CITY sector continuation of its list record; it does not propagate or resolve a building sector/child fixed-ACK relationship."
+      }
+    ],
+    "inference_limit": "The aggregate actual row is not a new raw per-event ACK transcript. Exact real C order, Host state requirements and the returned results support the diagnosis; do not claim every raw ACK was independently recorded in that row or promote successful geometry equality alone to validity."
+  },
+  "minimum_correction_constraints": [
+    "Resolve held-state evidence through only the exact CURRENT successful LINK relationship and a previously validated positive fixed-state ACK on that same record. Do not accept an arbitrary held key, matching type/count, parent CITY state, name or geometrically equal result as building-state evidence.",
+    "Validate the complete current request and same-key LINK ACK before binding aliases or granting eligibility. A refused/raised/malformed/wrong-record/wrong-name/p-bearing ACK and unrelated live record must not create the relationship or credit an expansion.",
+    "Preserve both real orders: initial child-before-sector creation and relisted child when a live sector placement survives. The real C path declares the link and can report state only under the sector key; tests must reproduce this without inventing an extra child-key fixed report.",
+    "A single-placement removal must invalidate the ended alias while preserving evidence reachable through its remaining legitimate placement. Clear, physical last-placement retirement, failed links and unrelated key reuse must not leave a usable stale ACK alias. Do not confuse the separate retained CITY-list anchor with a building record.",
+    "Keep strict missing/withdrawn/wrong-held-record/wrong-alias errors. Resolve any existing by_key words or candidate/intervention joins only through the proven current record relation; never learn physical state from the expansion result or candidate mirror.",
+    "Keep fault precedence above UNREACHED/completed and preserve no-intervention/no-credit on malformed relations. Do not suppress the six existing faults, normalize old output, credit a later unrelated ACK, or fabricate fixture-only production reports.",
+    "Keep physical report and ACK event counts honest: alias recognition is not an extra phase-13 report. If an observer-lifetime/held-key count changes its declared meaning, qualify that diagnostic delta explicitly instead of claiming all old fields unchanged.",
+    "If immutable source inspection instead uncovers an actual missing production state write for a supported path, fix that actual shared writer. The source-backed path above does not justify adding redundant physical reports solely to satisfy this literal-key observer."
+  ],
+  "focused_controls": [
+    "Coherent real-provider relist sequence first: an existing positively ACKed sector state, fresh child insertion, exact successful LINK, sector-key state ACK as the actual C emits, then expansion naming the fresh child. Include original child-before-sector order.",
+    "Single-fault controls for no state ACK, wrong live record/alias, wrong or malformed LINK ACK, failed link and stale ended alias/clear. They must fail with zero eligibility/intervention credit and must not be misclassified as clean UNREACHED.",
+    "Preserve constructor/retention/release/strict-report/mirror-negative source closures and public phase5/8 named-Removed bridge fix; do not bypass the real Core fixture or replace it with provider-only replay."
+  ],
+  "decision": {
+    "native_launch_clearance": false,
+    "corrected_source_review_pending": true,
+    "CITY_lifecycle_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "next_binding": "Await new immutable source, final PRE/POST maps, targeted direct check receipts, metadata and producer completion for the same combined changed-material review. A verified diagnostic-Lua/test-only change can be separately bound to sealed runtime354ab; any production delta needs its own new production validation. No negative run before a successful reached new control.",
+  "remaining_scope": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION remains open before sector height; all ten requirements and existing whole-D3, natural-moving, final-pack, CI/delivery/census limits remain unchanged."
+}

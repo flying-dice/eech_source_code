@@ -1,0 +1,69 @@
+{
+  "controller_pid": 25496,
+  "reference_tool_source": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+  "controller_sha256": "9e20899f50f9bc01d3208c3bee9c1a2e0fd5bbf08edf2d0ff8fc0a0208154a56",
+  "started_utc": "2026-11-06T22:02:24.723976+00:00",
+  "state": "terminal",
+  "roots": [
+    {
+      "name": "short",
+      "root": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\short",
+      "pid": 24916,
+      "controller_sha256": "9e20899f50f9bc01d3208c3bee9c1a2e0fd5bbf08edf2d0ff8fc0a0208154a56",
+      "started_utc": "2026-11-06T22:02:25.699252+00:00",
+      "state": "VERIFIED UNUSED; no native launched",
+      "manifest_actual_exit": 0,
+      "completed_utc": "2026-11-06T22:02:30.152017+00:00",
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "healthy",
+      "root": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\healthy",
+      "pid": 6236,
+      "controller_sha256": "9e20899f50f9bc01d3208c3bee9c1a2e0fd5bbf08edf2d0ff8fc0a0208154a56",
+      "started_utc": "2026-11-06T22:02:30.829319+00:00",
+      "state": "VERIFIED UNUSED; no native launched",
+      "manifest_actual_exit": 0,
+      "completed_utc": "2026-11-06T22:02:34.966083+00:00",
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "city-box-lifecycle",
+      "root": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\city-box-lifecycle",
+      "pid": 20632,
+      "controller_sha256": "9e20899f50f9bc01d3208c3bee9c1a2e0fd5bbf08edf2d0ff8fc0a0208154a56",
+      "started_utc": "2026-11-06T22:02:35.818027+00:00",
+      "state": "VERIFIED UNUSED; no native launched",
+      "manifest_actual_exit": 0,
+      "completed_utc": "2026-11-06T22:02:40.656404+00:00",
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "city-box-lifecycle-missing",
+      "root": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\city-box-lifecycle-missing",
+      "pid": 17708,
+      "controller_sha256": "9e20899f50f9bc01d3208c3bee9c1a2e0fd5bbf08edf2d0ff8fc0a0208154a56",
+      "started_utc": "2026-11-06T22:02:41.318919+00:00",
+      "state": "VERIFIED UNUSED; no native launched",
+      "manifest_actual_exit": 0,
+      "completed_utc": "2026-11-06T22:02:47.653178+00:00",
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "city-box-lifecycle-changed",
+      "root": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\city-box-lifecycle-changed",
+      "pid": 12804,
+      "controller_sha256": "9e20899f50f9bc01d3208c3bee9c1a2e0fd5bbf08edf2d0ff8fc0a0208154a56",
+      "started_utc": "2026-11-06T22:02:48.527025+00:00",
+      "state": "VERIFIED UNUSED; no native launched",
+      "manifest_actual_exit": 0,
+      "completed_utc": "2026-11-06T22:02:53.611153+00:00",
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    }
+  ],
+  "input_tool_sha256": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+  "reference_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+  "scope": "Fresh verified retail roots for reviewed finite CITY lifecycle retention native validation. No native launches; eventual exact reviewed source must join unchanged input-tool/reference hashes first. Exact215a frozen source; review clearance permits planned finite controls only.",
+  "actual_exit": 0,
+  "completed_utc": "2026-11-06T22:02:53.622327+00:00"
+}

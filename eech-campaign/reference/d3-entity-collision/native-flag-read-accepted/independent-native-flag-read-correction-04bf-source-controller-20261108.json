@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T03:23:52.518101+00:00",
+  "review_kind": "Independent combined changed-material refusal/census/Wine correction and concrete V2 controller prerequisite review",
+  "source": {
+    "commit": "04bf5b82c514932358552b2ff100136c25804b63",
+    "metadata_commit": "1ab12d0efc6e088b483ba30e0f12ec74c9ffa2ca",
+    "source_before": "602f243d9b7911942868ddec792c39715d053614",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_full_status": "clean; Root independently verifies exact upstream",
+    "compiled_runtime_commit": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3"
+  },
+  "plan_sha256": "4ee21a2c6598787c598247f6059f3f1339a49333ad737ac4b6df1857c8e87d53",
+  "controller_sha256": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+  "lua_sha256": "3bfbeab0e336c2ffe9b8784c3e818c0cded329e9dc30562f939cb6fdfeaf9e7d",
+  "protocol_sha256": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+  "validator_sha256": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+  "binding_sha256": "3c27e9aaed8bfadb6a60c577d054790f74604fbab905515a4b80a24bf6af6084",
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/independent-native-flag-read-48570-source-controller-20261108-v2.json",
+      "bytes": 16714,
+      "sha256": "5218cff150ed3a145a08cea4a338c71d1f32665c3cbe5a2ccaf87c73c14fe100"
+    },
+    {
+      "path": "R:/d3-evidence/D3-NATIVE-READ-CORRECTION-FROZEN-20261108.json",
+      "bytes": 14113,
+      "sha256": "40f3cad901ec661d6c8bf0a634a1248ecf401f899e89096fccb7599607d001ff"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-04bf-Root-binding-20261108.json",
+      "bytes": 1225,
+      "sha256": "7eb6c95800808b175c3f6e85fc63f82fb5112f8544b36682f074e39b50862a75"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-1ab12-Root-publication-20261108.json",
+      "bytes": 1205,
+      "sha256": "5d51b0020bd9a169b4dc2097d9cd033479a6893378f4a340c8727f05a33b017c"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-native-read-correction-20261108-completion.json",
+      "bytes": 2362,
+      "sha256": "c23740bf6bebf03aea047d81922bbde02a670275b9cb2d935fe56fa535952f23"
+    },
+    {
+      "path": "R:/d3-evidence/nr602-production-prefix-identity-20261108.json",
+      "bytes": 1858,
+      "sha256": "99c92ff75e1df620d58d3dba6880a16237506449e048f47dca3f4a29b90106cf"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-nr602-materialized-plan-v2-20261108.json",
+      "bytes": 2286,
+      "sha256": "4ee21a2c6598787c598247f6059f3f1339a49333ad737ac4b6df1857c8e87d53"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-nr602-staging-readonly-preflight-v2-20261108.json",
+      "bytes": 2039,
+      "sha256": "1eff56e0d5d14995c95ab5048e4e2ba50f2233919a061879757dc614f043ea46"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-602f-all9-CI-terminal-20261108.json",
+      "bytes": 17008,
+      "sha256": "d428ded7eb6a400024ef320beb89dc5197888b9f058f0aacdd7edaa6af3387b2"
+    },
+    {
+      "path": "R:/d3-evidence/Root-native-read-feedback-Wine-Python-CI-20261108.json",
+      "bytes": 1503,
+      "sha256": "fb4832ac7ca4ae316d0e0312000f6666ccac7ef445a2bc38a885451ac3127c6d"
+    }
+  ],
+  "findings": [],
+  "prior_finding_dispositions": [
+    {
+      "id": "ENV-NATIVE-FLAG-READ-DELEGATED-REFUSAL-1",
+      "status": "CLOSED_SOURCE",
+      "evidence": "T.answer now distinguishes a valid string-reason refused table. candidate records diagnostic failure and returns that exact table before selection or a requested READ. The new cfg(test) own-module unit runs the actual model_provider/MODEL_BRIDGE/call_model: positive FIRST converts to NeedUpdated; a single result/reason change retains entity_candidate.refused, exact reason and rawequal table; the real empty-Movers canonical provider produces its own never-issued refusal. Each delegates once, opens no GROUP/READ/intervention, and reports FAILURE rather than UNREACHED. The unchanged old Lua genuinely failed101 at entity_candidate.callback; the same corrected converter test passed.",
+      "qualification": "Scripted boot and SCENE over the existing tiny-format model installation; positive conversion deliberately stops before READ. This proves adapter/converter continuity, not successful Engine boot or native campaign."
+    },
+    {
+      "id": "ENV-NATIVE-FLAG-READ-PROFILE-SCRIPT-CENSUS-1",
+      "status": "CLOSED_SOURCE",
+      "evidence": "The exact census becomes66 preparing/profiled scripts and the same2 exclusions; only its count and explanatory comment change. Every per-script preparation, immediate one-time profile selection and before-boot assertion is retained. The affected host_callbacks singleton is actually selected and passes in final s5.",
+      "qualification": "The old602f CI inventory failures remain failed. Source closure and a selected local green do not relabel that CI run or imply new-head CI success."
+    }
+  ],
+  "new_actual_Wine_failure_disposition": {
+    "status": "SOURCE_PORTABILITY_CORRECTED; NEW_HEAD_PLATFORM_EXECUTION_PENDING",
+    "cause": "The old602f Windows/Wine test binary tried to spawn python3 from five Lua fixture paths, which failed NotFound. This was additional actual evidence after the sealed V2 review and is batched here without replaying the old failure.",
+    "correction": "The common Lua fixture now uses explicitly synthetic reference identity arguments without an external process. All eight Lua transaction/positive/carry/causality/reference controls remain available on Windows. Only the independent Python aggregate and Python helper are cfg(unix), consistent with the external tool scope; that aggregate computes the actual report SHA and validates all seven actual Lua-produced reports plus five Python controls.",
+    "coverage_precision": "No Lua test was deleted or ignored. Synthetic Lua fixture identity arguments test semantic validation and are not authenticated file-hash evidence. The Unix aggregate retains real hash/control tests. No Python-under-Wine or corrected-Wine execution is claimed until exact-head CI readback. The actual converter unit has no OS exclusion."
+  },
+  "identity_and_check_join": {
+    "input_rows": 4004,
+    "raw_Git_exact_rows": 4001,
+    "inherited_raw_CRLF_Git_LF_rows": 3,
+    "qualification": "The same three uncompiled tree-geometry Lua files remain explicitly qualified; they are not normalized. Root joins full PRE/POST/current raw rows and actual immutable Git bytes, 32 extras and all9 readers. 3998 other mapped parent inputs are unchanged.",
+    "fingerprint": "dab220a45de00a1d0b191b67ca3d2b1ed955d27c829d9a0f7a84598a7e19e1fe",
+    "final_direct_commands": [
+      "s1-fmt",
+      "s2-clippy",
+      "s3-read-driver",
+      "s4-converter",
+      "s5-census"
+    ],
+    "actual_final_exits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "selected_Rust_instances": 11,
+    "selection_breakdown": {
+      "Unix_driver": 9,
+      "actual_converter_unit": 1,
+      "affected_census_singleton": 1
+    },
+    "actual_Python_report_validations": 7,
+    "actual_Python_offline_controls": 5,
+    "chronology": "Final commands03:17:31 through03:17:54 are bound to equal final input maps and frozen readers. The genuine old-adapter RED03:12:12 through03:13:50 precedes corrected GREEN03:14:02; it is retained at its actual identity and is not assigned a fabricated final-PRE map.",
+    "publication": "69 exact manifest entries,70 tracked packet files,66 external literal comparisons. Metadata changes only five publication files; source/status/card are already in CODE. Root verifies clean HEAD and exact upstream.",
+    "completion": "Actual fallback service FINAL plus observed completed status; no fabricated CLI exit or OS PID. Direct checks and reported outer session79437 actual0 are separately recorded.",
+    "runtime_reuse": "The reviewer independently verified module.rs equals the entire true3abf file plus only the appended cfg(test) declaration; all3 original NULs remain. The other five pinned protocol files remain raw-equal to true3abf. The whole current module raw file differs, so a six-whole-file-equality claim would be false. No production converter, C/Rust algorithm, shipped payload or build is changed/relabelled."
+  },
+  "changed_material_review": {
+    "correctness": "The refusal path now preserves the real answer and native failure domain without selecting another actor or awarding absence/intervention credit. The successful-positive checks, selected transaction, optional GROUP acknowledgement, exact carried re-ask and real destructive-store oracle are unchanged from the prior reviewed scope.",
+    "clean_code": "The bounded change uses an explicit second return value for refusal classification, one early unchanged-answer return, the existing actual converter rather than a duplicate converter, and platform-scoped external Python integration. No new runtime API or fallback provider is introduced.",
+    "boundary_safety": "The new module include is cfg(test) only. Positive-before-effect and same-entry immediate-refusal controls stay intact; no poisoned-engine getters/counters/close are added. The error/refusal remains diagnostic FAILURE, not PASS or UNREACHED. Prior read-only controller path/inventory/hash checks are unchanged.",
+    "scope_of_reuse": "The prior report5218 retains its other reviewed transaction/controller/materialization facts at their original source scope. This pass inspects only the corrections, new test/provenance facts and exact new materialized literal hashes, not the closed kernel/store/lifetime/default/fullpack proofs."
+  },
+  "allowed_execution": {
+    "controller": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/native_flag_read_controller.py",
+    "plan": "R:/d3-evidence/native-read-nr602-materialized-plan-v2-20261108.json",
+    "runtime": "Only the exact unchanged ordinary3abf91-payload copy in this plan; the two new Lua files stay external in literals-nr602-v2. Old eecd plan/literals remain immutable.",
+    "sequence": [
+      "read_probe_control",
+      "read_changed",
+      "read_withheld",
+      "read_malformed",
+      "read_wrong_state",
+      "read_wrong_array",
+      "read_wrong_word"
+    ],
+    "prerequisites": [
+      "The unchanged controller must validate this exact review/plan/controller/artifact hash set, the complete bundle manifest, full input reference and separate two-Lua inventory before execution.",
+      "Keep the materialized healthy root unconsumed and child-roots/runs absent until the single authorized invocation. Full pre/post1179-row input comparisons, current bundle/literal rehashes and actual child PID/birth/argv/exits/reports remain required.",
+      "Every child requires the complete healthy PASS report and actual file SHA before root/output creation. The candidate/registration/READ precondition must match that healthy selection; no alternate actor may substitute.",
+      "A clean control UNREACHED at the fixed window stops all six children without launching them. Controller0 in that branch is bounded completion, not native PASS. Unexpected failures stop; no restart or window/scenario hunt."
+    ],
+    "fixed_setup": "Retail Lebanon, seed1,100ms,hours0.001, at most the accepted35 frames; no baseline/configuration/tolerance change.",
+    "evidence_limit": "One additional lawful diagnostic destructive READ per selected transaction. A changed answer can prove its carried candidate fact and immediate refusal; no collision outcome, natural motion or ordinary-default equivalence follows from it."
+  },
+  "current_CI": {
+    "reviewed_old_actual": "Exact602f all9 terminal4PASS/5FAIL remains retained. Four Linux failures were the inventory count; Windows also exposed Python invocation under Wine.",
+    "new_HEAD": "1ab12d0efc6e088b483ba30e0f12ec74c9ffa2ca",
+    "new_head_actual_status_at_seal": "Pending Root readback; no exact-current-head green/platform execution proof was supplied to this seal.",
+    "gate_disposition": "New-head required CI and actual Wine execution remain required for platform/delivery acceptance. They do not independently block this bounded diagnostic launch on unchanged already-built true3abf Windows binaries, because all changed production converter bytes are identical and affected local source controls passed. A subsequently discovered concrete relevant correctness failure must be assessed before further launches; this report does not waive such evidence."
+  },
+  "decision": {
+    "status": "SOURCE_CORRECTIONS_ACCEPTED; EXACT_V2_DIAGNOSTIC_CONTROLLER_LAUNCH_CONDITIONALLY_CLEARED",
+    "native_controller_launch_clearance": true,
+    "source_finding_ids_closed": [
+      "ENV-NATIVE-FLAG-READ-DELEGATED-REFUSAL-1",
+      "ENV-NATIVE-FLAG-READ-PROFILE-SCRIPT-CENSUS-1"
+    ],
+    "native_authority_accepted": false,
+    "public_READ_accepted": false,
+    "whole_flags_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "limits": [
+    "No reviewer test/build/native/controller/preflight replay, cache/process/source/Git mutation or tracked write occurred. Only this new immutable external review report is written.",
+    "This is launch clearance, not actual public native READ/changed carry/refusal acceptance. Actual retained results need their own bounded review; clean absence stays UNREACHED.",
+    "Prior finite key/source/default/lifetime/consumer evidence retains only its true scope. Successful Engine boot beyond actual future evidence, replacement/session/VM/thread lifetimes, whole FPU state, natural moving/weapon integration, other consumers and DCS disposition are not accepted here.",
+    "Both original fullpacks and their immutable source/bin/root/output/process identities are preserved; partial growing prefix equality is not complete acceptance.",
+    "All ten D3 requirements, generic NativeAcceptance1, remaining wholeheight/sharedterrain/RNG/hierarchy/services/consumer/census work, final current40/all8/four inputs, required current CI, normal review/merge and whole Task49/D3/delivery remain open as applicable. No D4/D5 or historical TypeScript work is authorized."
+  ]
+}

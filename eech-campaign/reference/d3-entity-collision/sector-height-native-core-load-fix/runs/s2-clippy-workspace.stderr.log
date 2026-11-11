@@ -1,0 +1,56 @@
+info: downloading component clippy
+   Compiling libc v0.2.189
+   Compiling memchr v2.8.3
+   Compiling regex-syntax v0.8.11
+   Compiling thiserror v1.0.69
+   Compiling bitflags v2.13.2
+   Compiling protobuf v3.7.2
+   Compiling getrandom v0.4.3
+   Compiling rustix v0.38.44
+   Compiling crc32fast v1.5.2
+   Compiling rustix v1.1.5
+   Compiling anyhow v1.0.104
+   Compiling thiserror-impl v1.0.69
+   Compiling once_cell v1.21.4
+    Checking simd-adler32 v0.3.10
+   Compiling linux-raw-sys v0.4.15
+   Compiling linux-raw-sys v0.12.1
+   Compiling crossbeam-utils v0.8.23
+    Checking adler2 v2.0.1
+   Compiling crossbeam-epoch v0.9.21
+   Compiling equivalent v1.0.2
+   Compiling either v1.18.0
+    Checking miniz_oxide v0.9.1
+   Compiling hashbrown v0.17.1
+   Compiling fastrand v2.5.0
+   Compiling home v0.5.12
+   Compiling crossbeam-deque v0.8.8
+   Compiling log v0.4.34
+   Compiling rayon-core v1.13.0
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking memmap2 v0.5.10
+    Checking byteorder v1.5.0
+   Compiling aho-corasick v1.1.5
+    Checking flate2 v1.1.10
+   Compiling indexmap v2.14.2
+   Compiling protobuf-support v3.7.2
+   Compiling jobserver v0.1.35
+   Compiling cc v1.4.7
+    Checking rayon v1.12.0
+   Compiling regex-automata v0.4.18
+   Compiling tempfile v3.27.0
+   Compiling which v4.4.2
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Checking mlua v0.10.5
+   Compiling regex v1.13.1
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling protobuf-parse v3.7.2
+   Compiling protobuf-codegen v3.7.2
+   Compiling osmpbf v0.3.8
+    Checking eech-map v0.1.0 (/src/eech-campaign/crates/eech-map)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Checking eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+    Checking eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6m 38s

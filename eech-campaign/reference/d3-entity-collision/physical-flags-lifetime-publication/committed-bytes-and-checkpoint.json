@@ -1,0 +1,30 @@
+{
+  "kind": "Post-POST actual committed Git blob byte join; no experiment replay",
+  "utc": "2026-11-08T01:47:57.525349+00:00",
+  "code": "0c7b61bac977075f172bc3d55c2520d2f8aa1f51",
+  "source_rows": 4000,
+  "source_raw_Git_exact": 3997,
+  "qualified_inherited_Lua": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "packet_manifest_entries": 62,
+  "packet_tracked": 63,
+  "packet_all_actual_Git_bytes_literal": true,
+  "all_current_source_equal_POST": true,
+  "new_contract_actual_Git_bytes_literal": true,
+  "freeze_sha256": "a93dde6c22c7eabff23d2959c210b4d7a8cc27ab65c2ea2c066a5deae686cb78",
+  "final_actual_exits": {
+    "s1-fmt": 0,
+    "s2-clippy-default": 0,
+    "s3-clippy-lifetime": 0,
+    "s4-lifetime": 0,
+    "s5-source-guard": 0,
+    "s6-build-default": 0
+  },
+  "final_selected_tests": 4,
+  "qualification": "This metadata helper was created after POST only for committed-byte publication/state. No sealed test source/helper changed. Three inherited Lua CRLF qualifications distinct from four Core filter-identity disagreements whose raw bytes are Git-exact. Raw receipts/log EOF bytes retained; source-only whitespace and per-command cr-at-eol,-blank-at-eof receipt checks each passed. Native UNRUN means no Windows/retail public campaign; compiled Linux C test entries executed and default Linux module built. NUL boot attempt stops before C/retail; private preboot entry is not successful boot/publicnative READ or broad lifetime/FPU/DCS acceptance.",
+  "helper_sha256": "f3bbe03d8551d96d8f48b1ce13cb318251a7400db628c09b125c49f7a2635c5f",
+  "state": "UNREVIEWED; STOP for SAME reviewer; all10/NativeAcceptance1/Task49/D3 OPEN"
+}

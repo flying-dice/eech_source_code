@@ -1,0 +1,17 @@
+{
+  "compiled_before": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "compiled_after": "5182b526d08aefdd40ea93803188227fd74abae5",
+  "new_literal": "505cc399caf7fab6a372fce37dca1bc27883ab73",
+  "terminal_count_before": 1,
+  "terminal_count_after": 1,
+  "complete_terminal_lines_including_endings_literal_equal": true,
+  "terminal_bytes_before": 180,
+  "terminal_bytes_after": 180,
+  "terminal_sha256_before": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+  "terminal_sha256_after": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+  "cohort_physical_signature_equal": true,
+  "unchanged_shared_authority_field_count": 139,
+  "changed_shared_authority_field_names": [],
+  "scope": "ONE matched natural healthy control terminal/physical signature comparison only, private raw physical data excluded. New lifecycle/grammar telemetry is separate. Not default full40/all8 or wholeD3.",
+  "captured_utc": "2026-11-06T02:25:56.377766+00:00"
+}

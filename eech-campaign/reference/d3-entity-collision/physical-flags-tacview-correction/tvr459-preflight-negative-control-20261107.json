@@ -1,0 +1,10 @@
+{
+  "prefix": "flags-tvr459b-",
+  "label_regex": "^[rgd]\\d+-",
+  "declared_helper": "check-physical-flags-tvr459-linux-20261107.sh",
+  "records": 0,
+  "rows": [],
+  "problems": [
+    "no run record matches flags-tvr459b-^[rgd]\\d+-"
+  ]
+}

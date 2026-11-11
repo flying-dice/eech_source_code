@@ -1,0 +1,13 @@
+{
+  "family": "crt1516",
+  "utc": "2026-11-08T04:04:14.721787+00:00",
+  "implementation_helpers_and_proofs_unused": true,
+  "Root_readonly_metadata_exception": [
+    {
+      "path": "claude-auth-readonly-status-before-crt1516-20261108.json",
+      "sha256": "3d8f2ab26739b9bd3b6418f7aa5c1fc7c75bb74aed9105bb7bf9f3af75a385d3"
+    }
+  ],
+  "initial_empty_glob_assertion": "stopped before any writes; only Root readonly auth receipt was present",
+  "scope": "Required Core CRT characterization; no auth action/removal/native launch"
+}

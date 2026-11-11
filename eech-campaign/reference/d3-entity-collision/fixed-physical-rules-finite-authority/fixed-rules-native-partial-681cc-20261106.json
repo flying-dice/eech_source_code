@@ -1,0 +1,103 @@
+{
+  "recorded_utc": "2026-11-06T18:52:50.718038+00:00",
+  "source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+  "metadata": "33d1fc30e60477c26851204b88e9912d61726630",
+  "short": {
+    "native_helper_outer": [
+      0,
+      0,
+      0
+    ],
+    "complete_three_files_literal80fd": true,
+    "proof": "fixed-rules-ordinary-short-comparison-681cc-20261106.json"
+  },
+  "healthy": {
+    "source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "actual_exit": 0,
+    "candidate": "D:\\EECH-Migration-Evidence\\fixed-rules-healthy-681ccfe54-20261106",
+    "parent_source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+    "parent": "D:\\EECH-Migration-Evidence\\city-box-healthy-4c0b89263-20261106",
+    "native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "common_authority_fields": 190,
+    "changed_common_fields": {},
+    "all_shared_fields_equal": true,
+    "no_fields_removed": true,
+    "new_fields": [
+      "fixed_rule_changed",
+      "fixed_rule_changed_cause",
+      "fixed_rule_changed_next",
+      "fixed_rule_eligible"
+    ],
+    "declared_new_field_values": {
+      "fixed_rule_changed": 0,
+      "fixed_rule_changed_cause": "",
+      "fixed_rule_changed_next": "",
+      "fixed_rule_eligible": 0
+    },
+    "eligible_fixed_joined": 1224,
+    "complete_terminal_literal_equal": true,
+    "complete_terminal_bytes": 180,
+    "complete_terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+    "request_faults": 0,
+    "reply_faults": 0,
+    "case_weapons_pending": 0,
+    "scope": "Finite healthy fixed/CITY physical rules conformance only; four explicitly declared new diagnostic fields. No lifecycle retention, natural moving, full40all8 or wholeD3 acceptance."
+  },
+  "changed_rule": {
+    "classification": "UNREACHED_PRECONDITION_NOT_PHYSICS_REGRESSION",
+    "native_helper_outer": [
+      1,
+      1,
+      1
+    ],
+    "completed_physical_case": true,
+    "eligible": 0,
+    "changed": 0,
+    "request_faults": 0,
+    "reply_faults": 0,
+    "fixed_joined": 1224,
+    "city_state_joined": 4484,
+    "output": "D:\\EECH-Migration-Evidence\\fixed-rules-changed-rule-681ccfe54-20261106",
+    "no_authority_acceptance": true
+  },
+  "input_manifests": [
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-rules-ordinary-short-681ccfe54-20261106\\pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "full1179_literal_reference": true
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-rules-ordinary-short-681ccfe54-20261106\\post-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "full1179_literal_reference": true
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-rules-healthy-681ccfe54-20261106\\pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "full1179_literal_reference": true
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-rules-healthy-681ccfe54-20261106\\post-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "full1179_literal_reference": true
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-rules-changed-rule-681ccfe54-20261106\\pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "full1179_literal_reference": true
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-rules-changed-rule-681ccfe54-20261106\\post-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "full1179_literal_reference": true
+    }
+  ],
+  "build_profiles": "all3actual0/88each; profileaf7 and Worldobjects1c9 bound",
+  "review": "5fdab426ca4f6b0b90ef5c747c5d7cb684c9ae9e6eb2b87710c3884e81849e92 source-only conditional",
+  "next_required": "Test-only witness correction at actual consumed fixed-family placement; preserve source681 binaries and all completed positive actuals. Same reviewer before new literal-negative; no actor/time/geometry hunt.",
+  "scope": "Finite default conformance VERIFIED; physical-rule ownership counterfactual still OPEN. No Task49/full40all8/wholeD3 acceptance."
+}

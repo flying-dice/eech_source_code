@@ -1,0 +1,12 @@
+{
+  "kind": "READ_ONLY production candidate actual Git literal publication audit; no acceptance",
+  "utc": "2026-11-07T17:58:37.714322+00:00",
+  "code": "0d0c2545b2725d0715ce39dd7d342da600a77be0",
+  "metadata_HEAD": "c126e7327bead2ad343989fa884dbea97ecfa4e7",
+  "clean": true,
+  "pushed_upstream_exact": true,
+  "all144manifest_entries_actual_Git_and_current_literal": true,
+  "metadata_only_since0d0": true,
+  "source_binding": "physical-flags-production-0d0-Root-binding-20261107.json SHA5e85f0baf0c64ec0f3aa5588e0363a4f890f4c6e70f8b557fc9239121757091a",
+  "review": "SAME pass ongoing. Key-bound and duplicate-LIVE-key findings identified; candidate build/native HELD. Existing764shipping independent."
+}

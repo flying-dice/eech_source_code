@@ -1,0 +1,7 @@
+{
+  "at start": [],
+  "listed before the PRE that counts": [
+    "Root-physical-flags-feedback-20261107-1550.json"
+  ],
+  "note": "Root-physical-flags-feedback-20261107-1550.json arrived at 15:50 after the first (superseded) PRE; it was read in full and changed the contract text (no boolean normalisation, no preselected design, no scoping out of MOVED/ROTATED, the consumer gate recorded as the remaining required blocker); the freeze lists the files again"
+}

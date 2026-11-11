@@ -1,0 +1,1 @@
+{"py_fields_equal_lua_fields": true, "py_join_equal_lua_join": true, "fields": 31, "joined": 29, "unjoined": ["mode", "test_request"], "join_keys_not_fields": [], "mode_literal_checked_both": true, "schema4_joined": {"latest": "latest", "prestate": "prestate", "delegated": "delegated"}, "verdict": "PARITY"}

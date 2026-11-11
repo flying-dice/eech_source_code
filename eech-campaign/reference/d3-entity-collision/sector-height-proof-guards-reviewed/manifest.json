@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "audit-output-dual-identity.json",
+      "bytes": 1224,
+      "sha256": "dfceaad04b334d3dd545629aa589c6f46ebf6501c9ee18b231fd957b6997e24e"
+    },
+    {
+      "path": "independent-sector-height-proofguards-e326-source-20261107.json",
+      "bytes": 12273,
+      "sha256": "cbbd27d713adc2d7505ac4931e7fa91c5a22bb46fe43ebdf888d6ac2d319dd94"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1957,
+      "sha256": "36d596b6cfddfd0150755fc15747806318715fa212099ed65a2b479a8de6f302"
+    },
+    {
+      "path": "sector-height-proofguards-Root-binding-e326-20261107.json",
+      "bytes": 7047,
+      "sha256": "09f35a681442a4252ee61d812f43a4cbaafbf75d7084ab74be3a18a9de1058b0"
+    }
+  ]
+}

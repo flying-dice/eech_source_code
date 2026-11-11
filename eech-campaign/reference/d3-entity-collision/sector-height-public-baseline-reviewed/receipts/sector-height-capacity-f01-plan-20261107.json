@@ -1,0 +1,112 @@
+{
+  "created_utc": "2026-11-07T06:00:46.572013+00:00",
+  "source": "f01e64e7950d8d323da0a7bda5c065f899f30be5",
+  "metadata": "42802c93a7a30320f6f9b7ae517de1d6119fd7c9",
+  "snapshot": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source",
+  "snapshot_WSL": "/mnt/d/EECH-Migration-Evidence/sector-height-capacity-f01-20261107-source",
+  "snapshot_full_status_clean": true,
+  "longpaths_enabled_before_checkout": true,
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "-c",
+        "core.longpaths=true",
+        "clone",
+        "--no-checkout",
+        "--no-hardlinks",
+        "R:\\d3-evidence\\collision-characterization-20261029",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": "Cloning into 'D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source'...\ndone.\n"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source",
+        "config",
+        "core.longpaths",
+        "true"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source",
+        "checkout",
+        "--detach",
+        "f01e64e7950d8d323da0a7bda5c065f899f30be5"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": "HEAD is now at f01e64e79 UNREVIEWED CODE_FROZEN: raise the observer event table to hold the measured finite baseline (ENV-SECTOR-HEIGHT-BASELINE-CAPACITY-1; Task49, D3; storage-only, corrected source UNRUN natively)\n"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source",
+        "rev-parse",
+        "HEAD"
+      ],
+      "actual_exit": 0,
+      "stdout": "f01e64e7950d8d323da0a7bda5c065f899f30be5\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source",
+        "status",
+        "--untracked-files=all"
+      ],
+      "actual_exit": 0,
+      "stdout": "HEAD detached at f01e64e79\nnothing to commit, working tree clean\n",
+      "stderr": ""
+    }
+  ],
+  "observer": {
+    "volume": "eech-win-sector-height-f01-observer-20261107",
+    "relative_binary": "target/sector-height-observer/f01",
+    "binary": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source\\eech-campaign\\target\\sector-height-observer\\f01"
+  },
+  "ordinary_reused": {
+    "source": "eff3b4b332ec3592ae57c89f0a3d9bf426087e0b",
+    "binary": "D:\\EECH-Migration-Evidence\\sector-height-public-baseline-eff3-20261107-source\\eech-campaign\\target\\windows-sector-height-eff3-ordinary",
+    "build_receipt": "R:/d3-evidence/sector-height-eff3-windows-20261107-completion.json",
+    "profile_proof": "D:/EECH-Migration-Evidence/sector-height-windows-profile-eff3-v4-20261107/ordinary/profile.json",
+    "scope": "True predecessor binary; source-effect feature-off equivalence only. No binary/object equality or relabel as f01; reuse requires SAMEcapacityreview."
+  },
+  "roots": {
+    "short": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-roots-20261107\\short",
+    "baseline": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-roots-20261107\\baseline"
+  },
+  "outputs": {
+    "short": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-short-20261107",
+    "baseline": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-baseline-20261107",
+    "profile": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-profile-20261107",
+    "inputs": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-inputs-20261107"
+  },
+  "scope": "Concrete immutable paths, source preparation only. No build/native until sealed SAMEsourceclearance and relevant actual gates."
+}

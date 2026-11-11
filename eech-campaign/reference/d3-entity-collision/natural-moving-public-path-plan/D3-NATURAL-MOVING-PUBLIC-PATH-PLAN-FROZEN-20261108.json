@@ -1,0 +1,20 @@
+{
+  "utc": "2026-11-08T06:13:12.286354+00:00",
+  "source_before": "4951145adc10b8fbbbd26b672cf13e28755e4ed0",
+  "document": {
+    "path": "eech-campaign/docs/d3-natural-moving-public-path-plan.md",
+    "lines": 115,
+    "sha256": "7b514149a6447fe077325f6371226a05ffe40f17e19b0604883d2b7affd78c65"
+  },
+  "interpreted_sources": 13,
+  "source_rows_raw_equals_Git": true,
+  "safe_literal_copies": 7,
+  "new_tests_build_native_cache_calls": 0,
+  "runtime_or_controller_implementation": false,
+  "new_case_selected": false,
+  "helper": {
+    "private_path": "R:\\d3-evidence\\nmp495-publish-20261108.py",
+    "sha256": "9d7f6c52aa2cf06ba732c50a924aea494031d6d58e508f47a586120f38409d00"
+  },
+  "scope": "UNREVIEWED source/prerequisite plan only; no production/native/build/cutover clearance. Accepted965finiteCRT retains scope; all10/generic1/prep2/Task49/D3/fullpacks preserved. Root actual agent completion separate."
+}

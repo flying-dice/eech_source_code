@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "R:\d3-evidence\nf3p2-red-python-20261108.py", line 14, in <module>
+    assert not accepted,'EXPECTED DIAGNOSTIC RED: old healthy gate accepted '+repr(accepted)
+           ^^^^^^^^^^^^
+AssertionError: EXPECTED DIAGNOSTIC RED: old healthy gate accepted ['detach.devices', 'detach.ammo_after', 'step_end.target', 'models.seq']

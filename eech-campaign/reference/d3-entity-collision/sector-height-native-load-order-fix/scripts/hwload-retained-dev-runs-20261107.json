@@ -1,0 +1,10 @@
+{
+  "t1-load-order-driver-tests": {
+    "actual_exit": 101,
+    "why": "the first run after the gate change: 26 passed and one failed, the existing source guard that forbids the substring `ties` in the driver's code (a nearest-even rounding check): the new UNREACHED message said 'entities'; reworded ('entity records'), t2 green. Test-setup/wording, not a gate defect"
+  },
+  "t4-red-previous-lua-baseline": {
+    "actual_exit": 101,
+    "why": "RED on the PREVIOUS Lua (only the Lua file reverted from HEAD for the run, then restored byte-identical; tests unchanged): after the coherent no-baseline load PASSED on it, the load with three legitimate baseline insertions before the first restore was refused as a defect: 'FAILURE: 3 entity insertions came before the first restore: restore-before-insert is not shown' (the never-passable gate); the new Lua passes it and every saved-state single fault stays rejected with the baseline"
+  }
+}

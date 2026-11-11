@@ -1,0 +1,25 @@
+
+running 1 test
+test the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal ... FAILED
+
+failures:
+
+---- the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal stdout ----
+
+thread 'the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal' (3909) panicked at crates/eech-engine-sys/tests/entity_dialogue.rs:23:5:
+assertion `left == right` failed: the dialogue disagreed with its expectations:
+FAIL line 3200: stopped && strstr (fatal_text, "no city") != NULL && cache_same (a->slot, &snap) && place_find ("1", &kind) == a->slot
+FAIL line 3210: stopped && strstr (fatal_text, "holds the record") != NULL && cache_same (city->slot, &snap)
+FAIL line 3223: stopped && strstr (fatal_text, "holds no record but its own placement") != NULL && cache_same (city->slot, &snap) && cache_same (other->slot, &snap_other) && place_list_of_slot[city->slot][0] == 0
+FAIL line 3256: stopped && strstr (fatal_text, "does not hold") != NULL && cache_same (a->slot, &snap)
+
+  left: 4
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+

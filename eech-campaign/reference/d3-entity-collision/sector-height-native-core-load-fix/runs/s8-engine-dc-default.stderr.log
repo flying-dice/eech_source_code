@@ -1,0 +1,13 @@
+   Compiling jobserver v0.1.35
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+   Compiling cc v1.4.7
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling mlua v0.10.5
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 30s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_dc-1ae9eaede81ef035)
+     Running tests/lua_debug_layout.rs (/target/t/debug/deps/lua_debug_layout-b16402b33c09c832)
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_engine-14b00a88a2e67f0a)
+   Doc-tests eech_dc
+   Doc-tests eech_engine

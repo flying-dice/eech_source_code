@@ -1,0 +1,27 @@
+{
+  "source": "47a4af0d1a5a5694c1678147a19240b071627fac",
+  "scope": "Read-only call-history conservation check for fixed six-triangle controlled mesh; not a solver or new native run",
+  "cases": [
+    {
+      "case": "georgia",
+      "queries": 4802,
+      "violations": 0,
+      "examples": [],
+      "trace_sha256": "6d4407214194d43747394e3a517065f554a42ad4789e2178744fb55bf645aac0"
+    },
+    {
+      "case": "lebanon",
+      "queries": 5126,
+      "violations": 0,
+      "examples": [],
+      "trace_sha256": "647927fc7ed66d8489dbc230d36a08076f7ba365f753eb531ba3d8243dbf4698"
+    },
+    {
+      "case": "lebanon-repeat",
+      "queries": 5126,
+      "violations": 0,
+      "examples": [],
+      "trace_sha256": "647927fc7ed66d8489dbc230d36a08076f7ba365f753eb531ba3d8243dbf4698"
+    }
+  ]
+}

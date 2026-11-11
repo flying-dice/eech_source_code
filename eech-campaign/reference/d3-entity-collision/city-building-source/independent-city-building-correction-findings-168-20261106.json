@@ -1,0 +1,52 @@
+{
+  "schema": "d3.independent.changed-source-findings.v1",
+  "written_utc": "2026-11-06T04:03:39.200874+00:00",
+  "source_commit": "1687431feb2a38c39394727abc9cdb090efdf916",
+  "reviewed_delta_from": "2541843d13fb666299f1dbd4551f233e46e986ce",
+  "scope": "Only materially corrected city lifecycle/alias/transport/withdrawal paths and related tests; early residual batch before final provenance joins.",
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-CITY-PARENT-ANCHOR-EMPTY-CYCLE-1",
+      "severity": "P1",
+      "summary": "A city list repopulated after its last child leaves can be named by a placement key that no longer resolves to its still-live record after the next relink.",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostplacemap.h:place_child_remove/place_child_insert/place_declare",
+        "eech-campaign/crates/eech-world/src/roster.rs:list_record/link/rejoin",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c:city_relink_cases"
+      ],
+      "valid_sequence": [
+        "Create city sector placement R with children. Relink it once; sector placement becomes S while the retained host record and list are R.",
+        "Remove the last child while the city remains sector-placed. C clears place_list_of_slot. Host retire correctly keeps record R because sector S is still attached.",
+        "Insert a new child before moving/relinking the city again. C chooses current sector key S as the new list anchor; the Host resolves live S to record R and stores this new child/list under R.",
+        "Relink city sector S to new T. C sends LINK(T,S), and existing child removals still address parent S. But entries[S] is gone, records[S] never existed (the retained record is R), and list_record/rejoin have no mapping S->R. LINK or the child operation is refused despite a valid lifecycle."
+      ],
+      "test_gap": "The new C control removes the last child and then relinks the empty parent before inserting a new child; that retires the old record and recreates one whose key happens to match the new anchor. Provider tests keep the same original anchor until destruction. Neither joins the valid ordering above through actual C cache state and real provider state.",
+      "minimum_correction": "Preserve a usable city-list/record anchor or a validated placement-to-record alias through empty-list/repopulation while the same entity record remains alive. Clear it at real record/heap lifetime end, not merely child-count zero. Keep C cache, Host list_record/rejoin and Lua joins coherent. Add the one discriminating lifecycle sequence to existing shared-C/provider controls; no new framework or bad native experiment is needed."
+    },
+    {
+      "id": "ENV-CITY-NAME-FIELD-OTHER-DOMAINS-1",
+      "severity": "P2",
+      "summary": "Increasing request.host_id to149 for the NAME join also silently widens other callback identity domains that must stay128.",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostmodel.h:campaign_model_request.host_id",
+        "eech-campaign/crates/eech-engine-sys/src/lib.rs:eech_model_request.host_id",
+        "eech-campaign/crates/eech-engine/src/lib.rs:1485-1538,11595-11632"
+      ],
+      "evidence": "ENTITY_CANDIDATE and ENTITY_POSE callback branches only find NUL in the enlarged array and decode UTF-8. A valid NUL-terminated129..149-byte host identity now reaches the provider, although the unchanged semantic host-ID limit is128. Previously the smaller array rejected such a value before provider invocation. The new whole-NAME positive test sets pose_count16 but leaves the phase word zero; it verifies raw forwarding capacity, not a phase12 NAME-shaped request.",
+      "minimum_correction": "Keep the transport storage large enough for a full NAME join, but apply the existing operation/phase-specific identity bounds before invoking the provider. Preserve128-byte host IDs for pose/candidate and other existing identity uses; permit the full149 only where the new NAME grammar requires it. Update the existing callback-boundary positive to carry actual NAME phase12, and add focused NUL-terminated129-byte negatives proving no provider call for unchanged128 domains. Do not widen other IDs or truncate a NAME."
+    }
+  ],
+  "original_four_group_dispositions": {
+    "parent_lifetime": "Immediate removal refusal is fixed and one/multiple relinks with a nonempty list are supported, but the empty/repopulate continuation above remains blocking.",
+    "preissued_alias": "New place_named_of_slot and independent NAME after LINK cover preissued child-first and sector-first order without eager ID allocation; no additional alias defect found in this delta.",
+    "full_NAME_domain": "C and sys request layouts consistently hold the full149-byte join, per-part key/object limits and UTF-8 transport are addressed; other-operation domain enforcement above remains.",
+    "withdrawal_timing": "Moved before delegation of an actual parsed/request-joined CHILD_NEXT; actual REMOVE acknowledgement then unchanged NEXT once. FIRST-only is UNREACHED; bad request joins do not withdraw. Existing exact fatal/fault/no-postfatal contract remains."
+  },
+  "identity_qualification": "Exact168 Git source was reviewed. Frozen checkpoint/direct gate/map/author terminal joins are pending the final report; no city build/native clearance or source acceptance is implied."
+}

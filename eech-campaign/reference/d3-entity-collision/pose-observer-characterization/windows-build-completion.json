@@ -1,0 +1,46 @@
+{
+  "controller_pid": 14572,
+  "source": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+  "snapshot": "D:\\EECH-Migration-Evidence\\pose-observer-production-1f9a939bc",
+  "state": "terminal",
+  "started_utc": "2026-11-05T16:52:10.940638+00:00",
+  "cache": "eech-win-pose-observer-1f9a939bc-20261105",
+  "source_clearance_sha256": "d801a38d1459bfbf8876e38f9db0dc7eb4db9fd70f3d9fb577880f950357201d",
+  "profiles": {
+    "ordinary": {
+      "pid": 16448,
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-pose-observer-1f9a939bc-windows-20261105.sh",
+        "ordinary"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-05T16:52:10.949184+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-05T16:55:10.416318+00:00"
+    },
+    "hosted": {
+      "pid": 3960,
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-pose-observer-1f9a939bc-windows-20261105.sh",
+        "hosted"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-05T16:55:10.424649+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-05T16:56:22.300225+00:00"
+    }
+  },
+  "scope": "ONLY ordinary shipping and hosted weapon fixture, unchanged standard repository builders. Fresh Windows cache and clean immutable source. Build only; no native/pose authority/Task49/D3 acceptance.",
+  "actual_exit": 0,
+  "completed_utc": "2026-11-05T16:56:22.301229+00:00"
+}

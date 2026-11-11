@@ -1,0 +1,38 @@
+
+running 1 test
+test the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit ... FAILED
+
+failures:
+
+---- the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit stdout ----
+
+thread 'the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit' (3904) panicked at crates/eech-engine-sys/tests/sector_height.rs:21:5:
+assertion `left == right` failed: the original sector code disagreed with its expectations:
+FAIL line 625: the unpack restores the word bit for bit: word ffffffff, expected 00000000
+FAIL line 625: the unpack restores the word bit for bit: word 7fffffff, expected 80000000
+FAIL line 625: the unpack restores the word bit for bit: word fffffffe, expected 00000001
+FAIL line 625: the unpack restores the word bit for bit: word ff800000, expected 007fffff
+FAIL line 625: the unpack restores the word bit for bit: word ff7fffff, expected 00800000
+FAIL line 625: the unpack restores the word bit for bit: word c07fffff, expected 3f800000
+FAIL line 625: the unpack restores the word bit for bit: word bd23ffff, expected 42dc0000
+FAIL line 625: the unpack restores the word bit for bit: word b9e3bfff, expected 461c4000
+FAIL line 625: the unpack restores the word bit for bit: word 80800000, expected 7f7fffff
+FAIL line 625: the unpack restores the word bit for bit: word 00800000, expected ff7fffff
+FAIL line 625: the unpack restores the word bit for bit: word 807fffff, expected 7f800000
+FAIL line 625: the unpack restores the word bit for bit: word 007fffff, expected ff800000
+FAIL line 625: the unpack restores the word bit for bit: word 803fffff, expected 7fc00000
+FAIL line 662: each sector restores its own word: word 12345678, expected 80000000
+FAIL line 662: each sector restores its own word: word 12345679, expected 00800000
+FAIL line 662: each sector restores its own word: word 1234567a, expected 461c4000
+FAIL line 662: each sector restores its own word: word 1234567b, expected 7f800000
+
+  left: 17
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

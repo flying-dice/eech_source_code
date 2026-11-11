@@ -1,0 +1,17 @@
+{
+  "ledger": 216,
+  "prior_literal": true,
+  "all_five_reports_literal": true,
+  "prior_chars": 613989,
+  "reader_v1_error": "expected key jira, actual unchanged jirachart; corrected readonly predicate, no republish/replay",
+  "jira_comment": "11024",
+  "old_jira_comment": "11023",
+  "old_jira_not_edited_by_add_operation": true,
+  "old_jira_present_chars": 29275,
+  "new_jira_literal": true,
+  "PR": 109,
+  "PR_body_literal_prefix": true,
+  "PR_head": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+  "scope": "Terminal83510 narrow acceptance; explicit lead216 schema4 zero-step contract; Fable restored. No native/cutover/all10 acceptance.",
+  "fable_probe": "restored-probe-20261111-100011/completion.json"
+}

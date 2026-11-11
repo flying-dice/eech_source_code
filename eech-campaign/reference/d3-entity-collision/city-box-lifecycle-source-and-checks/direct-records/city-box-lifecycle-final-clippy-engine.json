@@ -1,0 +1,20 @@
+{
+  "controller_pid": 2384,
+  "state": "terminal",
+  "started_utc": "2026-11-06T20:19:13.759684+00:00",
+  "command": "cargo clippy --locked --all-targets -p eech-engine-sys -- -D warnings",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo clippy --locked --all-targets -p eech-engine-sys -- -D warnings"
+  ],
+  "scope": "One Cargo command, lifecycle-scoped. Separate stdout/stderr files. Return is the actual Cargo/docker exit. Working-tree check only unless separately frozen.",
+  "pid": 25332,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-06T20:20:22.640136+00:00"
+}

@@ -1,0 +1,13 @@
+# CITY box constructor: source-clear checkpoint
+
+Executable source `4c0b89263f41164e1c2379f3be99ac8d6c575173`, metadata parent `c1eece2c5`. The same independent reviewer closed both P2 source groups with no findings (report50eee). This grants conditional permission for exact Windows profiles, complete ordinary short, healthy boot and one joined boot-state withdrawal. It is not native, constructor, Task49, full-pack or D3 acceptance.
+
+Root bindingc0e and gateb6b join3953 clean immutable raw Git inputs, all6 changed files, the exact6-file delta from f06,15 named unchanged numerical/kernel inputs,8 actual committed check exits0/300 passing result instances,66 actual Git proof entries and strict externalcc1d/repository02b80c publication semantics. Root did not replay Cargo. Parent f06 numerical controls retain their own identity and reviewed reuse scope; no whole1152-current-candidate test run is claimed.
+
+Standard Windows ordinary/hosted/explicit Original builds are active in a new dedicated cache. Their actual exits, COFF/features/exports, payload seals, complete ordinary short and healthy/withdrawal results remain gates. The copied reproduction controllers are launch/provenance tooling; they are not evidence that those runtime gates passed. Transient jobs and authoritative paths remain in external D3-CURRENT.json.
+
+REQUIRED_CITY_BOX_LIFECYCLE_RETENTION remains OPEN whole-D3 work: actual empty-CITY relink/restore must retain or authorize the physical box without Core's mirror being its only retained copy. Finite constructor numeric/boot evidence does not close it. Physical fixed collision/align/classification derivation remains next; campaign classification/policy stays Core. FIXED_UNKNOWN is a legitimate declared enum.
+
+The DCS declaration/draft and next-cut notes are source-only references, not a TypeScript implementation, DCS runtime/dataset guarantee or scope waiver. StaticObject's example/type gap remains unresolved; a descriptor box is not a mesh. Needed caller/API/workaround mapping remains required.
+
+The existing f734 ordinary pack continues unchanged. The copied four captured ACMI/observation prefixes match the baseline literally through1561.67/1559.67 simulated seconds: PARTIAL ONLY, not corrected-source or all40/all8 acceptance. Ledger163/164 preservation proofs retain allfive epic reports and prior content under only the explicitly listed known normalization. Allten D3 requirements remain; D4/D5/TypeScript are unstarted. No accepted baseline/input/configuration/tolerance changed. All literal files are hashed in manifest.json; private retail data, physical tuples, binaries and recordings remain outside Git.

@@ -1,0 +1,56 @@
+[
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nqt2-d1-domain-transport.json",
+    "sha256": "671bfdbd1e419c333c259379a445efcf6b7e640545233d110689260d5acded41",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nqt2-d1-domain-transport.stdout.log",
+        "sha256": "180557fb62b9ed56fe0e49eab88a2f3356f4d76e867c55478d8fb949e941870d",
+        "bytes": 1016
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nqt2-d1-domain-transport.stderr.log",
+        "sha256": "37a7d7d77a13cc48915ff4570be0633acf41d8294488175036d3b38843fd4b3d",
+        "bytes": 245
+      }
+    ],
+    "scope": "unsealed development; setup errors not product RED; each passing fact retains its actual source scope"
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nqt2-d2-profile-census.json",
+    "sha256": "62405fe0224ca45821d2faac599847045a79951a570965fbab78dbb3ede41535",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nqt2-d2-profile-census.stdout.log",
+        "sha256": "3599260d82fc29974ea7d2c8811d72f91e230c68978f94487ceecfeeaaab6787",
+        "bytes": 264
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nqt2-d2-profile-census.stderr.log",
+        "sha256": "732c2c8b36b969b88456b72205f8a0785f3077320836c7042804a14166d4a457",
+        "bytes": 165
+      }
+    ],
+    "scope": "unsealed development; setup errors not product RED; each passing fact retains its actual source scope"
+  },
+  {
+    "path": "R:\\d3-evidence\\normal-fire-nqt2-d3-format-correction.json",
+    "sha256": "7b41bf69a5617c61d0d17f2920b175d1322f8775416ac3e38f4518861e70d488",
+    "actual_exit": 0,
+    "logs": [
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nqt2-d3-format-correction.stdout.log",
+        "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+        "bytes": 46
+      },
+      {
+        "path": "R:\\d3-evidence\\normal-fire-nqt2-d3-format-correction.stderr.log",
+        "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+        "bytes": 36
+      }
+    ],
+    "scope": "unsealed development; setup errors not product RED; each passing fact retains its actual source scope"
+  }
+]

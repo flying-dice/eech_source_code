@@ -1,0 +1,42 @@
+{
+  "scope": "All six complete focused original-query report/transcript files; not Tacview/shipping",
+  "rows": [
+    {
+      "scenario": "georgia",
+      "file": "collision.jsonl",
+      "complete_bytes_equal": true,
+      "sha256": "fa280a6e35ecc0cd8f8d0a0d845bdad1717df7223f2f5daeed3aec963e03774f"
+    },
+    {
+      "scenario": "georgia",
+      "file": "tree-transcript.jsonl",
+      "complete_bytes_equal": true,
+      "sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc"
+    },
+    {
+      "scenario": "lebanon",
+      "file": "collision.jsonl",
+      "complete_bytes_equal": true,
+      "sha256": "8f0e3f602c84aa2e3f352ebfa5de3e46ee4faf1a7079d98d79a9c3573abcda3b"
+    },
+    {
+      "scenario": "lebanon",
+      "file": "tree-transcript.jsonl",
+      "complete_bytes_equal": true,
+      "sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00"
+    },
+    {
+      "scenario": "lebanon-repeat",
+      "file": "collision.jsonl",
+      "complete_bytes_equal": true,
+      "sha256": "8f0e3f602c84aa2e3f352ebfa5de3e46ee4faf1a7079d98d79a9c3573abcda3b"
+    },
+    {
+      "scenario": "lebanon-repeat",
+      "file": "tree-transcript.jsonl",
+      "complete_bytes_equal": true,
+      "sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00"
+    }
+  ],
+  "actual_exit": 0
+}

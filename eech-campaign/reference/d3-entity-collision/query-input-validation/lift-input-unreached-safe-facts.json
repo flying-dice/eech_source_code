@@ -1,0 +1,24 @@
+{
+  "compiled_source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "literal_source": "0d76fd2d62967d8c85bd91bc724b14c6ebb594bb",
+  "literal_sha256": "3b4a0320bb903629dd81c8fe888017913e7d284e36ceff5d9bb26760a65c5656",
+  "actual_native_helper_outer_exits": [
+    1,
+    1,
+    1
+  ],
+  "pre_post_exits": [
+    0,
+    0
+  ],
+  "full_pre_post_inputs_literal_equal": true,
+  "verified_payloads": 88,
+  "result": "PRELAUNCH_UNREACHED",
+  "moving_candidates": 80,
+  "lift_input_candidates": 0,
+  "terrain_without_ceiling_candidates": 0,
+  "query_prepared": false,
+  "query_run": false,
+  "B_Original_launched": false,
+  "scope": "Final warmup input-shape absence among the eighty moving candidates only. No physical query/lift authority or old-target diagnosis. No parameter hunt/retry. Remaining roots held unused; frozen ordinary3475 pack untouched."
+}

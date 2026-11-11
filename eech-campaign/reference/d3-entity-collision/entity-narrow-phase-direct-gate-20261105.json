@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T08:52:50.490Z",
+  "scope": "Direct-exit focused Linux gate for the entity narrow-phase handoff (EEDCS-49). Every step is a direct child whose exit was read on the next line; output went to one combined log; excerpts were taken after the status was recorded. Not a native, Windows or retail run.",
+  "base_head": "9d108228f939d04180a7c2f53b2e93d797a3c8c3",
+  "environment": "WSL daemon EECH-D2-Build, image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51, cache volume eech-linux-d3-collision-driver-5416adb3b-20261029, no containers before, --network none",
+  "steps": [
+    {
+      "step": "fmt",
+      "child_exit": 0
+    },
+    {
+      "step": "tests-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "test-model-walk",
+      "child_exit": 0
+    },
+    {
+      "step": "test-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "build-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-host-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-and-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon-and-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-tree-dialogue",
+      "child_exit": 0
+    }
+  ],
+  "failed_steps": 0,
+  "cargo_test_result_rows_ok": 62,
+  "cargo_failed_or_panicked_or_error_lines": 0,
+  "gate_log": {
+    "bytes": 267044,
+    "sha256": "07311933631409634cb7351922d6fe5146cc0192d70e559e0b6f4d50dfee66aa"
+  },
+  "code_inputs": {
+    "scope": "aphavoc eech-campaign/crates eech-campaign/Cargo.toml eech-campaign/Cargo.lock eech-campaign/tools; tracked and untracked-not-ignored files as Git blob ids taken on the Windows checkout",
+    "files": 2908,
+    "sha256_before": "7e594459c45171b68116e581a772ee3020d906e4c6919f911f8babe8388869d1",
+    "sha256_after": "7e594459c45171b68116e581a772ee3020d906e4c6919f911f8babe8388869d1",
+    "equal": true
+  },
+  "progress_guard": {
+    "fix_blocker_entity_object_collision_child_exit": 0,
+    "default_child_exit": 0,
+    "note": "separate direct-exit run after the final card edit, guard/guard-status.txt"
+  },
+  "builds_note": "A build step whose artefacts were already fresh reports Finished from Cargos own fingerprint check with no recompile; it is a direct exit, not a recompile.",
+  "superseded_invalid_evidence": [
+    "entity-collision-20261103-a a3-full.log and a4-full.log: FAILED Cargo tests beside actual_exit=0 (pipe into tail/grep, no pipefail)",
+    "a8-final.log: feature loop ran the default build five times; source hash from a failed Git command in the container; status codes were the outer shells",
+    "a9-features.log: Cargo piped into tail; the fixture clippy invocation named features eech-world does not have and failed beside c1=0"
+  ]
+}

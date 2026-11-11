@@ -1,0 +1,41 @@
+{
+  "controller_pid": 7236,
+  "started_utc": "2026-11-11T10:34:17.151106+00:00",
+  "state": "terminal",
+  "commands": [
+    [
+      "s1-python",
+      "python-tests"
+    ],
+    [
+      "s2-fmt",
+      "rustup component add rustfmt && cargo fmt --version && cargo fmt --all -- --check"
+    ],
+    [
+      "s3-clippy",
+      "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world --all-targets -- -D warnings"
+    ],
+    [
+      "s4-session-lua",
+      "cargo test --locked -p eech-world --test normal_fire_session -- --nocapture"
+    ],
+    [
+      "s5-facade-default",
+      "cargo test --locked -p eech-dc --lib public_normal_session_driver_consumes_only_registered_userdata_methods -- --nocapture"
+    ],
+    [
+      "s6-facade-observer",
+      "cargo test --locked -p eech-dc --lib --features normal-fire-correlation public_normal_session_driver_consumes_only_registered_userdata_methods -- --nocapture"
+    ]
+  ],
+  "actual_exits": {
+    "s1-python": 0,
+    "s2-fmt": 0,
+    "s3-clippy": 0,
+    "s4-session-lua": 0,
+    "s5-facade-default": 0,
+    "s6-facade-observer": 0
+  },
+  "completed_utc": "2026-11-11T10:34:40.681193+00:00",
+  "actual_exit": 0
+}

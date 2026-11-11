@@ -1,0 +1,20 @@
+
+running 1 test
+test tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words ... FAILED
+
+failures:
+
+---- tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words stdout ----
+
+thread 'tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words' (300) panicked at crates/eech-world/src/tree_host.rs:342:9:
+assertion `left == right` failed
+  left: Done { hit: false, point: [2145386497, 2147483648, 1], normal: [4290773283, 1, 2147483649] }
+ right: Done { hit: false, point: [2141192193, 2147483648, 1], normal: [4290773283, 1, 2147483649] }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 367 filtered out; finished in 0.00s
+

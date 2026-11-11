@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-07T06:12:50.492342+00:00",
+  "review_kind": "Same independent reviewer, new retained native observer-baseline actuals only; no source/build/test/native replay",
+  "source": {
+    "observer_commit": "f01e64e7950d8d323da0a7bda5c065f899f30be5",
+    "metadata_commit": "42802c93a7a30320f6f9b7ae517de1d6119fd7c9",
+    "snapshot": "D:/EECH-Migration-Evidence/sector-height-capacity-f01-20261107-source",
+    "reused_ordinary_commit": "eff3b4b332ec3592ae57c89f0a3d9bf426087e0b",
+    "ordinary_identity_relabelled": false,
+    "source_review": {
+      "path": "R:/d3-evidence/independent-sector-height-observer-capacity-source-f01-20261107.json",
+      "bytes": 8118,
+      "sha256": "075924c7209dcb7372fe73c6c267b842afa3c4bb089ca0ececad39debd2c0542"
+    }
+  },
+  "decision": {
+    "status": "FINITE_OBSERVER_BASELINE_AND_CAPACITY_ACTUAL_VERIFIED",
+    "findings": [],
+    "closed_ids": [
+      "ENV-SECTOR-HEIGHT-BASELINE-CAPACITY-1"
+    ],
+    "finite_observer_baseline_closed": true,
+    "capacity_actual_closed": true,
+    "M1_M2_M3_M4_verified_for_reached_scope": true,
+    "M5_M6_unreached": true,
+    "sector_height_host_move_open_facts_closed": false,
+    "new_native_launch_clearance": false,
+    "physical_sector_height_cutover_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "final_current_full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "actuals": {
+    "build_profile": {
+      "corrected_observer_build_exit": 0,
+      "profile_reader_exit": 0,
+      "observer_payloads_rehashed": 89,
+      "retained_eff3_ordinary_payloads_rehashed": 89,
+      "frozen_source_rows_rehashed": 3967,
+      "source_clean": true,
+      "observer_features": [
+        "sector-height-observer"
+      ],
+      "funnel_check_absent": true,
+      "private_observer_DLL_exports_absent": true,
+      "bound_COFF_objects": 8,
+      "bound_staged_files": 8,
+      "ordinary_reuse_scope": "Previously reviewed feature-off source-effect equivalence only; no new ordinary compilation, object/binary equality or relabel as f01."
+    },
+    "short": {
+      "native_outer_exits": [
+        0,
+        0
+      ],
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "all_three_COMPLETE_literal80fd_equal": true,
+      "scope": "Established finite observer-DLL noninterference control only; not universal FPU neutrality or full shipping."
+    },
+    "baseline": {
+      "native_wrapper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "nominal_hours": "0.001",
+      "frame_ms": 100,
+      "seed": 1,
+      "actual_frames": 35,
+      "actual_elapsed_seconds": 3.5,
+      "floor_unchanged": true,
+      "full_event_rows": 304811,
+      "event_capacity": 524288,
+      "event_record_bytes": 136,
+      "static_event_table_bytes": 71303168,
+      "overflow": 0,
+      "mismatches": 0,
+      "pending": 0,
+      "complete": 1,
+      "whole_verdict_present": true,
+      "report_bytes": 82080972,
+      "report_sha256": "ffa21b5120b8dd9b1b096cb899e5bd63ece3664033ddc1bb92ef81def7a7284a"
+    },
+    "inputs": {
+      "full_checks": 4,
+      "files_each": 1179,
+      "bytes_each": 102239559,
+      "manifest_JSON_bytes_each": 209622,
+      "all_full_manifest_JSONs_literal_reference": true,
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "actual_check_exits_all_zero": true
+    },
+    "current_CI": {
+      "head": "42802c93a7a30320f6f9b7ae517de1d6119fd7c9",
+      "all_nine_jobs_completed_success": true,
+      "scope": "Exact metadata-head CI only, not physical authority or delivery acceptance."
+    }
+  },
+  "full_report_assessment": {
+    "M1": "All77531 placement records join the actual INSERT→nested state statement→LINK order. Private record/entity/type/sector relations match; event sequence is strictly increasing. Seven entity enum types were reached, not an exhaustive family/subtype or lifecycle census.",
+    "M1_counts": {
+      "records": 77531,
+      "joined_initial_links": 77531,
+      "sector_statements_joined": 94924,
+      "child_stage_statements": 54825,
+      "unjoined_links": 0,
+      "unjoined_statements": 0,
+      "type_mismatch": 0,
+      "unexpected_child_stage": 0,
+      "double_insert": 0,
+      "remove_unjoined": 0,
+      "index_out_of_range": 0
+    },
+    "M2": "All63136 valid-shape links match their preceding same-record fixed-state position XYZ raw words, including y, and numeric shape. Recorded bounding-box top words are inputs actually read by the original getter; no independent Host model/bounding-box dataset equality or rerun numeric oracle is inferred.",
+    "M2_counts": {
+      "valid_shape_position_word_matches": 63136,
+      "valid_shape_matches": 63136,
+      "held_word_changes": 4424,
+      "sector_previous_word_chain_matches": true,
+      "observed_held_words_finite_nondecreasing": true
+    },
+    "M3": "All14395 reached CITY link shapes are observed-invalid at the original fixed-shape getter gate, with no height-word change. Invalid-shape position and box-top zero report fields are unobserved placeholders, not measured CITY coordinates. This is this scenario/window, not a universal CITY-data or unsupported-case claim.",
+    "M4": "All27615 candidate fact12 offers match the associated FIRST raw word;63 FIRST reads span two reached sectors. Per-sector recorded first/last words remain unchanged and fact changes/differences/missing-FIRST are zero. This establishes reached transport in this finite run, not all future nested queries or natural weapon integration.",
+    "M5_M6": {
+      "fixed_wing_clearance_leader": 0,
+      "terrain_follow_clearance": 0,
+      "clearance_reads": 0,
+      "pack": 0,
+      "unpack": 0,
+      "disposition": "UNREACHED and still explicitly unmeasured in this public baseline. Closed179/033 source/numeric evidence retains only its original scope."
+    },
+    "capacity": "The larger bounded table stores the complete measured304811 event demand without sampling. Old eff3 overflow failure remains FAILED. Capacity source and actual gates now close at f01 for the declared finite window; a different/larger scenario is not guaranteed to fit."
+  },
+  "evidence": {
+    "Root_actual_binding": {
+      "path": "R:/d3-evidence/sector-height-capacity-f01-actuals-Root-binding-20261107.json",
+      "bytes": 23019,
+      "sha256": "bac255fdc587c1f9a8c86dcbe98ba1ad22c98b54bdd175e7414dc10571766598"
+    },
+    "Root_full_characterization": {
+      "path": "R:/d3-evidence/sector-height-capacity-f01-Root-baseline-characterization-20261107.json",
+      "bytes": 4011,
+      "sha256": "1af90106db5bd68fc008315e32111aafc6386509eb6b3c48f54ff0dcf4b618f8"
+    },
+    "plan": {
+      "path": "R:/d3-evidence/sector-height-capacity-f01-plan-20261107.json",
+      "bytes": 4265,
+      "sha256": "56b5c274604fa932d7d936f1f8d1c453c14b512152b5775425fb9a82f5849b71"
+    },
+    "receipts": [
+      {
+        "path": "R:/d3-evidence/sector-height-capacity-f01-windows-20261107-completion.json",
+        "bytes": 17094,
+        "sha256": "20a225af602f865bebcc3fd04181ce103166c0b2180b7225859d7161bc6d35c3"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-capacity-f01-profile-20261107-completion.json",
+        "bytes": 2654,
+        "sha256": "9a654ef53a079e9a8029d79cc3466e5d60da849aa414f95a2edc473832acce19"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-capacity-f01-short-20261107-completion.json",
+        "bytes": 4563,
+        "sha256": "eb6b479234f583cc92a24de978816e30416f79258a773f4da247851d704478c1"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-capacity-f01-short-comparison-20261107.json",
+        "bytes": 1497,
+        "sha256": "fd49d760042e47d23f4bab7a7f2c4637bbb8f216c97a384c42f2aea4c826eb5e"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-capacity-f01-baseline-20261107-completion.json",
+        "bytes": 4680,
+        "sha256": "ea9bbe6e84803e98b22876830a2d9e0c253b10e6de9e72f7b3ab5e9fd6444b84"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-capacity-428-CI-readback-20261107.json",
+        "bytes": 1950,
+        "sha256": "1af12f18779dcb520b4a9ec93322327c1f2124aea71d0c02054fa71dda552d12"
+      }
+    ],
+    "independent_work": "Streamed the full raw report to recompute its SHA, event count/order and all same-record initial joins. Compared each valid-shape link with its preceding statement positions/shape. Read receipts/profile proof and compared all four retained full input JSON byte sequences. Root independently binds all observer/ordinary payloads, frozen source, direct complete short equality and full report characterization. No campaign/checker/build/test replay occurred.",
+    "parser_recovery_qualification": "Initial Root parser tried to compare invalid CITY zero-position placeholders with actual state XYZ and failed before creating the characterization proof. Corrected parsing explicitly treats those invalid-shape position/box fields as unobserved. This was a retained read-only analysis correction, not changed source/native output or a rerun.",
+    "boundary_and_orchestration": "The fresh baseline followed the corrected build/profile/short gates on an unused verified root, with unchanged declared args. Actual native/wrapper/outer completion0 and whole verdict agree. No process timeout termination, duration extension, normalization, provider override or baseline change is credited."
+  },
+  "limits_and_next_required_decision": [
+    "Finite observer baseline/capacity acceptance only. Core still owns sector high-water calculation, state and physical consumer inputs. No host-owned scalar or physical extraction has been implemented or accepted.",
+    "sector-height-host-move-open-facts is not wholesale closed: M5/M6 remain UNREACHED. The lead must explicitly disposition these and remaining supported lifecycle/consumer contracts in the next required physical-height source plan; this review does not automatically authorize that move or demand an outcome-driven larger war.",
+    "JOIN/COMPLETE/RUN closures04b/636, P1 fullpack4de closure and earlier API scopes remain unchanged. Original eff3 failed baseline is preserved, not retrospectively repaired or accepted.",
+    "Preparation remains2of2. All ten D3 requirements, remaining physical/API/hierarchy/RNG/services/natural moving work, final CURRENT40/all8/fourinputs/currentCI/review/normalmerge/final compiled census and whole Task49/D3 remain required. No D4/D5 or historical TypeScript work.",
+    "Raw private identities, positions, box words and report lines remain outside this safe artifact. Only aggregate counts, enum outcomes, hashes and evidence paths are included."
+  ]
+}

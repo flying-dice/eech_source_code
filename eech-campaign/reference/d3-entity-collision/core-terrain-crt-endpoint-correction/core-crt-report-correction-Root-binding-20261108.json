@@ -1,0 +1,31 @@
+{
+  "observed_utc": "2026-11-08T05:15:53.755043+00:00",
+  "HEAD": "724183dbfa608aef75532fd8082d25239f56c4fb",
+  "clean_exact_upstream": true,
+  "source_rows": 4010,
+  "raw_Git_exact": 4007,
+  "inherited_Lua_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "compiled_observer_source_rows_unchanged": 4008,
+  "intended_changed_sources": [
+    "eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+    "eech-campaign/crates/eech-world/tests/core_terrain_crt_driver.rs"
+  ],
+  "readers": 5,
+  "extras": 13,
+  "final_direct_exits": {
+    "s1b-fmt": 0,
+    "s2b-clippy": 0,
+    "s3b-driver": 0
+  },
+  "final_Rust_tests": 4,
+  "single_faults_rejected": 23,
+  "old_gate_RED_actual_exit": 101,
+  "freeze_sha256": "b974e6d9b73e6c0b4eeff892b691dc222922e1e058890933bc15418621c44ba3",
+  "packet_files": 63,
+  "manifest_entries": 62,
+  "scope": "Mechanical source/offline-controls/publication join only. Preserved first Clippy101 and diagnostic-expectation failure; reused unchanged552ee C evidence without replay. No Windows build/native/capture/removal or wholeD3 acceptance. Outer and actual service completion are separate Root observations."
+}

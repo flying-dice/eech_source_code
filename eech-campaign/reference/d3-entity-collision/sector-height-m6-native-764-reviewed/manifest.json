@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "height-core-load-native-764-positive-Root-audit-20261107.json",
+      "bytes": 4694,
+      "sha256": "af3d48a865cb4acb21a4f6ec269e2fa545fa39734c0744d29ee72e1e34a149c2"
+    },
+    {
+      "path": "height-core-load-native-764-Root-binding-20261107.json",
+      "bytes": 11722,
+      "sha256": "4e3ed7124e91f2309b76457e49b61892b7e0fa1d5fc328925a04c8189c73e838"
+    },
+    {
+      "path": "independent-sector-height-M6-native-764-3c2-20261107.json",
+      "bytes": 15921,
+      "sha256": "c5bd47fae88dcc7a8a70f92bb0f53285d31fc53fa1f367558395f0b1c2359a17"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "bytes": 1086,
+      "sha256": "321bdaf646e30b6ab8a9b5a801d215440f7feb4161f54d4e9883cb6e24598978"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2812,
+      "sha256": "774675ed4f436accdcd1a2d34add7856c8edc685ef0a52721e3de54f19bb6fb7"
+    },
+    {
+      "path": "Root-native-report-counter-learning-M6-20261107.json",
+      "bytes": 1188,
+      "sha256": "5d0e856cbea9ba6e0417bf01161b7d3276333205129b5ff3d737414366873ff4"
+    }
+  ],
+  "scope": "Exact sealed M6 review, Root audit, Root binding and counter learning; aggregate records only; not an acceptance of whole height, Task49 or D3."
+}

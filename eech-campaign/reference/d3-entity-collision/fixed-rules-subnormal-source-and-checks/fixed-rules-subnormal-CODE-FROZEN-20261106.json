@@ -1,0 +1,276 @@
+{
+  "schema": "d3.task49.fixed-rules-subnormal.code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN: source and Linux checks only. No SourceClearance, no native actual, no Windows/Wine run, no review, no acceptance is claimed.",
+  "scope": "ONE narrow correction of the same reviewer's CHANGES_REQUIRED over 4fb81c673 (ENV-SCAN-PRE-SAVE-SUBNORMAL-FPU-1). The ACK change, the two eech-dc lint sites, the i686 cfg gate, the physical rules, the Host records, the original math and every C/sys/extractor input are unchanged and not replayed.",
+  "producer": {
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "lane": "narrow correction resuming only the locally verified relevant context; no Opus/new plan/subagents/nested agents/MCP/auth change/model substitution/Windows/native/retail/cache cleanup/merge"
+  },
+  "identity": {
+    "code": "cd97e0b723e4f6710622ba9c6c19a16516fa4174",
+    "code_parent": "870a243fba4d0e683697994617aacf60eedfd994",
+    "meta_commit": null,
+    "prior_code_under_review": "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453",
+    "reviewed_chain": [
+      "d2f5027c9154841c32f70ed87747b9d908e08e48",
+      "bfce56e3c9e56352c1f2c6beb6c53d930dbee649",
+      "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453",
+      "870a243fba4d0e683697994617aacf60eedfd994"
+    ],
+    "branch": "codex/d3-object-tree-collision",
+    "changed_paths_over_code_parent": "see changed_paths (two files; the code commit differs from 4fb81c673 in exactly these)",
+    "note": "meta_commit stays the tracked null placeholder in this repository copy; Root's external copy names the metadata commit",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+        "bytes": 32186,
+        "sha256": "b19fa16ec862747dcb92622132d3969a6e1a7bb77bf56683a64c541b3a549190"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+        "bytes": 52746,
+        "sha256": "16864ae99787511701853c9911f99657c6baad91011ad5cf90fc7730a87b0b07"
+      }
+    ]
+  },
+  "sealed_review": {
+    "path": "R:/d3-evidence/independent-fixed-rules-correction-source-4fb81c673-20261106.json",
+    "repo_literal_copy": "independent-fixed-rules-correction-source-4fb81c673-20261106.json",
+    "bytes": 20178,
+    "sha256": "d6b5df9fddca12305e43f44c46d7aec54ebd00734d449446b799453405983cb1",
+    "decision": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "finding": "ENV-SCAN-PRE-SAVE-SUBNORMAL-FPU-1 (P2)",
+    "closed_by_it": [
+      "ENV-FIXED-RULES-RESTATEMENT-ACK-1 (source)",
+      "the two eech-dc workspace lint sites (source)",
+      "the measured signaling-NaN refusal path"
+    ],
+    "accepted_qualification": "the i686 cfg gate is an appropriate source-scope qualification matching the x86_64-only helper; it is NOT i686 numeric/FP coverage",
+    "sha256_verified": "d6b5df9fddca12305e43f44c46d7aec54ebd00734d449446b799453405983cb1",
+    "bytes_verified": 20178
+  },
+  "p2_disposition": {
+    "id": "ENV-SCAN-PRE-SAVE-SUBNORMAL-FPU-1",
+    "disposition": "CORRECTED (source) - awaiting the same reviewer",
+    "problem_confirmed": "entity_host::scan_step ran the floating check_scan_facts after the integer classify_scan_words and before fp_state. A valid subnormal coordinate word (accepted by the raw classifier) reached its abs/range comparisons, which set the SSE denormal status (or would trap if unmasked) BEFORE the caller's state was captured, so the later after == state guard compared an already-modified state with itself.",
+    "guard_semantics_inspected": [
+      "fp_state() only reads the registers (x87 control word, MXCSR) and the masks derived from them; it is the entry snapshot of the guard.",
+      "ScopedRounding::set saves the complete floating-point environment (including the sticky status bits) and its Drop restores it; the kernel is entered only inside that scope. Whatever the original C arithmetic does to the sticky bits inside it is therefore restored to the entry value, which is why the kernel's own use of subnormal operands needed no change.",
+      "Moving a read-only snapshot alone would not have been proof: the typed floating work (the abs/range comparisons) was the thing that changed the state. The fix therefore removes that work from production rather than reordering it.",
+      "The remaining float work before the guard is none: f32::from_bits is a move of the word's bits, and it now also follows the capture and the unsupported-environment refusal."
+    ],
+    "change": "classify_scan_words is the SOLE production validator of an entity-scan question (integer operations only; the same domains, order and messages). scan_step calls it, then captures fp_state and applies the existing unsupported-environment refusal (every exception masked in both units), and only then converts the words to floats for the kernel. check_scan_facts (the floating predicate) is #[cfg(test)] and exists only as the oracle of the differential test, whose corpus now includes the smallest and largest subnormal words of both signs. Error priority (malformed question first, then the environment refusal) is unchanged.",
+    "red": {
+      "label": "subnormal-red-870a-debug",
+      "what": "the new existing-harness control against the UNCHANGED 870a243fb production source, CI-equivalent debug, before any production edit",
+      "observed": "exit 101 at the first context (Nearest, flags clear, DAZ=0, FTZ=0, masked): the caller's complete state after a valid scan with subnormal coordinates had MXCSR 8066 against 8064 before (the denormal status bit raised), masks, x87 control and rounding unchanged. The helper's exception_flags() read 0 in both: the denormal status is not among the flags that helper reports, so only the complete-state comparison exposes it.",
+      "safety": "only masked contexts can reach a denormal operand with DAZ clear before the fix; the contexts with an unmasked denormal exception are entered only with DAZ set (no denormal operand, so no trap), so no trap fleet was started"
+    },
+    "control": "tests/entity_roster_host.rs::a_valid_scan_with_subnormal_coordinates_hands_back_the_callers_whole_floating_point_state_in_every_denormal_mode, in the EXISTING FPU harness (caller_state(): masks, x87 control, MXCSR including sticky bits, rounding, raised flags) with the real provider, roster and kernel: an inserted entry, then a BEGIN (served first) and an ENTRY (offered) question whose segment coordinates are the raw words 0x00000001, 0x80000001, 0x007fffff, 0x80000001, 0x00000001, 0x807fffff, across four rounding modes, flags clear and pre-raised, and six denormal contexts (DAZ/FTZ combinations, and two with the denormal exception unmasked with DAZ set). Masked contexts: the question is served and the whole state is unchanged. Unmasked contexts (unsupported): the existing named refusal 'every floating-point exception masked' for both questions, and the state is unchanged. Nothing is cleared before an assertion and nothing is weakened.",
+    "green": "subnormal-green-roster-debug: 18/18 (the 17 existing plus the new control), then the final chain on the committed code below.",
+    "not_run": "An unmasked denormal exception with DAZ CLEAR (a context that would have trapped before the fix) is deliberately not entered; after the fix it is refused by the same named refusal because the state capture and the mask check precede every floating operation, by source, not by a run.",
+    "not_changed": [
+      "no flag is cleared before an assertion",
+      "no input is flushed, rejected or masked globally; subnormal coordinates stay valid",
+      "no tolerance, baseline, compiler flag, scenario or profile changed",
+      "the kernel, its math, order, RNG and C API are unchanged",
+      "one production validator remains (the old floating predicate is test-only)"
+    ]
+  },
+  "final_checks_on_named_code_commit": "Run after the code commit on the clean committed tree; fmt, whole eech-world in debug AND release (the provider path is global to every scan question, so the whole crate in both profiles is the justified scope), and the workflow's workspace clippy. See checks.",
+  "reused_scope": {
+    "basis": "Git tree identity between the reviewed 4fb81c673 and this code commit: aphavoc, modules, eech-engine-sys, eech-sys, eech-engine, eech-dc, eech-core-ts/c-reference, eech-campaign/Cargo.toml and Cargo.lock, eech-world's lua directory, build.rs and Cargo.toml, and eech-campaign/docs are the SAME tree ids. The code commit differs from 4fb81c673 in exactly entity_host.rs and entity_roster_host.rs. No crate other than eech-world names eech-world in its Cargo.toml.",
+    "tree_ids": {
+      "aphavoc": "19b02698c59cfd2e27c377b68dbb79ca9e3c5c49",
+      "modules": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+      "eech-campaign/crates/eech-engine-sys": "00899a43872414218b03463a8d45937d2f6614a4",
+      "eech-campaign/crates/eech-sys": "b3715c36c440c8fc0976230e0fbeb2ebdee93d2c",
+      "eech-campaign/crates/eech-engine": "09ed68d80ff651c0be69918015c460d4999d8292",
+      "eech-campaign/crates/eech-dc": "46a71de0be81f99319221c40ec4b1ecaa40fd4c7",
+      "eech-core-ts/c-reference": "f847a19e3880bbd1ecafd9bca44598dbd7e64a86",
+      "eech-campaign/Cargo.toml": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "eech-campaign/Cargo.lock": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "eech-campaign/crates/eech-world/lua": "db481dda16a60b93f6609e1cc373f4afa2a7330e",
+      "eech-campaign/crates/eech-world/build.rs": "daee430854584cf017244fcf13da989495cefb4c",
+      "eech-campaign/crates/eech-world/Cargo.toml": "eb047754526eb3b9e973fe7bcbf9fab39a40128c",
+      "eech-campaign/docs": "879ec2d630414fb6aa9fa31cc33f692622b7d2ba"
+    },
+    "reviewed_parent_checks_not_rerun_and_not_claimed_for_the_new_head": [
+      "whole-workspace debug 1410 tests / 79 rows (ordinary C configuration) at 4fb81c673",
+      "whole-workspace debug with EECH_C_OPT=2, 1410 / 79 rows, at 4fb81c673",
+      "release eech-world 1172 / 55 rows at 4fb81c673 (this lane's release eech-world run is 1173 / 55 rows on the new code)",
+      "the eech-engine-sys dialogue control, the three fixture-feature builds and eech-sys at d2f5027c9"
+    ],
+    "not_a_whole_matrix": "At the new head only eech-world (debug and release), fmt and workspace clippy ran. No whole-workspace test, no C_OPT=2 run, no native-sys or C matrix, no Windows/Wine and no i686 build was run; the 3992-instance total of the previous review is not a claim about the new head. Standard current-head CI must still pass, with no waiver."
+  },
+  "i686_prerequisite_gaps": "No i686 build is claimed. The retained local attempt (previous pack, final-i686-check, exit 101) is NOT a success and shows two missing prerequisites: the Rust i686-unknown-linux-gnu core/target (E0463) AND the 32-bit libc headers (and so the 32-bit mlua build). The two cfg-gated city-box tests do not run on i686; i686 numeric/FP coverage is not claimed.",
+  "metadata_provenance_erratum": {
+    "subject": "the previous report's publication relation (R:/d3-evidence/fixed-rules-review-correction-CODE-FROZEN-20261106.json, sha256 d960ae7daad3bb7667aeb27b7caa842cd21d78953fd63584906bdfc1df7d9451, 36249 bytes) against the tracked copy (fixed-rules-review-correction-CODE-FROZEN-20261106.json in the 870a243fb pack, sha256 c926479a33c01117e208b8df69a2f265731c6e570416b96699e6ccc5b7d55aaf, 34495 bytes)",
+    "statement": "The earlier claim that the two copies differ only by the external publication block and identity.meta_commit was INCOMPLETE. Strict deep equality of the two dictionaries requires exactly THREE adjustments applied to the external copy: (1) remove the top-level `publication`, (2) remove the external-only top-level `review_sha256` (the tracked copy has NO such key - it is absent, not null; its value is the same 18b2faf8... hash as identity.review_report.sha256 of both copies), (3) reset identity.meta_commit to the tracked null.",
+    "verified_here": "re-verified with a deep comparison of the two literal files: equal after exactly these three adjustments; NOT equal after only the two originally claimed. Both literal reports and both sealed reviews (18b2faf8... and d6b5df9f...) are preserved and not rewritten.",
+    "pack_count_erratum": "the previous pack has 51 LISTED manifest records plus manifest.json itself = 52 Git files (not 52 listed entries). This pack states its own count in publication.",
+    "deep_comparison": {
+      "three_adjustment_deep_equal": true,
+      "two_adjustment_deep_equal": false,
+      "tracked_has_review_sha256_key": false,
+      "external_review_sha256_equals_nested_18b": true,
+      "external_bytes": 36249,
+      "external_sha256": "d960ae7daad3bb7667aeb27b7caa842cd21d78953fd63584906bdfc1df7d9451",
+      "tracked_bytes": 34495,
+      "tracked_sha256": "c926479a33c01117e208b8df69a2f265731c6e570416b96699e6ccc5b7d55aaf"
+    }
+  },
+  "unchanged_scope": {
+    "four_fixed_rule_fields": "fixed_rule_eligible, fixed_rule_changed, fixed_rule_changed_next and fixed_rule_changed_cause stay declared as emitted by EVERY mode's authority row, the healthy control included; a native comparison declares all four as added and requires every existing shared field, the complete physical terminal and the default recordings to be exact.",
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION": "OPEN and the mandatory NEXT CITY production after the finite flags (an actual empty-CITY relink/restore must retain/authorize the Host-built box without Core's mirror as the sole surviving copy); no jump to sector height.",
+    "needed_data": "default shape, clutter and the six draw-file align readers need the needed-caller/DCS disposition and stay OPEN; Core keeps campaign policy (including IDENTIFY_FIXED).",
+    "all_ten_D3_requirements_preserved": true,
+    "open_unchanged": [
+      "sector height/hints/writers",
+      "effectful UPDATED/shared terrain",
+      "raw tree/FOREST/CLOUD RNG",
+      "needed hierarchy/devices/services",
+      "DCS mapping",
+      "natural moving integration",
+      "native authority, the established short, current full 40/all8 and final inputs",
+      "current CI, normal merge, final census",
+      "D4/D5/TypeScript unstarted"
+    ],
+    "f734_fullpack": "The established f734 ordinary full pack (four ORIGINAL natives/source/bin/separate roots/seed 1/frame 100/3h/tolerances/priority/affinity; latest 2577.77/2565.79 partial literal prefixes) was not touched; the prefixes are partial only. No consumed native root is reused."
+  },
+  "current_ci_status": "PENDING on the new head. The current-head standard CI must pass; no waiver and no CI success is claimed here.",
+  "limitations": [
+    "The pre-fix behaviour of an unmasked denormal exception with DAZ clear (a trap) was not run; only argued by source.",
+    "The reproduction is the masked DAZ=0 context in debug; whether release codegen would also have exposed it was not separately measured (the new control passes in both profiles after the fix).",
+    "A formatting-only blank-line edit of the test file followed the RED run; the RED ran on the file as first written. A `cargo fmt --check` exit 1 on the new control (retained) was corrected by line wrapping before the code commit.",
+    "Other modules' float classification of campaign words was not audited."
+  ],
+  "next_action": {
+    "same_reviewer": "ONE pass over only the two changed files of the code commit and these actuals; closed ACK/lint/constructor/numeric evidence is not replayed.",
+    "root": "Observe the current-head CI; only after the same reviewer's clearance prepare fresh roots for the established short, one healthy control (zero faults, exact shared fields and terminal, the four declared added fields) and ONE strict changed_fixed_rule witness.",
+    "next_production": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION (empty-CITY relink/restore), then the rest of the open list."
+  },
+  "created_utc": "2026-11-06T16:20:42.014Z",
+  "checks": {
+    "subnormal-red-870a-debug": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_roster_host",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T16:13:56.407358+00:00",
+      "completed_utc": "2026-11-06T16:14:04.029292+00:00",
+      "receipt_sha256": "3251fbf1c20a558334efc6db0f199ce4e3905fb0f203d0a550d16742954d4cc4",
+      "result_rows": 1,
+      "passed": 17,
+      "failed": 1,
+      "stdout_sha256": "a43d7ab985e37e00b73dcb476dadc2a05b6aa034b0dfb8455a3fbdc2bdec8e47",
+      "stderr_sha256": "d42b6abd4d18f361689ef6743ad9e245e4b1542f4bf364ab4e1953eb3ede2e06"
+    },
+    "subnormal-green-roster-debug": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_roster_host",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:14:55.953089+00:00",
+      "completed_utc": "2026-11-06T16:15:00.180781+00:00",
+      "receipt_sha256": "e41db38742a2f532756260e8ddd3f9e03ac2a458e6694873eedd411c92f7751f",
+      "result_rows": 1,
+      "passed": 18,
+      "failed": 0,
+      "stdout_sha256": "4cfb2efad1ae42a5d7f29782e1bb6b98be7958ea42913cea4b29b83c7d1ee587",
+      "stderr_sha256": "39c1f115295a3c36226e34ad30f351f2a556a6bb8f48460bb229195775b982fe"
+    },
+    "subnormal-pre-fmt-check": {
+      "command": "cargo fmt --check",
+      "actual_exit": 1,
+      "started_utc": "2026-11-06T16:15:00.354047+00:00",
+      "completed_utc": "2026-11-06T16:15:04.786633+00:00",
+      "receipt_sha256": "f293ccf03eb05722e3ac3a66c9e13cd69cda3897d91176b60ef7f3962dd17295",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "4090b84e8a79da2210bdd3e6556a15bb452e263856e01f246fc704775e68b79d",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "subnormal-pre-fmt-check-b": {
+      "command": "cargo fmt --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:15:12.912287+00:00",
+      "completed_utc": "2026-11-06T16:15:17.353535+00:00",
+      "receipt_sha256": "cda850b0135303b1a6ed8de8cf95baeb2af40a1c47f3516525f305d845d1ea18",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "subnormal-final-fmt-check": {
+      "command": "cargo fmt --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:15:42.026383+00:00",
+      "completed_utc": "2026-11-06T16:15:46.821251+00:00",
+      "receipt_sha256": "f3c0909f3a8b46af718bf34fb92394c3f831e66689aa588ff188f8df2ae56b96",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "subnormal-final-world-debug": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu --no-fail-fast -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:15:46.941273+00:00",
+      "completed_utc": "2026-11-06T16:16:42.088361+00:00",
+      "receipt_sha256": "06a82aaeeaaf61b495a7cc3c28807ed4c1a4f3e92b3ea52818150e8eb952c675",
+      "result_rows": 55,
+      "passed": 1173,
+      "failed": 0,
+      "stdout_sha256": "c966124a9fbc6c5b9bd731cef2d319432b9679b47553b359f1b6e0a8904b69fe",
+      "stderr_sha256": "6da425787df0183d418d2e544a48c0f0be2bee17a5b7cb42fec9b99bc36d3962"
+    },
+    "subnormal-final-world-release": {
+      "command": "cargo test --release --locked --no-fail-fast -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:16:42.209550+00:00",
+      "completed_utc": "2026-11-06T16:17:46.616352+00:00",
+      "receipt_sha256": "c39202755171455289ab4ce8c8bd1078b667492b949978021a0741e7c426f172",
+      "result_rows": 55,
+      "passed": 1173,
+      "failed": 0,
+      "stdout_sha256": "ac166964ce13768d93e57cba3056dad4e6d22889ca11c582674658c82a0463f0",
+      "stderr_sha256": "1ae8c7bc9c388a5be825799fc6e33ec027cf42d322d8cd82efdc227899d1d59b"
+    },
+    "subnormal-final-clippy-workspace": {
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:17:46.745333+00:00",
+      "completed_utc": "2026-11-06T16:17:54.612497+00:00",
+      "receipt_sha256": "2a3d03d4d902247a74135649e80ab8950669946dd7dc92df4c950e8b52c6ecd7",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a19fb826b9452cafcccef5531a9a228c38a4319b40a3382549515afd194e0f7d"
+    }
+  },
+  "maps": {
+    "before": {
+      "file": "fixed-rules-subnormal-inputmap-before-20261106.json",
+      "bytes": 2029467,
+      "sha256": "62794acb0e97e80cf774b65cc2f0860df8f4bcc12fb4da53ccacf94c9fe72abd"
+    },
+    "after": {
+      "file": "fixed-rules-subnormal-inputmap-after-20261106.json",
+      "bytes": 2029467,
+      "sha256": "62794acb0e97e80cf774b65cc2f0860df8f4bcc12fb4da53ccacf94c9fe72abd"
+    },
+    "head_rev_argument": "870a243fba4d0e683697994617aacf60eedfd994",
+    "repo_argument": "R:/d3-evidence/collision-characterization-20261029",
+    "literal_equal": true,
+    "files": 3953,
+    "raw_binding": "fixed-rules-subnormal-raw-binding-cd97e0b72-20261106.json",
+    "raw_binding_sha256": "58a0e57eb750f69b31e8e02c4df6343ce012c2c14ef78dd6b9827ac1bbb940d3",
+    "raw_equal_to_blob": 3950,
+    "qualified_inherited_crlf_lua": 3,
+    "changed_files_outside_map_roots": "none (both changed files are inside the map)",
+    "note": "the runs executed on the clean committed tree of the code commit (maps taken before and after; the maps are outside Git)"
+  }
+}

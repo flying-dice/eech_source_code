@@ -1,0 +1,38 @@
+{
+  "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "captured_utc": "2026-11-05T23:25:25.642045+00:00",
+  "partial_prefix_only": true,
+  "complete_pack_or_all8_acceptance": false,
+  "results": [
+    {
+      "path": "reference/run1/recording.acmi",
+      "captured_bytes": 4921319,
+      "sha256": "9aff781b1a2ad6d83c06e0648d670054c5fefab540ad3e0f7b93be61fc6746ad",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": "375.96"
+    },
+    {
+      "path": "reference/run1/observations.jsonl",
+      "captured_bytes": 3420160,
+      "sha256": "c36735c3da5f18842208500b430881c491470ae81776d2d0b9c2aa67ce03efab",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": null
+    },
+    {
+      "path": "reference/run2/recording.acmi",
+      "captured_bytes": 4929507,
+      "sha256": "b402ca0f149419b8d928fb5395a2919e92383467477a037e441a4b0ee57e9372",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": "376.96"
+    },
+    {
+      "path": "reference/run2/observations.jsonl",
+      "captured_bytes": 3420160,
+      "sha256": "c36735c3da5f18842208500b430881c491470ae81776d2d0b9c2aa67ce03efab",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": null
+    }
+  ],
+  "all_captured_prefixes_equal": true,
+  "scope": "Only generated candidate reference/run1 and run2 prefixes captured at finite byte lengths; copied retained files excluded. No metrics/endings/full40 or unobserved scenario progress claim."
+}

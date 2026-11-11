@@ -1,0 +1,20 @@
+{
+  "controller_pid": 15648,
+  "state": "terminal",
+  "started_utc": "2026-11-07T07:02:59.760733+00:00",
+  "command": "cargo test --locked -p eech-engine --features sector-height-funnel-check --test sector_height_funnel --test sector_height_observer_chain --test sector_height_observer_cap",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked -p eech-engine --features sector-height-funnel-check --test sector_height_funnel --test sector_height_observer_chain --test sector_height_observer_cap"
+  ],
+  "scope": "One Cargo command. Separate stdout/stderr files: each has one Windows writer. WSL/helper return is the actual Cargo/docker stage exit, no trailing echo/pipeline. Working-tree check only unless separately frozen/source-bound.",
+  "pid": 22672,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T07:04:04.054595+00:00"
+}

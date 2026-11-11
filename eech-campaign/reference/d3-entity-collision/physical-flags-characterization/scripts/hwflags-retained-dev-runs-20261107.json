@@ -1,0 +1,14 @@
+{
+  "p1-flags-check": {
+    "actual_exit": 101,
+    "why": "first run in the fresh volume (the first compile of the engine C there): a compile error of the author's new translation unit, a redundant include of entity/special/update/up_update.h that project.h already provides ('redefinition of struct UPDATE'); no test ran; removed in p2"
+  },
+  "p2-flags-check": {
+    "actual_exit": 101,
+    "why": "the control ran and the real code behaved as characterised; its 6 failures were all the author's own expectations comparing the UNSIGNED flag word with the SIGNED mask for bit 31 (2147483648 versus INT_MIN): two lines of the control corrected to compare as unsigned; not a defect of the original code"
+  },
+  "p3-flags-check": {
+    "actual_exit": 101,
+    "why": "zero failed expectations and 199 made; the Rust runner then failed only on the placeholder expectation count 0 it was written with: the count observed here (199) was pinned in p4"
+  }
+}

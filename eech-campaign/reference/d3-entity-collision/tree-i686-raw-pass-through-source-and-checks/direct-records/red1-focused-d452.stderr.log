@@ -1,0 +1,54 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling smallvec v1.16.1
+   Compiling memchr v2.8.3
+   Compiling cfg-if v1.0.5
+   Compiling scopeguard v1.2.0
+   Compiling serde_core v1.0.229
+   Compiling libc v0.2.189
+   Compiling typeid v1.0.3
+   Compiling num-traits v0.2.19
+   Compiling zmij v1.0.23
+   Compiling either v1.18.0
+   Compiling rustc-hash v2.1.3
+   Compiling itoa v1.0.18
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling lock_api v0.4.14
+   Compiling ordered-float v2.10.1
+   Compiling parking_lot_core v0.9.12
+   Compiling parking_lot v0.12.5
+   Compiling serde v1.0.229
+   Compiling bstr v1.13.1
+   Compiling erased-serde v0.4.10
+   Compiling serde_json v1.0.151
+   Compiling serde-value v0.7.0
+   Compiling mlua v0.10.5
+error: linking with `cc` failed: exit status: 1
+  |
+  = note:  "cc" "-m32" "/target/i686-unknown-linux-gnu/debug/deps/rustc1zwdxW/symbols.o" "<257 object files omitted>" "-Wl,--as-needed" "-Wl,-Bstatic" "-leech_steps" "-leech_rotor_control" "-leech_city_box_control" "<sysroot>/lib/rustlib/i686-unknown-linux-gnu/lib/{libtest-*,libgetopts-*,librustc_std_workspace_std-*}.rlib" "/target/i686-unknown-linux-gnu/debug/deps/{libserde_json-aa8cc332adfdb15a,libitoa-4df490667b91c576,libzmij-488b604f577ac593,libmlua-3909f2980dc23284,libserde_value-20a018fe20c970ae,libordered_float-50aa66f269eb1834,liberased_serde-8a206d7c4e8d23ff,libtypeid-93309228906223e8,libeither-d505cf2a8d67aa20,librustc_hash-37cc6b894aca0363,libparking_lot-420c7eaa3689aa23,libparking_lot_core-a327f57aad1060f4,liblibc-5bd84ec2adf4c490,libcfg_if-4b7f5d196cde189e,libsmallvec-601b8b7fe16f198e,liblock_api-f3601dd48e8502ad,libscopeguard-e211e83ea424337e,libmlua_sys-f29a29565b647c28,libnum_traits-f93886e7d45e317b,libbstr-4e9cf99371c9a255,libmemchr-1e8d4aeeb6e90196,libserde-c80dc58ec83695fb,libserde_core-502e44bac971eb69}.rlib" "<sysroot>/lib/rustlib/i686-unknown-linux-gnu/lib/{libstd-*,libpanic_unwind-*,libobject-*,libmemchr-*,libaddr2line-*,libgimli-*,libcfg_if-*,librustc_demangle-*,libstd_detect-*,libhashbrown-*,librustc_std_workspace_alloc-*,libminiz_oxide-*,libadler2-*,libunwind-*,liblibc-*,librustc_std_workspace_core-*,liballoc-*,libcore-*,libcompiler_builtins-*}.rlib" "-Wl,-Bdynamic" "-lgcc_s" "-lutil" "-lrt" "-lpthread" "-lm" "-ldl" "-lc" "-L" "/target/i686-unknown-linux-gnu/debug/deps/rustc1zwdxW/raw-dylibs" "-B<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld" "-fuse-ld=lld" "-Wl,--eh-frame-hdr" "-Wl,-z,noexecstack" "-L" "/target/i686-unknown-linux-gnu/debug/build/eech-world-26875c97c3675bb1/out" "-L" "<sysroot>/lib/rustlib/i686-unknown-linux-gnu/lib" "-o" "/target/i686-unknown-linux-gnu/debug/deps/eech_world-85715ab6eb8308e1" "-Wl,--gc-sections" "-pie" "-Wl,-z,relro,-z,now" "-nodefaultlibs" "-llua5.1"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/crtbeginS.o is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_muldi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_negdi2.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_lshrdi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_ashldi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_ashrdi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_cmpdi2.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_ucmpdi2.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_clear_cache.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_trampoline.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(__main.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_absvsi2.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_absvdi2.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_addvsi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_addvdi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_subvsi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_subvdi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_mulvsi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_mulvdi3.o) is incompatible with elf32-i386
+          rust-lld: error: /usr/lib/gcc/x86_64-linux-gnu/12/libgcc.a(_negvsi2.o) is incompatible with elf32-i386
+          rust-lld: error: too many errors emitted, stopping now (use --error-limit=0 to see all errors)
+          collect2: error: ld returned 1 exit status
+          
+
+error: could not compile `eech-world` (lib test) due to 1 previous error

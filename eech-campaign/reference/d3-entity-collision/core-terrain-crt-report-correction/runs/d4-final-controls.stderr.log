@@ -1,0 +1,4 @@
+info: downloading component rustfmt
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.64s
+     Running tests/core_terrain_crt_driver.rs (/target/t/debug/deps/core_terrain_crt_driver-fd8a90b44668fc35)

@@ -1,0 +1,28 @@
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:6113:
+             (0, 0),
+             "{fault}: {row}"
+         );
+-        assert_eq!((row["retained_answers"].as_i64(), row["releases_in_window"].as_i64()), (Some(0), Some(0)), "{fault}: the bad record is never counted: {row}");
++        assert_eq!(
++            (row["retained_answers"].as_i64(), row["releases_in_window"].as_i64()),
++            (Some(0), Some(0)),
++            "{fault}: the bad record is never counted: {row}"
++        );
+         assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
+-        assert!(row["first_fault"].as_str().unwrap().starts_with("scan reply:") && row["first_fault"].as_str().unwrap().contains(expected), "{fault}: {row}");
++        assert!(
++            row["first_fault"].as_str().unwrap().starts_with("scan reply:") && row["first_fault"].as_str().unwrap().contains(expected),
++            "{fault}: {row}"
++        );
+         assert!(driven.result.is_err(), "{fault}: a damaged positive is never a pass");
+         let error = error_of(driven);
+         assert!(error.contains("reply_faults=") && error.contains(expected), "{fault}: {error}");
+Diff in /src/eech-campaign/crates/eech-world/tests/entity_authority.rs:6122:
+-        assert!(!error.contains("UNREACHED") && !error.contains("host-retention"), "{fault}: a malformed positive is a fault, not an absent prerequisite: {error}");
++        assert!(
++            !error.contains("UNREACHED") && !error.contains("host-retention"),
++            "{fault}: a malformed positive is a fault, not an absent prerequisite: {error}"
++        );
+     }
+     // each single fault of the private release acknowledgement: the intervention is a failure and nothing is credited
+     for fault in ["cursor", "name", "state", "tail"] {

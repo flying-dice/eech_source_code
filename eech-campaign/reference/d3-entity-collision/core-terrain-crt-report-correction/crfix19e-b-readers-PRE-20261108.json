@@ -1,0 +1,7 @@
+{
+  "run-core-crt-crfix19e-direct-20261108.py": "c5c49d6e2ed3a794e1e03251541e1741fc03e0d452b8bd89f4f2077b953506e0",
+  "check-core-crt-crfix19e-linux-20261108.sh": "a24b6796bf5b40652032d0591e186b8767a4b7e3baa413c0f6212a7eb55284d3",
+  "run-crfix19e-final-b-20261108.py": "83b984d73e9db1371531a38b2b2318af057d569c7be3f85b17b3bb090f8f39eb",
+  "crfix19e-proof-20261108.py": "88bda05a232192a95067f41950a04d12601fe85f72e43c13afd032bbf35add77",
+  "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+}

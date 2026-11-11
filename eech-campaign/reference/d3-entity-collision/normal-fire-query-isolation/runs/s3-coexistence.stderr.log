@@ -1,0 +1,5 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.60s
+     Running tests/normal_fire_query.rs (/target/t/debug/deps/normal_fire_query-3bd64d3e9a7fd69b)
+     Running tests/physical_flags_collision.rs (/target/t/debug/deps/physical_flags_collision-748134964684e965)
+eech: debug_fatal: host model: [test-bridge:entity_candidate.refused] candidate record: the host holds no physical record for this mobile candidate (no host identity: the campaign has none for this mobile candidate)

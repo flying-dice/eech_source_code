@@ -1,0 +1,65 @@
+{
+  "base": "eff3b4b332ec3592ae57c89f0a3d9bf426087e0b",
+  "kind": "source-derived structural join for the feature-off profile; not an object comparison",
+  "changed_or_added_paths": [
+    "STATUS.md",
+    "docs/governance/D3-FIVE-WHYS-20261102.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs",
+    "eech-campaign/crates/eech-world/tests/data/sector-height-observer-report.txt",
+    "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+    "eech-campaign/docs/d3-sector-height-public-baseline-plan.md"
+  ],
+  "rows": [
+    {
+      "path": "STATUS.md",
+      "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+    },
+    {
+      "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+    },
+    {
+      "path": "docs/handover/ACTIVE-EXTRACTION.json",
+      "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+      "class": "translation unit that preprocesses to nothing without EECH_SECTOR_HEIGHT_OBSERVER (checked on the eff3 text and the new text: one outer #ifdef...#endif pair, nothing else outside comments)",
+      "outer_gate_only_before": true,
+      "outer_gate_only_after": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "class": "one cfg(feature = \"sector-height-observer\") constant changed (SHO_EVENTS_MAX)",
+      "diff_body": [
+        "-pub const SHO_EVENTS_MAX: i32 = 262_144;",
+        "+pub const SHO_EVENTS_MAX: i32 = 524_288;"
+      ],
+      "line_before_new_const": [
+        " #[cfg(feature = \"sector-height-observer\")]"
+      ]
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs",
+      "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/data/sector-height-observer-report.txt",
+      "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+      "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sector-height-public-baseline-plan.md",
+      "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+    }
+  ],
+  "no_aphavoc_or_modules_path": true,
+  "problems": [],
+  "conclusion": "the compiled inputs of the ORDINARY (feature-off) profile are unchanged in effect: a binary built from eff3b4b33 and one built from this tree differ in no preprocessed translation unit and no non-gated Rust item; the sealed ordinary eff3 binary keeps its true identity and is not relabelled"
+}

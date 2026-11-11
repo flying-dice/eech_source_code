@@ -1,0 +1,201 @@
+{
+  "schema": "independent-d3-source-review.v1",
+  "reviewed_utc": "2026-11-06T19:20:37.647709+00:00",
+  "scope": "One combined independent correctness, clean-code and boundary-safety review of the new test-only fixed-rule witness and retained focused checks. No build, test, native replay, source edit or delegated reviewer was used.",
+  "source": {
+    "commit": "96cc958d5fca9fdf847cf1853020583071dedde8",
+    "parent": "33d1fc30e60477c26851204b88e9912d61726630",
+    "metadata_commit": "18f86267ffd81c44f9abb003a16ebc0089da8421",
+    "compiled_runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 223560,
+        "sha256": "25fe9bbf83c600a9c092cce8c5d3f0006821adcfed55a44bdce578cd1bdff959",
+        "git_blob": "917bff921c48c1aeed4d7b27f268d4a2c0e9c64a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "bytes": 317627,
+        "sha256": "f9080b52085fb08e4f242aa63fa57a2f6fdcbf2dd4810801b59f606675b4f2bd",
+        "git_blob": "6e8e3571b5744bed2270cb28a939107bd4f8a604"
+      }
+    ],
+    "code_delta_exactly_two_paths": true,
+    "metadata_delta": "35 evidence-pack files plus STATUS.md and the active extraction card; no further executable changes.",
+    "runtime_and_diagnostic_identities_separate": true
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "diagnostic_native_launch_clearance": false,
+    "finite_fixed_rule_authority_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "findings": [
+      {
+        "id": "ENV-FIXED-RULE-WITNESS-POSITIVE-ACCEPTANCE-1",
+        "severity": "P2",
+        "title": "Validate the intercepted final positive against its consumer contract before credit or restatement",
+        "locations": [
+          {
+            "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+            "lines": "743-756, 1539-1590"
+          },
+          {
+            "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+            "source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+            "lines": "256-267, 325-350"
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+            "source": "96cc958d5fca9fdf847cf1853020583071dedde8",
+            "lines": "4777-4965"
+          }
+        ],
+        "evidence": "candidate_reply_problem validates the text grammar and permits either 12 or 16 words, but does not reject nonfinite words. It accepts TEST at scene zero with an empty name and accepts any nonempty name for a nonzero scene. The new intervention then counts a 12-word TEST as eligible, changes held subtype and returns the later real mirror refusal. Core therefore never receives the original positive and cannot run its raw-finite, nonzero TEST scene and exact scene-name checks.",
+        "effect": "A malformed positive can be hidden by the expected counterfactual refusal, falsely proving that a valid final pose consumed the held rule. The positive-first harness does not damage these acceptance fields at the interception point.",
+        "minimum_correction": [
+          "Before eligible credit, held-state mutation or extra evaluation, require the intercepted final nonmobile TEST to satisfy the relevant actual consumer contract: nonzero scene, exactly twelve grammar-valid raw finite binary32 words and the exact expected scene-name echo. Use integer/text word classification, without loading the words as floating values.",
+          "Use an existing authoritative scene-name source, not a guessed name or an independently loaded model image. The already naturally delegated object/custom_object metadata replies echo compiled_scene_name(scene) (model_host.rs 1761-1781); their completed-boot acceptance can establish a scene-to-name binding. The current wrapper retains no such map. Missing or inconsistent binding must not permit credit or mutation.",
+          "Add positive-first single-fault controls for nonfinite positive words (including signaling NaN), TEST scene zero and wrong nonempty scene echo. Each must fail as its positive reply fault with zero rule restatement and zero extra evaluation; no damaged native experiment is required. Keep the coherent positive, subtype-only strict ACK and named real refusal controls."
+        ],
+        "grouping": "One bounded positive-consumer-contract group; no production API, new store, solver or expanded native programme is requested."
+      }
+    ]
+  },
+  "review_conclusions": {
+    "design_supported": "A city-listed fixed-family building is a legitimate consumer of the held subtype-derived collision rule once the actual placement facts are given. The unmodified real provider is delegated to first; the additional same-payload evaluation is explicitly Host-only, not a second campaign question.",
+    "identity_and_state": "The intervention requires the current served placement/child join, a held acknowledged fixed report, a nonzero original subtype, final placement facts and the real positive answer. It copies the cached 16-word fixed report and changes only subtype to valid UNKNOWN. It uses the same provider and identical scene/depth/kind/definition/key arguments.",
+    "ack_and_failure_accounting": "The full fixed-report reply validator requires placed, same key and no cursor. Failed ACKs set a separate failure and prevent reevaluation. Answered or raised reevaluation records a failure, not credit. A successful case requires exactly one changed state and the exact mirror/collision-fixed refusal, with request faults zero and reply faults one. Clean absence remains UNREACHED; unrelated fatal or earlier reply faults fail.",
+    "side_effect_boundary": "With coherent original input and acknowledged UNKNOWN restatement, fixed_join refuses the flag mismatch before candidate_in_store. The extra evaluation does not repeat a Core terrain, UPDATED, movement, RNG or time service. This source-supported boundary is narrower than claiming arbitrary duplicate provider calls are effect-free.",
+    "clean_code": "The new branch uses existing staged joins, cached reports and ACK validation without changing production ownership. Its interception makes complete positive validation a prerequisite; the shared partial reply checker is insufficient for this new purpose.",
+    "no_other_new_blocker_identified": true
+  },
+  "evidence": {
+    "freeze": {
+      "path": "R:/d3-evidence/fixed-rules-witness-CODE-FROZEN-20261106.json",
+      "bytes": 23151,
+      "sha256": "2720deb867b38a86475d925f8b85dd7c30da8bb7ec6ffafdde27dbfa36a9000f"
+    },
+    "tracked_freeze": {
+      "path": "eech-campaign/reference/d3-entity-collision/fixed-physical-rules-witness-source-and-checks/fixed-physical-rules-witness-CODE-FROZEN-20261106.json",
+      "bytes": 21344,
+      "sha256": "32c36b6fca79ffcb0efac8f64fb43ebe1ba48e28ab7faf1a4efdd0ba9eb88632"
+    },
+    "external_tracked_relation": "Strict deep equality after setting identity.meta_commit and publication to their tracked null placeholders; no other normalization.",
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-fixed-rule-witness-20261106-completion.json",
+      "bytes": 746,
+      "sha256": "515ed01dc6aeb9051dd0e035e2e5d17ed996e6942911f35db7e90efa70a419da"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_completed_utc": "2026-11-06T19:18:15.054146+00:00",
+    "producer_model": "claude-sonnet-5-5",
+    "pack_manifest": {
+      "path": "eech-campaign/reference/d3-entity-collision/fixed-physical-rules-witness-source-and-checks/manifest.json",
+      "bytes": 5986,
+      "sha256": "9de430179309a26371bd9237a0f6d3c849609ad7bd24c183bf299a4553ae6204",
+      "listed_entries_verified_against_actual_git_bytes": 34,
+      "files_including_manifest": 35
+    },
+    "maps": {
+      "before": {
+        "path": "R:/d3-evidence/fixed-rule-witness-20261106/inputmap-before-final-20261106.json",
+        "bytes": 3629422,
+        "sha256": "3d7ce217741ab1c81181a127c4b841aed3c149b0c28214b3ee836dacd14c3f5c"
+      },
+      "after": {
+        "path": "R:/d3-evidence/fixed-rule-witness-20261106/inputmap-after-final-20261106.json",
+        "bytes": 3629421,
+        "sha256": "0567edfbb14b36b551e50f2f8c2c5b32b658225355a1acf1b122699134f6e7b6"
+      },
+      "file_records": 9769,
+      "file_record_dictionaries_literal_equal": true,
+      "whole_json_bytes_equal": false,
+      "top_level_differences_only": [
+        "created_utc",
+        "label"
+      ],
+      "both_changed_files_raw_sha256_and_size_match_code_git_bytes": true,
+      "qualification": "Working-tree checks, not a clean immutable Linux build. No claim that all 9769 raw files equal Git; the two changed raw inputs and unchanged production tree roots were independently bound."
+    },
+    "raw_binding": {
+      "path": "eech-campaign/reference/d3-entity-collision/fixed-physical-rules-witness-source-and-checks/fixed-physical-rules-witness-raw-binding-96cc958d5-20261106.json",
+      "bytes": 5170,
+      "sha256": "5a84b03f91d6101f4ae02d850c3330523de8cc9343a511ecc9925ccf952a0cbc",
+      "runtime_roots_independently_equal": [
+        "eech-campaign/crates/eech-engine-sys",
+        "eech-campaign/crates/eech-dc",
+        "eech-campaign/crates/eech-engine",
+        "eech-campaign/crates/eech-world/src",
+        "eech-campaign/Cargo.toml",
+        "eech-campaign/Cargo.lock",
+        "eech-campaign/.cargo",
+        "aphavoc",
+        "modules",
+        ".github"
+      ]
+    },
+    "final_checks": [
+      {
+        "name": "final-green-debug",
+        "receipt": {
+          "path": "R:/d3-evidence/fixed-rule-witness-20261106/fixed-rule-witness-final-green-debug.json",
+          "bytes": 885,
+          "sha256": "a082f3a482c267841263dcad9cfc4784b00578364a444571f1fb391082dcb9bf"
+        },
+        "actual_exit": 0,
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+        "passed": 90,
+        "failed": 0,
+        "stdout_sha256": "26482171a05a95f85cf6368e887a9524d47776ace15d30d56a5f886ae18153ac",
+        "stderr_sha256": "98f84dbb31521f4c43230a2e7a896fcb03554778e354506fc0167bb52002ad95"
+      },
+      {
+        "name": "final-fmt-check",
+        "receipt": {
+          "path": "R:/d3-evidence/fixed-rule-witness-20261106/fixed-rule-witness-final-fmt-check.json",
+          "bytes": 772,
+          "sha256": "ea3134f865f25c87dcfd61ff26cc5e3488d5c2604ee79cb2babbfc59848832dc"
+        },
+        "actual_exit": 0,
+        "command": "cargo fmt -p eech-world -- --check",
+        "passed": 0,
+        "failed": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "name": "final-clippy",
+        "receipt": {
+          "path": "R:/d3-evidence/fixed-rule-witness-20261106/fixed-rule-witness-final-clippy.json",
+          "bytes": 831,
+          "sha256": "2c34ffe43753bf24d65ee50bbbb18c7232f8009801e97e5269c999af0b41a431"
+        },
+        "actual_exit": 0,
+        "command": "cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+        "passed": 0,
+        "failed": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "77304459043d01d99a1083d1b15ee5dcb5d4af79a2f99bf39dc7b587bf58ed5a"
+      }
+    ],
+    "test_result": "90 passed, 0 failed in the one entity_authority target; fmt and scoped eech-world all-target Clippy actual zero. No new workspace, release, i686, Windows or native proof is claimed.",
+    "preserved_red": "Unchanged 33d1 Lua with the new listed-building harness: actual101, 88 passed/2 failed, positive control passed. Two earlier setup accidents and preliminary formatting failure remain distinct; no claim of native RED or all controls being RED.",
+    "reused_closed_source_review": {
+      "path": "R:/d3-evidence/independent-fixed-rules-combined-source-681ccfe54-20261106.json",
+      "sha256": "5fdab426ca4f6b0b90ef5c747c5d7cb684c9ae9e6eb2b87710c3884e81849e92",
+      "scope": "Unchanged compiled production source and its exact prior CI only; not this witness acceptance."
+    }
+  },
+  "limits_and_next_gate": [
+    "No 96cc native run is cleared. Correct this single group, bind the new literal and affected focused checks, then obtain the same reviewer changed-material disposition before the one fresh negative actual on sealed runtime681.",
+    "The earlier runtime681 negative is retained as UNREACHED, not a pass. Its consumed root is not reused. Existing Windows profiles, ordinary complete short and healthy evidence retain their runtime681 identities and are not new builds of 96cc.",
+    "The scripted provider tests prove the driver protocol, not real provider refusal bytes or retail eligibility. A listed-building observation is not native coverage of all fifteen subtypes or ordinary-sector placement.",
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION remains mandatory open production work after the finite flags, before sector height. No finite witness closes empty-city relink/restore dependence on the Core-retained box.",
+    "All ten whole-D3 requirements remain open as applicable, including default-shape/clutter/draw-align census and mapping, sector height/hints, effectful UPDATED/shared terrain, raw tree/forest/cloud RNG, needed hierarchy/devices/services, DCS mapping, natural moving integration, current final full40/all8, final inputs/current CI, review/normal merge and census. No D4/D5 or historical TypeScript port.",
+    "The protected f734 full pack remains outside this report; partial prefix equality is not complete acceptance."
+  ]
+}

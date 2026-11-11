@@ -1,0 +1,93 @@
+{
+  "kind": "explicit test-only join of the consumer batch against the reference POST map",
+  "reference_commit": "c2f05190487090377ef996dfd8e639669ec7bbf6",
+  "map_rows_changed": [
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs"
+  ],
+  "map_rows_added": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_consumer.rs"
+  ],
+  "map_rows_removed": [],
+  "compiled_rows_changed": [
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c"
+  ],
+  "compiled_rows_added": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c"
+  ],
+  "unchanged_compiled_rows": 3758,
+  "unchanged_compiled_aggregate_sha256": "8e8a4894105e552ff4fe31959180406d54be53317311f4fe011ef3c37f5931a0",
+  "checks": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "class": "manifest: ONLY added lines (the consumer feature and its [[test]] entry)",
+      "added_lines": 7,
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "class": "build script: ONLY the added block that defines the macro for the consumer feature",
+      "added_lines": 3,
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+      "class": "the sealed first control: COMMENTS ONLY (the high-index persistence wording); its code is byte-equal",
+      "code_equal_comments_differ": true,
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+      "class": "new translation unit wholly inside the consumer feature gate",
+      "verified": true
+    }
+  ],
+  "changed_in_git_since_reference": [
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_consumer.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/docs/d3-physical-flags-contract.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/.gitattributes",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/README.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c1-consumer-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c1-consumer-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c1-consumer-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c2-all-flags-tests.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c2-all-flags-tests.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c2-all-flags-tests.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c3-fmt-apply.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c3-fmt-apply.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c3-fmt-apply.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c4-clippy-features.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c4-clippy-features.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/c4-clippy-features.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/hwcons-final-set-20261107.progress",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/hwcons-final-set-lease-after-20261107.txt",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/hwcons-final-set-lease-before-20261107.txt",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k1-fmt-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k1-fmt-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k1-fmt-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k2-clippy-engine-sys-default.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k2-clippy-engine-sys-default.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k2-clippy-engine-sys-default.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k3-clippy-engine-sys-both-features.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k3-clippy-engine-sys-both-features.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k3-clippy-engine-sys-both-features.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k4-engine-sys-default.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k4-engine-sys-default.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k4-engine-sys-default.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k5-flags-controls-and-census.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k5-flags-controls-and-census.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-consumer-control/runs/k5-flags-controls-and-census.stdout.log"
+  ],
+  "conclusion": "every compiled-input change is test-only and inert without its feature (one new translation unit wholly inside the consumer gate, comments-only edits of the sealed first control, added manifest lines, one added define block); no original-campaign C source and no other compiled input changed; the ordinary, original and save shipping builds are unchanged in effect. Nothing is claimed natively.",
+  "problems": []
+}

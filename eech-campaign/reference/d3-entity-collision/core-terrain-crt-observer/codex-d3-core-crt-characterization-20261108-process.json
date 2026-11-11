@@ -1,0 +1,12 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T04:01:19.834295+00:00",
+  "started_time_qualification": "Root observed service agent running after followup/list_agents; not OS process creation",
+  "source_before": "1516f5a9279dbfbb3a7d8ac309a8bb722c58e40e",
+  "scope": "ResolveOPENcore-tree-loader-forest-cloud-rng correctnessfact, crt1516: actualsupportedCoreload/constructorCRT rand/srand/effectivecloudseason/skin +firstpre-reseedconsumer. Source/finiteplanFIRST, minimaloptinobserver/controlcodeonlyifclear. No loaderremoval/dummydraws/framework/campaignchange/Windowsbuild/native beforeSAMEplanreview. Preservebothpacks/all10.",
+  "actual_OS_process_identity": "Not applicable to Codex service agent; no fabricated PID/CLI exit."
+}

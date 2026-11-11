@@ -1,0 +1,108 @@
+{
+  "when_utc": "2026-10-29T19:53:30.212804+00:00",
+  "source": "f3fd93dfb2ad81b6cbe4d89174953376efd07611",
+  "scope": "Corrected capture revision; native witnesses and independent review remain separate. No kernel, production cutover or full shipping claim.",
+  "verified_payloads": 43,
+  "build_info_sha256": "cf98274a7820123cca3c2f7f65a0e0b83bfbcfe869978be9444d3f1b8ba9fbd3",
+  "controller_sha256": "2e32b95597f55b93a29d97b2990e0665ed48e21d8996e2d10defe992e65e3d4c",
+  "runs": [
+    {
+      "scenario": "georgia",
+      "old_report_rows": 205,
+      "new_report_rows": 206,
+      "all_old_values_identical": true,
+      "raw_report_sha256": "fa280a6e35ecc0cd8f8d0a0d845bdad1717df7223f2f5daeed3aec963e03774f",
+      "transcript_sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc",
+      "transcript_bytes": 240705,
+      "transcript_rows": 568,
+      "query_records": 554,
+      "actual_terrain_lookups": 1102,
+      "stages": {
+        "0": 238,
+        "1": 238,
+        "2": 39,
+        "3": 39
+      },
+      "native_synthetic_layout_verified": {
+        "colour_offset": 6,
+        "event": "tf-layout",
+        "height_only": "000000000000007f",
+        "probe": "feff3412cdabefd5",
+        "record_size": 8,
+        "type_only": "0000000000000080",
+        "x_offset": 0,
+        "y_offset": 4,
+        "z_offset": 2
+      },
+      "forest_geometry_available": false,
+      "pre_input_log_sha256": "0f95c90cdcf21ef166adc01e4bbb8764427d05edc1a90093918c5f9e428baafd",
+      "post_input_log_sha256": "0f95c90cdcf21ef166adc01e4bbb8764427d05edc1a90093918c5f9e428baafd"
+    },
+    {
+      "scenario": "lebanon",
+      "old_report_rows": 205,
+      "new_report_rows": 206,
+      "all_old_values_identical": true,
+      "raw_report_sha256": "8f0e3f602c84aa2e3f352ebfa5de3e46ee4faf1a7079d98d79a9c3573abcda3b",
+      "transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "transcript_bytes": 260557,
+      "transcript_rows": 614,
+      "query_records": 600,
+      "actual_terrain_lookups": 1120,
+      "stages": {
+        "0": 238,
+        "1": 238,
+        "2": 62,
+        "3": 62
+      },
+      "native_synthetic_layout_verified": {
+        "colour_offset": 6,
+        "event": "tf-layout",
+        "height_only": "000000000000007f",
+        "probe": "feff3412cdabefd5",
+        "record_size": 8,
+        "type_only": "0000000000000080",
+        "x_offset": 0,
+        "y_offset": 4,
+        "z_offset": 2
+      },
+      "forest_geometry_available": false,
+      "pre_input_log_sha256": "f8996da1e9fb89104bce60e4133c04db2a3854a33d21e0fe5b656f9eeebb0352",
+      "post_input_log_sha256": "f8996da1e9fb89104bce60e4133c04db2a3854a33d21e0fe5b656f9eeebb0352"
+    },
+    {
+      "scenario": "lebanon-repeat",
+      "old_report_rows": 205,
+      "new_report_rows": 206,
+      "all_old_values_identical": true,
+      "raw_report_sha256": "8f0e3f602c84aa2e3f352ebfa5de3e46ee4faf1a7079d98d79a9c3573abcda3b",
+      "transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "transcript_bytes": 260557,
+      "transcript_rows": 614,
+      "query_records": 600,
+      "actual_terrain_lookups": 1120,
+      "stages": {
+        "0": 238,
+        "1": 238,
+        "2": 62,
+        "3": 62
+      },
+      "native_synthetic_layout_verified": {
+        "colour_offset": 6,
+        "event": "tf-layout",
+        "height_only": "000000000000007f",
+        "probe": "feff3412cdabefd5",
+        "record_size": 8,
+        "type_only": "0000000000000080",
+        "x_offset": 0,
+        "y_offset": 4,
+        "z_offset": 2
+      },
+      "forest_geometry_available": false,
+      "pre_input_log_sha256": "7b7e48630e9788b2b12855422d9d148603c2f2d895435c983e0301cb1cd2464d",
+      "post_input_log_sha256": "7b7e48630e9788b2b12855422d9d148603c2f2d895435c983e0301cb1cd2464d"
+    }
+  ],
+  "separate_lebanon_report_and_transcript_byte_identical": true,
+  "actual_exit": 0
+}

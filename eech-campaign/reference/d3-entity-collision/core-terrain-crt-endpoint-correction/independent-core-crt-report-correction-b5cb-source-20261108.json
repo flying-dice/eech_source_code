@@ -1,0 +1,158 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T05:19:49.853711+00:00",
+  "review_kind": "One independent changed-material Lua/report gate correction review only",
+  "source": {
+    "commit": "b5cbfc44e2718e790d3a72158b496979901ffbaa",
+    "metadata_HEAD": "724183dbfa608aef75532fd8082d25239f56c4fb",
+    "source_before": "19e319a5fd0a11220a5ccf2c1b2d03433719c981",
+    "compiled_observer_source": "552ee8e079b75626199c4e348ed0e986bc02b7ba",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_full_status": "clean; Root verifies exact upstream",
+    "scope": "Changed Lua/test/docs only. No C/Rust product, staging/build/Cargo, RNG or loader algorithm change. Metadata adds only code-publication and publication-manifest files."
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/independent-core-crt-observer-552ee-source-plan-20261108-v2.json",
+      "bytes": 17180,
+      "sha256": "4f01789a833c53d09e1029e6537ba3d8f7526dec949153c0b0a94b56b2798df5"
+    },
+    {
+      "path": "R:/d3-evidence/D3-CORE-CRT-REPORT-CORRECTION-FROZEN-20261108.json",
+      "bytes": 9074,
+      "sha256": "b974e6d9b73e6c0b4eeff892b691dc222922e1e058890933bc15418621c44ba3"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-report-correction-Root-binding-20261108.json",
+      "bytes": 1424,
+      "sha256": "3712a8a08641e55d0159eb4d2b8569545d593c34cc4a984ec6c13725ec0f56e8"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-core-crt-report-correction-20261108-completion.json",
+      "bytes": 2259,
+      "sha256": "d00df5806074951f15e7d0c60f4e414d3598f00b8d5d66832517d1a2ef0cd12f"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+      "bytes": 11619,
+      "sha256": "a3ec1d11c5e20ad2879b382e1f2eee00f839d99dcab283cde43962a6bbce1e55"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/tests/core_terrain_crt_driver.rs",
+      "bytes": 10802,
+      "sha256": "32ddcf57a03ab50a81cc1b62500a659c9daeb75aea9256013c26e5f79f4baa83"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-core-terrain-crt-capture-plan.md",
+      "bytes": 8424,
+      "sha256": "6c96b927c3585ffa24f89ea0c2ad5736ad35f450ad9253038dd54813eda6ed78"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-report-correction/publication-manifest.json",
+      "bytes": 9164,
+      "sha256": "4a5625d0414085e11c0105d09a814fc6c5e6d78a4dc77b85afed171b4dc466be"
+    }
+  ],
+  "prior_finding_disposition": {
+    "id": "ENV-CORE-CRT-OBSERVER-REPORT-COMPLETE-1",
+    "status": "PARTIALLY_CORRECTED; REMAINS_OPEN_FOR_ONE_ENDPOINT_RELATION",
+    "closed_subitems": "The new exact schema/key/order/numeric/family parser, summary/load/seed phases, mark ordinals, known marks/ordered early prefix, site phase totals, constructor balance and skin activation/identity/call relationships address the originally identified arbitrary-body/missing-boundary failures. The coherent ordinary, earlier-reseed and inactive-skin positives and23 individual damage cases pass/reject at their own retained fixture scope.",
+    "remaining": "The final nonempty phase singleton must bind last to that phase first even when the site also drew in an earlier phase."
+  },
+  "findings": [
+    {
+      "id": "ENV-CORE-CRT-OBSERVER-REPORT-COMPLETE-1",
+      "severity": "P2",
+      "status": "OPEN_SAME_ID_BOUNDED_RESIDUAL",
+      "title": "Use the final-phase draw count for the singleton last/first endpoint equality",
+      "source_evidence": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+          "line": 110,
+          "fact": "count accumulates this site across all three phases; latest and latest_count identify its final nonempty phase."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+          "line": 124,
+          "fact": "last==latest is required only when total count==1. For load1/gap1 the total is2, so a wrong later last ordinal is permitted."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+          "line": 126,
+          "fact": "The later span check is only >=latest_count. With final-phase count1 it allows a span greater than1. Prefix checks see no difference when no mark lies between the true final-phase first and false last; endpoint uniqueness misses another site interior draw."
+        }
+      ],
+      "coherent_source_walk_counterexample": {
+        "qualification": "A compact scripted report counterexample derived from the real emitter rules, reviewed by source walk; no reviewer test or native execution.",
+        "summary": "draws5/pre0/load1/gap4, six marks, three sites (including the seed site), one active CLOUD skin row; ordinary required metadata and count domains retained.",
+        "events_in_order": [
+          "1 seed(draws0,phase0)",
+          "2 load_begin(draws0)",
+          "3 CLOUD ctor_begin(draws0)",
+          "4 siteA load draw inside the one active skin call",
+          "5 CLOUD ctor_end(draws1)",
+          "6 load_end(draws1)",
+          "7 siteB gap draw",
+          "8 siteA sole gap draw",
+          "9 siteB interior gap draw",
+          "10 siteB final gap draw",
+          "11 closing seed(draws5,phase2)"
+        ],
+        "coherent_endpoints": "siteA load1/gap1, first_load4/first_gap8/last8; siteB gap3, first_gap7/last10. Skin calls1/draws1 matches CLOUD interval. The empty ordered later-boot prefix is the already supported earlier-seed case.",
+        "single_field_damage": "Change only siteA.last from8 to9. All current phase totals, mark ordinal/prefix checks, first/last endpoint uniqueness and skin relations still pass. SiteB draw9 is interior, so it is not reserved in endpoints. Yet the emitter cannot produce this: siteA has exactly one gap draw at8, and therefore its final draw is8, not9."
+      },
+      "impact": "An internally impossible last ordinal can still be declared a complete compact report, despite the claimed first/count/last consistency contract. This does not require reconstructing a full draw trace or independently verifying the digest/source values; it is a necessary singleton endpoint relation.",
+      "minimum_correction": "Require s.last==latest whenever latest_count==1, including sites which also drew in earlier phases. Preserve existing phase/order/range and total singleton checks as appropriate. Keep source/consumer truth and full trace explicitly outside the compact gate.",
+      "required_control": "Add a coherent multi-phase site positive with one draw in its final phase and another site having an interior draw; then alter only the first site last ordinal to that interior ordinal. The positive must remain accepted and the one-field contradiction must be rejected. Focused Lua driver plus applicable formatting/lint/final identity checks suffice; no C/Windows/native/matrix replay is requested.",
+      "requires_C_RNG_loader_change": false,
+      "blocks_native_capture": true
+    }
+  ],
+  "reviewed_correction_assessment": {
+    "correctness": "The substantial schema/phase/constructor/skin correction is supported. The current report still needs the one endpoint condition above before the original P2 can close. Unknown/malformed rows and original missing load marks no longer receive the old complete-report path.",
+    "early_and_inactive_cases": "The earlier-reseed fixture now adjusts its actual ordinals after removing later boot marks; it remains a coherent prefix. The inactive-skin fixture removes its draw and adjusts totals/ordinals while retaining a real skin call with animation<0, frames-1 and zero skin draws. Neither is replaced by configuration hunting or a preferred seed location.",
+    "clean_code_boundary": "Exact keys and canonical integer domains are bounded; addition checks preserve the exact-integer domain. Parser logic changes no campaign/provider/CRT state or delegate invocation. Client failure/no poisoned report query and one original-client boot remain unchanged. Documentation explicitly limits the parser to compact consistency rather than a full trace, digest verification or independent consumer truth.",
+    "source_equivalence": "Root joins4010 timed PRE/POST/current rows,4007 raw-Git exact plus the same3 inherited uncompiled Lua CRLF/Git qualifications, and4008 unchanged compiled-source rows against552ee. Only the wrapper Lua and its Rust fixture change among mapped source inputs. The prior compiled hook/forwarding/gating/FFI assessment4f017 is reused, not reopened or replayed."
+  },
+  "checks_and_provenance": {
+    "actual_final_commands": [
+      "s1b-fmt",
+      "s2b-clippy",
+      "s3b-driver"
+    ],
+    "actual_final_exits": [
+      0,
+      0,
+      0
+    ],
+    "selected_Rust_tests": 4,
+    "single_faults_rejected": 23,
+    "actual_original_outer_session": 99482,
+    "actual_original_outer_exit": 0,
+    "genuine_RED": "The new coherent-positive-first damage control on the old gate exited101;16 of17 cases were wrongly accepted. This is retained at its actual old gate identity.",
+    "retained_intermediate_failures": "A diagnostic expected-label mismatch101 and an unnecessary_unwrap Clippy101 remain literal. The later final-b cycle and its own maps/readers are the final proof, not an overwrite of the failed final attempt.",
+    "readers_and_extras": "Five frozen readers/thirteen extras stable. Root corrected a wrong old-manifest assumption before proof creation, retained that failed reader, and completed the publication-manifest join0 without replaying tests or native.",
+    "publication": "62 publication-manifest entries/63 literal files. Metadata-only two publication paths and exact clean upstream724 are verified.",
+    "service_completion": "Actual fallback service FINAL plus completed status is separately typed; no fabricated OS PID/CLI exit.",
+    "new_platform_CI": "Prior19e all9 success remains at its own identity. No new724 CI success or Windows observer runtime is inferred here."
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED_ONE_SAME_ID_ENDPOINT_RESIDUAL",
+    "original_P2_closed": false,
+    "windows_build_clearance": true,
+    "windows_build_clearance_scope": "Conditional BUILD ONLY of the exact552ee compiled observer inputs in a fresh clean corrected724 snapshot with core.longpaths set before checkout, Root exclusive cache ownership, the reviewed dedicated feature recipe/image and actual staged/COFF/compiler/payload/build-exit provenance. No build result is asserted. Current Lua is not accepted for native capture. Root may serialize the narrow remaining Lua/test/docs correction before building; any later corrected snapshot must retain the exact compiled-source join and get its changed gate review.",
+    "native_capture_launch_clearance": false,
+    "native_capture_accepted": false,
+    "loader_removal_clearance": false,
+    "generic_NativeAcceptance1_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "remaining_limits": [
+    "After the endpoint fix, actual Windows build/bundle/profile evidence, matched Georgia/Lebanon ordinary comparisons, fresh full input/payload identities and a concrete Root controller plan still need their bounded prerequisite review before capture. No elapsed-window/actor/configuration hunt or baseline rewrite.",
+    "The actual Core CRT effective draws/season/skin/first consumer before reseed fact remains REQUIRED OPEN until retail evidence is interpreted; compact parser source correctness does not resolve that fact or authorize loader removal. UI/client reload remains source-blocked/unmeasured.",
+    "All10/GenericNative1/remaining consumers and services/natural moving/DCS/final census/current40all8/four inputs/currentCI/normal review and merge/Task49/D3 remain OPEN as applicable.",
+    "Both original fullpacks and their immutable source/bin/root/output/process identities remain untouched; prefix equality is PARTIAL only. No reviewer build/test/native/checker replay, cache/Git/source mutation or nested delegation occurred; only this external report was written."
+  ]
+}

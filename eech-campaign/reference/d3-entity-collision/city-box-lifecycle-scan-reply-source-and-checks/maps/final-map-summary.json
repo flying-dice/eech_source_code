@@ -1,0 +1,44 @@
+{
+  "schema": "d3-city-box-scan-reply-final-map-summary.v1",
+  "tool": "env/sector-roster-inputmap-batched-20261106.py <repo> <out> 6a6a74b61ec4ffe9af0b4578107e003edf2a1a62",
+  "head_rev_of_comparison": "6a6a74b61ec4ffe9af0b4578107e003edf2a1a62",
+  "chronology": [
+    "dev checks (red1, fmt1, green1, clippy1, clippyfx1, mutant1) ran BEFORE the final maps; the mutant1 source was restored byte for byte (sha256 compared) before them",
+    "FINAL-PRE-CHECK map captured 2026-11-06T22:28:13Z to 2026-11-06T22:28:16Z on the frozen, formatted bytes",
+    "targeted final checks final-fmt, final-test, final-clippy, final-clippyfx ran 2026-11-06T22:28:22.149716+00:00 to 2026-11-06T22:28:36.051123+00:00",
+    "FINAL-POST-CHECK map captured 2026-11-06T22:28:44Z to 2026-11-06T22:28:47Z",
+    "the commit 354abd9c0 followed; its blob bytes equal the raw bytes of the map entry"
+  ],
+  "pre_map": {
+    "path": "R:/d3-evidence/city-box-scan-reply-20261106/final-pre-check-inputmap.json",
+    "bytes": 2029924,
+    "sha256": "90e568149ea3921a7e4ca681486b37bc238c9d2e9c85a226b6c4eb322aaac2bf",
+    "file_count": 3954
+  },
+  "post_map": {
+    "path": "R:/d3-evidence/city-box-scan-reply-20261106/final-post-check-inputmap.json",
+    "bytes": 2029924,
+    "sha256": "90e568149ea3921a7e4ca681486b37bc238c9d2e9c85a226b6c4eb322aaac2bf",
+    "file_count": 3954
+  },
+  "all_file_entries_equal_pre_to_post": true,
+  "changed_from_parent": [
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "changed_from_parent_note": "module.rs is the one intended change; the three tree-geometry Lua controls are the known checkout-filter files that also differ from their blobs at the parent (see the earlier maps)",
+  "module_rs": {
+    "changed_from_head": true,
+    "git_blob_of_raw_bytes": "2c07f44335c40963c4c8b6035f67eaf3e4a74f0f",
+    "git_filter_would_rewrite_identity": true,
+    "head_blob": "325c8129c22c756106a7874649088a7c17b3f6d0",
+    "head_blob_bytes_sha256": "5afa65d20a876487f3bfafb36c3ea4ba0f3572264cf5b5234fda2aaeae9eb2f8",
+    "raw_equals_head_blob_bytes": false,
+    "raw_sha256": "729a08118b3afe0368eafe2a953d144c826ed8d83d88e53cdbc94b294f7d9b20",
+    "size": 483898
+  },
+  "committed_module_rs_blob": "2c07f44335c40963c4c8b6035f67eaf3e4a74f0f",
+  "committed_module_rs_sha256": "729a08118b3afe0368eafe2a953d144c826ed8d83d88e53cdbc94b294f7d9b20"
+}

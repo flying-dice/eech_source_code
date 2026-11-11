@@ -1,0 +1,50 @@
+{
+  "schema": "safe_projection_not_literal_copy",
+  "private_original": {
+    "path": "R:\\d3-evidence\\normal-fire-56d1b-offline-event-domain-scan-20261108.json",
+    "bytes": 2042,
+    "sha256": "3706f433660e303da4e8e252535e96d858655e21a2f15188c71217918cfe7791"
+  },
+  "removed_fields": [
+    "first_faults[0].line",
+    "first_faults[1].line",
+    "first_faults[2].line",
+    "first_faults[3].line",
+    "first_faults[4].line"
+  ],
+  "projection": {
+    "observed_utc": "2026-11-08T11:02:19.677032+00:00",
+    "selected_codec_records_scanned": 312157,
+    "unselected_kind_counts": {
+      "normal_end": 296
+    },
+    "first_faults": [
+      {
+        "file_line": 313426,
+        "checked_ordinal": 311978,
+        "error": "ValueError('integer domain which')"
+      },
+      {
+        "file_line": 313486,
+        "checked_ordinal": 312038,
+        "error": "ValueError('integer domain which')"
+      },
+      {
+        "file_line": 313523,
+        "checked_ordinal": 312075,
+        "error": "ValueError('integer domain which')"
+      },
+      {
+        "file_line": 313559,
+        "checked_ordinal": 312111,
+        "error": "ValueError('integer domain which')"
+      },
+      {
+        "file_line": 313605,
+        "checked_ordinal": 312157,
+        "error": "ValueError('integer domain which')"
+      }
+    ],
+    "scope": "Read-only selected-codec scan of retained raw events. Python intentionally omits normal_end/error; initial broad scan mistakenly treated those as faults and is retained in tool trace. No native replay or acceptance."
+  }
+}

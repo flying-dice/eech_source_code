@@ -1,0 +1,12 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T05:02:28.462895+00:00",
+  "started_time_qualification": "Root dispatch observation, not OS birth",
+  "source_before": "19e319a5fd0a11220a5ccf2c1b2d03433719c981",
+  "scope": "Fix SAME ENV-CORE-CRT-OBSERVER-REPORT-COMPLETE-1 in Lua/report tests/docs only; exact schema/domains/order/counts/seed-load-constructor-skin relations, coherent positive-first single-fault controls. Preserve legitimate early reseed/inactive skin. Reuse exact C evidence; no C/RNG/loader change, Windows/native launch, closed replay or preparation increment. One cache owner author until release; all10/bothpacks remain.",
+  "actual_OS_process_identity": "Not applicable to Codex service agent; no fabricated PID/CLI exit."
+}

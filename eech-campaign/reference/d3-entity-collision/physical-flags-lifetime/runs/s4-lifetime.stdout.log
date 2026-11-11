@@ -1,0 +1,7 @@
+
+running 1 test
+test flag_lifetime_check::retained_flag_provider_survives_entry_contexts_and_refuses_a_second_boot_and_post_fatal_entry ... flag lifetime real callback calls: 6; groups: 1; store word: 32; post-poison calls: 0
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 123 filtered out; finished in 0.00s
+

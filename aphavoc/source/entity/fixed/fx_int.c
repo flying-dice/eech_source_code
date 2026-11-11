@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostplace.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,6 +107,10 @@ static void set_local_int_value (entity *en, int_types type, int value)
 		{
 			raw->sub_type = value;
 
+			// the sub type is the input the HOST derives the collision-fixed and align flags of its record of the placement from (fx_dbase.c rows, roster.rs FIXED_RULES): a change of it is stated (an entity that is not placed yet states nothing)
+
+			campaign_place_fixed_state (en);
+
 			break;
 		}
 		////////////////////////////////////////
@@ -120,6 +126,10 @@ static void set_local_int_value (entity *en, int_types type, int value)
 		////////////////////////////////////////
 		{
 			raw->object_3d_shape = value;
+
+			// a restore and a bridge's damaged shape write the shape through this setter: the host's record of the placement holds it (a destroyed structure still collides, with its destroyed shape)
+
+			campaign_place_fixed_state (en);
 
 			break;
 		}

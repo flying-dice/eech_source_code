@@ -1,0 +1,4 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.64s
+     Running tests/zz_scratch_debug.rs (/target/t/debug/deps/zz_scratch_debug-dce98f5aea1f7582)
+error: test failed, to rerun pass `-p eech-world --test zz_scratch_debug`

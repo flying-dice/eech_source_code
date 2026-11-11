@@ -138,7 +138,7 @@ fn a_surface_id_the_original_would_use_outside_its_scratch_is_refused() {
 fn the_lua_provider_answers_sector_with_the_return_value_and_the_flags_and_refuses_what_it_cannot() {
     let lua = Lua::new();
     let terrain = Rc::new(map(&[false, true, false, true, true], &[9, 7, 9, 3]));
-    let function = provider(&lua, terrain).expect("the provider");
+    let function = provider(&lua, terrain, None).expect("the provider");
     let ask = |x: f64, z: f64| -> mlua::Result<mlua::Table> {
         let request = lua.create_table()?;
         request.set("op", "sector")?;
@@ -483,7 +483,7 @@ fn a_terrain_ambient_question_that_the_host_cannot_answer_is_refused_with_a_mess
 fn the_lua_provider_answers_ambient_with_one_amplitude_per_child_and_refuses_a_question_it_cannot_read() {
     let lua = Lua::new();
     let terrain = Rc::new(map(&[false, true], &[9, 7]));
-    let function = provider(&lua, terrain).expect("the provider");
+    let function = provider(&lua, terrain, None).expect("the provider");
     let question = |children: &str| -> mlua::Result<mlua::Table> {
         let request: mlua::Table = lua
             .load(format!(

@@ -1,0 +1,162 @@
+{
+  "schema": "independent-finite-actual-review/v1",
+  "reviewed_utc": "2026-11-07T23:15:15.257416+00:00",
+  "scope": "New completed fresh3abf ordinary/Original unchanged default actuals, joined once to sealed source and controller reviews. No source/controller re-review, native/checker/test/build replay, cache operation, tracked edit or delegated work.",
+  "source_commit": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+  "findings": [],
+  "decision": {
+    "finite_result": "PASS",
+    "closed_ids": [
+      "ENV-PHYSICAL-FLAGS-SUPPLY-DESCRIPTOR-RAW-UPDATED-1"
+    ],
+    "closure_scope": "Finite descriptor boolean defect correction: source-only single-read truth projection, meaningful parent failure and corrected real-producer/real-Rust-boundary behavior in both profiles, fresh Windows production/profile binding and complete unchanged short default parity.",
+    "named_finite_defect_can_close": true,
+    "reason": "The actual defect was the descriptor carrying a non-boolean raw mask to a strict boolean boundary. The reviewed descriptor-only correction satisfies that contract without changing raw getter/store/destructive/reset semantics. Both-profile behavioral RED/GREEN proves the repaired relation at the declared real consumer fixture. Fresh actual production/default gates now meet the remaining finite validation conditions. Natural retail nonzero-mask reachability was never a premise of this bounded correction and is not inferred.",
+    "GenericNativeAcceptanceRow": "OPEN",
+    "generic_public_flag_READ_authority_accepted": false,
+    "whole_flags_accepted": false,
+    "whole_height_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false,
+    "canonical_state_modified_by_reviewer": false
+  },
+  "evidence": {
+    "source_review": {
+      "path": "R:/d3-evidence/independent-supply-boolean-3abf-source-20261107.json",
+      "sha256": "bbfdb6b0fc39a8285d0447e58b1991ef219aef9688c9492a5dc097df2e692ff8",
+      "bytes": 14251
+    },
+    "controller_review": {
+      "path": "R:/d3-evidence/independent-supply-boolean-3abf-default-plan-20261107.json",
+      "sha256": "86d8936ebd620537f252e90fd5f2f7a0072e933ba8ce0e4cef13349a55bac01f",
+      "bytes": 8373
+    },
+    "actual_binding": {
+      "path": "R:/d3-evidence/supply-boolean-default-3abf-Root-binding-20261107.json",
+      "sha256": "87876f17dec3de2f6da0c3740ecff96083a9719ba982401b7ead740eb5061f6b",
+      "bytes": 7012
+    },
+    "plan": {
+      "path": "R:/d3-evidence/supply-boolean-default-3abf-plan-20261107.json",
+      "sha256": "47ef82ec5f1194ec536702a9e402e3a54a738965283e4174567fa850c20cb9a0",
+      "bytes": 36216
+    },
+    "controller": {
+      "path": "R:/d3-evidence/run-supply-boolean-default-3abf-20261107.py",
+      "sha256": "6e882b8169710cb00a49b5eaf867a17958a0e424872046ba4e77c6f2bbe3f8c0",
+      "bytes": 5200
+    },
+    "build": {
+      "path": "R:/d3-evidence/supply-boolean-native-windows-3abf-20261107-completion.json",
+      "sha256": "dc632ab7b5f80f8a1f412aff7019b9b4e84fe3154cb6daf832f167baeecf0358",
+      "bytes": 37419
+    },
+    "profile": {
+      "path": "R:/d3-evidence/supply-boolean-native-3abf-profile-20261107-completion.json",
+      "sha256": "67664feea24162bbd1d24c40f913a9219f551e341e14a6c9ab30df825b7a1aed",
+      "bytes": 4323
+    },
+    "release": {
+      "path": "R:/d3-evidence/supply-boolean-3abf-WINDOWS-CACHE-RELEASE-20261107.json",
+      "sha256": "696218c350bf56368edebb603a6fd452210d38e48397c4e84a1b40df19f23fb3",
+      "bytes": 1879
+    }
+  },
+  "actual_cases": [
+    {
+      "case": "ordinary_short",
+      "profile": "ordinary",
+      "receipt": "R:/d3-evidence/supply-boolean-default-3abf-ordinary_short-20261107-completion.json",
+      "receipt_sha256": "9b9411061544927ad75b414ca4db44a19b06e230e2611832cb73dd9be80da05f",
+      "source": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "actual_pre_post_input_exits": [
+        0,
+        0
+      ],
+      "all_stage_PID_birth_argv_retained": true,
+      "completed_utc": "2026-11-07T23:13:36.174935+00:00",
+      "verified_unchanged_payloads": 91,
+      "complete_files": [
+        {
+          "file": "recording.acmi",
+          "bytes": 230871,
+          "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "observations.jsonl",
+          "bytes": 1553674,
+          "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "metrics.json",
+          "bytes": 7477,
+          "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "complete_literal_equal": true
+        }
+      ]
+    },
+    {
+      "case": "original_short",
+      "profile": "original",
+      "receipt": "R:/d3-evidence/supply-boolean-default-3abf-original_short-20261107-completion.json",
+      "receipt_sha256": "494bb41b3e3757bf4daf66bdd1be2e701b0562dfe5b089f7bffef3963d283f0e",
+      "source": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "actual_pre_post_input_exits": [
+        0,
+        0
+      ],
+      "all_stage_PID_birth_argv_retained": true,
+      "completed_utc": "2026-11-07T23:13:28.806641+00:00",
+      "verified_unchanged_payloads": 91,
+      "complete_files": [
+        {
+          "file": "recording.acmi",
+          "bytes": 230871,
+          "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "observations.jsonl",
+          "bytes": 1553674,
+          "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "metrics.json",
+          "bytes": 7477,
+          "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "complete_literal_equal": true
+        }
+      ]
+    }
+  ],
+  "actual_join_assessment": [
+    "Both case receipts are terminal with controller/native0 and pre/post checker0. Each stores the three child PID/birth/argv/stage records. Actual plan/controller hashes match the independently cleared concrete47ef/6e88 identities; runtime remains3abf, not old020.",
+    "All six complete ACMI/observation/metrics files are literal accepted80fd matches, at the retained sizes and hashes. Root binding records whole-file byte comparisons, not merely prefix/signature or tolerance matches; no accepted baseline was changed.",
+    "Four full1179-row input manifest reports match the accepted reference over TWO distinct fresh retail roots. These are pre/post observations of two short cases, not four distinct fullpack roots.",
+    "All182 new payloads remain bound and unchanged; each profile has91. Snapshot remains exact3abf and fully clean. The preceding actual builds/profile audits and release proofs preserve32 COFF/28 staged sources/60 raw audits and each own actual producer identity.",
+    "The source review retains explicit intentional defect classification, genuine old-producer mask2 RED101 in both profiles and corrected14-descriptor controls. Hosted diagnostic traffic12/13/19/6/12 stayed unchanged; this traffic is not a universal native oracle.",
+    "No discrepancy or orchestration boundary defect was found in this new evidence. Finite default compatibility is established independently of whether the short campaign naturally exercises the corrected nonzero-mask path."
+  ],
+  "configuration": "Unchanged campaign.lua / lebanon_retail / hours0.001 / frame_ms100 / seed1 / record1 / record_every10 / observe_every1 / observe_supply1; established35frames/3.5s.",
+  "remaining_limits": [
+    "No observed natural retail reachability of the old refusal or corrected nonzero-mask supply path; no claim that default output parity itself tests that consumer.",
+    "No generic public READ/changed-answer authority, all consumer coverage, replacement/session lifetime, whole FPU preservation, O2/i686 runtime or DCS disposition from these cases. The generic flag native acceptance requirement remains open.",
+    "Prior old-source mismatch evidence remains failed at its own identity;020 defaults and5d2c17PASS/6UNREACHED are not relabeled as3abf results.",
+    "Whole height, all ten D3 requirements, final current40/all8/final four inputs/current CI/review/normal merge/final census/Task49/D3/delivery remain required. This finite finding closure is not wholesale acceptance.",
+    "Original764 full regression processes, binaries, inputs and roots were not touched; their continuing partial progress is not completed acceptance."
+  ]
+}

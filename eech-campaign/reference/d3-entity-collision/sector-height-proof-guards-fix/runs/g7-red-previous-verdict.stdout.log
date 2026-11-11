@@ -1,0 +1,18 @@
+
+running 1 test
+test an_unrelated_fatal_bearing_a_height_modes_own_marker_before_any_eligible_intervention_is_a_failure_never_a_credit_or_unreached ... FAILED
+
+failures:
+
+---- an_unrelated_fatal_bearing_a_height_modes_own_marker_before_any_eligible_intervention_is_a_failure_never_a_credit_or_unreached stdout ----
+
+thread 'an_unrelated_fatal_bearing_a_height_modes_own_marker_before_any_eligible_intervention_is_a_failure_never_a_credit_or_unreached' (160) panicked at crates/eech-world/tests/entity_authority.rs:1665:19:
+the run must fail: ()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    an_unrelated_fatal_bearing_a_height_modes_own_marker_before_any_eligible_intervention_is_a_failure_never_a_credit_or_unreached
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 115 filtered out; finished in 0.03s
+

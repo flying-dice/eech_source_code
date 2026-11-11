@@ -1,0 +1,31 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the external sealed files, no field normalisation",
+  "files": {
+    "independent-physical-flags-keyfix-020-source-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 14037,
+      "sha256": "3e74ae30c3403cd3ae67dc0c84da213cd8123841f54149a364113830644a0c91"
+    },
+    "physical-flags-keyfix-020-Root-binding-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 32024,
+      "sha256": "5fe5f8e4d28194182dd52c498c0d73d816c15de5dc73ba61762437c73b7ba919"
+    },
+    "physical-flags-keyfix-684-publication-Root-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 38460,
+      "sha256": "9c19f15913dc45001df62444c95c78ca2b3d15c7bff5c6461a42c000679a9eb3"
+    },
+    "Root-hosted-zero-expectation-learning-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 1735,
+      "sha256": "4e161cef868c5bd877adf8f09f376912abee6d19ace7e375a213fcf0dd1ae8b2"
+    },
+    "Root-physical-flags-key-fix-feedback-20261107-1916.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 1697,
+      "sha256": "aa3a8d55ab544bfc1357b36069d30241d69de0915121248e7d1f7355704003bf"
+    }
+  },
+  "problems": []
+}

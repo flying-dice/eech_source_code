@@ -1,0 +1,121 @@
+{
+  "schema": "independent-finite-source-clearance-v1",
+  "reviewed_utc": "2026-11-03T03:10:37.285176+00:00",
+  "source": {
+    "commit": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+    "compared_to": "d7cf5b17c0fc4c27ddbd7125b71d85eb8f2f752b",
+    "scope": "Same narrow residual continuation: authority Lua, its guards, documentation/card and literal prior report publication. No production C/Rust, ABI, kernel, build, manifest or ordinary-campaign code change.",
+    "independently_verified_unchanged_entries_modes_and_blobs": 9065,
+    "changed_paths_count": 7,
+    "files": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/tree-authority.lua",
+        "bytes": 40003,
+        "sha256": "71d125963d88903e614447079d4790b086c2bb5b9f5c63b4e913b44365f166f7"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/tree_authority.rs",
+        "bytes": 37706,
+        "sha256": "00c4b02cf417517b59f75ad767f4a0a4e5f4b5655ec1d0bf2404007e445bf120"
+      },
+      {
+        "path": "eech-campaign/docs/d3-tree-collision-provider.md",
+        "bytes": 15533,
+        "sha256": "2196ae2d1a7cec52ba6b05f04ca15b4fd8df6183269611eca06e3f1a80b07872"
+      }
+    ]
+  },
+  "decision": {
+    "verdict": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "source_review_no_blocking_findings": true,
+    "findings": [],
+    "native_launch_clearance": true,
+    "finite_tree_native_actuals_closed": false,
+    "whole_Task49_or_D3_accepted": false,
+    "full_shipping_or_dependency_accepted": false
+  },
+  "clearance_scope": "Source-level clearance for the planned fresh, correctly profiled TREE native authority controls and subsequent conformance gates. It is not a passing native measurement, source delivery approval, full-pack acceptance or waiver of required remaining physical work.",
+  "closed_residuals": [
+    {
+      "id": "ENV-TREE-AUTHORITY-1-RESIDUAL",
+      "status": "CLOSED",
+      "evidence": [
+        "The witness now requires host.create_exclusive, selecting the existing exclusive_output implementation with observed platform close. It does not use the older sync-only output_create_new helper. Existing helper source is unchanged; new mocked IO controls are correctly described as testing the witness response to returned errors, not a new OS-close measurement.",
+        "Terrain-factory validation and construction moved into main under the owned xpcall close scope. Missing/throwing factories are tested after a coherent positive, with exactly one explicit close on error; a secondary close failure does not replace the primary cause.",
+        "Launch reports validate actual emitter fields: restoration -1/1 (0 fails), link domains and unchanged-link join for -1, whole-number weapon/count/birth/creation fields, selected weapon identity and positive creates. Birth/cohort equality and nonempty cohort remain enforced; no old incomplete-cohort predicate is weakened.",
+        "Every case-member terminal now requires type, code, nonnegative whole steps, a finite printed position triple, finite velocity and lifetime in the existing emitter grammar. Missing fields, fractional/negative steps, NaN/Inf and invalid terminal code controls fail after a coherent complete positive.",
+        "Previously reviewed exact Engine-prefix/marker cause, no further Engine queries after fatal, endpoint subsequences, pending-at-cap refusal, duplicate terminal rejection and real Original call evidence remain unchanged."
+      ]
+    },
+    {
+      "id": "ENV-TREE-MAPPING-SCOPE-1-RESIDUAL",
+      "status": "CLOSED",
+      "evidence": [
+        "The DCS miss paragraph now requires actual final original-contract words, including partial overwrites on misses, and forbids artificial zeroing/normalization/restoration.",
+        "Constructor RNG is now explicitly transitive and conditional: construct_3d_object_by_name calls construct_3d_object then skin_random, whose active skin animation may draw. Effective forest/CLOUD metadata and call/seed observations remain unproved and part of required remaining loader disposition. No loader, constructor or draw was removed or padded."
+      ]
+    }
+  ],
+  "reused_source_conclusions": {
+    "P1_forest_identity_and_authoritative_order": "Closed at d7: exact semantic key and the same finalized announced-order registered model store, no independently sorted second loader.",
+    "P1_valid_endpoint_subsequences": "Closed at d7: shared C dialogue accepts none/OLD/NEW/OLD-then-NEW and refuses duplicates/reversal/malformed requests before another call; genuine old-rule NEW-only RED and corrected C control retained.",
+    "other_unchanged_parts": "Exact C/Rust/Lua terrain discriminator/ABI transport, original profile, closed host numeric kernel and Task52 source/evidence remain at their reviewed identities. No new baseline/tolerance/oracle/FP-policy change or re-review is claimed."
+  },
+  "focused_actual_readback": {
+    "scope_receipt": {
+      "path": "R:/d3-evidence/tree-residual-f0f928147-gates-and-scope-20261103.json",
+      "bytes": 1685,
+      "sha256": "dee33c95c637546a012bb1b258e060d8f074aed2622c619eb9338b892f51af03"
+    },
+    "logs": [
+      {
+        "path": "D:/EECH-Migration-Evidence/tree-residual-20261103-d/r1-red.log",
+        "bytes": 5604,
+        "sha256": "9c8c296ede4f0dc332f9b82e40d6b589059608375dc4e84d3a2782271492f42f"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/tree-residual-20261103-d/r2-fmt.log",
+        "bytes": 24,
+        "sha256": "811df0065f32d37391ba07a8d77cf679a9a747442866c2054bb8de9f09d2f78b"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/tree-residual-20261103-d/r3-final.log",
+        "bytes": 5250,
+        "sha256": "fd81c4cb432d4a3fa49a7336325f3bb6e7b9ee5fca98276c6198a1359a3027c6"
+      }
+    ],
+    "meaningful_red": {
+      "driver": "old d7 witness with new residual guard controls",
+      "actual_exit": 101,
+      "passed": 10,
+      "failed": 4,
+      "qualification": "Focused guard RED, not a retail/native campaign failure; retained without rewriting."
+    },
+    "corrected_green": {
+      "tree_authority_actual_exit": 0,
+      "tests_passed": 14,
+      "tests_failed": 0,
+      "fmt_actual_exit": 0,
+      "world_all_target_strict_actual_exit": 0,
+      "progress_actual_exit": 0,
+      "stable_before_after_fingerprint": "e25116537b2f2809f480f64c0145f214ca6f94ee99b12ea8287e8002ed860c32"
+    },
+    "prior_gate_reuse": "d7 t5 four-crate validation, 59 result rows/1128 passed, formatting and strict feature combinations remain scoped to that unchanged production source. No full-suite repetition was needed for this witness/test/prose-only delta.",
+    "execution_qualification": "Linux C ABI/dialogue and Lua/Rust tests did execute code in the prior/focused gates. No Windows build or retail/native TREE campaign measurement has yet been supplied for this source-clearance decision."
+  },
+  "publication_fidelity": {
+    "prior_d7_review": "eech-campaign/reference/d3-tree-collision-production/independent-source-review-d7cf5b17c-CHANGES_REQUIRED.json",
+    "literal_equal_to_private_authored_report": true,
+    "sha256": "cde3f802de4b3a387f5c8d9109f65351d6e3a2abe581e530117b28159c708c19",
+    "historical_changes_required_status_preserved": true,
+    "no_old_report_rewritten_into_acceptance": true
+  },
+  "next_required_gates": [
+    "Clean correctly profiled Windows/ordinary and weapon-fixture builds, and weapon-fixture plus collision-fixture Original control with its API and real call evidence. Absence of a tree call is UNREACHED, not a passing capability RED.",
+    "Fresh completed native reference/changed/valid-NEW-only/refusal controls with exact primary causes, per-caller buffers, dialogue/terrain pairing and real weapon cohort/consequence evidence. Expected Original failure remains RED, not a green native run.",
+    "Ordinary complete conformance and any required full caller-FPU boundary validation remain separate actual gates. Closed kernel full-FPU proof is not automatically a measurement of every new glue/callback path.",
+    "Required raw Core tree loader, forest/cloud constructor and conditional CRT effects; object/entity collision; concrete supported DCS TREE API/data workaround remain OPEN. No global dormancy, all-model, full Task49, whole D3, full shipping, dependency delivery or live DCS acceptance follows from source clearance."
+  ],
+  "review_execution": "One same independent reviewer; read-only Git object and completed log/receipt inspection. No source edits, builds/tests/native launches, cache/VM/daemon/auth/app operations or nested agents. Only this new immutable safe report was written.",
+  "safe_publication": "Counts/hashes/source references and semantic findings only; no retail geometry, coordinates, raw private catalogue, allocation identities, pointers, credentials or binaries."
+}

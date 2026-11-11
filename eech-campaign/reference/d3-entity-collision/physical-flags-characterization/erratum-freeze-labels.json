@@ -1,0 +1,137 @@
+{
+  "kind": "metadata ERRATUM of the physical-flags characterisation freeze; the frozen receipt, the original reader bytes and every check are preserved unchanged and were NOT rerun",
+  "root_feedback": {
+    "file": "Root-physical-flags-feedback-20261107-1558.json",
+    "sha256": "ac57fb5947684274b7ffca6d8dee4ab0f3662ec285fabce0ef28c4ec88681094",
+    "scope": "metadata disclosure correction only"
+  },
+  "frozen_receipt": {
+    "file": "D3-PHYSICAL-FLAGS-CHARACTERIZATION-CODE-FROZEN-20261107.json",
+    "sha256": "442ab9d47cddcec742ff58632551d46d5ef43cdfff1e02eaa024263abe07a90a",
+    "external_equal_packet_copy": true
+  },
+  "stale_labels_in_the_frozen_receipt": {
+    "lease.volume": {
+      "stale_value": "eech-linux-d3-height-reference-9d247-20261107",
+      "why": "copied from the previous batch's freeze script constants; the freeze reader's VOLUME constant was never updated and the reader was not rerun",
+      "actual": "eech-linux-d3-physical-flags-9d247-20261107"
+    },
+    "native_identity_not_relabelled": {
+      "stale_value": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982",
+      "why": "copied from the earlier witness freezes; the 1b89 identity is not this characterisation's runtime",
+      "actual": "this characterisation launched NO native job; the protected current shipping runtime is the immutable 764 snapshot and Root's full 40/all 8 run on it, which this work did not touch"
+    }
+  },
+  "actual_identities": {
+    "helper": {
+      "file": "check-physical-flags-linux-20261107.sh",
+      "packet_copy_sha256": "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65",
+      "pre_sha256": [
+        "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65"
+      ],
+      "post_sha256": [
+        "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65"
+      ],
+      "volume_line": "eech-linux-d3-physical-flags-9d247-20261107",
+      "image_line": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3"
+    },
+    "direct_receipts": [
+      {
+        "label": "f1-fmt-check",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 0,
+        "record_sha256": "660c8b33c066c75dcb7c3f0bf85d7ef0c90d99b8e91ee228ae9c250bfa51e9be"
+      },
+      {
+        "label": "f2-clippy-engine-sys-default",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 0,
+        "record_sha256": "600963f2e67605837a13b5dc576cc31539b60cb78cf7e56b011c50ab799c7e90"
+      },
+      {
+        "label": "f3-clippy-engine-sys-flags-feature",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 0,
+        "record_sha256": "6aa980ed1a8eb4ffd1aba82daf39a77cb1113ea198e56a325d16b333ac670270"
+      },
+      {
+        "label": "f4-engine-sys-default",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 0,
+        "record_sha256": "1a9286cfbfcc51173ba14319674b31b190a1dad46aa4b0f97a5e0150bfbf3959"
+      },
+      {
+        "label": "f5-flags-control-and-guard",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 0,
+        "record_sha256": "51e202ca43ed7cf97d8ffb2c6f9cc8d80cf02e2160424b6c650cac3f00039dbc"
+      },
+      {
+        "label": "p1-flags-check",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 101,
+        "record_sha256": "3c175d5a556584f10a0327fd77769d404ca7e416e30126f6e23277728b523425"
+      },
+      {
+        "label": "p2-flags-check",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 101,
+        "record_sha256": "855b919090f1626cd0455c25685c0ea865adb9dda9c531a777cdc10742715791"
+      },
+      {
+        "label": "p3-flags-check",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 101,
+        "record_sha256": "9ecba9ef218f9a1a2e2b25e302941f22c0aa337a0a7de65a36ea08b8929eb5a5"
+      },
+      {
+        "label": "p4-flags-check-and-guard",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 0,
+        "record_sha256": "863f8d1eaf80747a1ddd94d0a2bc85280abecea4cf64f98fee5d4d9f652bfe41"
+      },
+      {
+        "label": "p5-fmt-apply",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 0,
+        "record_sha256": "c57a94640690ece0de313c56000dd9753fec61f9778ee7780b46765a1269a046"
+      },
+      {
+        "label": "p6-clippy-engine-sys-feature",
+        "helper_is_physical_flags": true,
+        "helper_is_height_reference": false,
+        "actual_exit": 0,
+        "record_sha256": "053d54d51b7750209fca7b41e40988fb3a77d6f0a514f0797c094d9222c5e37b"
+      }
+    ],
+    "lease_facts": {
+      "before": [
+        "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+        "containers_before=0"
+      ],
+      "after": "containers_after=0"
+    },
+    "fresh_volume_read_only_inspect": {
+      "exit": 0,
+      "output": "eech-linux-d3-physical-flags-9d247-20261107 2026-11-07T15:40:04Z"
+    },
+    "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3 (retention tag eech-height-reference-reader-9d247-20261107)"
+  },
+  "unchanged": [
+    "the frozen receipt and the packet manifest",
+    "the PRE/POST maps and extras (equal)",
+    "the final set f1..f5 (all exit 0) and the 199 expectations",
+    "the OPEN blocker ENV-PHYSICAL-FLAGS-RAWWORD-CONTRACT-1 and its unrun real immediate-consumer control"
+  ],
+  "problems": []
+}

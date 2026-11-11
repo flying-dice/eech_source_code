@@ -1,0 +1,161 @@
+
+running 25 tests
+test a_host_asked_for_a_flag_in_the_original_profile_is_a_failure_not_that_profile ... ok
+test a_malformed_question_is_a_request_fault_passed_through_unaltered_and_never_a_pass ... ok
+test a_fatal_before_the_eligible_intervention_is_a_failure_even_with_the_modes_own_marker ... ok
+test a_fatal_in_another_entry_than_the_one_that_made_the_altered_answer_is_not_credited ... FAILED
+test a_changed_host_answer_is_carried_by_the_campaign_into_its_next_candidate_question ... ok
+test a_campaign_that_ignores_the_changed_answer_is_a_failure_not_a_pass ... ok
+test an_event_never_reached_is_unreached_never_a_pass ... ok
+test an_original_report_must_be_the_hosts_never_asked_and_of_the_same_setup ... ok
+test an_intervention_is_never_made_on_a_step_whose_trajectory_differs_from_the_controls ... ok
+test an_event_the_control_never_reached_refuses_every_mode_that_intervenes_there_before_any_boot ... ok
+test a_host_that_loses_a_set_or_miscounts_a_reset_or_repeats_a_key_is_named_even_when_every_reply_is_well_formed ... ok
+test the_report_is_created_exclusively_and_never_overwritten ... ok
+test a_fatal_before_or_after_the_valid_changed_answer_is_a_failure ... ok
+test the_flag_pattern_helpers_of_both_public_drivers_are_exact_under_the_reference_round_toward_zero_profile ... ok
+test the_original_profile_characterisation_comes_first_and_the_host_is_never_asked ... ok
+test the_oracle_keeps_the_destructive_read_semantics_a_word_mates_read_destroys_a_bit_and_the_reads_own_is_kept ... ok
+test the_duplicate_key_is_made_at_the_second_group_after_a_healthy_first_one_and_a_key_of_21_bytes_at_the_first ... ok
+test the_healthy_control_counts_attempts_answered_and_accepted_apart_adds_no_question_and_the_oracle_agrees_with_the_real_store ... ok
+test a_group_set_reset_only_control_unlocks_only_the_cases_its_positive_reached ... ok
+test an_intervention_accepts_only_a_whole_successful_paired_control_of_the_same_setup_and_checks_it_before_any_side_effect ... ok
+test a_refusal_made_during_boot_is_captured_at_the_boot_entry_and_credited_only_for_an_immediate_stop ... FAILED
+test a_damaged_original_report_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_pairs ... FAILED
+test each_refusal_mode_is_credited_only_when_the_campaign_stops_at_its_marker_after_the_one_eligible_intervention ... ok
+test a_damaged_paired_control_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_unlocks_its_cases ... FAILED
+test a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards ... FAILED
+
+failures:
+
+---- a_fatal_in_another_entry_than_the_one_that_made_the_altered_answer_is_not_credited stdout ----
+
+thread 'a_fatal_in_another_entry_than_the_one_that_made_the_altered_answer_is_not_credited' (142) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:356:5:
+assertion `left == right` failed: pf-witness-identity schema=1 mode=set_withheld profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=1 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=1 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=1 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=1 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=0 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=0 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=0 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-intervention at=set_ordinal_3
+pf-witness-fatal where=frame marker=entity_scan.callback line=host model: [model-provider:entity_scan.callback] the scripted campaign stops here
+pf-witness-verdict mode=set_withheld status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.callback
+
+  left: "PASS"
+ right: "FAILURE"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- a_refusal_made_during_boot_is_captured_at_the_boot_entry_and_credited_only_for_an_immediate_stop stdout ----
+
+thread 'a_refusal_made_during_boot_is_captured_at_the_boot_entry_and_credited_only_for_an_immediate_stop' (147) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:1076:5:
+15 boot-time cases were credited or mis-judged:
+[
+    "group_withheld: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:entity_scan.callback] the host withholds its flag answer\") (report true, asked 2) pf-witness-verdict mode=group_withheld status=FAILURE detail=the witness stopped: host model: [model-provider:entity_scan.callback] the host withholds its flag answer",
+    "group_malformed: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:entity_scan.answer] p must be three patterns\") (report true, asked 2) pf-witness-verdict mode=group_malformed status=FAILURE detail=the witness stopped: host model: [model-provider:entity_scan.answer] p must be three patterns",
+    "group_wrong_state: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:entity_scan.state] the host decided height for a flag group\") (report true, asked 2) pf-witness-verdict mode=group_wrong_state status=FAILURE detail=the witness stopped: host model: [model-provider:entity_scan.state] the host decided height for a flag group",
+    "group_bad_key: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:flag.key] the key \\\"f11111111111111111111\\\" is not a flag key\") (report true, asked 2) pf-witness-verdict mode=group_bad_key status=FAILURE detail=the witness stopped: host model: [model-provider:flag.key] the key \"f11111111111111111111\" is not a flag key",
+    "group_duplicate_key: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:flag.key] the key is already bound to another flag group\") (report true, asked 5) pf-witness-verdict mode=group_duplicate_key status=FAILURE detail=the witness stopped: host model: [model-provider:flag.key] the key is already bound to another flag group",
+    "group_wrong_eligibility: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:flag.answer] another eligibility, or more than it\") (report true, asked 2) pf-witness-verdict mode=group_wrong_eligibility status=FAILURE detail=the witness stopped: host model: [model-provider:flag.answer] another eligibility, or more than it",
+    "set_withheld: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:entity_scan.callback] the host withholds its flag answer\") (report true, asked 3) pf-witness-verdict mode=set_withheld status=FAILURE detail=the witness stopped: host model: [model-provider:entity_scan.callback] the host withholds its flag answer",
+    "set_malformed: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:entity_scan.answer] p must be three patterns\") (report true, asked 3) pf-witness-verdict mode=set_malformed status=FAILURE detail=the witness stopped: host model: [model-provider:entity_scan.answer] p must be three patterns",
+    "set_wrong_state: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:entity_scan.state] the host decided height for a flag set\") (report true, asked 3) pf-witness-verdict mode=set_wrong_state status=FAILURE detail=the witness stopped: host model: [model-provider:entity_scan.state] the host decided height for a flag set",
+    "set_wrong_lane: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:flag.answer] another flag lane than the one asked about\") (report true, asked 3) pf-witness-verdict mode=set_wrong_lane status=FAILURE detail=the witness stopped: host model: [model-provider:flag.answer] another flag lane than the one asked about",
+    "set_wrong_word: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:flag.word] the raw word 0x00000004 is not allowed for lane 1, whose mask is 0x00000002\") (report true, asked 3) pf-witness-verdict mode=set_wrong_word status=FAILURE detail=the witness stopped: host model: [model-provider:flag.word] the raw word 0x00000004 is not allowed for lane 1, whose mask is 0x00000002",
+    "reset_withheld: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:entity_scan.callback] the host withholds its flag answer\") (report true, asked 1) pf-witness-verdict mode=reset_withheld status=FAILURE detail=the witness stopped: host model: [model-provider:entity_scan.callback] the host withholds its flag answer",
+    "reset_malformed: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:entity_scan.answer] p must be three patterns\") (report true, asked 1) pf-witness-verdict mode=reset_malformed status=FAILURE detail=the witness stopped: host model: [model-provider:entity_scan.answer] p must be three patterns",
+    "reset_wrong_state: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:entity_scan.state] the host decided height for a flag reset\") (report true, asked 1) pf-witness-verdict mode=reset_wrong_state status=FAILURE detail=the witness stopped: host model: [model-provider:entity_scan.state] the host decided height for a flag reset",
+    "reset_wrong_array: the genuine direct refusal during boot was not credited at the boot entry: Some(\"runtime error: physical-flags-witness: FAILURE: the witness stopped: host model: [model-provider:flag.answer] another flag word than the one asked about\") (report true, asked 1) pf-witness-verdict mode=reset_wrong_array status=FAILURE detail=the witness stopped: host model: [model-provider:flag.answer] another flag word than the one asked about",
+]
+
+---- a_damaged_original_report_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_pairs stdout ----
+
+thread 'a_damaged_original_report_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_pairs' (138) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:930:5:
+16 damaged Original reports were not refused for their field:
+[
+    "no oracle row: expected a refusal naming oracle before any effect, got None (report true, asked 11)",
+    "answered_set with no attempt: expected a refusal naming answered_set before any effect, got None (report true, asked 11)",
+    "accepted_group with no attempt: expected a refusal naming accepted_group before any effect, got None (report true, asked 11)",
+    "keys issued with no attempt: expected a refusal naming keys_issued before any effect, got None (report true, asked 11)",
+    "oracle_sets with no attempt: expected a refusal naming oracle_sets before any effect, got None (report true, asked 11)",
+    "reads_zero with no attempt: expected a refusal naming reads_zero before any effect, got None (report true, asked 11)",
+    "resets_cleared with no attempt: expected a refusal naming resets_cleared before any effect, got None (report true, asked 11)",
+    "changed_accepted: expected a refusal naming changed_accepted before any effect, got None (report true, asked 11)",
+    "oracle row sets: expected a refusal naming oracle before any effect, got None (report true, asked 11)",
+    "oracle row without mismatches: expected a refusal naming mismatches before any effect, got None (report true, asked 11)",
+    "a first-event row: expected a refusal naming first before any effect, got None (report true, asked 11)",
+    "counts without oracle_reads: expected a refusal naming oracle_reads before any effect, got None (report true, asked 11)",
+    "counts with an unknown key: expected a refusal naming extra before any effect, got None (report true, asked 11)",
+    "oracle before counts: expected a refusal naming order before any effect, got None (report true, asked 11)",
+    "no frame run: expected a refusal naming frames before any effect, got Some(\"runtime error: physical-flags-witness: the original report altered an answer or ran no frame\") (report false, asked 0)",
+    "paired original: expected a refusal naming paired before any effect, got None (report true, asked 11)",
+]
+
+---- a_damaged_paired_control_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_unlocks_its_cases stdout ----
+
+thread 'a_damaged_paired_control_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_unlocks_its_cases' (139) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:996:5:
+25 damaged paired controls were not refused for their field:
+[
+    "no oracle row (set_withheld): expected a refusal naming oracle before any effect, got None (report true, asked 3)",
+    "accepted above attempted (set_withheld): expected a refusal naming accepted_set before any effect, got None (report true, asked 3)",
+    "accepted below attempted (a healthy control accepts every answered reply) (set_withheld): expected a refusal naming accepted_set before any effect, got None (report true, asked 3)",
+    "answered above attempted (set_withheld): expected a refusal naming answered_group before any effect, got None (report true, asked 3)",
+    "oracle_sets differs from answered_set (set_withheld): expected a refusal naming oracle_sets before any effect, got None (report true, asked 3)",
+    "oracle row differs from the counts (set_withheld): expected a refusal naming oracle before any effect, got None (report true, asked 3)",
+    "reads_zero plus reads_mask differs from the oracle reads (set_withheld): expected a refusal naming reads_mask before any effect, got None (report true, asked 3)",
+    "keys_issued differs from the answered groups (set_withheld): expected a refusal naming keys_issued before any effect, got None (report true, asked 3)",
+    "changed_accepted in a healthy control (set_withheld): expected a refusal naming changed_accepted before any effect, got None (report true, asked 3)",
+    "resets_cleared beyond what the groups allow (set_withheld): expected a refusal naming resets_cleared before any effect, got None (report true, asked 3)",
+    "no frame run (set_withheld): expected a refusal naming frames before any effect, got None (report true, asked 3)",
+    "first set ordinal beyond the traffic (set_withheld): expected a refusal naming ordinal before any effect, got Some(\"runtime error: physical-flags-witness: FAILURE: the trajectory of the first set differs from the control's (ordinal: control 16, this run 3): no intervention was made on another step\") (report true, asked 6)",
+    "first set frame beyond the run (set_withheld): expected a refusal naming frame before any effect, got Some(\"runtime error: physical-flags-witness: FAILURE: the trajectory of the first set differs from the control's (frame: control 5, this run 1): no intervention was made on another step\") (report true, asked 6)",
+    "first set before_set beyond its attempts (set_withheld): expected a refusal naming before_set before any effect, got Some(\"runtime error: physical-flags-witness: FAILURE: the trajectory of the first set differs from the control's (before_set: control 7, this run 0): no intervention was made on another step\") (report true, asked 6)",
+    "first set before any group (set_withheld): expected a refusal naming before_group before any effect, got Some(\"runtime error: physical-flags-witness: FAILURE: the trajectory of the first set differs from the control's (before_group: control 0, this run 1): no intervention was made on another step\") (report true, asked 6)",
+    "first group row with a group before it (group_duplicate_key): expected a refusal naming before_group before any effect, got None (report true, asked 5)",
+    "first rows out of order (set_withheld): expected a refusal naming order before any effect, got None (report true, asked 3)",
+    "reads_consumable zero with a consumable row (read_changed): expected a refusal naming reads_consumable before any effect, got None (report true, asked 11)",
+    "consumption fact and expectation 0.0 (read_changed): expected a refusal naming consume before any effect, got None (report true, asked 11)",
+    "consumption without a host field (read_changed): expected a refusal naming host before any effect, got None (report true, asked 11)",
+    "consumption host against the raw word (read_changed): expected a refusal naming host before any effect, got None (report true, asked 11)",
+    "consumption marked changed in a control (read_changed): expected a refusal naming changed before any effect, got None (report true, asked 11)",
+    "consumption answered word differs from the raw word (read_changed): expected a refusal naming answered_word before any effect, got None (report true, asked 11)",
+    "consumption raw word that is no lane mask (read_changed): expected a refusal naming real_word before any effect, got None (report true, asked 11)",
+    "consumption fact that is neither 1.0 nor 2.0 (read_changed): expected a refusal naming fact before any effect, got Some(\"runtime error: physical-flags-witness: the control report holds no consumption of a read by its candidate question (the campaign must carry the host's own word first)\") (report false, asked 0)",
+]
+
+---- a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards stdout ----
+
+thread 'a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards' (136) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:1042:5:
+20 ignored faults were credited or mis-judged:
+[
+    "group_withheld ignoring (continue) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_withheld status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.callback",
+    "group_malformed ignoring (continue) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_malformed status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.answer",
+    "group_wrong_state ignoring (continue) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_state status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.state",
+    "group_bad_key ignoring (continue) to a flag.key: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_bad_key status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.key",
+    "group_duplicate_key ignoring (continue) to a flag.key: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_duplicate_key status=PASS detail=the engine refused the single fault made at group ordinal 5 at flag.key",
+    "group_wrong_eligibility ignoring (continue) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_eligibility status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.answer",
+    "set_withheld ignoring (continue) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_withheld status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.callback",
+    "set_malformed ignoring (continue) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_malformed status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.answer",
+    "set_wrong_state ignoring (continue) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_state status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.state",
+    "set_wrong_lane ignoring (continue) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_lane status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.answer",
+    "set_wrong_word ignoring (continue) to a flag.word: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_word status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.word",
+    "read_withheld ignoring (continue) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_withheld status=PASS detail=the engine refused the single fault made at read ordinal 11 at entity_scan.callback",
+    "read_malformed ignoring (continue) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_malformed status=PASS detail=the engine refused the single fault made at read ordinal 11 at entity_scan.answer",
+    "read_wrong_state ignoring (continue) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_wrong_state status=PASS detail=the engine refused the single fault made at read ordinal 11 at entity_scan.state",
+    "read_wrong_array ignoring (continue) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_wrong_array status=PASS detail=the engine refused the single fault made at read ordinal 11 at flag.answer",
+    "read_wrong_word ignoring (continue) to a flag.word: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_wrong_word status=PASS detail=the engine refused the single fault made at read ordinal 11 at flag.word",
+    "reset_withheld ignoring (continue) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_withheld status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.callback",
+    "reset_malformed ignoring (continue) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_malformed status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.answer",
+    "reset_wrong_state ignoring (continue) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_state status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.state",
+    "reset_wrong_array ignoring (continue) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_array status=PASS detail=the engine refused the single fault made at reset ordinal 1 at flag.answer",
+]
+
+
+failures:
+    a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards
+    a_damaged_original_report_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_pairs
+    a_damaged_paired_control_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_unlocks_its_cases
+    a_fatal_in_another_entry_than_the_one_that_made_the_altered_answer_is_not_credited
+    a_refusal_made_during_boot_is_captured_at_the_boot_entry_and_credited_only_for_an_immediate_stop
+
+test result: FAILED. 20 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+

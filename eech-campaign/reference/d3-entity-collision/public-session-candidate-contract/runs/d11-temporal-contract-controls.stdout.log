@@ -1,0 +1,48 @@
+
+running 1 test
+normal_session_proof_gates=PASS semantic_faults=25 pre_effect_reference_faults=27 prefix_faults=4 same_cohort_later_healthy_B=2 no_later_and_other_cohort_UNREACHED=2 real_flag_store_calls=16 flag_ACK_faults=3 ACK_failure_precedes_UNREACHED=3 retained_C_codec_births=1 synthetic_transport_healthy_B=2
+boot_retention_controls=PASS real_provider_calls=200036 first_frame_and_next_frame_queries=2 partial_feed=1 drain_faults=2 wrong_op=1 alternating_overflow=1 retired_budget=1 driver_long_boot_healthy_B=2 boot_query_refused_before_frame1=1 continuation_surfaces=6
+signed_query_selector=PASS domains=3 invalid_domains=7 real_provider_contexts=3 selected_cohort_gates_unchanged=1
+public_session_contract=PASS phantom_close_removed=1 no_getter_after_failure=1 real_flags_scanned_candidate_healthy_B=2 separate_target_histories=1 candidate_registration_flag_pose_faults=4 stationary_and_other_mode_UNREACHED=2 locked_candidate_no_fallback=1 bounded_numeric_accounting=1
+existing_move_causality=PASS late_move_UNREACHED=1 repeated_and_overwritten_healthy_B=4 wrong_late_or_identity_B_before_effect=2 actual_all_callback_ordinal=1 immutable_at_NEED=1
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00007fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+test normal_session_validates_the_whole_reference_before_effects_and_failure_precedes_unreached ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.20s
+

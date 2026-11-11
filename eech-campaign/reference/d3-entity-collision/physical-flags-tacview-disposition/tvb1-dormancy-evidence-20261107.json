@@ -1,0 +1,187 @@
+{
+  "kind": "retained compiled and runtime facts for the Tacview/MOVED-ROTATED consumer disposition (read-only; literal excerpts)",
+  "repo_head": "b1b9a5d9ea27cbbbeda33035972e416ee7925001",
+  "built_source": "3abf03e51 (the snapshot D:/EECH-Migration-Evidence/supply-boolean-3abf-20261107-source)",
+  "product_and_crate_source_changed_since_3abf": false,
+  "profiles": {
+    "ordinary": {
+      "report": "D:\\EECH-Migration-Evidence\\supply-boolean-native-3abf-profile-20261107\\ordinary\\engine-archive-nm.txt",
+      "report_sha256": "b6016bf398c480b1adee6fdaf3f959c799735c3ba18579980d2aa8c70d590587",
+      "archive_sha256": "9dd51a5e80de26a102a0ad7dc75cf380ea4f7a333cd8fba018810edee08f4a1e",
+      "features": [],
+      "excerpts": {
+        "start_tacview_logging (definition T and every reference U)": [
+          "e9076bd3d206cd2e-helicop.o:                 U start_tacview_logging",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T start_tacview_logging",
+          "4efb3bd7a0c38f5b-flight.o:                 U start_tacview_logging"
+        ],
+        "tacview_log_file definition": [
+          "112ff5a8ad261170-tacview.o:0000000000000000 D tacview_log_file"
+        ],
+        "tacview.o defined functions": [
+          "112ff5a8ad261170-tacview.o:0000000000000000 T close_tacview_log",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T start_tacview_logging",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T tacview_reset_frame",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T tacview_update_gunship",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_coordinate",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_debug_event",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_frame_header",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_header",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_new_unit",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_town_names",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_unit_event",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_unit_update"
+        ],
+        "flight (definition and references)": [
+          "4efb3bd7a0c38f5b-flight.o:0000000000000000 T flight",
+          "359aec53f7574b5e-gameflow.o:                 U flight"
+        ],
+        "write_tacview_unit_update (definition and references)": [
+          "22a18d88902741ee-fw_updt.o:                 U write_tacview_unit_update",
+          "e9076bd3d206cd2e-hc_updt.o:                 U write_tacview_unit_update",
+          "ee6a45ae69717f1a-aa_updt.o:                 U write_tacview_unit_update",
+          "17b7ab18e93a6a78-rv_updt.o:                 U write_tacview_unit_update",
+          "1b91561791247a74-sh_updt.o:                 U write_tacview_unit_update",
+          "5cb301d82f74365a-wn_move.o:                 U write_tacview_unit_update",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_unit_update"
+        ],
+        "references to assign_entity_to_user": [
+          "b072513e091ebe53-comm_man.o:                 U assign_entity_to_user",
+          "e9076bd3d206cd2e-helicop.o:0000000000000000 T assign_entity_to_user"
+        ],
+        "references to tacview_reset_frame": [
+          "dbe5a7acd87dbba2-up_update.o:                 U tacview_reset_frame",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T tacview_reset_frame"
+        ]
+      },
+      "objects_referencing_tacview_log_file": [
+        "17b7ab18e93a6a78-rv_creat.o",
+        "17b7ab18e93a6a78-rv_dstry.o",
+        "17b7ab18e93a6a78-rv_updt.o",
+        "1b91561791247a74-sh_dstry.o",
+        "1b91561791247a74-sh_updt.o",
+        "22a18d88902741ee-fw_creat.o",
+        "22a18d88902741ee-fw_dstry.o",
+        "22a18d88902741ee-fw_updt.o",
+        "5cb301d82f74365a-wn_creat.o",
+        "5cb301d82f74365a-wn_dstry.o",
+        "5cb301d82f74365a-wn_move.o",
+        "dbe5a7acd87dbba2-up_update.o",
+        "e9076bd3d206cd2e-hc_creat.o",
+        "e9076bd3d206cd2e-hc_dstry.o",
+        "e9076bd3d206cd2e-hc_updt.o",
+        "e9076bd3d206cd2e-helicop.o",
+        "ee6a45ae69717f1a-aa_creat.o",
+        "ee6a45ae69717f1a-aa_dstry.o",
+        "ee6a45ae69717f1a-aa_updt.o"
+      ],
+      "eech_engine_o_lines_naming_tacview": []
+    },
+    "original": {
+      "report": "D:\\EECH-Migration-Evidence\\supply-boolean-native-3abf-profile-20261107\\original\\engine-archive-nm.txt",
+      "report_sha256": "9d6105dcbec28cca7de2206498ba8df7a87140155e4f8135c58b3ae6f64a17fe",
+      "archive_sha256": "25656407d11f059f4d70a56e576ed0a87e5d2d2f0b322ac63b3d23c6dbc6cb23",
+      "features": [
+        "collision-fixture"
+      ],
+      "excerpts": {
+        "start_tacview_logging (definition T and every reference U)": [
+          "e9076bd3d206cd2e-helicop.o:                 U start_tacview_logging",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T start_tacview_logging",
+          "4efb3bd7a0c38f5b-flight.o:                 U start_tacview_logging"
+        ],
+        "tacview_log_file definition": [
+          "112ff5a8ad261170-tacview.o:0000000000000000 D tacview_log_file"
+        ],
+        "tacview.o defined functions": [
+          "112ff5a8ad261170-tacview.o:0000000000000000 T close_tacview_log",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T start_tacview_logging",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T tacview_reset_frame",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T tacview_update_gunship",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_coordinate",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_debug_event",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_frame_header",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_header",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_new_unit",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_town_names",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_unit_event",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_unit_update"
+        ],
+        "flight (definition and references)": [
+          "4efb3bd7a0c38f5b-flight.o:0000000000000000 T flight",
+          "359aec53f7574b5e-gameflow.o:                 U flight"
+        ],
+        "write_tacview_unit_update (definition and references)": [
+          "22a18d88902741ee-fw_updt.o:                 U write_tacview_unit_update",
+          "e9076bd3d206cd2e-hc_updt.o:                 U write_tacview_unit_update",
+          "ee6a45ae69717f1a-aa_updt.o:                 U write_tacview_unit_update",
+          "17b7ab18e93a6a78-rv_updt.o:                 U write_tacview_unit_update",
+          "1b91561791247a74-sh_updt.o:                 U write_tacview_unit_update",
+          "5cb301d82f74365a-wn_move.o:                 U write_tacview_unit_update",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T write_tacview_unit_update"
+        ],
+        "references to assign_entity_to_user": [
+          "b072513e091ebe53-comm_man.o:                 U assign_entity_to_user",
+          "e9076bd3d206cd2e-helicop.o:0000000000000000 T assign_entity_to_user"
+        ],
+        "references to tacview_reset_frame": [
+          "dbe5a7acd87dbba2-up_update.o:                 U tacview_reset_frame",
+          "112ff5a8ad261170-tacview.o:0000000000000000 T tacview_reset_frame"
+        ]
+      },
+      "objects_referencing_tacview_log_file": [
+        "17b7ab18e93a6a78-rv_creat.o",
+        "17b7ab18e93a6a78-rv_dstry.o",
+        "17b7ab18e93a6a78-rv_updt.o",
+        "1b91561791247a74-sh_dstry.o",
+        "1b91561791247a74-sh_updt.o",
+        "22a18d88902741ee-fw_creat.o",
+        "22a18d88902741ee-fw_dstry.o",
+        "22a18d88902741ee-fw_updt.o",
+        "5cb301d82f74365a-wn_creat.o",
+        "5cb301d82f74365a-wn_dstry.o",
+        "5cb301d82f74365a-wn_move.o",
+        "dbe5a7acd87dbba2-up_update.o",
+        "e9076bd3d206cd2e-hc_creat.o",
+        "e9076bd3d206cd2e-hc_dstry.o",
+        "e9076bd3d206cd2e-hc_updt.o",
+        "e9076bd3d206cd2e-helicop.o",
+        "ee6a45ae69717f1a-aa_creat.o",
+        "ee6a45ae69717f1a-aa_dstry.o",
+        "ee6a45ae69717f1a-aa_updt.o"
+      ],
+      "eech_engine_o_lines_naming_tacview": []
+    }
+  },
+  "closed_default_roots": {
+    "ordinary_short": {
+      "cohokum": "D:\\EECH-Migration-Evidence\\supply-boolean-default-3abf-roots-20261107\\ordinary_short\\cohokum",
+      "tacview_logs_directory_exists": false,
+      "txt_acmi_files_under_root": [],
+      "EECH.INI_sha256": "10fff29220b157cf944c5e82e852e90be91a631a7fd2752c77835e0291d5865f",
+      "EECH.INI_tacview_lines": [
+        "tacview_logging=0"
+      ],
+      "EECH.INI_dump_ini_lines": []
+    },
+    "original_short": {
+      "cohokum": "D:\\EECH-Migration-Evidence\\supply-boolean-default-3abf-roots-20261107\\original_short\\cohokum",
+      "tacview_logs_directory_exists": false,
+      "txt_acmi_files_under_root": [],
+      "EECH.INI_sha256": "10fff29220b157cf944c5e82e852e90be91a631a7fd2752c77835e0291d5865f",
+      "EECH.INI_tacview_lines": [
+        "tacview_logging=0"
+      ],
+      "EECH.INI_dump_ini_lines": []
+    }
+  },
+  "rust_recorder_calls_at_head": {
+    "file": "eech-campaign/crates/eech-world/src/main.rs",
+    "git_blob": "4f97d54bacfff40b00cebe2805e5a86b63f49436",
+    "lines": [
+      "eech-campaign/crates/eech-world/src/main.rs:1188:                    self.out.remove(old.acmi).map_err(LuaError::external)?;",
+      "eech-campaign/crates/eech-world/src/main.rs:1241:                    self.out.update(t.acmi, x, y, z, None).map_err(LuaError::external)?;",
+      "eech-campaign/crates/eech-world/src/main.rs:1273:                self.out.remove(t.acmi).map_err(LuaError::external)?;"
+    ]
+  }
+}

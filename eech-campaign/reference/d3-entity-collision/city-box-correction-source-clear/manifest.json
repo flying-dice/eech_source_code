@@ -1,0 +1,74 @@
+{
+  "schema": "d3.city-box.source-clear.literal.v1",
+  "source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+  "files": {
+    ".gitattributes": {
+      "bytes": 61,
+      "sha256": "22106984a6c1274ead5c283789ca11d75b303658949aaa627698747e7b2d6160"
+    },
+    "city-box-corrected-4c0b-source-check-binding-20261106.json": {
+      "bytes": 5924,
+      "sha256": "c0e4532a49c8440afd07c31a6b69672d093a9f148f26e17cefaaf27af02b53aa"
+    },
+    "city-box-corrected-4c0b-source-gates-20261106.json": {
+      "bytes": 6418,
+      "sha256": "b6bbaec9e04eb916dc6efcaadd0d79cf57050f7fbe930c3c639f5f5c980f11ed"
+    },
+    "city-box-corrected-4c0b89263-snapshot-preparation-20261106.json": {
+      "bytes": 777,
+      "sha256": "7252afde4b50799ed9a172269bc8ac18eba1dffafe72fd08e2c25a1a2eff7209"
+    },
+    "city-box-corrected-source-default-prefix-f734-20261106.json": {
+      "bytes": 2338,
+      "sha256": "f6eee829a73f26606e5554b90f47048cb3c2128d60e68f9c25d528ff177665ef"
+    },
+    "dcs-box-source/MAPPING-DRAFT.md": {
+      "bytes": 3908,
+      "sha256": "ac4d545f4d83f009a18d6bb6a09700f9ec2b4ac0331599d53e82db2eb996adba"
+    },
+    "dcs-box-source/PROVENANCE.json": {
+      "bytes": 724,
+      "sha256": "d6d26fdac00894246bac54f96121f66ff74e9fd8f976f4fd0e93340fbc98b5cb"
+    },
+    "dcs-box-source/StaticObject.ts": {
+      "bytes": 8405,
+      "sha256": "7a645cd741ffbb8d0b2ecf377e1b95e658ba116a79f355ca945bdebfcbaeb6ef"
+    },
+    "independent-city-box-review-correction-source-4c0b8926-20261106.json": {
+      "bytes": 22048,
+      "sha256": "50eee6bbaac7f114e37bc7e4fb774eb04c14c23d792f8c319df8034b0f3a964e"
+    },
+    "ledger-city-box-source-review-v164-preservation-20261106.json": {
+      "bytes": 672,
+      "sha256": "a34f554e644e3fce5f4dd5d888081bed10f07b0ff4ada7b77a15f008dd19412c"
+    },
+    "ledger-city-state-finite-v163-preservation-20261106.json": {
+      "bytes": 663,
+      "sha256": "b1cb00bf595e06f45768bf0b0e2a03d8923cde4a2229757bcee4584de8da287b"
+    },
+    "next-required-predicates/NEXT-CUT.md": {
+      "bytes": 2410,
+      "sha256": "941d13f77fbc416c5a186a20452fae8d65c0b48437ed07d7c6b6adfb5f6c0564"
+    },
+    "next-required-predicates/SOURCE-FACTS.json": {
+      "bytes": 4476,
+      "sha256": "453fa8960db087f478cc093a718566ddd6b6539a680e3330bdfca5de77617901"
+    },
+    "process-learnings-20261106-source-clear.md": {
+      "bytes": 31882,
+      "sha256": "8f42f66880138cbaa2d3b2f28f54a0a66d7b5cfb7999b55ca9e2c933e8a280b7"
+    },
+    "README.md": {
+      "bytes": 2664,
+      "sha256": "dc74de531efe57b1439acfbd1bf71eb8e16223cd9169dc27dc22fa3bc901d907"
+    },
+    "reproduction/build-city-box-corrected-windows-20261106.sh": {
+      "bytes": 1194,
+      "sha256": "982b7428b2d170ab28c5ad44bd8c997d68cc55a8a3650029c5705c64cab33079"
+    },
+    "reproduction/run-city-box-corrected-windows-20261106.py": {
+      "bytes": 5956,
+      "sha256": "49028ac4f8381f3dc5e5801fcad0310070b2a8a17b2c991a616d87a85dedfe76"
+    }
+  }
+}

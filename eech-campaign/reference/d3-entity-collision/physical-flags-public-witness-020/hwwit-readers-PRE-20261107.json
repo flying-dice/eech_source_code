@@ -1,0 +1,11 @@
+{
+  "run-physical-flags-witness-direct-20261107.py": "fc24968e9b0d954f68abc4440a052af147abc6724886f235927f3a99e826a9df",
+  "check-physical-flags-witness-linux-20261107.sh": "4a1a1157f0ad055a9edc277d66e2416e6a00f56d90e16d9ac3350739dfdc748f",
+  "run-hwwit-final-set-20261107.sh": "299316d6727a15520158c3632e56218acf6334d946b001d48017ef3c5fcc8e9c",
+  "hwwit-extra-identity-20261107.py": "6e0f81eb8910eca0fd24b26730a2fb197d9bdd1c1547f38ebab418e6423d8afd",
+  "freeze-hwwit-20261107.py": "35a2c8f35a9381601a27e3642ead9a7e58b35bcb2accf26bd9dd1f3be45bc2ae",
+  "publish-hwwit-20261107.py": "bd1fb47d0509a551a3d65ef7c656295a5cef9def3009c6797eae885aa7b8cc59",
+  "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+  "sho-compare-maps-20261107.py": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+  "preflight-receipts-20261107.py": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+}

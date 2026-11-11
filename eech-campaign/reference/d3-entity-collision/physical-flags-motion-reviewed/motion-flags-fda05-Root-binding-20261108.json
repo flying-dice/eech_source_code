@@ -1,0 +1,125 @@
+{
+  "utc": "2026-11-08T01:17:15.124223+00:00",
+  "kind": "Root read-only motion-response source and direct actual check binding; no experiment replay",
+  "code": "fda05b65109ea19bc1d10f022555297670495b94",
+  "metadata": "58b25db9cbbc8b349384ad3bf08f4b34125c5060",
+  "source_rows": 3997,
+  "PRE_POST_current_Git_joined": true,
+  "raw_Git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "Git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "Git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "Git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+    }
+  ],
+  "extras_count": 35,
+  "all_extras_PRE_POST_current_equal": true,
+  "readers_count": 11,
+  "all_PRE_readers_current": true,
+  "final_commands": [
+    {
+      "label": "s1-fmt-check",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s2-clippy-default",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s3-clippy-motion-hosted",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s4-clippy-motion-original",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s5-motion-hosted",
+      "actual_exit": 0,
+      "selected_test_instances": 1,
+      "selected_targets": {
+        "physical_flags_motion": 1
+      }
+    },
+    {
+      "label": "s6-motion-original",
+      "actual_exit": 0,
+      "selected_test_instances": 1,
+      "selected_targets": {
+        "physical_flags_motion": 1
+      }
+    },
+    {
+      "label": "s7-flags-guard",
+      "actual_exit": 0,
+      "selected_test_instances": 10,
+      "selected_targets": {
+        "physical_flags_guard": 10
+      }
+    },
+    {
+      "label": "s8-flags-controls-hosted",
+      "actual_exit": 0,
+      "selected_test_instances": 3,
+      "selected_targets": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      }
+    },
+    {
+      "label": "s9-flags-controls-original",
+      "actual_exit": 0,
+      "selected_test_instances": 3,
+      "selected_targets": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      }
+    },
+    {
+      "label": "s10-build-dc",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "selected_targets": {}
+    }
+  ],
+  "selected_Rust_test_instances": 18,
+  "hosted_traffic_groups_sets_inspection_reads_resets_fresh": [
+    6,
+    10,
+    4,
+    0,
+    11
+  ],
+  "positive_begin_SET_READ": [
+    1,
+    0
+  ],
+  "signed_bit31_both_words": true,
+  "zero_resets_means_no_reset_case": true,
+  "other_mapped_Git_inputs_unchanged_from_parent": 3991,
+  "mb_hostmodel_RAW_changed_only_testhelper_gate_and_comment": true,
+  "typed_author_service_completion": "completed",
+  "author_completion_sha256": "b729b3515e5b9e93ea51c6d9e6523a4205e2ab2e1bdaa9bf3f7086208c6ead0f",
+  "freeze_sha256": "a5f8b795fef427e0f53da01130fe04b93a5f2fe429bce585cb478fb3c12f6274",
+  "limits": "UNREVIEWED finite directCguidedresponse->setter->realhoststore/privatefixture in bothprofiles; no shippingEngineboot/publicnativeREAD/resetbreadth/lifetime/FPU/DCS/allconsumer acceptance. No Windows/native/default/fullpack replay or old3abf binary relabel; RAWtestgate changed. Bothoriginalfullpacks/all10 stillopen."
+}

@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostplace.h"
+
 #include "entity/mobile/mb_hostaim.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -287,6 +289,10 @@ void unpack_local_segment_data (pack_modes mode)
 				if (rest.landed)
 				{
 					pos->y = rest.landed_y;
+
+					// a raw write of the placed segment's height (the host decided where it rests): the host's record of its placement holds the position it has now
+
+					campaign_place_fixed_state (en);
 				}
 			}
 		}
@@ -319,6 +325,10 @@ void unpack_local_segment_data (pack_modes mode)
 			succ = get_local_entity_child_succ (en, LIST_TYPE_SEGMENT);
 
 			raw->fix.object_3d_shape = get_bridge_segment_damaged_object (en, pred, succ);
+
+			// a raw write of the placed segment's shape (damaged or destroyed by what its neighbours are): the host's record of its placement holds the shape it has now
+
+			campaign_place_fixed_state (en);
 		}
 
 		en = get_local_entity_succ (en);

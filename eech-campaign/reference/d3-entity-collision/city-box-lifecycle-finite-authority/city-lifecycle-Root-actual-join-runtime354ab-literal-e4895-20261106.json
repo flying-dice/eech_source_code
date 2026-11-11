@@ -1,0 +1,327 @@
+{
+  "created_utc": "2026-11-06T23:37:25.225420+00:00",
+  "runtime_source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+  "literal": {
+    "path": "R:\\d3-evidence\\city-relist-ack-e4895c121-literal.lua",
+    "source": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+    "git_blob": "3591429759763d9ed3a2216790402c2d5e9e0c09",
+    "sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db"
+  },
+  "plan_sha256": "18c234a0b89a729f3087f5b9bb099688f11f7aabdd860f23cc0f65a7d572a3eb",
+  "source_review_sha256": "5b5cbc95ddf9e64cc5f9545578e854aed362741269d664c966ae83507a3de628",
+  "source_clearance_metadata": "e9e6a1f136c8fb8a228291599e341c880a7ee6be",
+  "cases": [
+    {
+      "mode": "city_box_lifecycle",
+      "completion": "R:\\d3-evidence\\city-relist-control-runtime354ab-literal-e4895-20261106-completion.json",
+      "completion_sha256": "441669db0d9cbca120d8a9c7fcd4d5c7123b673fc1e3749529029e8b458be670",
+      "native_helper_checker_outer_actual_exit": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "inner_stage_actual_exits": [
+        0,
+        0,
+        0
+      ],
+      "raw_output_files": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-control-runtime354ab-literal-e4895-20261106\\controller.json",
+          "bytes": 4288,
+          "sha256": "d2569b4df9c15dd447323452dd5a93ff7af6b835f7db35da82113a362e6b64f2"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-control-runtime354ab-literal-e4895-20261106\\model.jsonl",
+          "bytes": 1228,
+          "sha256": "ae32086cb1bf17cc722f5608647f44461cd7b0d1bfbc0bdec8264917150a3789"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-control-runtime354ab-literal-e4895-20261106\\native.log",
+          "bytes": 40822,
+          "sha256": "2a9f068afdb2ef6654bfb651ee0b329fc954ca3a18ce2d18c270e4bf4dc4a49e"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-control-runtime354ab-literal-e4895-20261106\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-control-runtime354ab-literal-e4895-20261106\\post-inputs.log",
+          "bytes": 334,
+          "sha256": "563a094bce25856bc1659f02d2e971461ac9e9b62107b22eadbad9517596d46d"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-control-runtime354ab-literal-e4895-20261106\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-control-runtime354ab-literal-e4895-20261106\\pre-inputs.log",
+          "bytes": 334,
+          "sha256": "563a094bce25856bc1659f02d2e971461ac9e9b62107b22eadbad9517596d46d"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-control-runtime354ab-literal-e4895-20261106\\row-check.json",
+          "bytes": 1186,
+          "sha256": "981d0aa019f5661d581d4dc58529aaded3facb329c1c20f7db3e9a760c38e3a4"
+        }
+      ],
+      "facts": {
+        "altered_request": 0,
+        "box_max": "0x4203ffff,0x4124fca8,0x420fffff",
+        "box_min": "0xc2040000,0xc0e1f578,0xc2100000",
+        "buildings": 6,
+        "city_stage_lookups_in_window": 2,
+        "completed": true,
+        "consumed_after_selected": 1,
+        "consumed_before_selected": 1,
+        "continuation_links": 2,
+        "empty_key_changed": 1,
+        "empty_keyed": 1,
+        "event": "city_lifecycle_authority",
+        "expansions_selected": 6,
+        "expansions_selected_answered": 6,
+        "failure_marker": "",
+        "first_fault": "",
+        "frames": 301,
+        "host_keyed": 1,
+        "intervened": 0,
+        "intervention": "none",
+        "list_order_restored": 1,
+        "mirror_box_equal": 1,
+        "mode": "city_box_lifecycle",
+        "natural_weapon_engagement": "not_claimed_terminal_witness",
+        "profile": "hosted",
+        "query_after_hit": 0,
+        "query_after_kind": "none",
+        "query_before_hit": 0,
+        "query_before_kind": "none",
+        "query_equal": 1,
+        "releases_in_window": 0,
+        "reply_faults": 0,
+        "report_bound": 1,
+        "request_faults": 0,
+        "restored_key_changed": 1,
+        "restored_keyed": 1,
+        "retained_answers": 2,
+        "row_phase": "after_boot_warmup_standalone_fixture",
+        "unreached": ""
+      },
+      "full_input_pre_post_literal_reference": true,
+      "payloads_rehashed": 88
+    },
+    {
+      "mode": "city_box_lifecycle_missing",
+      "completion": "R:\\d3-evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106-completion.json",
+      "completion_sha256": "d32af7c03235ac1793b0ed4ce4ea2e434ac14dd49c52d797a407da9d439646a2",
+      "native_helper_checker_outer_actual_exit": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "inner_stage_actual_exits": [
+        0,
+        0,
+        0
+      ],
+      "raw_output_files": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106\\controller.json",
+          "bytes": 4426,
+          "sha256": "8a98349dbda740b8ddf5475243f512f66d2e1a495e6d8751aa65b08284b02912"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106\\model.jsonl",
+          "bytes": 1455,
+          "sha256": "69462a179bf2cbb303b0dc213b2d225562e6283b116ce1c910f7e45948af9101"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106\\native.log",
+          "bytes": 48732,
+          "sha256": "e0a2b59d1172f514bbcec4e764c1bb0c246a39babd94da6fd205afd7464e07f2"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106\\post-inputs.log",
+          "bytes": 366,
+          "sha256": "300fe80218bcc814e2c65bf3c85a722efd32c2267a28d00ff3c4832af728d337"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106\\pre-inputs.log",
+          "bytes": 366,
+          "sha256": "300fe80218bcc814e2c65bf3c85a722efd32c2267a28d00ff3c4832af728d337"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106\\row-check.json",
+          "bytes": 1232,
+          "sha256": "ac61edfce61f5a31f866d00161469e24e792d9fa4dcfee5300cfb1989fc04a62"
+        }
+      ],
+      "facts": {
+        "altered_request": 0,
+        "box_max": "",
+        "box_min": "",
+        "buildings": -1,
+        "city_stage_lookups_in_window": 1,
+        "completed": false,
+        "consumed_after_selected": 0,
+        "consumed_before_selected": 1,
+        "continuation_links": 0,
+        "empty_key_changed": -1,
+        "empty_keyed": -1,
+        "event": "city_lifecycle_authority",
+        "expansions_selected": 0,
+        "expansions_selected_answered": 0,
+        "failure_marker": "entity_scan.refused",
+        "first_fault": "scan reply: result refused",
+        "frames": 301,
+        "host_keyed": -1,
+        "intervened": 1,
+        "intervention": "host_retention_release",
+        "list_order_restored": -1,
+        "mirror_box_equal": -1,
+        "mode": "city_box_lifecycle_missing",
+        "natural_weapon_engagement": "not_claimed_terminal_witness",
+        "profile": "hosted",
+        "query_after_hit": -1,
+        "query_after_kind": "",
+        "query_before_hit": -1,
+        "query_before_kind": "",
+        "query_equal": -1,
+        "releases_in_window": 0,
+        "reply_faults": 1,
+        "report_bound": 0,
+        "request_faults": 0,
+        "restored_key_changed": -1,
+        "restored_keyed": -1,
+        "retained_answers": 1,
+        "row_phase": "after_boot_warmup_standalone_fixture",
+        "unreached": ""
+      },
+      "full_input_pre_post_literal_reference": true,
+      "payloads_rehashed": 88
+    },
+    {
+      "mode": "city_box_lifecycle_changed",
+      "completion": "R:\\d3-evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106-completion.json",
+      "completion_sha256": "10e7fc04bbd6d3eaf8a5140d3077403d5e1a37985f3119361eb784b2b742a833",
+      "native_helper_checker_outer_actual_exit": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "inner_stage_actual_exits": [
+        0,
+        0,
+        0
+      ],
+      "raw_output_files": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106\\controller.json",
+          "bytes": 4427,
+          "sha256": "44ff9d5842f63acc0559c89f5222cdf635eb9a903f325fa65e899e7ac8000815"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106\\model.jsonl",
+          "bytes": 1538,
+          "sha256": "3a4bb3b03f3bb61ae100243739535f5d96f465dfd6b0a813999221b6efc58a34"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106\\native.log",
+          "bytes": 48810,
+          "sha256": "1e06340958bd19b626e6951a6b7b851717084fdcb2c16a8c57d550dd02623d07"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106\\post-inputs.log",
+          "bytes": 366,
+          "sha256": "a088c7c02ab8e1d7e8061fb34e1f15db97fac8523d3afed84018699d08dbbe26"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106\\pre-inputs.log",
+          "bytes": 366,
+          "sha256": "a088c7c02ab8e1d7e8061fb34e1f15db97fac8523d3afed84018699d08dbbe26"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106\\row-check.json",
+          "bytes": 1237,
+          "sha256": "e777b091790af4d2d5860ebb35fbfe759faa3c340f616f22679ed00c0ad49843"
+        }
+      ],
+      "facts": {
+        "altered_request": 1,
+        "box_max": "",
+        "box_min": "",
+        "buildings": -1,
+        "city_stage_lookups_in_window": 1,
+        "completed": false,
+        "consumed_after_selected": 0,
+        "consumed_before_selected": 1,
+        "continuation_links": 1,
+        "empty_key_changed": -1,
+        "empty_keyed": -1,
+        "event": "city_lifecycle_authority",
+        "expansions_selected": 0,
+        "expansions_selected_answered": 0,
+        "failure_marker": "entity_scan.refused",
+        "first_fault": "scan reply: result refused",
+        "frames": 301,
+        "host_keyed": -1,
+        "intervened": 1,
+        "intervention": "mirror_conformance_negative",
+        "list_order_restored": -1,
+        "mirror_box_equal": -1,
+        "mode": "city_box_lifecycle_changed",
+        "natural_weapon_engagement": "not_claimed_terminal_witness",
+        "profile": "hosted",
+        "query_after_hit": -1,
+        "query_after_kind": "",
+        "query_before_hit": -1,
+        "query_before_kind": "",
+        "query_equal": -1,
+        "releases_in_window": 0,
+        "reply_faults": 1,
+        "report_bound": 0,
+        "request_faults": 0,
+        "restored_key_changed": -1,
+        "restored_keyed": -1,
+        "retained_answers": 1,
+        "row_phase": "after_boot_warmup_standalone_fixture",
+        "unreached": ""
+      },
+      "full_input_pre_post_literal_reference": true,
+      "payloads_rehashed": 88
+    }
+  ],
+  "same_selected_record_all_cases": true,
+  "all_three_profiles_rehashed": {
+    "ordinary": 88,
+    "hosted": 88,
+    "original": 88
+  },
+  "full_reference_file_count": 1179,
+  "full_reference_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+  "scope": "Root readonly identity/actual-output join only. Thin checker has aggregate limitations; source-reviewed driver binds full query tuples. Independent finite CITY review pending. Standalone postwarmup actualCore fixture with queryMISS, not naturalweapon/allCITY/Task49/D3/fullshipping acceptance. Historical215a/354ab failures remain failed. No baseline or tolerance changes. Earlier inline readonly attempt raised TypeError reading reference.files as list before any output write; corrected integer schema here, no native rerun or raw mutation."
+}

@@ -1,0 +1,10 @@
+{
+  "before_version": 160,
+  "after_version": 161,
+  "prior_entire_html_prefix_preserved": true,
+  "reports_before": 5,
+  "reports_after": 5,
+  "all_five_preserved": true,
+  "qualification": "Only prior named jirachart _parentId metadata and two specific Task50/PR110 link/strong normalizations allowed. New appendix server local IDs excluded from old-prefix comparison.",
+  "scope": "Source95 CHANGES_REQUIRED/2groups; onefreshcorrectionactive; no native/source95/Task49/D3 acceptance."
+}

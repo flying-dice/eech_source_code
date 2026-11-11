@@ -1,0 +1,9 @@
+[
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json",
+  "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+  "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua",
+  "eech-campaign/docs/d3-normal-query-selector.md",
+  "eech-campaign/tools/normal_fire_capture.py",
+  "eech-campaign/tools/test_normal_fire_capture.py"
+]

@@ -1,0 +1,12 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T06:23:25.193048+00:00",
+  "started_time_qualification": "Root dispatch observation, not OS birth",
+  "source_before": "d419afb575adac32b1d6fd1b2fe2706ffb5efcf1",
+  "scope": "Implement SAME36b2 bounded read-only normalfire/readiness/selectedpackage/station-muzzle/birth-cohort correlation through existingfixture/publicsurfaces. Realcollaborator coherentpositive+Originalfallback controls, preserveRNG/FPU/order/decisions. No newlaunchAPI/policy-angleforcing/productionhierarchymove/native untilSAMEsource/controller+Rootlaunchreview. One implementation/cacheauthor lane; all10/generic1/prep2/bothpacks preserved.",
+  "actual_OS_process_identity": "Not applicable to Codex service agent; no fabricated PID/CLI exit."
+}

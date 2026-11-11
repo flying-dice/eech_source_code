@@ -1,0 +1,13 @@
+# Finite configured speed-input query-service authority
+
+5 November 2026. Compiled source3475fb93b; separate Lua literal6fb7ff43a, SHA2565d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422. Independent source review742afe73 and actual review85390f06 have no findings. The finite configured-input query-service handoff and Original parity are verified.
+
+All four HostedA/B and OriginalA/B native/helper/outer exits0; eight full1179 retail input checks0 with complete manifest bytes equal;88 sealed payloads per case. Same actual target, radius, three latched rays and fixed configuration across all four. Both Bs received zero desired_velocity on exactly one real callback and delegated once to the same solver; canonical/Core pose checks remain coherent. Every actual helper and native B argument carries the authentic completed same-profile A signature. HostedA has3NeedUpdated/3moving16 tests/3target hits. HostedB has9post-change target questions. All three physical contact-point fields change A to B; hit decisions, identities, normals and rays stay equal. FULL physical query lines including endings match HostedA to OriginalA and HostedB to OriginalB.
+
+This deliberately changes the solver's RECEIVED SPEED-DEMAND INPUT in a test-only configuration. It does not prove failure to fulfill an unchanged solver command, terrain authority, natural weapon integration, a whole physical cutover, Person long-run acceptance or wholeTask49/D3. Raw actors, poses, ray geometry, signatures and argv remain PRIVATE external; only reduced facts and hashes are published.
+
+Full3658 per-file source maps are before/after stable; the review explicitly qualifies eight unchanged rawCRLF-vs-GitLF paths (three old testLua and five reference/attributes). Only the two changed files are independently claimed Git-byte-exact. Retained full maps/check logs stay external; no source or evidence normalization occurred. The earlier terrain-input experiment's actual report is preserved literally as prelaunch UNREACHED, not replaced or relabelled.
+
+The ordinary3475 full40/all8 pack is still ACTIVE on its frozen source/bin/roots. Captured generated ACMI/observation prefixes remain byte-identical at23:56UTC, ACMI611.90/612.90simsec: PARTIAL only. Complete runner exits, all40 checks, full8 files and final inputs remain pending. Accepted baselines/config/inputs/tolerances unchanged.
+
+Next required production extraction: host physical sector-roster/insertion-history backing, preserving semantic IDs and supported creation/commit/relink/restore/retire order. Core lists, fixed/city and other physical services remain declared coupling until moved. WholeD3/all10scope, natural weapon integration, currentCI/review/normalmerge remain required; D4/D5/TypeScript unstarted.

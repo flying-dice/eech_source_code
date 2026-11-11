@@ -2,8 +2,10 @@
 //! campaign script observes.
 pub mod aim;
 pub mod cmb;
+pub mod entity_host;
 pub mod env;
 pub mod exclusive_output;
+pub mod flags;
 pub mod flight;
 pub mod los;
 pub mod model_host;
@@ -12,8 +14,11 @@ pub mod movement;
 pub mod original_report;
 pub mod output;
 pub mod reference_arithmetic;
+pub mod roster;
 pub mod sense;
 pub mod sound_assets;
 pub mod sound_data;
 pub mod tacview;
 pub mod terrain;
+pub mod tree_host;
+pub mod trees;

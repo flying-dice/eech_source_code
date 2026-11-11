@@ -1,0 +1,356 @@
+{
+  "observed_utc": "2026-11-08T05:44:22.473271+00:00",
+  "source": "599958ce961111f01c946245572a3757d8fe4ea0",
+  "plan_sha256": "134284354240d9588395e95579632dafea20297b1fad2f1769a9c3fff7984f5d",
+  "controller_sha256": "5db6802740703bb05220e53eb98d864bb4c3e63f7bd54dbbbaded00a4496485d",
+  "launch_review_sha256": "070a49d7daa0701b457c89bc3b2db64ed79b8d2aac13ee8314cdb4ac8ffdf3bd",
+  "completion_sha256": "0283543f1303e0206e7d32a12d8d4e21cd6b4c723a685cce44986df1abf6534d",
+  "original_outer_session": 19507,
+  "actual_original_outer_exit": 0,
+  "controller_pid": 18788,
+  "controller_actual_exit": 0,
+  "native_actual_exits": [
+    0,
+    0,
+    0
+  ],
+  "stage_actual_exits": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "input_observations": [
+    {
+      "case": "georgia-ordinary",
+      "stage": "pre-inputs",
+      "files": 1174,
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\pre-inputs.json",
+      "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058"
+    },
+    {
+      "case": "georgia-ordinary",
+      "stage": "post-inputs",
+      "files": 1174,
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\post-inputs.json",
+      "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058"
+    },
+    {
+      "case": "georgia-observer",
+      "stage": "pre-inputs",
+      "files": 1174,
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\pre-inputs.json",
+      "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058"
+    },
+    {
+      "case": "georgia-observer",
+      "stage": "post-inputs",
+      "files": 1174,
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\post-inputs.json",
+      "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058"
+    },
+    {
+      "case": "lebanon-observer",
+      "stage": "pre-inputs",
+      "files": 1179,
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "case": "lebanon-observer",
+      "stage": "post-inputs",
+      "files": 1179,
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\post-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    }
+  ],
+  "payloads_unchanged": [
+    91,
+    94
+  ],
+  "clean_source_snapshots": true,
+  "complete_literal_comparisons": [
+    {
+      "case": "georgia-observer",
+      "file": "recording.acmi",
+      "bytes": 177607,
+      "sha256": "d5f4b57fc518d6934fb4d62eae8cb6700b1f76fa5c7ef00d53fa041ed5d7b55e",
+      "baseline": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\recording.acmi",
+      "complete_literal_equal": true
+    },
+    {
+      "case": "georgia-observer",
+      "file": "observations.jsonl",
+      "bytes": 1196680,
+      "sha256": "29be8ec647181c3836511cf164707c94799ab461c78a6568d9f47917ee701975",
+      "baseline": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\observations.jsonl",
+      "complete_literal_equal": true
+    },
+    {
+      "case": "georgia-observer",
+      "file": "metrics.json",
+      "bytes": 3155,
+      "sha256": "3944fab18592a6deb5b83cd1d9b592aea04a9475a7e375ef6599cd77689dd202",
+      "baseline": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\metrics.json",
+      "complete_literal_equal": true
+    },
+    {
+      "case": "lebanon-observer",
+      "file": "recording.acmi",
+      "bytes": 230871,
+      "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "baseline": "D:\\EECH-Migration-Evidence\\supply-boolean-default-3abf-runs-20261107\\ordinary_short\\recording.acmi",
+      "complete_literal_equal": true
+    },
+    {
+      "case": "lebanon-observer",
+      "file": "observations.jsonl",
+      "bytes": 1553674,
+      "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "baseline": "D:\\EECH-Migration-Evidence\\supply-boolean-default-3abf-runs-20261107\\ordinary_short\\observations.jsonl",
+      "complete_literal_equal": true
+    },
+    {
+      "case": "lebanon-observer",
+      "file": "metrics.json",
+      "bytes": 7477,
+      "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "baseline": "D:\\EECH-Migration-Evidence\\supply-boolean-default-3abf-runs-20261107\\ordinary_short\\metrics.json",
+      "complete_literal_equal": true
+    }
+  ],
+  "CRT_reports": [
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\crt.txt",
+      "sha256": "0de8d22509451b06d1f1090e8d0b9b3c5bcc2b0d76ea37bcb3f636f8185c1243",
+      "bytes": 2868,
+      "summary": "core-crt-summary schema=1 complete=1 problem=0 loads=1 ends=1 seeds=3 draws=1578750 pre=0 load=1578750 gap=0 digest=0xdea0d916 sites=11 marks=12 skins=2"
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\crt.txt",
+      "sha256": "0215f70639e6e62d1ae7a4b3668aa4319932bfc6a947bd52b160abb273004d92",
+      "bytes": 1202,
+      "summary": "core-crt-summary schema=1 complete=1 problem=0 loads=1 ends=1 seeds=3 draws=0 pre=0 load=0 gap=0 digest=0x811c9dc5 sites=1 marks=12 skins=2"
+    }
+  ],
+  "raw_artifacts": [
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\metrics.json",
+      "sha256": "3944fab18592a6deb5b83cd1d9b592aea04a9475a7e375ef6599cd77689dd202",
+      "bytes": 3155
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\native.stderr.log",
+      "sha256": "1b5f7e43cb58ead59b28bd0ef8413970681e5731ceb6d9f9db827ca84d513392",
+      "bytes": 42658
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\native.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\observations.jsonl",
+      "sha256": "29be8ec647181c3836511cf164707c94799ab461c78a6568d9f47917ee701975",
+      "bytes": 1196680
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\post-inputs.json",
+      "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+      "bytes": 208807
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\post-inputs.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\post-inputs.stdout.log",
+      "sha256": "64fe3fcb9d412fdb81591506d517a99936bd5bb8f88b0f3610fc37641920b04e",
+      "bytes": 345
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\pre-inputs.json",
+      "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+      "bytes": 208807
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\pre-inputs.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\pre-inputs.stdout.log",
+      "sha256": "64fe3fcb9d412fdb81591506d517a99936bd5bb8f88b0f3610fc37641920b04e",
+      "bytes": 345
+    },
+    {
+      "case": "georgia-ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\recording.acmi",
+      "sha256": "d5f4b57fc518d6934fb4d62eae8cb6700b1f76fa5c7ef00d53fa041ed5d7b55e",
+      "bytes": 177607
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\crt.txt",
+      "sha256": "0de8d22509451b06d1f1090e8d0b9b3c5bcc2b0d76ea37bcb3f636f8185c1243",
+      "bytes": 2868
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\metrics.json",
+      "sha256": "3944fab18592a6deb5b83cd1d9b592aea04a9475a7e375ef6599cd77689dd202",
+      "bytes": 3155
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\native.stderr.log",
+      "sha256": "b2527f8044d5203eaccca3dbf62f93fd81501ca0d22e61ca44267bdb5fd81f61",
+      "bytes": 42743
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\native.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\observations.jsonl",
+      "sha256": "29be8ec647181c3836511cf164707c94799ab461c78a6568d9f47917ee701975",
+      "bytes": 1196680
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\post-inputs.json",
+      "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+      "bytes": 208807
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\post-inputs.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\post-inputs.stdout.log",
+      "sha256": "5ddf797593327b007cbf627a39c5a019d6222671cc8ae9d53191c2c2e976a453",
+      "bytes": 345
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\pre-inputs.json",
+      "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+      "bytes": 208807
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\pre-inputs.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\pre-inputs.stdout.log",
+      "sha256": "5ddf797593327b007cbf627a39c5a019d6222671cc8ae9d53191c2c2e976a453",
+      "bytes": 345
+    },
+    {
+      "case": "georgia-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\recording.acmi",
+      "sha256": "d5f4b57fc518d6934fb4d62eae8cb6700b1f76fa5c7ef00d53fa041ed5d7b55e",
+      "bytes": 177607
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\crt.txt",
+      "sha256": "0215f70639e6e62d1ae7a4b3668aa4319932bfc6a947bd52b160abb273004d92",
+      "bytes": 1202
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\metrics.json",
+      "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "bytes": 7477
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\native.stderr.log",
+      "sha256": "21822c77fa4c5bb98287fc702df925da7bb047957d6e6d91ff43462e4a67169c",
+      "bytes": 42743
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\native.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\observations.jsonl",
+      "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "bytes": 1553674
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\post-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "bytes": 209622
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\post-inputs.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\post-inputs.stdout.log",
+      "sha256": "99e62c218fca74135785f838b59cccbce91efd449af3c23c27af04feeadfd983",
+      "bytes": 333
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "bytes": 209622
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\pre-inputs.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\pre-inputs.stdout.log",
+      "sha256": "99e62c218fca74135785f838b59cccbce91efd449af3c23c27af04feeadfd983",
+      "bytes": 333
+    },
+    {
+      "case": "lebanon-observer",
+      "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\recording.acmi",
+      "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "bytes": 230871
+    }
+  ],
+  "scope": "Actual fixed3case capture/noninvasiveness mechanical join only. Full reports private/unchanged. Observed Core counts not Host CRT/full per-draw proof; reload unmeasured. Source attribution/needed consumer and SAME actual review before any loader removal; all10/Task49/D3/fullpacks remainOPEN."
+}

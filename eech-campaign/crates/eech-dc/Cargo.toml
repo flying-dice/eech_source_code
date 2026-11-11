@@ -23,6 +23,10 @@ serde.workspace = true
 serde_json.workspace = true
 
 [features]
+# TEST-ONLY normal-fire/package/muzzle/birth correlation; no shipping API.
+normal-fire-correlation = ["weapon-fixture", "eech-engine/normal-fire-correlation"]
+# TEST-ONLY Core loader CRT observer; never a shipping profile.
+core-terrain-crt-observer = ["eech-engine/core-terrain-crt-observer"]
 # TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
 dependent-fixture = ["eech-engine/dependent-fixture"]
 dependent-fixture-old-guard = ["dependent-fixture", "eech-engine/dependent-fixture-old-guard"]
@@ -38,6 +42,8 @@ terrain-fixture = ["eech-engine/terrain-fixture"]
 aim-fixture = ["eech-engine/aim-fixture"]
 # TEST-ONLY (EEDCS-45): the physical weapon-execution characterisation trace, event log and controlled launch case. Never enabled in the shipping build.
 weapon-fixture = ["eech-engine/weapon-fixture"]
+# TEST-ONLY (EEDCS-49): the object and tree collision characterisation probe. Never enabled in the shipping build.
+collision-fixture = ["eech-engine/collision-fixture"]
 # TEST-ONLY (EEDCS-50): read-only questions to the original collision-model accessors. Never enabled in the shipping build.
 model-fixture = ["eech-engine/model-fixture"]
 # TEST-ONLY (EEDCS-50 D3): the shipping host-owned model data plus a diagnostic that counts the host's answers and overwrites the campaign's own model arrays. Never enabled in the shipping build.
@@ -50,6 +56,10 @@ env-observer = ["env-fixture", "eech-engine/env-observer"]
 ground-fixture = ["eech-engine/ground-fixture"]
 # TEST-ONLY (EEDCS-50, D3): the observer of the original airfield route parser (route_summary and route_call). Never enabled in the shipping build.
 route-fixture = ["eech-engine/route-fixture"]
+# TEST-ONLY (EEDCS-49, D3): the read-only observer of the sector tallest-structure word (sector_height_summary, _event, _clearance, _scan). Never enabled in the shipping build.
+sector-height-observer = ["eech-engine/sector-height-observer"]
+# TEST-ONLY (EEDCS-49, D3): the fixture method of the native server-session witness (session:sector_height_witness_save). Never enabled in the shipping build.
+sector-height-witness = ["eech-engine/sector-height-witness"]
 # TEST-ONLY (EEDCS-50, D3): keep the original airfield route parser (the original route characterisation). Never enabled in the shipping build.
 route-original = ["eech-engine/route-original"]
 # TEST-ONLY (EEDCS-52, D3): the observer of the original target-point query and offset census (target_point_summary, target_point_offsets, target_point_event). Never enabled in the shipping build.
@@ -76,3 +86,5 @@ unsafe_code = "forbid"
 # The Lua provider's number parsing is tested under round-toward-zero, as the engine entry runs a callback (EEDCS-50, D3).
 [dev-dependencies]
 eech-engine = { path = "../eech-engine", features = ["fpu-test-support"] }
+# the real host provider answers a physical flag question through this bridge (EEDCS-49, Task49)
+eech-world = { path = "../eech-world" }

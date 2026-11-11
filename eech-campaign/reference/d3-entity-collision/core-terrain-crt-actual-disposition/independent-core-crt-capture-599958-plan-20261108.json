@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T05:41:04.037065+00:00",
+  "review_kind": "Independent new actual Windows build/profile and concrete three-case capture prerequisite review only",
+  "plan_sha256": "134284354240d9588395e95579632dafea20297b1fad2f1769a9c3fff7984f5d",
+  "controller_sha256": "5db6802740703bb05220e53eb98d864bb4c3e63f7bd54dbbbaded00a4496485d",
+  "source_identity": {
+    "snapshot_commit": "599958ce961111f01c946245572a3757d8fe4ea0",
+    "compiled_observer_source": "552ee8e079b75626199c4e348ed0e986bc02b7ba",
+    "report_gate_source": "79784f4b3758eb4c6c7fbd05c78dca0417de3bc6",
+    "source_review_sha256": "af9501075b5f03df1f8e73808f743ad0748064c31d6dce8431ff85e1efbf1583",
+    "ordinary_control_runtime": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+    "qualification": "These are distinct immutable runtime/source identities. The new observer build is not a retained ordinary binary relabel; no old control/source review is reopened."
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/core-crt-matched-599958-capture-plan-20261108.json",
+      "bytes": 51994,
+      "sha256": "134284354240d9588395e95579632dafea20297b1fad2f1769a9c3fff7984f5d"
+    },
+    {
+      "path": "R:/d3-evidence/run-core-crt-matched-capture-20261108.py",
+      "bytes": 7506,
+      "sha256": "5db6802740703bb05220e53eb98d864bb4c3e63f7bd54dbbbaded00a4496485d"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-build-and-capture-plan-Root-binding-20261108.json",
+      "bytes": 1820,
+      "sha256": "8df2c609f5489c5a74931727361aa785aace01d6d3b26549b8ac0a0e5d4c0d4e"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-observer-599958-build-plan-20261108.json",
+      "bytes": 2058,
+      "sha256": "0f74a2cc060f6274e4d715fc5127dd9dae16dc0dacbf00d8b3367711560f2da6"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-observer-599958-20261108-completion.json",
+      "bytes": 17913,
+      "sha256": "8dc29a08ebf1a3029915596be8d1b3ee6e188245f98dc3c740c752c1d5fb237f"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-windows-profile-audit-v2-599958-20261108-completion.json",
+      "bytes": 1648,
+      "sha256": "288d2185b4c4e66d4c6637fd2004da282b3d6ed846a47600478ba50275689af0"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/core-crt-observer-599958-20261108-build/profile-audit-v2/profile.json",
+      "bytes": 10200,
+      "sha256": "070f6975321c0876530d78f90b62b58d5c592eec4bc0ca2d425a331dbf534402"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-source-snapshot-599958-20261108.json",
+      "bytes": 2071,
+      "sha256": "91d8cf8795506f10a559c7687c4a76d0445381fe0b53c3734293af083db52147"
+    },
+    {
+      "path": "R:/d3-evidence/independent-core-crt-endpoint-79784-source-20261108.json",
+      "bytes": 8959,
+      "sha256": "af9501075b5f03df1f8e73808f743ad0748064c31d6dce8431ff85e1efbf1583"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-matched-roots-preparation-20261108.json",
+      "bytes": 9881,
+      "sha256": "c97df20ddd9e771a9ad9574313d81bf1f9873eb5fa79b06a0ddbbeedd72fb925"
+    },
+    {
+      "path": "R:/d3-evidence/core-crt-retained-lebanon-control-binding-20261108.json",
+      "bytes": 4596,
+      "sha256": "92de9458aaeaf6dde2eb329dc328cc0e36b21fe2a222729c038a7f0292a164c4"
+    }
+  ],
+  "findings": [],
+  "new_build_and_profile_disposition": {
+    "status": "ACCEPTED_BOUNDED_BUILD_PROFILE_PREREQUISITES",
+    "actual_original_outer_session": 40571,
+    "actual_Cargo_container_controller_exits": [
+      0,
+      0,
+      0
+    ],
+    "actual_original_outer_exit": 0,
+    "observer_payloads": 94,
+    "ordinary_payloads": 91,
+    "actual_observer_feature_selection": [
+      "core-terrain-crt-observer"
+    ],
+    "retained_COFF_objects": 5,
+    "retained_staged_files": 2,
+    "audit_literal_files": 43,
+    "source_clean": true,
+    "image": "sha256:09b73ef12aa5202b2cf2869880d8ca4e17cf2783d637bc69a7ac5f32fd33f5e7",
+    "toolchain": "Actual retained profile reports rustc/cargo1.99.1 and GCC12-posix. No alternate/assumed producer identity is used.",
+    "compiled_evidence": "V2 audits the actual selected features, one observer symbol definition, absence of private observer DLL exports, compiler defines/relocations, archive/fingerprint/build log and both staged terrain/skin files against repository shipping+observer staging functions. The payload set94 is derived from this build, not assumed to be the old91.",
+    "reader_failure_qualification": "V1 incorrectly expected a direct srand in engine. The actual route is engine to set_random_number_seed to random.c and the CRT wrapper. The failed reader/output remains retained; the distinct V2 read-only audit passed without a product rebuild or campaign replay.",
+    "limit": "Build/profile0 proves a concrete diagnostic profile and provenance. It is not retail CRT capture, observer noninterference, loader removal, all-platform/FPU proof or shipping acceptance."
+  },
+  "matched_configuration": {
+    "cases": [
+      "georgia-ordinary",
+      "georgia-observer",
+      "lebanon-observer"
+    ],
+    "execution": "Strictly sequential, exactly one invocation per case; no automatic restart or alternate configuration/window/actor search.",
+    "arguments": [
+      "hours=0.001",
+      "frame_ms=100",
+      "seed=1",
+      "record=1",
+      "record_every=10",
+      "observe_every=1",
+      "observe_supply=1"
+    ],
+    "stop_qualification": "Explicitly accepted for this exact plan: stop is omitted exactly as in the retained ordinary invocation. The byte-identical bound campaign.lua references args.stop only in args.stop==conclusion; omitted and hours both produce false. Thus the plan preserves the same hours-limited semantics despite the earlier narrative spelling stop=hours. This does not authorize an arbitrary argument/configuration change.",
+    "literal_equivalence": "Both bundles bind the same campaign.lua, metrics.lua and observations.lua hashes. The observer uses the corrected wrapper hash196081ee and delegates its own same campaign client once. No second prepare/profile or custom campaign substitute is added.",
+    "retained_Lebanon": "The true3abf ordinary receipt/argv/direct0/full1179 pre/post inputs and three complete files are independently bound, with complete literal equality to the accepted80fd files. Reusing them here is the matched ordinary prerequisite only; it is not the new observer identity or a new baseline.",
+    "Georgia": "The genuinely missing counterpart is one new ordinary3abf short on its own fresh root. Its complete file hashes/paths are frozen after successful completion before the Georgia observer runs; nothing overwrites the accepted baseline.",
+    "roots": "Three distinct prepared unused roots. Reference rows are1174/1174 for the Georgia pair and1179 for Lebanon. The five separately engine-written initial configuration rows match within Georgia and with the retained Lebanon setting respectively; they are explicitly checked as well as the full immutable input rows. No new exclusions are introduced."
+  },
+  "controller_review": {
+    "immutable_prerequisites": "Before creating process/output state or launching, the controller rehashes23 plan bindings, exact source-review identity, all two-bundle payload file sets/hashes, frozen source HEAD/full status, input references, preparation receipts and exact case argv. The review itself must bind this exact plan/controller and decision.native_launch_clearance. Concrete roots/output paths are distinct from both active fullpacks; their output directories are absent and output parents exist.",
+    "identity_and_failure": "Actual child PID/GetProcessTimes birth, argv/cwd, timestamps and direct exit are persisted. Every completed native invocation is followed by the post-input stage before requiring native0; native/input/payload/source/binding failure stops subsequent cases. This does not promise postchecks after an external controller/OS interruption; any such interruption must preserve the original identity rather than be restarted implicitly.",
+    "complete_noninvasiveness_gate": "For both observers the controller requires native0 and the exact complete1/problem0 report prefix from the separately hash-bound driver, whose full report gate is already source-reviewed. It compares each COMPLETE ACMI/observations/metrics file directly byte-for-byte with its matched ordinary file. Georgia newly frozen hashes are rechecked before comparison; all retained Lebanon hashes are rechecked after each case. All six complete-file comparisons are required for terminal0.",
+    "raw_evidence": "Full pre/post manifests, raw logs, native report and comparisons are retained per case. Bindings and payloads/source status are rechecked after completed native work. The controller is not an independent reconstruction of the Core CRT draw trace; detailed report/consumer interpretation remains the subsequent actual-evidence review.",
+    "noninterference": "The controller reads the immutable source/binary/profile/baseline evidence and runs only on the three separate roots/output directories. It writes none of the active fullpack source/bin/root/output trees or accepted baseline files. Source/baseline/input drift fails rather than becoming a new comparator input."
+  },
+  "decision": {
+    "status": "EXACT_THREE_CASE_NATIVE_CAPTURE_PLAN_CONDITIONALLY_CLEARED",
+    "native_launch_clearance": true,
+    "allowed_plan": "R:/d3-evidence/core-crt-matched-599958-capture-plan-20261108.json",
+    "allowed_controller": "R:/d3-evidence/run-core-crt-matched-capture-20261108.py",
+    "allowed_case_count": 3,
+    "capture_accepted": false,
+    "observer_noninvasiveness_accepted": false,
+    "retail_CRT_fact_accepted": false,
+    "loader_removal_clearance": false,
+    "generic_NativeAcceptance1_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "limits_and_followup": [
+    "Clearance permits only the exact bound three-case controller invocation while its fresh-root/output/immutable prerequisites still hold. No native campaign or capture had been launched or accepted at this review. Unexpected failures or unequal complete files block following cases and need retained-evidence assessment; no rerun/window/tolerance/baseline change is authorized.",
+    "The source report P2 remains CLOSED_SOURCE at af9501. No source/kernel/CRT control is re-reviewed or replayed here. Actual captured raw rows need their own bounded review before asserting real constructor/cloud/skin/effective-season/draw/seed/first-consumer facts or noninvasiveness.",
+    "Absence of a FOREST branch, inactive skin or markers beyond the actual closing seed stays bounded NOT_REACHED/outside-window evidence. The Core-only compact report is not Host/library-internal CRT coverage, a collision-free per-draw trace, all reload/session histories or whole FPU preservation. UI/client reload remains source-blocked/unmeasured.",
+    "Current source CI is not inferred from prior-head success or from build/profile0. Final current CI/full current40all8/four inputs, final census/reviews/normal merge and all ten D3 requirements remain required as applicable.",
+    "Both original fullpacks and original process identities, sources/binaries/roots/outputs remain unchanged and incomplete; any prefix equality is PARTIAL only. No wholeheight/wholeflags/natural moving/DCS/Task49/D3 acceptance follows.",
+    "No reviewer cache execution, build/test/native/controller/preflight replay, source/Git mutation or nested delegation occurred. Only this new immutable external JSON report was written."
+  ]
+}

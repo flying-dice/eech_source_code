@@ -25,6 +25,7 @@
 #include "ai/ai_misc/ai_dbase.h"
 #include "ai/faction/faction.h"
 #include "ai/highlevl/setup.h"
+#include "entity/mobile/mb_hostplace.h"
 
 #include "eech_engine.h"
 #include "eech_headless.h"
@@ -176,6 +177,8 @@ static inline void engine_write_mxcsr (uint32_t value)
 	engine_write_mxcsr (caller_mxcsr); \
 	return (RESULT)
 
+#include "eech_flags_lifetime_check.h"
+
 const char *eech_engine_fatal_message (void)
 {
 	return eech_fatal_message;
@@ -308,12 +311,23 @@ static void boot (const struct eech_engine_config *config)
 	/* EEDCS-47: the extents and heights the core reads are the host's, before anything reads them */
 	campaign_terrain_install_map_facts ();
 	initialise_population_name_database ();
+	/* EEDCS-49: the host's roster of the sector lists and the campaign's keys for it end with the previous boot, before its entities are released */
+	campaign_place_reset ();
+#ifdef EECH_CORE_TERRAIN_CRT_OBSERVER
+	eech_core_crt_boundary ("before_reinitialise");
+#endif
 	reinitialise_entity_system ();
+#ifdef EECH_CORE_TERRAIN_CRT_OBSERVER
+	eech_core_crt_boundary ("after_reinitialise");
+#endif
 	campaign_roster_reset ();
 	campaign_supply_arrival_reset ();
 	campaign_object_reset ();
 
 	/* GUNSHIP_TYPE (host) */
+#ifdef EECH_CORE_TERRAIN_CRT_OBSERVER
+	eech_core_crt_boundary ("before_create");
+#endif
 	create_campaign (get_current_game_session ());
 	setup_campaign ();
 	create_server_pilot ();
@@ -1515,6 +1529,9 @@ extern int eech_wpn_events_get (char *text, int capacity);
 extern int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int capacity);
 extern int eech_wpn_case_kind_run (const char *host_id, char *text, int capacity);
 extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
+extern int eech_wpn_moving_query_prepare_run (const char *host_id, char *text, int capacity);
+extern int eech_wpn_moving_query_run (char *text, int capacity);
+extern int eech_wpn_city_lifecycle_run (char *text, int capacity);
 
 int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity, const struct eech_engine_host *host)
 {
@@ -1695,6 +1712,63 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_wpn_case_launch_run (launcher_id, target_id, weapon, salvo_count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* TEST-ONLY controlled moving entity query case (eech_wpn_fixture.c): the model provider installed at boot answers the production caller's questions, so no entry host is needed */
+int eech_engine_wpn_moving_query_prepare (const char *host_id, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_moving_query_prepare_run (host_id, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_wpn_moving_query_run (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_moving_query_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* TEST-ONLY CITY box lifecycle witness (eech_wpn_fixture.c, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): one real bound city drained, relinked empty and restored, relisted and queried through the real shared services, against
+   the model provider installed at boot; a prerequisite that does not hold is reported in the text and returns normally, never as a pass */
+int eech_engine_wpn_city_lifecycle (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_city_lifecycle_run (text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -2121,6 +2195,97 @@ int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text
 
 #endif
 
+#ifdef EECH_SECTOR_HEIGHT_OBSERVER
+/*
+ * TEST-ONLY (feature sector-height-observer, EEDCS-49 D3): the read-only report of the sector tallest-structure observer (eech_sho.c, docs/d3-sector-height-public-baseline-plan.md).
+ * Each entry takes the engine lock like the other observer entries and fails as a bad argument when the report does not fit or the index was not recorded. No host is used.
+ */
+extern int eech_sho_summary_run (char *text, int capacity);
+extern int eech_sho_event_run (int index, char *text, int capacity);
+extern int eech_sho_clearance_run (int index, char *text, int capacity);
+extern int eech_sho_scan_run (int index, char *text, int capacity);
+
+int eech_engine_sho_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_sho_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sho_event (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_sho_event_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sho_clearance (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_sho_clearance_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sho_scan (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_sho_scan_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+#endif
+
+#ifdef EECH_SECTOR_HEIGHT_WITNESS
+
+/*
+ * TEST-ONLY (EEDCS-49 D3; feature sector-height-witness): the campaign's own server-session save of the live session (eech_hw_witness.c). The model provider installed at boot answers the sector height reads
+ * the pack makes (phase 17), so no entry host is needed, as for the controlled moving query. Refused arguments and preconditions are bad arguments whose reason is in the report; a campaign fatal inside
+ * the save stops the engine through the entry's own fatal path.
+ */
+extern int eech_hw_session_save_run (const char *name, char *text, int capacity);
+
+int eech_engine_sh_witness_save (const char *name, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!name || !text || (capacity <= 0) || (eech_hw_session_save_run (name, text, capacity) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+#endif
+
 #ifdef EECH_ROUTE_FIXTURE
 
 /*
@@ -2246,4 +2411,111 @@ int eech_engine_target_point_setup (char *text, int capacity)
 	LEAVE (EECH_ENGINE_OK);
 }
 
+#endif
+
+#ifdef EECH_COLLISION_FIXTURE
+
+/*
+ * TEST-ONLY object and tree collision characterisation (EEDCS-49): one probe of the original get_line_of_sight_collision_entity and
+ * get_line_of_sight_collision_tree against the loaded world (eech_collision_fixture.c). It runs inside the engine entry, so it sees EECH's
+ * round-toward-zero mode as the campaign's own queries do, and it needs no host: neither query asks one. It snapshots the shared terrain
+ * point record and writes it back byte for byte, and compares the game's random stream and the collision candidates' state before and
+ * after. The report is text, `key=value` lines; no pointer, address or entity index is in it except the diagnostic legacy fold.
+ * A request the probe refuses (a precondition) or whose report does not fit writes `col-refused reason=...` and is a bad argument.
+ */
+extern int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity);
+extern int eech_collision_geometry_arm_run (int on);
+
+int eech_engine_collision_probe (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		/* a probe that was entered consumes any arming of the controlled geometry witness, whatever refuses it */
+		(void) eech_collision_geometry_arm_run (0);
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (entity_cases < 0) || (entity_cases > 20000) || (tree_cases < 0) || (tree_cases > 20000))
+	{
+		(void) eech_collision_geometry_arm_run (0);
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_collision_probe_run (seed, entity_cases, tree_cases, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_COLLISION_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-49): the optional private tree-query transcript of the collision probe (eech_collision_fixture.c). Arming clears it; the probe fills it while it
+ * runs its tree queries; reading returns the state and facts or a bounded chunk of records. It touches no campaign state and needs no host.
+ */
+extern int eech_collision_trace_arm_run (int on);
+extern int eech_collision_trace_read_run (int kind, int offset, int count, char *text, int capacity, int *total);
+
+int eech_engine_collision_trace_arm (int on)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	(void) eech_collision_trace_arm_run (on);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_collision_trace_read (int kind, int offset, int count, char *text, int capacity, int *total)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || !total || (capacity <= 0) || (kind < 0) || (kind > 1) || (offset < 0) || (count < 1) || (count > 256))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_collision_trace_read_run (kind, offset, count, text, capacity, total) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_COLLISION_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-49): arms the controlled forest geometry witness for the NEXT collision probe only (eech_collision_fixture.c). The probe consumes the arming whatever its
+ * outcome. It touches no campaign state and needs no host; armed or not, the shipping module has no such entry.
+ */
+extern int eech_collision_geometry_arm_run (int on);
+
+int eech_engine_collision_geometry_arm (int on)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	(void) eech_collision_geometry_arm_run (on);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_CORE_TERRAIN_CRT_OBSERVER
+int eech_engine_core_terrain_crt_summary (char *text, int capacity)
+{
+    ENTER (OPERATION_OBSERVE, NULL);
+    if (state != ENGINE_RUNNING) { LEAVE (EECH_ENGINE_STATE); }
+    if (!text || capacity <= 0 || eech_core_crt_report (text, capacity)) { LEAVE (EECH_ENGINE_BAD_ARGUMENT); }
+    LEAVE (EECH_ENGINE_OK);
+}
 #endif

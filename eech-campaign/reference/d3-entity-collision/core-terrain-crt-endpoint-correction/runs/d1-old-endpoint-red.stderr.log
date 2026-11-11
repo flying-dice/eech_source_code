@@ -1,0 +1,8 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.55s
+     Running tests/core_terrain_crt_driver.rs (/target/t/debug/deps/core_terrain_crt_driver-fd8a90b44668fc35)
+
+thread 'multi_phase_final_singleton_has_its_own_last_endpoint' (97) panicked at crates/eech-world/tests/core_terrain_crt_driver.rs:198:24:
+a site's sole final-phase draw must also be its last draw: ()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-world --test core_terrain_crt_driver`

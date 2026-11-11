@@ -1,0 +1,9 @@
+[
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json",
+  "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+  "eech-campaign/crates/eech-engine-sys/tests/normal_fire_query.rs",
+  "eech-campaign/crates/eech-engine-sys/tests/physical_flags_collision.rs",
+  "eech-campaign/crates/eech-engine-sys/tests/support/lua_provider.rs",
+  "eech-campaign/docs/d3-normal-fire-test-isolation.md"
+]

@@ -1,0 +1,92 @@
+{
+  "schema": "safe_projection_not_literal_copy",
+  "private_original": {
+    "path": "R:\\d3-evidence\\normal-fire-56d1b-terminal-Root-binding-20261108.json",
+    "bytes": 3769,
+    "sha256": "4f1f331cb2ea5f95378f455dece3435cf0c28c9eb08e125189b4acbe8dcf59fd"
+  },
+  "removed_fields": [
+    "first_minus_one.line"
+  ],
+  "projection": {
+    "observed_utc": "2026-11-08T11:06:09.527898+00:00",
+    "reader_sha256": "266240c26be7531aff3608dbe786eb01f70d35689689c2c5ea60c9101d223bdf",
+    "session": 33010,
+    "controller_actual_exit": 1,
+    "native_actual_exit": 1,
+    "controller_PID": 18712,
+    "native_PID": 17424,
+    "original_process_IDs_absent": true,
+    "completion_sha256": "542e078dc4fa8c7820636e765810cbdcea09be9c6ccdf29a979adb2275b23653",
+    "plan_sha256": "9bc2f29a955f120c172fbb275ce5a242a80ea679426fc4ec720a01d75b5285ba",
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "diagnostic_git": "56d1b7e31c8e4c4b45ed41f45c0e984ce7bbe6d8",
+    "report_sha256": "e220f5de2bb226bcd357d77752fccc16cb6a5dd68b929a7df1293addb9d7eb7a",
+    "events_sha256": "efafe1bced72210778b30c187a59f55d86235ee1b70f589c90169be6a6822cef",
+    "raw_bytes": 109435851,
+    "reported_counts": {
+      "frames": "1497",
+      "fires": "0",
+      "births": "0",
+      "steps": "0",
+      "queries": "0",
+      "model_calls": "0",
+      "moving": "0",
+      "failed": "1",
+      "changed": "0"
+    },
+    "raw_consecutive_normal_records": 314092,
+    "last_tick_ms": 149600,
+    "raw_kind_counts": {
+      "normal_fire": 296,
+      "normal_detach": 296,
+      "normal_birth": 296,
+      "normal_end": 296,
+      "normal_step": 155096,
+      "normal_step_end": 155096,
+      "normal_query": 8,
+      "normal_model": 2700,
+      "normal_query_end": 8
+    },
+    "raw_query_selectors": {
+      "0": 2,
+      "-1": 6
+    },
+    "first_minus_one": {
+      "file_line": 313426,
+      "seq": 312274,
+      "tick": 149600,
+      "tick_ms": 149600,
+      "selector": -1
+    },
+    "post_inputs": [
+      {
+        "path": "D:\\EECH-Migration-Evidence\\normal-fire-capture-56d1b-20261108-runs\\01-healthy\\pre-inputs.json",
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+        "files": 1179
+      },
+      {
+        "path": "D:\\EECH-Migration-Evidence\\normal-fire-capture-56d1b-20261108-runs\\01-healthy\\post-inputs.json",
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+        "files": 1179
+      }
+    ],
+    "payloads_unchanged": 97,
+    "artifact_hashes_unchanged": {
+      "driver": "73b3d2cc847f3274a28067ca79338fa47db50e7fc9181cbc10f21f9c761913aa",
+      "collector": "5b4deb11bae278c5d51c707d707785e4c9386f28c76c761ff46722633ac78848",
+      "transaction": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+      "contract": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+      "controller": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+      "validator": "f9919158c045e17d6e0f2871bfad8c2feecc25e14c813165c1d7d235dc918e62",
+      "common": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+      "common_validator": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+      "input_tool": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+      "input_reference": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4"
+    },
+    "B_prepared": false,
+    "B_launched": false,
+    "source_failure": "Exact source domain{-1,0,1}; old Lua/Python reject legitimate no-target selector-1. Raw events retained; no native replay for diagnosis.",
+    "qualification": "Root mechanical binding of terminal FAILED1497-frame run, NOT full1500/UNREACHED/physical authority/cutover/all10. Failure report zero traffic counts are fallback after latched finish failure, not absence of real fires/births; measured raw counts below are separate. Prior default COMPLETEPASS remains acceptedf0/8a14; no baseline/tolerance/scenario change."
+  }
+}

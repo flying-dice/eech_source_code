@@ -1,0 +1,18 @@
+{
+  "provider": "codex_agent",
+  "state": "completed",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T11:58:55.501234+00:00",
+  "started_time_qualification": "Actual service-agent checkpoint, not OS PID/birth/CLI exit",
+  "source_before": "b50203d48cb46be1dbe52e062b0516d0afa587e4",
+  "scope": "ONE actual public-session finalization and fixed-cohort zero-witness rejection accounting fix; retain actualFAIL1500, no new retail/default/Windows build/native launch or all10 closure.",
+  "completed_observed_utc": "2026-11-08T12:46:24.460321+00:00",
+  "completion_qualification": "Root observed actual Codex service FINAL_ANSWER; no OS PID or CLI exit fabricated",
+  "delivery_state": "FROZEN_TESTED_LF_CLEAN_PUSHED_STOP_FOR_SAME_COMBINED_CANDIDATE_CONTRACT",
+  "CODE": "6821894e9dd7fcd8f859f5a0a490573bc7c0138d",
+  "META": "e333fa14bc73529d51fa597ac229272546fc96ea",
+  "final_session": 25606,
+  "cache_lease": "released"
+}

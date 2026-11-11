@@ -1,0 +1,49 @@
+{
+  "prefix": "flags-sb120-",
+  "label_regex": "^[rgd]\\d+-",
+  "declared_helper": "check-physical-flags-sb120-linux-20261107.sh",
+  "records": 5,
+  "rows": [
+    {
+      "record": "flags-sb120-d1-fmt-apply.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sb120-g1-green-supply-hosted.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sb120-g2-green-supply-original.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sb120-r1-red-supply-hosted.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-sb120-r2-red-supply-original.json",
+      "state": "terminal",
+      "actual_exit": 101,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    }
+  ],
+  "problems": []
+}

@@ -1,0 +1,281 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "codex-d3-native-read-correction-20261108-process.json",
+      "sha256": "0e3b1969c537a3d6ecbe2692c29d65a0705769f60e4876b60e4b408bdd37aab9"
+    },
+    {
+      "path": "codex-d3-native-read-implementation-20261108-completion.json",
+      "sha256": "6f959bb5b1fb4c7c0f9123e13351ba3a310c26da92a6f796913ae9c77c9ab95a"
+    },
+    {
+      "path": "D3-NATIVE-READ-CORRECTION-FROZEN-20261108.json",
+      "sha256": "40f3cad901ec661d6c8bf0a634a1248ecf401f899e89096fccb7599607d001ff"
+    },
+    {
+      "path": "independent-native-flag-read-48570-source-controller-20261108-v2.json",
+      "sha256": "5218cff150ed3a145a08cea4a338c71d1f32665c3cbe5a2ccaf87c73c14fe100"
+    },
+    {
+      "path": "independent-native-flag-read-48570-source-controller-20261108.json",
+      "sha256": "5c367013bc5168fd5bc50dd7c069fce399eb6f21f264a87fdf526eb56ed202ba"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "sha256": "0caf45cd5faab4a29d43925597aedeadac672d28f282ddbd7451e34fb0b9f35d"
+    },
+    {
+      "path": "native-read-48570-Root-binding-20261108.json",
+      "sha256": "d3f735a16e9e26e934911ab0b6b4cf76438d5284abc62ec844a46830bbd37d05"
+    },
+    {
+      "path": "native-read-602f-all9-CI-terminal-20261108.json",
+      "sha256": "d428ded7eb6a400024ef320beb89dc5197888b9f058f0aacdd7edaa6af3387b2"
+    },
+    {
+      "path": "native-read-602f-CI-job-128609409557-20261108.log",
+      "sha256": "1a6b16cb456871501e185f9d5d85e0bd36a10758303398d99a8fab98a681804f"
+    },
+    {
+      "path": "native-read-602f-CI-job-128609409742-20261108.log",
+      "sha256": "3620b9d4a2e0aa3127571ac3fba1f52d948580b77ef70d8b27a9d67bc0846a13"
+    },
+    {
+      "path": "native-read-602f-CI-job-128609409746-20261108.log",
+      "sha256": "f2ffcc5c4229638df777c126272b817a26edd41601cb50ddf4747823642c3e7e"
+    },
+    {
+      "path": "native-read-602f-CI-job-128609409784-20261108.log",
+      "sha256": "dc8cfa0f4bf6632736923817451525bc033311db9304c28dd27afde0d113bb0c"
+    },
+    {
+      "path": "native-read-602f-CI-job-128609409851-20261108.log",
+      "sha256": "21e1e5932ac0e9fa53938ad1338e7d4a79b7ee8ed72bbc152ad6e1c7ae319778"
+    },
+    {
+      "path": "native-read-602f-Root-publication-20261108.json",
+      "sha256": "488039376bf32e62a75b671d9b3b056081cc443e30efd6b2355562b606b9db98"
+    },
+    {
+      "path": "native-read-nr602-materialized-plan-v2-20261108.json",
+      "sha256": "4ee21a2c6598787c598247f6059f3f1339a49333ad737ac4b6df1857c8e87d53"
+    },
+    {
+      "path": "native-read-nr602-staging-readonly-preflight-v2-20261108.json",
+      "sha256": "1eff56e0d5d14995c95ab5048e4e2ba50f2233919a061879757dc614f043ea46"
+    },
+    {
+      "path": "nr602-extra-POST-20261108.json",
+      "sha256": "8ec3b165902247ece0b93c0e33e66962495fe2316ef8f585ae3d625ec7092b49"
+    },
+    {
+      "path": "nr602-extra-PRE-20261108.json",
+      "sha256": "8ec3b165902247ece0b93c0e33e66962495fe2316ef8f585ae3d625ec7092b49"
+    },
+    {
+      "path": "nr602-family-exclusive-20261108.json",
+      "sha256": "b33115b583fc08e5fb4ace056c2c6519b165a521ead6ad545ec2941f26fc8606"
+    },
+    {
+      "path": "nr602-final-completion-20261108.json",
+      "sha256": "081d601e9e37f83fbace6a9192a08c7e940d0201dd83d91c287db334853f00d5"
+    },
+    {
+      "path": "nr602-helper-derivation-20261108.json",
+      "sha256": "5d014466cba2e377a53468993d8c98c719bebdc7d2a21671ef25f5d0dc4cf8b9"
+    },
+    {
+      "path": "nr602-inputmap-POST-20261108.json",
+      "sha256": "8ad60584535d186b60ebc805c9718dbd44403f438bc25fa03168238e183107d8"
+    },
+    {
+      "path": "nr602-inputmap-PRE-20261108.json",
+      "sha256": "8ad60584535d186b60ebc805c9718dbd44403f438bc25fa03168238e183107d8"
+    },
+    {
+      "path": "nr602-POST-utc-20261108.txt",
+      "sha256": "dfd5b5ded5883247c67edb307daf5f9ab5a0c3f56a4475fa09dcdca4b5703faa"
+    },
+    {
+      "path": "nr602-PRE-utc-20261108.txt",
+      "sha256": "5431577818360609ff8867efa8423d321e5db7e53a57a49edb78077238297442"
+    },
+    {
+      "path": "nr602-production-prefix-identity-20261108.json",
+      "sha256": "99c92ff75e1df620d58d3dba6880a16237506449e048f47dca3f4a29b90106cf"
+    },
+    {
+      "path": "nr602-readers-PRE-20261108.json",
+      "sha256": "2f74bfc2a28fedb49a2eaa2562ea3bb96a57f65a39e0305a650e2b926ebec252"
+    },
+    {
+      "path": "README.md",
+      "sha256": "22c2ecae9d1984c50262c3ad44ab87d756261425aa8d2736bdab42e2577bed3d"
+    },
+    {
+      "path": "Root-native-read-feedback-Wine-Python-CI-20261108.json",
+      "sha256": "fb4832ac7ca4ae316d0e0312000f6666ccac7ef445a2bc38a885451ac3127c6d"
+    },
+    {
+      "path": "runs/d1-refusal-red.json",
+      "sha256": "6c9cb7adc193125d4ee0c28f836fbe331b83b956f71fdd90cdb873dfbc6d49ea"
+    },
+    {
+      "path": "runs/d1-refusal-red.stderr.log",
+      "sha256": "82f09f6f98cb0fa3f421cbc56da0a6447aabdc1a56bcf4deaf7194f1f84a799f"
+    },
+    {
+      "path": "runs/d1-refusal-red.stdout.log",
+      "sha256": "251b58e8f5f278879d2014f164aa24c9711a5c00102e39b1b619f69a77c54b34"
+    },
+    {
+      "path": "runs/d2-refusal-green.json",
+      "sha256": "82c66e7c831f2289eb89a592bb80300bc2f8dd0e8f5ab41e489cb83a1de63e8a"
+    },
+    {
+      "path": "runs/d2-refusal-green.stderr.log",
+      "sha256": "fc04b97743af4f05402927a2bddae1e1eb07e8947bbc3fd067f306bfc10d5243"
+    },
+    {
+      "path": "runs/d2-refusal-green.stdout.log",
+      "sha256": "0240fd508ca9a318577978bffa2a4868907064084641eee545b473af9490c2d6"
+    },
+    {
+      "path": "runs/d3-lua-and-census.json",
+      "sha256": "d8dd8c524dab87e190ce6d8f0ba3d6588a10d29c1a777354b65770c27a119743"
+    },
+    {
+      "path": "runs/d3-lua-and-census.stderr.log",
+      "sha256": "75a5a707b2852bdc1f177259db2b0a11f4c006e4b6e105e1e0f067000a6bfe31"
+    },
+    {
+      "path": "runs/d3-lua-and-census.stdout.log",
+      "sha256": "71ba552a7b34d8a55c5846334fed2a7759486e5a47aef26d025667a065cfdcb2"
+    },
+    {
+      "path": "runs/d4-fmt-apply.json",
+      "sha256": "3ea1edf37da0da62379bc90d2a40462d048edc657918ecd9520d554e49bac36b"
+    },
+    {
+      "path": "runs/d4-fmt-apply.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/d4-fmt-apply.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/d5-clippy.json",
+      "sha256": "274982bb6f61b9d37c7b18acf57fce894d3cb3154f47af508d2194c41f9178f9"
+    },
+    {
+      "path": "runs/d5-clippy.stderr.log",
+      "sha256": "0cb9e0056166b78e7576455bad4a007177a3dc52b8a12f8f3137f743bbdd1d74"
+    },
+    {
+      "path": "runs/d5-clippy.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s1-fmt.json",
+      "sha256": "188c446ca910f048289fee0b81dadbd839d2dc78aa058fc7744de39fd14e0809"
+    },
+    {
+      "path": "runs/s1-fmt.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/s1-fmt.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/s2-clippy.json",
+      "sha256": "3b3d0c157d03204d86d6645c4bbf219c9799286c8441dc2ca33fbb916c660a10"
+    },
+    {
+      "path": "runs/s2-clippy.stderr.log",
+      "sha256": "b5e41cc5225b2992b97e511371a86917dc151367f246f825bcdefaffb6929219"
+    },
+    {
+      "path": "runs/s2-clippy.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s3-read-driver.json",
+      "sha256": "e41cc290b6a33d3a8f2eefb9027cd4e192e994f0bd6866770be427dcee09e3e5"
+    },
+    {
+      "path": "runs/s3-read-driver.stderr.log",
+      "sha256": "0e1c319112808bb8bf2670b88328c59c584379f0bb17954b7a5821d4bda6fd08"
+    },
+    {
+      "path": "runs/s3-read-driver.stdout.log",
+      "sha256": "936bb5e0fcb55a419ba52efd3c88dcd654fcd36a07df68363da01d6a348e0574"
+    },
+    {
+      "path": "runs/s4-converter.json",
+      "sha256": "c316f57183e71e5b9c717e34305e8d4e1ceea58f0b87b1e7e763a3c79f365e1c"
+    },
+    {
+      "path": "runs/s4-converter.stderr.log",
+      "sha256": "a0dae63c25cabf887baf5139ccd4c9ff506c6df0ce83abe6c4a81a34ff9498ac"
+    },
+    {
+      "path": "runs/s4-converter.stdout.log",
+      "sha256": "0240fd508ca9a318577978bffa2a4868907064084641eee545b473af9490c2d6"
+    },
+    {
+      "path": "runs/s5-census.json",
+      "sha256": "b32082b28517a11dcf18a5fea5ffe513c578c98aa128c7d0b2108ffdbfaca3c8"
+    },
+    {
+      "path": "runs/s5-census.stderr.log",
+      "sha256": "732c2c8b36b969b88456b72205f8a0785f3077320836c7042804a14166d4a457"
+    },
+    {
+      "path": "runs/s5-census.stdout.log",
+      "sha256": "3599260d82fc29974ea7d2c8811d72f91e230c68978f94487ceecfeeaaab6787"
+    },
+    {
+      "path": "scripts/check-physical-flags-nr602-linux-20261108.sh",
+      "sha256": "4057cac09794a133bd91003008418bed246002962b956aad75857682d74f46d5"
+    },
+    {
+      "path": "scripts/nr602-add-dc-check-20261108.py",
+      "sha256": "66bd04660ba3b5a5a894e8752b89efd7da0e7cfff605bd7d436535203d336132"
+    },
+    {
+      "path": "scripts/nr602-derive-helpers-20261108.py",
+      "sha256": "423c96a5f8835b0a8f56583b2b07690b63a47bea5bac2b3593915f095989f330"
+    },
+    {
+      "path": "scripts/nr602-derive-proof-20261108.py",
+      "sha256": "820ba6f137c0cf6c9b02d823c3cc8990ed652cd9fef26e597a40aa41cc098710"
+    },
+    {
+      "path": "scripts/nr602-proof-20261108.py",
+      "sha256": "95bd0a34e028878ed99697b6effbb5685f2fcb0a98b85d11d8a1f6ba49fe87bf"
+    },
+    {
+      "path": "scripts/nr602-provenance-20261108.py",
+      "sha256": "ae4f3ee686d0249ae2a15e90ee7859e906e90deb6806305f81f487f5b0cedc59"
+    },
+    {
+      "path": "scripts/run-nr602-final-20261108.py",
+      "sha256": "9b46319d16fa1015fb112e6556a6eb341a519ad8b7e2a90b025e362e1e71db86"
+    },
+    {
+      "path": "scripts/run-physical-flags-nr602-direct-20261108.py",
+      "sha256": "a2e162255f95ac6f24f84d3605b6642caa88d5da13bc2f3f7699aff16f81f81b"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    }
+  ],
+  "scope": "Diagnostic-only correction: actual MODEL_BRIDGE/call_model refused channel and exact reason/table, scripted boot/SCENE, real canonical refusal over existing tiny-format model root; no successfulEngineboot/native campaign. Nine existing Unix controls incl seven actual-Lua-report validators/five Python controls; all eight Lua controls remain on Windows/Wine, external Python aggregate Unix-only. Census exact66/2 with guards unchanged. Raw module.rs adds only cfg(test) declaration; production converter prefix/NUL unchanged3abf, whole rawfile differs. Runtime same old3abf91payloads; no rebuild/relabel. No native/retail/fullpack launch; V2materialized plan/preflight0 only. All10/NativeAcceptance1/Task49/D3/currentCI/full40all8/fourinputs/review/merge open as applicable."
+}

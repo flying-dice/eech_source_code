@@ -1,0 +1,91 @@
+cargo 1.99.1 (5f94df478 2026-08-27)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+test the_build_defines_the_hosted_narrow_phase_only_where_the_host_model_operations_exist ... ok
+test the_ordinary_entity_narrow_phase_has_no_physical_solver_and_the_original_profile_keeps_its_own ... ok
+test the_face_wrappers_are_compiled_only_for_a_build_that_keeps_an_original_solver ... ok
+test the_candidate_dialogue_names_its_own_identity_label_and_the_narrow_phase_keeps_its_own ... ok
+test the_ordinary_entity_scan_asks_the_host_to_decide_each_candidate_and_the_original_profile_keeps_its_own_decisions ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 4 tests
+test the_hosted_entity_decision_is_compiled_only_with_the_hosted_movement_and_identities_that_give_every_mobile_a_record ... ok
+test every_mobile_creator_binds_the_identity_by_the_group_link_before_the_sector_list_the_scan_reads_and_a_missing_group_is_refused ... ok
+test a_loss_and_a_group_unlink_keep_the_identity_and_the_record_until_the_heap_slot_is_released_and_a_scan_never_sees_a_released_one ... ok
+test only_aircraft_and_vehicles_are_collidable_mobiles_and_every_kind_is_bound_with_a_pose_record ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.67s
+
+
+running 20 tests
+test an_expanded_boxs_axis_order_is_checked_from_the_raw_words_before_any_word_of_the_callers_box_is_written ... ok
+test the_funnel_reports_an_insertion_after_the_list_is_written_and_a_removal_while_the_entity_is_in_it ... ok
+test a_non_mobile_candidate_names_the_placement_the_host_served_it_by_and_a_mobile_still_names_its_identity ... ok
+test a_hosted_mobiles_record_is_made_current_before_the_insertion_of_a_sector_change_and_it_is_placed_exactly_once ... ok
+test the_hosted_scan_takes_its_entry_from_the_hosts_key_and_the_campaigns_list_is_only_the_mirror ... ok
+test a_released_slot_ends_its_placement_before_the_roster_and_a_boot_ends_the_keys_before_the_entities ... ok
+test the_shipping_cities_box_expansion_is_the_hosts_and_the_original_physical_body_stays_only_in_the_original_fixture_build ... ok
+test every_writer_of_a_placed_citys_position_or_box_states_them_through_the_one_funnel_after_the_write ... ok
+test the_reporter_states_the_sub_type_the_host_derives_its_rules_from_and_never_the_flags_the_campaign_derived ... ok
+test the_city_release_is_the_phase_the_provider_and_the_driver_classify_and_the_campaign_states_it_while_it_holds_the_name ... ok
+test the_no_host_extractions_of_the_list_funnel_carry_the_hook_header_that_compiles_every_report_away ... ok
+test the_city_lifecycle_witness_uses_only_the_real_shared_services_and_asks_the_host_nothing_itself ... ok
+test a_citys_sector_placement_is_relinked_by_the_shared_fixed_setter_while_its_buildings_stay_listed_and_the_wire_domains_are_derived ... ok
+test every_writer_of_a_field_of_a_fixed_entitys_collision_state_states_it_to_the_hosts_record ... ok
+test a_fixed_entitys_sub_type_has_these_writers_each_before_the_insertion_or_stated_by_the_setter ... ok
+test a_session_unpack_writes_the_record_before_the_insertion_and_every_creator_completes_the_state_before_it_inserts ... ok
+test the_fixed_family_is_the_types_that_carry_the_fixed_record_the_funnel_is_the_last_step_of_both_insertions_and_raw_setters_are_the_creators_alone ... ok
+test every_write_to_a_sector_list_goes_through_the_funnel_and_every_insertion_is_at_the_head ... ok
+test every_write_to_the_city_building_list_goes_through_the_funnel_and_a_scan_reads_the_hosts_list ... ok
+test the_cities_position_and_box_have_exactly_these_writers ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.85s
+
+
+running 3 tests
+test the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open ... ok
+test every_byte_must_arrive_and_the_unpack_must_not_overflow_or_the_loader_stops_by_name ... ok
+test the_unpack_side_still_returns_its_overflow_and_the_pack_side_still_sizes_to_the_last_used_byte ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 7 tests
+test every_file_that_writes_or_reads_the_height_is_in_the_engine_source_list ... ok
+test the_consumers_read_it_once_per_served_sector_or_before_the_hosted_movement_and_the_host_already_takes_it_as_a_fact ... ok
+test the_save_is_the_last_32_raw_bits_of_a_server_session_sector_record_and_the_sectors_are_unpacked_before_any_entity ... ok
+test the_raise_is_a_fixed_entity_at_a_sector_list_link_by_position_y_plus_the_box_top_and_nothing_lowers_it ... ok
+test the_box_top_is_the_hosts_in_every_profile_but_the_original_model_fixture_and_nine_fixed_families_can_raise_the_height ... ok
+test the_legacy_field_is_neither_read_nor_written_in_a_hosted_build_and_the_host_is_asked_at_exactly_the_getter_and_the_unpack ... ok
+test the_field_is_written_by_the_zero_fill_the_link_response_and_the_unpack_and_read_by_the_getter_and_the_pack_only ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.56s
+
+
+running 4 tests
+test the_feature_is_defined_empty_never_default_and_its_macro_is_set_only_for_it ... ok
+test the_witness_translation_unit_preprocesses_to_nothing_without_its_feature_and_calls_only_store_session ... ok
+test the_lua_method_and_the_engine_wrapper_exist_only_behind_the_feature ... ok
+test the_engine_entry_and_its_declaration_exist_only_inside_the_feature_block ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+
+running 2 tests
+test the_build_defines_the_hosted_query_in_every_build_but_the_original_characterisation ... ok
+test the_ordinary_tree_query_has_no_physical_solver_and_the_original_profile_keeps_its_own ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

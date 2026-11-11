@@ -1,0 +1,9 @@
+
+running 1 test
+physical flags consumer expectations made: 56
+physical-flags-consumer: consumer=response_to_check_mobile_reached_guide via message_responses[FIXED_WING][CHECK_MOBILE_REACHED_GUIDE]
+
+test the_original_fixed_wing_arrival_response_reads_the_raw_updated_mask_destructively_only_on_its_pass_through_branch ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

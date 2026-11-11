@@ -1,0 +1,212 @@
+{
+  "kind": "files and tool identity read by the final checks of the public witness batch (outside the batched input map)",
+  "files": [
+    {
+      "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+      "bytes": 42877,
+      "sha256": "1420d7c8d7d80eda48819dd1f904018ae4a1480dc71591ec9fda5d078bbb83df",
+      "git_hash_object": "d062253d56aa80af0ace1fa9e216a1ad8c3e038d"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+      "bytes": 50113,
+      "sha256": "9a8ca4dbfe376dab8bedace467049f629a7dbfe934f84cfe42f44f41bc3216ed",
+      "git_hash_object": "68a79d5cfbfc5bebed888d84adb44beecc9d1778"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows-sector-height-witness.sh",
+      "bytes": 2660,
+      "sha256": "7534adaa89d8698a14bf24784beadb92fb5b3e353a922ca694d13cf53822d218",
+      "git_hash_object": "1cbcea69760565b812dae3e10d162b0a35bde386"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows-collision-fixture.sh",
+      "bytes": 2177,
+      "sha256": "cd8ba9d5220606a2f9627a83ad6de45f70a27a567c26cb3d42e1fbe8331af91c",
+      "git_hash_object": "021d3326659f3cce6e29298ce3f1a40b144a9615"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows.sh",
+      "bytes": 2898,
+      "sha256": "a8ed706aa8127617a3c32810a28be9330b744f22b3b4ed17d5c66229e8ff4cf7",
+      "git_hash_object": "9dbf3250ac324b9c8a7507192d8c5d17951b6b42"
+    },
+    {
+      "path": "eech-campaign/tools/migration-progress.py",
+      "bytes": 3240,
+      "sha256": "004b6a41519d6eaf9a6277d20bba1535f36e71041a0b5cbbb6bdc493867dca92",
+      "git_hash_object": "acb1b359900f972e9e344b1740a2f45dfac16297"
+    },
+    {
+      "path": "eech-campaign/rustfmt.toml",
+      "bytes": 16,
+      "sha256": "478e818c64a27dc341fffc827ee4b00c5aeef237ab8745efc9690f87ad245de9",
+      "git_hash_object": "b28d8cf772bba8f334032f2ba85902be31be9454"
+    },
+    {
+      "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "bytes": 9093,
+      "sha256": "e0591f3fe097df3662d9faa44d85b2cc9882d2ad3d0c8b150abaf5a6b674a827",
+      "git_hash_object": "eff26d2eb3d4aadb55b0c991ce1d5855592ae772"
+    },
+    {
+      "path": "R:/d3-evidence/run-physical-flags-witness-direct-20261107.py",
+      "bytes": 2391,
+      "sha256": "fc24968e9b0d954f68abc4440a052af147abc6724886f235927f3a99e826a9df",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/check-physical-flags-witness-linux-20261107.sh",
+      "bytes": 1372,
+      "sha256": "4a1a1157f0ad055a9edc277d66e2416e6a00f56d90e16d9ac3350739dfdc748f",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/run-hwwit-final-set-20261107.sh",
+      "bytes": 2766,
+      "sha256": "299316d6727a15520158c3632e56218acf6334d946b001d48017ef3c5fcc8e9c",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/hwwit-extra-identity-20261107.py",
+      "bytes": 4183,
+      "sha256": "6e0f81eb8910eca0fd24b26730a2fb197d9bdd1c1547f38ebab418e6423d8afd",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/freeze-hwwit-20261107.py",
+      "bytes": 22350,
+      "sha256": "35a2c8f35a9381601a27e3642ead9a7e58b35bcb2accf26bd9dd1f3be45bc2ae",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/publish-hwwit-20261107.py",
+      "bytes": 7996,
+      "sha256": "bd1fb47d0509a551a3d65ef7c656295a5cef9def3009c6797eae885aa7b8cc59",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py",
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/preflight-receipts-20261107.py",
+      "bytes": 2203,
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-020-WINDOWS-CACHE-RELEASE-20261107.json",
+      "bytes": 2201,
+      "sha256": "2272fd770222e481df6047b036c0879afa80123b25db1d8aba5c44c441574b91",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-native-source-snapshot-020-20261107.json",
+      "bytes": 3619,
+      "sha256": "12dfa33936fbb28280be238dfa1d04a26afd83452fa62d2ff2f25c312d26b8e9",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-native-windows-020-20261107-completion.json",
+      "bytes": 36703,
+      "sha256": "8def045f2f4380e62de3429cac50e6831b78d7b1cd960eb4243bdc9e6ecbb186",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-native-020-profile-20261107-completion.json",
+      "bytes": 4335,
+      "sha256": "5a1ff2a2c4cff94934b1c273ec7b57f106c7fc051518f67398817efb4bd792b9",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-default-020-plan-20261107.json",
+      "bytes": 35742,
+      "sha256": "366016e852e19950807a8d03ddaefc9e13703288b9d2519e604162019963b782",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/independent-physical-flags-020-default-plan-20261107.json",
+      "bytes": 9539,
+      "sha256": "3868cd06bea7541d2b8326a1b1d838237140ca8e2eb19fe057d7542a7e9c3310",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-default-020-Root-binding-20261107.json",
+      "bytes": 6815,
+      "sha256": "40e8813378c1b9c4db88cd461f5d28d94145b8cf5512ca04d86174067edf0b4c",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-default-020-ordinary_short-20261107-completion.json",
+      "bytes": 5394,
+      "sha256": "11b4706f693c97ce496873c72ac4f434453fde476cd32298759778da2433af4c",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-default-020-original_short-20261107-completion.json",
+      "bytes": 5397,
+      "sha256": "c8d2558036480fd6be11b17db455eb0dacc1098dbc84636355315149dcbf36cd",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-3e74-publication-1e31-Root-20261107.json",
+      "bytes": 2499,
+      "sha256": "35da1a07858d4edaf336f69e01349d1586db1ef7e6b3669757cfa5d86483ff81",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-3e74-publication-1e31-all9-CI-readback-20261107.json",
+      "bytes": 17012,
+      "sha256": "afe80d2e0473fe97091bf95b98578fd4197a44b8bf401bdc9fd46f82e5fba44a",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/Root-publication-and-image-retention-learnings-20261107.json",
+      "bytes": 2849,
+      "sha256": "92c68e88b2ca897bb8810a4021b557eab268624bd8f7a22350f47d3146dbefb9",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/Root-physical-flags-witness-feedback-20261107-2012.json",
+      "bytes": 3933,
+      "sha256": "c01583438fe821dbed4d5e4ce5409ce58edd66c9432915f8ad66483b02f66f0e",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/independent-physical-flags-keyfix-020-source-20261107.json",
+      "bytes": 14037,
+      "sha256": "3e74ae30c3403cd3ae67dc0c84da213cd8123841f54149a364113830644a0c91",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/hwwit-retained-dev-runs-20261107.json",
+      "bytes": 2418,
+      "sha256": "454825acadaf9ff986fbb6591866431a3a5b052a2ff56ae4d79bd7c5adc99b24",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/hwwit-feedback-files-20261107.json",
+      "bytes": 353,
+      "sha256": "56a59d868e3ceefacd84f04a76a03155ebaa4e012c4a11849fbcca6f46260bf9",
+      "git_hash_object": null
+    }
+  ],
+  "tools": {
+    "image_id": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+    "docker": "Docker version 29.9.2, build a82e528901260c8df6073311379eac65f92db204",
+    "python": "Python 3.12.14",
+    "git": "git version 2.51.2.windows.1",
+    "volume": "eech-linux-d3-physical-flags-9d247-20261107",
+    "image_repo_tags": "[eech-height-reference-reader-9d247-20261107:latest]"
+  },
+  "aggregate_sha256": "8b258f0d6145cce615f8f94e4e68d74d2c678602453ae5d73ea2d5d32700de6b"
+}

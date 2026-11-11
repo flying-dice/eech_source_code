@@ -1,0 +1,5 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 14s
+     Running tests/physical_flags_supply.rs (/target/t/debug/deps/physical_flags_supply-4b134fa9334328e9)
+eech: debug_fatal: supply arrival: member has no host identity

@@ -1,0 +1,22 @@
+{
+  "d1-hosted-first": {"actual_exit": 101, "why": "first compile of the new control in the hosted profile: only the SHARED flags_host.rs support file failed, against eech-engine's unsafe_op_in_unsafe_fn lint (11 errors); the producer, the world and the control compiled. The lint is now allowed on that one included module only"},
+  "d2-hosted-lint-scope": {"actual_exit": 101, "why": "link error: the two test-only key helpers of mb_hostmodel.c are defined only for the three older flag features; the gate now names the supply control too (test-only, absent from shipping, guarded)"},
+  "d3-hosted-gated-helpers": {"actual_exit": 101, "why": "SIGSEGV on the first run of the world; cause located by d4 to d6"},
+  "d4-hosted-trace": {"actual_exit": 101, "why": "temporary stage markers added to the C fixture to locate the crash: the build FAILED because a shell/Python heredoc collapsed a C backslash-n (a repeated escaping gotcha; setup rework, not behavioural evidence; Root's note of 22:05 adopts Write/Edit for source). Preserved, not replayed"},
+  "d5-hosted-trace-fixed": {"actual_exit": 101, "why": "the markers, written correctly, located the crash: the REAL insertion of the waypoint into the task's list (it notifies the task, which this world has no state for). That one link is now set in the waypoint's raw record and declared"},
+  "d6-hosted-trace-waypoint-link": {"actual_exit": 101, "why": "every scenario passed (the positive, lane 0, the four refused masks, the destructive order, the reset extent); only the matched negative failed: the real group message response links any member that enters the MEMBER list into the roster, so the 'unlinked' member had an identity. The member is now kept out of the MEMBER list"},
+  "d7-hosted-unlinked-outside-member-list": {"actual_exit": 0, "why": "HOSTED profile: the control passes, 9 descriptors delivered, host traffic nonzero in every kind (first green; this is a characterisation, so there is no capability RED: the confirmed raw-versus-boolean refusal is the observed behaviour, left as it is)"},
+  "d8-original-first": {"actual_exit": 0, "why": "ORIGINAL profile (collision-fixture): the same control, the same results (9 descriptors, the same refusals)"},
+  "d9-fmt-apply": {"actual_exit": 0, "why": "cargo fmt -p eech-engine -p eech-engine-sys applied (git status showed only this batch's files changed)"},
+  "d10-clippy-engine-hosted": {"actual_exit": 0, "why": "clippy -D warnings over eech-engine all targets with the supply feature"},
+  "d11-clippy-engine-original": {"actual_exit": 1, "why": "I forgot `rustup component add clippy` (the containers are ephemeral): clippy was not installed; a slip, not a lint result"},
+  "d12-clippy-engine-sys-default-and-engine-default": {"actual_exit": 1, "why": "the same slip: no `rustup component add clippy`"},
+  "d13-clippy-engine-original": {"actual_exit": 0, "why": "clippy -D warnings over eech-engine all targets with the supply feature and collision-fixture"},
+  "d14-clippy-defaults": {"actual_exit": 0, "why": "clippy -D warnings over eech-engine-sys and eech-engine default all targets"},
+  "d15-supply-hosted-after-fmt": {"actual_exit": 0, "why": "the hosted control after formatting"},
+  "d16-supply-original-after-fmt": {"actual_exit": 0, "why": "the original control after formatting"},
+  "d17-flags-guard": {"actual_exit": 0, "why": "physical_flags_guard: 7 tests (the six existing and the new seam and consumer-order guard)"},
+  "d18-engine-default": {"actual_exit": 0, "why": "eech-engine default tests: 123 unit tests, no feature leaked"},
+  "d19-flags-controls-hosted": {"actual_exit": 0, "why": "the existing hosted flag controls (physical_flags, physical_flags_consumer, physical_flags_collision) after the helper gate edit"},
+  "d20-flags-controls-original": {"actual_exit": 0, "why": "the same existing controls in the original profile after the helper gate edit"}
+}

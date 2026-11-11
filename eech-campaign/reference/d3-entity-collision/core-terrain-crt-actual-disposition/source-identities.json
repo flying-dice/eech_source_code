@@ -1,0 +1,206 @@
+{
+  "source": "599958ce961111f01c946245572a3757d8fe4ea0",
+  "files": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "sha256": "d2599b6db3116f20766285aed733a0b699074365d5491370b2d6e874f69af4e0",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_core_crt_observer.c",
+      "sha256": "07bd774297b9bc0c59528133a3df2ae5f14b341bb97c4c85b3d1fefeaf26e035",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/core_crt_observer.rs",
+      "sha256": "a901056a5fe74e99fe865f70f05981e646c4ff76b46732bacd5146efd8075469",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "sha256": "370b18f2df5c7ed3b50f4c26fdeb547244c99f203d9905ce9d8b87c1794cdea5",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/global.h",
+      "sha256": "1bc554045f31725a2340c21cc90a91d6e46fd00d019eedaa80577e8453c07023",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "modules/maths/random.c",
+      "sha256": "d8dd524b5086b546e2a690115b44f49d97986e2142d63aa019f3ec06217b5808",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "modules/3d/terrain/terrdata.c",
+      "sha256": "bb770a8c6a2f39060d8beff57a1f4ad3bac7f342cab0bde06a55bfec89b9826f",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "modules/3d/terrain/terrgeom.c",
+      "sha256": "ce028467efe1e4a9cff4e9ed5a9a3ec4024b77e72a06d24cda95926a0cf3a2d4",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "modules/3d/3dobjid.c",
+      "sha256": "7bd079ade2d5d5aab5b2800c9a9467069e55e1744eb2c254b7dc1fc10cb7f4dc",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "modules/3d/3dobjdb.c",
+      "sha256": "fc3e86ba9cffd570a9827bae817e425b6cad1c9df098b2090bbe3e3628ea2b19",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/ai/faction/faction.c",
+      "sha256": "1a5010a1c6fb827d6740624726f885d8728ba094e429031a1da45909c4b0655e",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/ai/parser/parsgen.c",
+      "sha256": "ce460deeecfe9466589a47667f5f26ffada252a0dbaaeef4b989e1334a8022c9",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/ai/ai_misc/ai_dbase.c",
+      "sha256": "63271ebe4f9c173d95be49586a672c1123ba29a741301ee9aa8fbd4046b5d34c",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/session.c",
+      "sha256": "cc89d8160510a2e31428e46a137dc6295fba01b4da28d75a775ebdcd6022cd75",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_creat.c",
+      "sha256": "7abc30146f8fe3e01773f78a14b1895c87c80640a5d61f1b31aa38339c17340d",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_main/en_init.c",
+      "sha256": "a3964f57b5d638aab7c03b6ce91fee868dc385858c8901e916c0633aff80b2e3",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_main/en_heap.c",
+      "sha256": "328b94b5d494bb9b8200b583924f4cfb8f92c44160b5976410b9107dfe4d67d4",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_funcs/en_funcs.c",
+      "sha256": "4af2c238ae21c117bcb22edada2fa3a4d00bc816a617eee866319e8bb827192c",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_funcs/en_creat.c",
+      "sha256": "8fd1cf2d23319a5e7c231e6f85f70d872b0240b12812c975c30b204ef99e0b53",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_funcs/en_dstry.c",
+      "sha256": "7791a85e8f7e980b789bfa46b1a1ddcf2f3d0c73438ec6e1f7318d4ec3e444c2",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/pylon/py_creat.c",
+      "sha256": "329c362a5efad9eb220191505a29a01d625e1b78a9e99aaf09cf40431402c8a7",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/bridge/bridge.c",
+      "sha256": "f1d107b8a56e15913516c743d542cb29d0a714fa98c00dc887475f50a5e5704e",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/camera/cm_creat.c",
+      "sha256": "cc2f079b9aaea9f0927fe0259d441dcbfe29782fdf57a22bf32c4d241aa4a6c8",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostterrain.c",
+      "sha256": "c5d55b8129e304cec80f91c99ff20d717130422c8dd2703cdee2777d72d68fe8",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+      "sha256": "ea42a3c6212b8ec30d4f0b26a2ac8611c057fbfb3b5972ed10d6ba7f3dbcaf23",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostobj.c",
+      "sha256": "29b13593f857a95611e85794ab026b7f7d8f21a066c453781ff8f11a3c248183",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/group/gp_roster.c",
+      "sha256": "f3cd8052561b6130d82685dff49f102628a4113179e7cde8709809429fb561ef",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/guide/gd_supply_arrival.c",
+      "sha256": "c2ab9f1578f1934ee0f029175daabb724688f69a94727c0019d3102137df5f52",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+      "sha256": "397ceb387cf610269204c5be3496df3283c913a1cf6ec789430350f6e169e2cb",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "sha256": "11e3d49625a49b6f4ad3e92e50258f84f73eb74d5032a8e008c58df2bc911648",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "sha256": "bf60de30bb5a77141f0d549d10248ffa27bd7acae4cbf2ad306d169e8304f1dc",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/roster.rs",
+      "sha256": "852887dc616e6f8fdd7b4e28a6560b57a59f635c87f9d14615b55f8f5bdbf18e",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/tree_host.rs",
+      "sha256": "a3a8a261519c206bda8ccd7d156f815fcfd5892564512e6d8b47b546e0fa7345",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/trees.rs",
+      "sha256": "451fd9806be67408f8d8b5693d6f0b951c438d9b6ae3fd01ce570596880a9dcf",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+      "sha256": "b1947b2be6ab284e28cb3c9fa5084615222f501ef47c8337f886ebc0d3c10d59",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+      "sha256": "f434bedb1b15f89f4e8843f97673ba4a695d93ebaa6afafb36fb0bdaa46e25bd",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/build.rs",
+      "sha256": "995a2671ced9145b185edb8e8a0a928632984a1b09c3fbf2b9c15feded777714",
+      "raw_equals_599958_Git": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/campaign.lua",
+      "sha256": "0ddf607ef416eef144186e8063a74225ef29a5122ccba6a59daee97c841426fe",
+      "raw_equals_599958_Git": true
+    }
+  ],
+  "staged_source": {
+    "private_path": "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-build\\profile-audit-v2\\staged\\modules\\3d\\terrain\\terrdata.c",
+    "sha256": "7453e5883809509e46524d641073600c016a59e29bcfae5f8921e34537d500f4"
+  },
+  "World_undefined_symbols": {
+    "private_path": "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-build\\retained-producer\\World-undefined-nm.txt",
+    "sha256": "9c8266abd39758ea7228351c1d482122e59d8b60ea7774ccca62578bcaff380d",
+    "direct_rand_srand_symbols": 0,
+    "qualification": "Source/linkage corroboration only, not runtime Host/library-internal absence or CRT isolation"
+  },
+  "scope": "Read-only identities of source actually interpreted; no compilation, test, native call or source change."
+}

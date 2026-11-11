@@ -1,0 +1,79 @@
+{
+  "kind": "actual Git blob bytes (git cat-file from the index) of each literal copy against the external sealed file",
+  "files": {
+    "independent-sector-height-proofplan-5aae-source-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "sha256": "409a2622b5314d82c02dc7710dcf3528f8390678e5b11162108847bcb83aa27b"
+    },
+    "sector-height-proofplan-3f-CI-readback-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "sha256": "bb46f014e64e3fc3b0d5100e1879b015eed60ed797418f4c5719424711af7ce3"
+    },
+    "sector-height-proofplan-Root-binding-5aae-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "sha256": "6ec510ae1c6c492e8cca6308aa14f98d84f4200de17692670af408b0533aaf2f"
+    }
+  },
+  "raw_versus_git_disagreements_of_the_input_map": {
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h": {
+      "raw_bytes_equal_git_blob_bytes": true,
+      "raw_sha256": "1f93a282881d0bd44c661bef4dce7bfae8ed85ed073d977560de87979f494b30",
+      "git_blob_sha256": "1f93a282881d0bd44c661bef4dce7bfae8ed85ed073d977560de87979f494b30",
+      "raw_crlf_lines": 66,
+      "blob_crlf_lines": 66
+    },
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h": {
+      "raw_bytes_equal_git_blob_bytes": true,
+      "raw_sha256": "7770f4c0170378a32bbe74d454de69cfe20600fe351d8a6fbb9fd7ea20c9cc52",
+      "git_blob_sha256": "7770f4c0170378a32bbe74d454de69cfe20600fe351d8a6fbb9fd7ea20c9cc52",
+      "raw_crlf_lines": 119,
+      "blob_crlf_lines": 119
+    },
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua": {
+      "raw_bytes_equal_git_blob_bytes": false,
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "git_blob_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+      "raw_crlf_lines": 83,
+      "blob_crlf_lines": 0
+    },
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua": {
+      "raw_bytes_equal_git_blob_bytes": false,
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "git_blob_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+      "raw_crlf_lines": 128,
+      "blob_crlf_lines": 0
+    },
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua": {
+      "raw_bytes_equal_git_blob_bytes": false,
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "git_blob_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+      "raw_crlf_lines": 83,
+      "blob_crlf_lines": 0
+    },
+    "modules/system/malloc.c.h": {
+      "raw_bytes_equal_git_blob_bytes": true,
+      "raw_sha256": "7aacdd2ac03e339306043fd54d82e025fa48ac1f7fc0aee6410f837936f62cea",
+      "git_blob_sha256": "7aacdd2ac03e339306043fd54d82e025fa48ac1f7fc0aee6410f837936f62cea",
+      "raw_crlf_lines": 6174,
+      "blob_crlf_lines": 6174
+    },
+    "modules/system/nedmalloc.c": {
+      "raw_bytes_equal_git_blob_bytes": true,
+      "raw_sha256": "1895dfac96a7705466531af74e96ef33dfe5d9613fc29dae385f87c2a40f5a56",
+      "git_blob_sha256": "1895dfac96a7705466531af74e96ef33dfe5d9613fc29dae385f87c2a40f5a56",
+      "raw_crlf_lines": 2204,
+      "blob_crlf_lines": 2204
+    }
+  },
+  "lua_crlf_raw_vs_git_exceptions": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "core_filter_only_qualifications": [
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+  ]
+}

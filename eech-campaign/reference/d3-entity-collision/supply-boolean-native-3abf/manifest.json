@@ -1,0 +1,79 @@
+{
+  "files": [
+    {
+      "path": "independent-supply-boolean-3abf-default-actual-20261107.json",
+      "bytes": 9459,
+      "sha256": "43feb909d9c81f99f36aba17f4db6ad0aa9e76afb6e8ba807c7057b33295c263"
+    },
+    {
+      "path": "independent-supply-boolean-3abf-default-plan-20261107.json",
+      "bytes": 8373,
+      "sha256": "86d8936ebd620537f252e90fd5f2f7a0072e933ba8ce0e4cef13349a55bac01f"
+    },
+    {
+      "path": "ordinary-profile.json",
+      "bytes": 15904,
+      "sha256": "14a421b54834fa03a287643c8ec1770c54abd605a638b3d18a56164ab259ae66"
+    },
+    {
+      "path": "original-profile.json",
+      "bytes": 15933,
+      "sha256": "2b054c1901781acca5e33499dd25cf0722bb9d9920e7deaf64049de0a2896702"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2889,
+      "sha256": "36711ac47da91d6236b2bf06e1c664489d9c00a7c865cefbd46be79c78c86576"
+    },
+    {
+      "path": "run-supply-boolean-default-3abf-20261107.py",
+      "bytes": 5200,
+      "sha256": "6e882b8169710cb00a49b5eaf867a17958a0e424872046ba4e77c6f2bbe3f8c0"
+    },
+    {
+      "path": "supply-boolean-3abf-closed-Windows-cache-cleanup-20261107.json",
+      "bytes": 975,
+      "sha256": "48add1f5e9e300cfd08a679000681dc4e9e86f49d272e5d8e57ffd27675581cc"
+    },
+    {
+      "path": "supply-boolean-3abf-WINDOWS-CACHE-RELEASE-20261107.json",
+      "bytes": 1879,
+      "sha256": "696218c350bf56368edebb603a6fd452210d38e48397c4e84a1b40df19f23fb3"
+    },
+    {
+      "path": "supply-boolean-b4fbe4-all9-CI-readback-20261107.json",
+      "bytes": 16882,
+      "sha256": "1dd69cd839f3d824f36b34ddd8411a2bce69163047efc88c7307417e5a426188"
+    },
+    {
+      "path": "supply-boolean-default-3abf-ordinary_short-20261107-completion.json",
+      "bytes": 5467,
+      "sha256": "9b9411061544927ad75b414ca4db44a19b06e230e2611832cb73dd9be80da05f"
+    },
+    {
+      "path": "supply-boolean-default-3abf-original_short-20261107-completion.json",
+      "bytes": 5471,
+      "sha256": "494bb41b3e3757bf4daf66bdd1be2e701b0562dfe5b089f7bffef3963d283f0e"
+    },
+    {
+      "path": "supply-boolean-default-3abf-plan-20261107.json",
+      "bytes": 36216,
+      "sha256": "47ef82ec5f1194ec536702a9e402e3a54a738965283e4174567fa850c20cb9a0"
+    },
+    {
+      "path": "supply-boolean-default-3abf-Root-binding-20261107.json",
+      "bytes": 7012,
+      "sha256": "87876f17dec3de2f6da0c3740ecff96083a9719ba982401b7ead740eb5061f6b"
+    },
+    {
+      "path": "supply-boolean-native-3abf-profile-20261107-completion.json",
+      "bytes": 4323,
+      "sha256": "67664feea24162bbd1d24c40f913a9219f551e341e14a6c9ab30df825b7a1aed"
+    },
+    {
+      "path": "supply-boolean-native-windows-3abf-20261107-completion.json",
+      "bytes": 37419,
+      "sha256": "dc632ab7b5f80f8a1f412aff7019b9b4e84fe3154cb6daf832f167baeecf0358"
+    }
+  ]
+}

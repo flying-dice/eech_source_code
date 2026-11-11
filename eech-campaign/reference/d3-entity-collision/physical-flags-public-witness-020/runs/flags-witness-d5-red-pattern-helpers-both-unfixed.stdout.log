@@ -1,0 +1,18 @@
+
+running 1 test
+test the_flag_pattern_helpers_of_both_public_drivers_are_exact_under_the_reference_round_toward_zero_profile ... FAILED
+
+failures:
+
+---- the_flag_pattern_helpers_of_both_public_drivers_are_exact_under_the_reference_round_toward_zero_profile stdout ----
+
+thread 'the_flag_pattern_helpers_of_both_public_drivers_are_exact_under_the_reference_round_toward_zero_profile' (131) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:728:5:
+48 problems, the first ones: ["physical-flags-witness.lua: the mask of lane 1 is 0x00000001", "physical-flags-witness.lua: the mask of lane 2 is 0x00000003", "physical-flags-witness.lua: the mask of lane 3 is 0x00000007", "physical-flags-witness.lua: the mask of lane 5 is 0x00000010", "physical-flags-witness.lua: the mask of lane 6 is 0x00000030", "physical-flags-witness.lua: the mask of lane 7 is 0x00000070"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_flag_pattern_helpers_of_both_public_drivers_are_exact_under_the_reference_round_toward_zero_profile
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.01s
+

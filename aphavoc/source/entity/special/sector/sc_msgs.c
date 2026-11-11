@@ -109,6 +109,8 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 
 	if (list_type == LIST_TYPE_SECTOR)
 	{
+#ifndef EECH_CAMPAIGN_HOST_ENTITY
+
 		float
 			height;
 
@@ -120,6 +122,10 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 
 		object_3d_bounds
 			*bounding_box;
+
+#endif
+
+#ifndef EECH_CAMPAIGN_HOST_ENTITY
 
 		//
 		// check for tallest fixed structure
@@ -143,6 +149,13 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 				}
 			}
 		}
+
+#else
+
+		// the sector's tallest-structure height is the HOST's word (Task49): the host raises it at the arrival of a fixed sender, from the state the campaign stated to its record of the placement just before this
+		// response (campaign_place_insert, en_list.c), and the legacy field is neither written nor read in a hosted build. The original's order is kept: the height, then the mobile values, were this block's first steps.
+
+#endif
 
 		//
 		// set defence levels / activity array

@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "kind": "Independent combined changed-material source/check review; no execution or native acceptance",
+  "created_utc": "2026-11-07T14:24:47.174225+00:00",
+  "source": {
+    "commit": "3c2dee5b3d0a7e7d58899dcadedb87db9acc0ede",
+    "metadata_commit": "764cfc4aa254c3efd3cb8ed77d43c83c3a3f2199",
+    "compiled_loader_commit": "90e9547ee5fbfb31a461a861fdaa2adac5fbafe0",
+    "compiled_loader_metadata_commit": "8ad1e4bca0a30ea19d38402cbd95c2cb3c8efa1d",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "clean_at_root_binding": true,
+    "review_method": "Immutable Git blobs and retained receipts/maps; no worktree modification, Cargo, compiler, native, campaign, checker replay, process change or subagent.",
+    "changed_inputs": [
+      {
+        "path": "aphavoc/source/ai/parser/parsgen.c",
+        "bytes": 89027,
+        "sha256": "ce460deeecfe9466589a47667f5f26ffada252a0dbaaeef4b989e1334a8022c9",
+        "git_blob": "a6239a8d7328403c9d22b57fcb2c073a11c9e034"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/saved_campaign_load_guard.rs",
+        "bytes": 6322,
+        "sha256": "bb285324c0227c2f2f2341c2fec37417ceb027582d403249efc6be44650e1ed4",
+        "git_blob": "10cccd131146b3e4460c2e296b5de627cc4baf90"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+        "bytes": 79441,
+        "sha256": "912e8840a5776b755cb382c2d00d43a0486541f6a2d9570232463e4dc00c6613",
+        "git_blob": "5c426e65f09dcdc00f51f30239ac3359492660ef"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs",
+        "bytes": 88798,
+        "sha256": "f5ad6dec71fb2100d174da1e912a9ac0c15241a70234d694c3a260c259519588",
+        "git_blob": "0d238995f6bf4aa04d1ddc305101d8d8f9a0a4a2"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+        "bytes": 50113,
+        "sha256": "9a8ca4dbfe376dab8bedace467049f629a7dbfe934f84cfe42f44f41bc3216ed",
+        "git_blob": "68a79d5cfbfc5bebed888d84adb44beecc9d1778"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-SECTOR-HEIGHT-CORE-LOAD-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 42154,
+      "sha256": "6510093e6d83677067ed7b792a55ccf1ab1c5cec4b0dacd25109c7284d645892"
+    },
+    {
+      "path": "R:/d3-evidence/D3-SECTOR-HEIGHT-LOAD-ORDER-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 34538,
+      "sha256": "d1d7c0d98e3a8fb7aebd2ad6fec1dabb09203efbd33e64ba6e4b3de514bcc9e7"
+    },
+    {
+      "path": "R:/d3-evidence/height-core-load-combined-Root-binding-764-20261107.json",
+      "bytes": 31406,
+      "sha256": "43b33dca4fa0fcd1af3f5fd5be84c1681cdfd3bfecf7bc632080f69682194ac9"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-height-native-load-fix-20261107-completion.json",
+      "bytes": 1337,
+      "sha256": "7a5ab101107a1029a374491c15e670c4448e643400326d82ed00d03d44499d89"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-height-native-load-followup-20261107-completion.json",
+      "bytes": 1392,
+      "sha256": "391de22aca9f462e7b8416126b0fe62f547d55fd2d4acf876d0eae6c19e973dd"
+    }
+  ],
+  "decision": {
+    "status": "CONDITIONAL_SOURCE_CLEAR",
+    "findings": [],
+    "windows_build_clearance": true,
+    "native_launch_clearance": true,
+    "closed_source_ids": [
+      "ENV-SECTOR-HEIGHT-NATIVE-CORE-LOAD-LIST-1",
+      "ENV-SECTOR-HEIGHT-NATIVE-LOAD-ORDER-DIAGNOSTIC-1"
+    ],
+    "source_closure_only": true,
+    "corrected_core_load_actual_verified": false,
+    "M5_accepted_by_this_report": false,
+    "M6_accepted": false,
+    "whole_sector_height_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "current_full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "review": {
+    "correctness": [
+      "The sole compiled product delta from true 17f is parsgen.c FILE_TAG_SAVED_CAMPAIGN. It opens the same data once in binary mode, measures that handle, rewinds, requires the exact byte count before reading the version or unpacking, preserves the four-byte version advance and existing Core unpack/schema/entity-index path, and checks unpack_session overflow.",
+      "This removes the established source-and-retained-byte mechanism: text file_size through the compatibility shim truncates the 300873-byte saved data at Ctrl-Z byte 167, leaving 163 payload bytes and subsequent zero-valued overflow reads. The load copy matched the saved artifact. No packing, height rule, text parser global behavior or FORCE traversal was replaced.",
+      "The Lua correction removes only the invalid global zero-pre-restore-insertion requirement. CAMPAIGN_DATA creates baseline population before SAVED_CAMPAIGN invokes Core sector unpack. Baseline insertion telemetry remains intact. Insertions between restores still fail; no post-restore arrival is UNREACHED; restored keyed coverage/duplicates/raw words/ACKs, real second pack and per-sector held-or-raised/NaN relation remain required.",
+      "The coherent no-baseline control is executed before the new baseline-positive control. Single-fault baseline variants retain wrong-word, missing/duplicate restore, interleaving, absent later insertion, lowering and no-restore discrimination. Previously accepted expectations were not normalized."
+    ],
+    "clean_code": "The loader change is localized, retains the original public/internal call path and data schema, and introduces no alternative world/store or query-time adoption. The diagnostic change is localized to the load verdict and explanatory output. The source guard honestly identifies itself as textual evidence; scripted Lua collaborators do not execute parsgen.c or native unpack.",
+    "boundary_safety": [
+      "Full byte-count validation precedes version consumption and unpack. Wrong-version handling remains. The binary file length and input read are separate from intentional CRLF/Ctrl-Z text parsing. No changed FP arithmetic, RNG, getter order, private ABI or raw-pointer transport is introduced.",
+      "The end-of-unpack overflow check is not transactional validation of arbitrary corrupted files: existing unpack may mutate records or reach an earlier malformed-list fatal before returning. This report does not claim atomic corrupt-file rollback or universal named overflow handling.",
+      "Bounded clearance concerns regular seekable generated local save files of the represented campaign size. It is not a claim of arbitrary oversized/nonseekable input support.",
+      "Lua insertion categories are positions relative to the restore block, not independent caller attribution. The verdict checks keyed restored coverage/words; it records restore_order but does not compare that sequence to the saved-row sequence. The native evidence audit must make that exact sequence join explicitly."
+    ]
+  },
+  "checks_and_provenance": {
+    "core_stage": {
+      "source": "90e9547ee5fbfb31a461a861fdaa2adac5fbafe0",
+      "PRE_utc": "2026-11-07T13:50:24Z",
+      "POST_utc": "2026-11-07T14:06:33Z",
+      "rows": 3977,
+      "PRE_POST_literal_equal": true,
+      "map_sha256": "ad45cff195295db34d5bec6ce56858db6e173a268898735a2a8526daf9696592",
+      "final_commands": 9,
+      "all_actual_exit_zero": true,
+      "passing_test_instances": 445,
+      "scope": "workspace strict lint, witness feature strict lint, engine-sys default/source guards, hosted and Original solver controls, witness C/guards, Engine/DC default and witness. Not a native loader execution.",
+      "producer_actual_exit": 0,
+      "producer_result_is_error": false
+    },
+    "lua_stage": {
+      "source": "3c2dee5b3d0a7e7d58899dcadedb87db9acc0ede",
+      "PRE_utc": "2026-11-07T14:17:17Z",
+      "POST_utc": "2026-11-07T14:17:49Z",
+      "rows": 3977,
+      "PRE_POST_literal_equal": true,
+      "map_sha256": "da4dfcf205e8b683f0e0ea82ad977f6b4830eda55fdb0e980804f86868d10716",
+      "final_commands": 3,
+      "all_actual_exit_zero": true,
+      "passing_test_instances": 238,
+      "targets": {
+        "entity_authority": 116,
+        "host_callbacks": 82,
+        "sector_height_baseline_driver": 13,
+        "sector_height_witness_driver": 27
+      },
+      "producer_actual_exit": 0,
+      "producer_result_is_error": false
+    },
+    "negative_controls": {
+      "old_loader_guard_exit": 101,
+      "old_loader_guard_passed": 1,
+      "old_loader_guard_failed": 2,
+      "old_Lua_baseline_control_exit": 101,
+      "old_Lua_failure_reason": "A coherent load with three baseline insertions was rejected by the former pre-restore-insert guard, after the no-baseline positive.",
+      "qualification": "Controlled restored-old-source/source-text and scripted-driver evidence; not a damaged native save experiment. Earlier r1/t1 and other failed development receipts remain retained."
+    },
+    "binding_qualifications": [
+      "Each stage is joined to its actual immutable source, not falsely to every later current file. Core-stage later Lua/test/contract changes are explicitly scoped; only parsgen.c is a compiled product delta from 17f. Core90e compiled product inputs equal final764.",
+      "Both full 3977-row stage maps are literal PRE/POST equal. Three inherited test Lua files retain working CRLF versus committed LF dual identities. Four legacy Core/filter paths retain actual raw Git bytes despite filtered identity differences. No normalization was performed.",
+      "Core extras:27 PRE/POST equal,26 current equal; the later contract delta is joined to actual Core90e Git. Lua-stage extras:25 PRE/POST/current equal. The initial Root all-current-extra assertion was retained and corrected as an audit-reader qualification, without source/check/native replay.",
+      "Root joins125 manifest entries across five retained packets to current and actual Git bytes. Nine Core and three Lua final direct exits and their separate 445/238 result instances retain their respective identities; no newly run whole-workspace test matrix or current native success is inferred.",
+      "Current-head CI is not claimed by this report; Root owns required exact-head CI readback. No CI-only wait was needed for this bounded source decision."
+    ]
+  },
+  "conditional_execution_gates": [
+    "Root may build a fresh clean immutable final3c2/764 snapshot with the reviewed parsgen90e bytes. Set longpaths before checkout, bind full source/input identity, actual ordinary/Original/save profile features, objects/exports and all payloads. Never reuse or relabel17f binaries as the new C source.",
+    "Before M6 acceptance, verify new-source ordinary/default finite comparisons under unchanged accepted inputs and complete-output criteria; record actual build/native/helper/controller/checker exits separately.",
+    "Run one fresh real Core save and then a fresh Core boot of its actual generated saved script with the separately Git-bound reviewed Lua. Preserve seeds, input/map/campaign/frame/window settings and all original retail files. Bind the actual uppercase script suffix and binary artifact sizes/version/hashes, allowing only declared generated artifacts; do not relabel the former case-sensitive checker failure.",
+    "The positive load must actually complete with no fatal/request/reply fault and perform its real second save/pack. Independently join all saved rows to actual restore sequence, sector keys, stated and stored raw words; require exact coverage/uniqueness/order, contiguous restore block, honest pre-population telemetry, actual post-restore saved-state reconstruction and second-pack no-lowering/NaN preservation. Counts alone, a restore callback prefix or the second-pack absence cannot pass.",
+    "Only after that successful positive may matched designed save/load refusals run on fresh verified roots with the same compiled source, literal, generated-script/data relation and declared single fault. Require eligible positive before intervention, exact marker/cause and no postfatal engine access. Preserve all unexpected failures without replay or input tuning.",
+    "Existing M5 Original/control/refusal jobs and evidence remain true17f/9cb identities and are not restarted, relabelled, source-re-reviewed or accepted by this report."
+  ],
+  "historical_actuals_and_remaining": [
+    "Prior17f save native0, original controller1 due .Sch/.SCH expectation, read-only recovery0 remain distinct. The failed17f load native/controller1 and all-zero restore prefix remain failed; source clearance is not corrected native acceptance.",
+    "The two named findings are closed only at source. Actual Core-load/M6 acceptance, guarded-consumer M5, height-open-facts and needed final physical-service validation remain open until their own actual audits.",
+    "All ten D3 requirements, final current-source full40/all8/four-input shipping gates, exact current CI, independent review/normal merge/final census, natural engagement and remaining physical/API/DCS/hierarchy/RNG couplings remain required. Preparation remains2; no D4/D5 or historical TypeScript port is authorized."
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "created_utc": "2026-11-06T22:00:49.626026+00:00",
+  "actual_exit": 0,
+  "native_clearance": true,
+  "source": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+  "snapshot": "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-215a8f738-20261106-source",
+  "metadata_commit": "12698d05b1a3441b23a31a4927f24a4fa65972a4",
+  "source_review": "R:\\d3-evidence\\independent-city-lifecycle-remove-identity-source-215a8-20261106.json",
+  "source_review_sha256": "12ad9fd32ff7b1543bf733e0eeb850405c7ea4a767f69281fc3740b2e7cba3b1",
+  "freeze_receipt": "R:\\d3-evidence\\city-lifecycle-witness-windows-freeze-215a8f738-20261106.json",
+  "freeze_receipt_sha256": "97a383454498b4fd437d859b4fc2ac2dace15aa2222373b4ca5e393b6633c995",
+  "snapshot_input_map": "R:\\d3-evidence\\city-lifecycle-witness-windows-snapshot-215a8f738-inputs-20261106.json",
+  "snapshot_input_map_sha256": "dfce7a7210da9985c3251fa8fd236b307f13c013f6fb4b8c45fc69efa7813ffd",
+  "all_snapshot_raw_bytes_equal_Git": true,
+  "verified_distinct_snapshot_inputs": 3955,
+  "final_pre_g_to_Root_post_terminal_per_path_hashes_and_sizes_identical": true,
+  "chronology_proof": "R:\\d3-evidence\\city-lifecycle-215a-Root-source-pack-chronology-binding-20261106.json",
+  "chronology_proof_sha256": "df7656ac677674bb9f92069881488a1e50544daa4962e56c9dc1bfb4cfdb1c3b",
+  "scope": "Conditional SOURCE/RAW clearance for3fresh exact-source Windows profiles and reviewed finite native controls only. No actual fixture execution/CITY authority/Tacview/40all8/Task49/D3 acceptance. Frozen authorlabel erratum preserved; map JSON headers differ, raw per-path identities stable."
+}

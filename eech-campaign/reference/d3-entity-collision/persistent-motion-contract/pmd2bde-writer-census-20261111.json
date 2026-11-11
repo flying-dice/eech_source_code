@@ -1,0 +1,25 @@
+{
+  "utc": "2026-11-11T00:32:24.138776+00:00",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "literal_production_inputs": {
+    "eech-campaign/crates/eech-world/src/main.rs": "99f8769c29deef38a22c8b1d47b7c0aa52f2ad2dfd869ed99a70c60d21acb9dd",
+    "eech-campaign/crates/eech-world/src/movement.rs": "33560723cd2aaab531a9c180da5cd048dd59e2f4b9febb62a8446f1cace369cd",
+    "eech-campaign/crates/eech-world/src/model_host.rs": "11e3d49625a49b6f4ad3e92e50258f84f73eb74d5032a8e008c58df2bc911648",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "33419d97a1b8fd701a18f3483b819494c80e3d8db4c185a7545947a9c6aa905b",
+    "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c": "ebc6fa9d0a6780d94492f44b3c6118224fb040fe770265b0877fb01655d4c40c",
+    "aphavoc/source/entity/mobile/mb_hostoffer.h": "96bad27212f2c30690812ba33e0860867721d6def844415d66fa0ebaa1d3291f",
+    "aphavoc/source/entity/mobile/mb_int.c": "c1891de38ba5b109ba70849ad00aa0ce43d82d92763354e4cf0e3cffb6a6feb4",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c": "6f66cc646ca38ab11164d2a92ec9b75c170d21ede39745d26a07759046d8aa97",
+    "aphavoc/source/entity/special/update/up_update.c": "206ea4350725135ef0c0ae8f26fd1f6836557bb35470f0fea13866ea60ebba85"
+  },
+  "writer_inventory": {
+    "create": "main.rs1339 ONE SharedMovers; no Lua replacement API",
+    "bind": "main.rs1383/1389 bind or issue fresh monotonic ID; duplicate/live/retired IDs rejected by movement.rs1560-1640",
+    "move": "main.rs1404/1408 sole retire/step callback; ALL mode/place/create/stop/routed_vector/lifecycle requests dispatch through it",
+    "readers": "model_host.rs556/636/1672 borrow immutable canonical/observe; no canonical writer",
+    "other_mutation": "take_answer changes guidance output only; aim.step is separate Aim state, not Movers"
+  },
+  "diagnostic_invalidation": "Before any same-ID move delegate including unsupported/failed/uncompleted, and semantic member/group bind entry; no bind-only credit. Completed routed receipt copied at NEED; unsupported custom replacement unproved/ineligible.",
+  "actual_cause_of_native_mode0": "UNKNOWN; old raw has no moveevents. Never claim lazy update, stationarity or absent READ from credit counters.",
+  "scope": "Cheap static writer census only, no build/replay/native."
+}

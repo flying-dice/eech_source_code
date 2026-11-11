@@ -1,0 +1,5 @@
+{
+  "source_before": "a3845271de0ce04e39c3c3535592d9a3fd4efa33",
+  "utc": "2026-11-08T08:53:53.369311+00:00",
+  "scope": "Same-author test-process isolation only. Prior b2a/a384/nqt2 immutable. No C/Lua/controller/production semantic change, global reset or test-filter dependency."
+}

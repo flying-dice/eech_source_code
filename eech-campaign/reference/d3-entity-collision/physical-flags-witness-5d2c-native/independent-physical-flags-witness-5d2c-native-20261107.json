@@ -1,0 +1,440 @@
+{
+  "schema": 1,
+  "kind": "Independent finite native public physical-flag witness actual review",
+  "created_utc": "2026-11-07T21:44:43.300680+00:00",
+  "decision": {
+    "status": "FINITE_GROUP_SET_RESET_AND_KEY_REFUSALS_PASS; READ_UNREACHED",
+    "findings": [],
+    "finite_group_set_reset_key_refusals_accepted": true,
+    "generic_physical_flags_native_acceptance": false,
+    "read_changed_authority_accepted": false,
+    "read_refusals_accepted": false,
+    "all_arrays_or_consumers_accepted": false,
+    "lifetime_FPU_DCS_accepted": false,
+    "current_fullshipping_accepted": false,
+    "wholeheight_Task49_D3_delivery_accepted": false,
+    "closed_new_findings": [],
+    "meaning": "Accepted only the two reached positives and15 reached immediate single-fault cases. Six read-dependent cases were not launched and are unaccepted. Native controller0 denotes the bounded plan completed with those limitations, not23PASS or generic store authority."
+  },
+  "identities": {
+    "runtime_source": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "external_driver_source": "5d2c54f38d3232c172f3ef7e47f0add3778fca58",
+    "driver_sha256": "30adcae241d43deddb710d014ac4585b3c0f282a7309b833c77c08cc71881ad7",
+    "driver_git_blob": "add513356a6fd4eb00f7138dd95b93b5863c2145",
+    "plan_sha256": "10ee98ee954c9c92427846be00e0b6e200fce39cf19e01356984db48956df346",
+    "controller_sha256": "508b02e7c1fab4f48dcb5bae979d0cfa84353e345ce5f00fcd068cd14a86ebf8",
+    "source_review_sha256": "73bec4cfd41a0ebb7f6546c0e3b8252e27667cdb19581b6e2fad4731b2e9925d",
+    "launch_review_sha256": "0573f8e1d8f6a816fe52ef6f5ce7e86eeec63c354b19144400b2e50fe45cc835",
+    "identity_scope": "Actual true020 ordinary/Original binaries stay distinct from the later external diagnostic literal and metadata. No binary/payload/producer reidentification."
+  },
+  "evidence": {
+    "native_completion": {
+      "path": "R:\\d3-evidence\\physical-flags-witness-5d2c-native-20261107-completion.json",
+      "bytes": 105640,
+      "sha256": "a90cb69e069af3a2d2671a5fe1e54f6dc3ec3f2ce09623229aa92d379c5ea365"
+    },
+    "Root_actual_binding": {
+      "path": "R:\\d3-evidence\\physical-flags-witness-5d2c-native-Root-binding-20261107.json",
+      "bytes": 60453,
+      "sha256": "e18e6bb100ec62b314ad77b6fbedc79312d9eff1a10077e324e1789ff7d50ed0"
+    },
+    "source_review": {
+      "path": "R:\\d3-evidence\\independent-physical-flags-public-witness-5d2c-source-20261107.json",
+      "bytes": 13524,
+      "sha256": "73bec4cfd41a0ebb7f6546c0e3b8252e27667cdb19581b6e2fad4731b2e9925d"
+    },
+    "controller_review": {
+      "path": "R:\\d3-evidence\\independent-physical-flags-witness-5d2c-controller-launch-20261107.json",
+      "bytes": 11864,
+      "sha256": "0573f8e1d8f6a816fe52ef6f5ce7e86eeec63c354b19144400b2e50fe45cc835"
+    }
+  },
+  "actual_totals": {
+    "controller_actual_exit": 0,
+    "completed_utc": "2026-11-07T21:41:39.974019+00:00",
+    "declared_steps": 23,
+    "native_executed": 17,
+    "native_PASS": 17,
+    "healthy_positives": 2,
+    "immediate_single_fault_PASS": 15,
+    "unlaunched_UNREACHED_PREREQUISITE": 6,
+    "direct_child_exits_zero": 51,
+    "pre_post_manifest_reports": 34,
+    "full_retail_rows_each": 1179,
+    "all_manifest_rows_equal_accepted_reference": true,
+    "retained_raw_files_hashed": 153,
+    "unchanged_profile_payloads": 180,
+    "frozen020_fullclean": true,
+    "setup": "lebanon_retail/hours0.001/frame_ms100/seed1, fixed35frames/3.5s positive window, fresh verified retail root per actual process. No hunt, duration/seed/frame change or retry."
+  },
+  "positive_results": {
+    "flags_original": {
+      "native_exit": 0,
+      "frames": 35,
+      "all_flag_attempts_answered_accepted_keys_and_oracle_traffic": 0,
+      "altered": 0,
+      "mismatches": 0,
+      "report_sha256": "1958172b2d462a852bbcd046efc04aef94919ba3328e2b5e17edca936c3725d9",
+      "scope": "Actual Original profile retains its legacy path; Host received no flag question in this finite run. This is a profile/traffic observation, not a read-consumer comparison."
+    },
+    "flags_control": {
+      "native_exit": 0,
+      "frames": 35,
+      "group_attempts_answered_accepted": 492,
+      "set_attempts_answered_accepted": 50540,
+      "read_attempts_answered_accepted": 0,
+      "reset_attempts_answered_accepted": 35,
+      "issued_group_keys": 492,
+      "eligible_group_clear_count_aggregate": 16728,
+      "oracle_sets": 50540,
+      "oracle_reads": 0,
+      "oracle_resets": 35,
+      "oracle_mismatches": 0,
+      "altered": 0,
+      "consumable_reads": 0,
+      "consumption_tuple_present": false,
+      "report_sha256": "59363cd8e2cfc89e58b0b9c61c1e8b7304551c106f63fbb93c2ed969c1577df1",
+      "first_events_safe": [
+        {
+          "event": "reset",
+          "ordinal": 1,
+          "frame": 1
+        },
+        {
+          "event": "group",
+          "ordinal": 2,
+          "frame": 1
+        },
+        {
+          "event": "set",
+          "ordinal": 3,
+          "frame": 1
+        },
+        {
+          "event": "group_second",
+          "ordinal": 4,
+          "frame": 1
+        }
+      ],
+      "scope": "Real public Lua->native module->Host GROUP/SET/RESET transactions were answered and accepted with coherent reported group/reset history.492 groups is not492 unique entities,50540 sets are not unique writers, and phase aggregates do not distinguish all three arrays. No actual READ returned a stored bit, so no retention/changed-word/physical-outcome authority is proved."
+    }
+  },
+  "cases": [
+    {
+      "step": 1,
+      "mode": "flags_original",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "1958172b2d462a852bbcd046efc04aef94919ba3328e2b5e17edca936c3725d9"
+    },
+    {
+      "step": 2,
+      "mode": "flags_control",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "59363cd8e2cfc89e58b0b9c61c1e8b7304551c106f63fbb93c2ed969c1577df1"
+    },
+    {
+      "step": 3,
+      "mode": "read_changed",
+      "status": "UNREACHED_PREREQUISITE",
+      "native_executed": false,
+      "reason": "paired positive control has no complete carried-consume tuple"
+    },
+    {
+      "step": 4,
+      "mode": "group_withheld",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "284fe33d87456b6e50a043d3ae277be433659e6e38ab008269107f0ad948d8d1",
+      "matched_positive_event": "group",
+      "matched_ordinal": 2,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "entity_scan.callback"
+    },
+    {
+      "step": 5,
+      "mode": "group_malformed",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "51a123995866fd9e9d700d5e40d18d52e8c7d768414dac2a05fea54f816a298c",
+      "matched_positive_event": "group",
+      "matched_ordinal": 2,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "entity_scan.answer"
+    },
+    {
+      "step": 6,
+      "mode": "group_wrong_state",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "f162c414542747da1e4ca80fc3a594b8e97b99c6a04865be3656df308a56a44f",
+      "matched_positive_event": "group",
+      "matched_ordinal": 2,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "entity_scan.state"
+    },
+    {
+      "step": 7,
+      "mode": "set_withheld",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "695178eb4a90e99ebb82cf568b2ac7419357659b9ced01cfa299edd95c24d773",
+      "matched_positive_event": "set",
+      "matched_ordinal": 3,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "entity_scan.callback"
+    },
+    {
+      "step": 8,
+      "mode": "set_malformed",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "cd19cef232bc8ddc1a99f0389aefafd47c81ba65c7cd86ef3bb9e0be6ca2d6d2",
+      "matched_positive_event": "set",
+      "matched_ordinal": 3,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "entity_scan.answer"
+    },
+    {
+      "step": 9,
+      "mode": "set_wrong_state",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "7f4785ccec4a062602e2c58b80da711c65603fa3c879b56b2060c354ed5c9a55",
+      "matched_positive_event": "set",
+      "matched_ordinal": 3,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "entity_scan.state"
+    },
+    {
+      "step": 10,
+      "mode": "read_withheld",
+      "status": "UNREACHED_PREREQUISITE",
+      "native_executed": false,
+      "reason": "paired positive control did not reach read"
+    },
+    {
+      "step": 11,
+      "mode": "read_malformed",
+      "status": "UNREACHED_PREREQUISITE",
+      "native_executed": false,
+      "reason": "paired positive control did not reach read"
+    },
+    {
+      "step": 12,
+      "mode": "read_wrong_state",
+      "status": "UNREACHED_PREREQUISITE",
+      "native_executed": false,
+      "reason": "paired positive control did not reach read"
+    },
+    {
+      "step": 13,
+      "mode": "reset_withheld",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "d0c21d02d81c4c19d89218572a2ef4c694fff09a1be3ba7c0e2e3e5b60adcbdf",
+      "matched_positive_event": "reset",
+      "matched_ordinal": 1,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "entity_scan.callback"
+    },
+    {
+      "step": 14,
+      "mode": "reset_malformed",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "f83e8b9799fbe6f2b214c9d8e8fecaf507172de96b2531f343d659e7e462acea",
+      "matched_positive_event": "reset",
+      "matched_ordinal": 1,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "entity_scan.answer"
+    },
+    {
+      "step": 15,
+      "mode": "reset_wrong_state",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "03c724441fe2ace5db334928e31c69fe7a1954ef8320de83f42fb52d5596f6c4",
+      "matched_positive_event": "reset",
+      "matched_ordinal": 1,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "entity_scan.state"
+    },
+    {
+      "step": 16,
+      "mode": "group_bad_key",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "7f519b91df0d8963a40ed2ef44a3a3e90ff83b40163cca488e3a46c222d49c6c",
+      "matched_positive_event": "group",
+      "matched_ordinal": 2,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "flag.key"
+    },
+    {
+      "step": 17,
+      "mode": "group_duplicate_key",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "b1ca8b1bb301a8485bb33df64ecf85ec4cb0b43fc9a79d7344cfe0f06021e419",
+      "matched_positive_event": "group_second",
+      "matched_ordinal": 4,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "flag.key"
+    },
+    {
+      "step": 18,
+      "mode": "group_wrong_eligibility",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "87e7fd1ef8e7913210c5677109bbe361e72721b29c8542f7f1ecbd04b70b3da9",
+      "matched_positive_event": "group",
+      "matched_ordinal": 2,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "flag.answer"
+    },
+    {
+      "step": 19,
+      "mode": "set_wrong_lane",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "ea8f6b4039309e92861e14f62c4c4b8b3f8d95e534fc836dcbc7251651f877e1",
+      "matched_positive_event": "set",
+      "matched_ordinal": 3,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "flag.answer"
+    },
+    {
+      "step": 20,
+      "mode": "set_wrong_word",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "c6b8b79c09f0fceb18cc95173c86798f71fd329d5f388ef2a528f5d4d3fa20d7",
+      "matched_positive_event": "set",
+      "matched_ordinal": 3,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "flag.word"
+    },
+    {
+      "step": 21,
+      "mode": "read_wrong_array",
+      "status": "UNREACHED_PREREQUISITE",
+      "native_executed": false,
+      "reason": "paired positive control did not reach read"
+    },
+    {
+      "step": 22,
+      "mode": "read_wrong_word",
+      "status": "UNREACHED_PREREQUISITE",
+      "native_executed": false,
+      "reason": "paired positive control did not reach read"
+    },
+    {
+      "step": 23,
+      "mode": "reset_wrong_array",
+      "status": "PASS",
+      "native_executed": true,
+      "native_exit": 0,
+      "pre_post_inputs": 0,
+      "report_sha256": "c7901b8c3095c4f351a696cc1d32e399431f546a3545c0a930943c4aa95b5bd9",
+      "matched_positive_event": "reset",
+      "matched_ordinal": 1,
+      "immediate_same_entry": "frame:1",
+      "expected_marker": "flag.answer"
+    }
+  ],
+  "actual_refusal_assessment": {
+    "accepted_modes": [
+      "group_withheld",
+      "group_malformed",
+      "group_wrong_state",
+      "set_withheld",
+      "set_malformed",
+      "set_wrong_state",
+      "reset_withheld",
+      "reset_malformed",
+      "reset_wrong_state",
+      "group_bad_key",
+      "group_duplicate_key",
+      "group_wrong_eligibility",
+      "set_wrong_lane",
+      "set_wrong_word",
+      "reset_wrong_array"
+    ],
+    "facts": [
+      "All15 real refusal reports have one eligible alteration, zero oracle mismatch and no request/reply fault rows. The real provider positive answer was observed before that alteration; expected faulty reply is not counted as accepted.",
+      "Each actual first-event complete tuple (ordinal/frame/all four before_* counts) equals the same-run healthy control tuple. The duplicate-key case uses the second GROUP, ordinal4, after one healthy issued/accepted group. Other GROUP cases use ordinal2, SET cases3 and RESET cases1.",
+      "Every executed refusal is reported in frame:1, with expected marker, matching injection/fatal entry and callback_after=none. No later callback, different marker or unrelated entry is used for credit. No native BOOT refusal was reached in this family; boot guards remain source/scripted-control evidence only.",
+      "Direct native0 for a negative means the diagnostic successfully verified the expected caught engine refusal. It does not mean the campaign ran35 healthy frames, resumed after fatal or completed a normal physical transaction.",
+      "Negative reporting uses the already-reviewed Lua-owned observations; these actual records show no continued callback and no postfatal physical/counter/close measurement. Atomic C output/cache claims remain their prior canary/source proof, not a new postfatal native read."
+    ]
+  },
+  "unreached_disposition": {
+    "steps": [
+      3,
+      10,
+      11,
+      12,
+      21,
+      22
+    ],
+    "modes": [
+      "read_changed",
+      "read_withheld",
+      "read_malformed",
+      "read_wrong_state",
+      "read_wrong_array",
+      "read_wrong_word"
+    ],
+    "native_executed": false,
+    "reason": "Healthy control reached no READ, no read_consumable event and no complete carried-consume tuple. The controller correctly recorded prerequisites as UNREACHED and never created/launched these cases.",
+    "acceptance": false,
+    "required_open": "ENV-PHYSICAL-FLAGS-HOST-STORE-NATIVE-ACCEPTANCE-1 remains OPEN for actual READ/backing/changed-answer consumption, plus its other named consumer/lifetime scope. No all23PASS or native READ refusal/authority claim."
+  },
+  "reviewed_evidence_truth_and_boundary": [
+    "Joined real completion source/literal/plan/controller/launch identities to prior sealed clearances and Roote18e; all51 retained native/input child stages actual0. Read17 whole report files at their current hashes, both complete positive records and each negative causal marker/entry/complete first-event tuple, without printing private keys/fatal identity details.",
+    "References recorded by each case still hash to the same actual Original/control files. The Root audit joins34 full1179-row manifests,153 raw files and180 sealed payloads, and retains frozen020 clean. No current working author source is substituted for the compiled runtime.",
+    "Root initial audit attempt stopped before writing its proof because of a duplicate-path metadata dictionary construction. Original attempt retained; corrected read-only construction created the current proof. This did not replay native, source checks or builds, or amend original process receipts/raw results.",
+    "No actionable actual discrepancy identified within reached scope. Clean orchestration retained real exits, failed prerequisites and safe aggregates; controller0 was not promoted to whole23-case acceptance.",
+    "Prior020 unchanged default6complete files literal80fd and source73bec/controller0573 closures remain accepted at their true finite scopes. This witness wrote no recording/physical-terminal parity proof; those default results are not silently broadened into native changed-read or all-consumer authority."
+  ],
+  "next_required_work_scope": "No bounded finding from these actuals prevents the lead starting the already-required gd_supply_arrival UPDATED immediate-consumer characterization/control work. That is new source/consumer evidence, not a closure or an execution authorization from this report. Preserve actual raw mask/destructive semantics and the named bool-validation mismatch; no automatic normalization, fixture/framework substitution, actor/window hunt or baseline change is authorized.",
+  "remaining_limits": [
+    "All10 requirements, actual READ and changed-answer authority, all other needed consumers/arrays, supported lifetimes, whole-FPU/i686/O2/DCS, wholeheight/current final40/all8/fourinputs/currentCI/census/review/normalmerge/Task49/D3/delivery remain OPEN at actual scope. No D4/D5/TypeScript/formalapproval.",
+    "Original764 fullshipping original process identities/source/bin/roots/raw are preserved and independent; partial prefix equality is not complete764 or020 acceptance.",
+    "Reviewer ran no source/tests/build/cache/native/campaign/checker replay or nested agents and changed no tracked source/card/canonical data. Only this immutable safe-aggregate UTF8-LF JSON report is written. Root owns canonical acceptance/finding disposition/publication."
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+  "actual_exit": 0,
+  "snapshot": "D:\\EECH-Migration-Evidence\\city-box-corrected-4c0b89263-20261106-source",
+  "cases": {
+    "short": {
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "completion": "R:\\d3-evidence\\city-box-ordinary-short-4c0b89263-20261106-completion.json",
+      "completion_sha256": "63e3941aa5b74fd21213b2c1a70356a8969578e7a543354a7ebb2728b37a94da",
+      "controller": "D:\\EECH-Migration-Evidence\\city-box-ordinary-short-4c0b89263-20261106\\controller.json",
+      "controller_sha256": "aaf5b8f108f410092c54a5c862673b06492065c32b0230cc99b87e49719c446d",
+      "output": "D:\\EECH-Migration-Evidence\\city-box-ordinary-short-4c0b89263-20261106",
+      "payloads_verified": 88,
+      "pre_post_actual_exits": [
+        0,
+        0
+      ],
+      "full_input_manifests": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-box-ordinary-short-4c0b89263-20261106\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "full_input_array_bytes": 208734,
+          "full_input_array_sha256": "139befd249c2ee02cd19c8468976108116a17b62682c89dab40d1f86e9a47bc1",
+          "manifest_files": 1179,
+          "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-box-ordinary-short-4c0b89263-20261106\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "full_input_array_bytes": 208734,
+          "full_input_array_sha256": "139befd249c2ee02cd19c8468976108116a17b62682c89dab40d1f86e9a47bc1",
+          "manifest_files": 1179,
+          "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+        }
+      ]
+    },
+    "healthy": {
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "completion": "R:\\d3-evidence\\city-box-healthy-4c0b89263-20261106-completion.json",
+      "completion_sha256": "3d6e86d27f6ffdd09475cdabe5db19ee658ce6f908e9a96e3d3cfad3a70874f7",
+      "controller": "D:\\EECH-Migration-Evidence\\city-box-healthy-4c0b89263-20261106\\controller.json",
+      "controller_sha256": "e83363443fe7885774b0c4e73ce8fdd2a4685b3ae70f37eadca267fcf3fe3143",
+      "output": "D:\\EECH-Migration-Evidence\\city-box-healthy-4c0b89263-20261106",
+      "payloads_verified": 88,
+      "pre_post_actual_exits": [
+        0,
+        0
+      ],
+      "full_input_manifests": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-box-healthy-4c0b89263-20261106\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "full_input_array_bytes": 208734,
+          "full_input_array_sha256": "139befd249c2ee02cd19c8468976108116a17b62682c89dab40d1f86e9a47bc1",
+          "manifest_files": 1179,
+          "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-box-healthy-4c0b89263-20261106\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "full_input_array_bytes": 208734,
+          "full_input_array_sha256": "139befd249c2ee02cd19c8468976108116a17b62682c89dab40d1f86e9a47bc1",
+          "manifest_files": 1179,
+          "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+        }
+      ]
+    },
+    "withdrawal": {
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "completion": "R:\\d3-evidence\\city-box-withdrawn-construction-4c0b89263-20261106-completion.json",
+      "completion_sha256": "8fb43800ffc5ed9c5e9b97979f605e18fd67ee86fd8559224ec3a49800c8bf0f",
+      "controller": "D:\\EECH-Migration-Evidence\\city-box-withdrawn-construction-4c0b89263-20261106\\controller.json",
+      "controller_sha256": "34cff49e115318e87cefb9d581bb48d3877729e35ce8cd63efad885999ef33fe",
+      "output": "D:\\EECH-Migration-Evidence\\city-box-withdrawn-construction-4c0b89263-20261106",
+      "payloads_verified": 88,
+      "pre_post_actual_exits": [
+        0,
+        0
+      ],
+      "full_input_manifests": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-box-withdrawn-construction-4c0b89263-20261106\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "full_input_array_bytes": 208734,
+          "full_input_array_sha256": "139befd249c2ee02cd19c8468976108116a17b62682c89dab40d1f86e9a47bc1",
+          "manifest_files": 1179,
+          "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\city-box-withdrawn-construction-4c0b89263-20261106\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "full_input_array_bytes": 208734,
+          "full_input_array_sha256": "139befd249c2ee02cd19c8468976108116a17b62682c89dab40d1f86e9a47bc1",
+          "manifest_files": 1179,
+          "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+        }
+      ]
+    }
+  },
+  "Windows_profiles_resealed": {
+    "ordinary": {
+      "actual_build_exit": 0,
+      "payloads_rehashed": 88,
+      "build_info_sha256": "ccb5fe10a3617ab8410a11cdeeea287cea511d256f64ef4f49fd1ed9635519bf"
+    },
+    "hosted": {
+      "actual_build_exit": 0,
+      "payloads_rehashed": 88,
+      "build_info_sha256": "4fe0970ef7f3717dd742d438a1609b5abb55a3e4d71ad4751bb17b78e6a6f43e"
+    },
+    "original": {
+      "actual_build_exit": 0,
+      "payloads_rehashed": 88,
+      "build_info_sha256": "0b9e98768f4e0bdcadd44e976a3f6aede8ab536c0bda585a6133ea785eee0d37"
+    }
+  },
+  "ordinary_short_comparison": {
+    "path": "R:\\d3-evidence\\city-box-ordinary-short-comparison-4c0b-20261106.json",
+    "sha256": "ad7654a26bbcf3a81383cb881d542db2f22d9b6c48266ef8693f5b81166f132f",
+    "all_three_COMPLETE_literal_equal": true
+  },
+  "healthy_comparison": {
+    "path": "R:\\d3-evidence\\city-box-healthy-comparison-4c0b-20261106.json",
+    "sha256": "7d2bb5c67efd40a88dd7b455e2058bfcb99f8e4fb0449a8eca71f46046daea53",
+    "prelaunch_expansions": 54825,
+    "common_fields": 186,
+    "only_changed_common_field": "city_state_before",
+    "old": 83408,
+    "new": 28583,
+    "exact_declared_delta": 54825,
+    "complete_terminal_literal_equal": true,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433"
+  },
+  "real_BOOT_withdrawal": {
+    "completed": false,
+    "boot_stop": true,
+    "city_expand_before": 1,
+    "city_expand_after": 0,
+    "city_expand_total": 1,
+    "city_expand_answered": 0,
+    "box_eligible": 1,
+    "box_withdrawn": 1,
+    "box_withdrawn_cause": "city_box_building_state_withdrawn",
+    "physical_after_stop": -1,
+    "request_faults": 0,
+    "reply_faults": 1,
+    "first_fault": "scan reply: result refused",
+    "failure_marker": "entity_scan.refused"
+  },
+  "six_complete1179_input_arrays_literal_equal": true,
+  "all_six_full_manifest_bytes_literal_equal": true,
+  "complete_input_array_sha256": "139befd249c2ee02cd19c8468976108116a17b62682c89dab40d1f86e9a47bc1",
+  "post_native_source_maps_literal_equal": true,
+  "post_native_map_sha256": "20c2a0d5aa74934809e7af0915db6cb2ebdd08ed6b5a2747537df54177b39602",
+  "source_raw_Git_files": 3953,
+  "scope": "Retained actual facts for SAME independent review. No native rerun, raw IDs/poses/reports published, normalized physical signatures, postfatal API reads or wholeD3/fullpack/Task49 acceptance. REQUIRED_CITY_BOX_LIFECYCLE_RETENTION, physical flags and allten requirements remain.",
+  "independent_actual_review_pending": true,
+  "verified_utc": "2026-11-06T13:02:32.281642+00:00"
+}

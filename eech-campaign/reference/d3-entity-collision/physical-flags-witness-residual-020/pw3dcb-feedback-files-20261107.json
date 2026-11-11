@@ -1,0 +1,7 @@
+{
+  "read": {
+    "Root-physical-flags-witness-feedback-20261107-2012.json": "read in full in an earlier batch and again at the start of the witness batches",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json": "read in full at 20:57:09Z in the previous batch; its provenance recovery was carried out there and is bound by Root's namespace-recovery binding"
+  },
+  "note": "no Root-physical-flags-witness-residual-feedback file existed when this batch began (checked 21:12Z) or at the time of the real PRE; the previous family's runner globbed a wrong name (a text-replace artifact: witfix-fix) and so never printed Root's notes to the console: they were always read by listing the directory, and this family's runner globs the real name"
+}

@@ -1,0 +1,10 @@
+c0-archive-identity exit=0
+c1-syntax-bash-posix exit=0
+c2-selftest-generated-payload exit=0
+c3-selftest-actual-pinned-archive exit=0
+c4-selftest-actual-pinned-archive-bash-posix exit=0
+c5-mutation-sha-comparison-disabled-is-caught exit=0
+c6-workflow-static-vs-1b89 exit=0
+c7-real-curl-options-closed-loopback exit=0
+c8-git-diff-check exit=0
+DONE

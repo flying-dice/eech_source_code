@@ -1,0 +1,22 @@
+{
+  "controller_pid": 22316,
+  "state": "terminal",
+  "started_utc": "2026-11-08T13:02:01.918899+00:00",
+  "command": "cargo test --locked -p eech-dc --lib --features normal-fire-correlation public_normal_session_driver_consumes_only_registered_userdata_methods -- --nocapture",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-normal-fire-pde333-linux-20261108.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked -p eech-dc --lib --features normal-fire-correlation public_normal_session_driver_consumes_only_registered_userdata_methods -- --nocapture"
+  ],
+  "scope": "Working-tree check in the sole leased volume eech-linux-d3-physical-flags-9d247-20261107, image sha256:9d247b4e... named, never substituted.",
+  "pid": 22356,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-08T13:03:19.484957+00:00"
+}

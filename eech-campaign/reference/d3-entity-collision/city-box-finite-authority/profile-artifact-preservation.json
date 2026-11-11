@@ -1,0 +1,164 @@
+{
+  "source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+  "cache": "eech-win-city-box-4c0b89263-20261106",
+  "actual_exit": 0,
+  "retained_objects": 12,
+  "retained_files": 30,
+  "files": [
+    {
+      "path": "hosted/67fd5db87f5aeca0-eech_engine.o",
+      "bytes": 688838,
+      "sha256": "a551c60a6d10b19addeb405e472000edc3ee77730d6721afcec46d400ff7de89"
+    },
+    {
+      "path": "hosted/67fd5db87f5aeca0-eech_engine.o.symbols.txt",
+      "bytes": 4992,
+      "sha256": "c18ae086da5c60c9434845836c9fa273a98a1d45e7c2214315bf49013e89f69b"
+    },
+    {
+      "path": "hosted/67fd5db87f5aeca0-eech_mq_report_check.o",
+      "bytes": 544,
+      "sha256": "df6cbe7c30229571b8e9cc57c70df49d03a13b8094b4dc0551f7e08032895ec1"
+    },
+    {
+      "path": "hosted/67fd5db87f5aeca0-eech_mq_report_check.o.symbols.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "hosted/67fd5db87f5aeca0-eech_wpn_fixture.o",
+      "bytes": 11492992,
+      "sha256": "60be4031ea4ba2be35b237908ed7f1ee7aabd153ab24d802efca0f1b0cdda141"
+    },
+    {
+      "path": "hosted/67fd5db87f5aeca0-eech_wpn_fixture.o.symbols.txt",
+      "bytes": 2503,
+      "sha256": "9455c3499572ea450b4718813cf54be376723fb5de9aa28841dfc83be383258b"
+    },
+    {
+      "path": "hosted/cargo-feature-manifest.json",
+      "bytes": 939,
+      "sha256": "5a30f1d6ba8c3a3d16d5d0122223b2f836a8650b6cb84c0084a224b1f5439998"
+    },
+    {
+      "path": "hosted/dll-exports.txt",
+      "bytes": 6346961,
+      "sha256": "c35d349264cc2e0c425daed3b849d9328bb3b01d4c781fdf2aec7fe7471e6efd"
+    },
+    {
+      "path": "hosted/f6fc6cb7fd4fea60-mb_hostplace.o",
+      "bytes": 444324,
+      "sha256": "f0aafcc9d5b52914440ee734acd46dd94e176f98ad29426e3eea5b75d113675f"
+    },
+    {
+      "path": "hosted/f6fc6cb7fd4fea60-mb_hostplace.o.symbols.txt",
+      "bytes": 906,
+      "sha256": "fe9cec91002fcf4ad5808a0b6b7a7864a3b4acce28372518df96fdfe09d7e6b6"
+    },
+    {
+      "path": "ordinary/67fd5db87f5aeca0-eech_engine.o",
+      "bytes": 584448,
+      "sha256": "c7a6ff4279b4743148a04ab6680d7ac06880c4ab33df0c1b901d3928ae28e44c"
+    },
+    {
+      "path": "ordinary/67fd5db87f5aeca0-eech_engine.o.symbols.txt",
+      "bytes": 4443,
+      "sha256": "f2fbceb5d185bd124073e9805fef529676b41df19d857c8b87d40f9bd05d9d96"
+    },
+    {
+      "path": "ordinary/67fd5db87f5aeca0-eech_mq_report_check.o",
+      "bytes": 544,
+      "sha256": "df6cbe7c30229571b8e9cc57c70df49d03a13b8094b4dc0551f7e08032895ec1"
+    },
+    {
+      "path": "ordinary/67fd5db87f5aeca0-eech_mq_report_check.o.symbols.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ordinary/67fd5db87f5aeca0-eech_wpn_fixture.o",
+      "bytes": 521,
+      "sha256": "e1c973e749ce66fbaab0561d04080581f0a0baf998c56b86b993e61be050ca51"
+    },
+    {
+      "path": "ordinary/67fd5db87f5aeca0-eech_wpn_fixture.o.symbols.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ordinary/cargo-feature-manifest.json",
+      "bytes": 922,
+      "sha256": "93cc940295ddcc186454ce786f5b979983d11ae3db4b9f56b616fdbb77cd9427"
+    },
+    {
+      "path": "ordinary/dll-exports.txt",
+      "bytes": 6181890,
+      "sha256": "1a00aecf81c10b149f9dc473542be11303930a88dc00fdebf06bc33745d2e9ea"
+    },
+    {
+      "path": "ordinary/f6fc6cb7fd4fea60-mb_hostplace.o",
+      "bytes": 444324,
+      "sha256": "98bae6e140453244c3e6fe274e7414ea7bf88d0b13022bbb55be51edc196b146"
+    },
+    {
+      "path": "ordinary/f6fc6cb7fd4fea60-mb_hostplace.o.symbols.txt",
+      "bytes": 906,
+      "sha256": "fe9cec91002fcf4ad5808a0b6b7a7864a3b4acce28372518df96fdfe09d7e6b6"
+    },
+    {
+      "path": "original/67fd5db87f5aeca0-eech_engine.o",
+      "bytes": 720631,
+      "sha256": "0b90fa98eb4d2adc5f5b04b07dc964a0f9ac2bda44d8eeb1819ca51a8f9119a5"
+    },
+    {
+      "path": "original/67fd5db87f5aeca0-eech_engine.o.symbols.txt",
+      "bytes": 5196,
+      "sha256": "5c35eda4236f48f561328b220f5b54ae95391d97db586421f0f365adca56e2c6"
+    },
+    {
+      "path": "original/67fd5db87f5aeca0-eech_mq_report_check.o",
+      "bytes": 544,
+      "sha256": "df6cbe7c30229571b8e9cc57c70df49d03a13b8094b4dc0551f7e08032895ec1"
+    },
+    {
+      "path": "original/67fd5db87f5aeca0-eech_mq_report_check.o.symbols.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "original/67fd5db87f5aeca0-eech_wpn_fixture.o",
+      "bytes": 11492992,
+      "sha256": "44d1ff887dd69d10ae69bd8391a0400c2018be3853eba8825d603674f0b1f891"
+    },
+    {
+      "path": "original/67fd5db87f5aeca0-eech_wpn_fixture.o.symbols.txt",
+      "bytes": 2503,
+      "sha256": "9455c3499572ea450b4718813cf54be376723fb5de9aa28841dfc83be383258b"
+    },
+    {
+      "path": "original/cargo-feature-manifest.json",
+      "bytes": 962,
+      "sha256": "d533f0b516076459ace5f6e729d3c14328cfa2cd1f370f2dbd1495460f641e1f"
+    },
+    {
+      "path": "original/dll-exports.txt",
+      "bytes": 6376904,
+      "sha256": "b0700970d8335e41d5d42b4c2d67acdf14f04c1d3374e54f0c1dd0173e45c67d"
+    },
+    {
+      "path": "original/f6fc6cb7fd4fea60-mb_hostplace.o",
+      "bytes": 1769,
+      "sha256": "cec38933a39e2f3c1fd8419d26c260de7f785cfff9c10eb82f3f0ec8880b787d"
+    },
+    {
+      "path": "original/f6fc6cb7fd4fea60-mb_hostplace.o.symbols.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "object_bytes_match_original_bound_audit": true,
+  "all_three_profiles_rehashed_payloads_each": 88,
+  "cache_removed": false,
+  "scope": "Retained actual bound COFF/features/exports. No new source/build/native test or acceptance. Full RLIB not retained; cache not yet removed.",
+  "completed_utc": "2026-11-06T13:09:18.079689+00:00"
+}

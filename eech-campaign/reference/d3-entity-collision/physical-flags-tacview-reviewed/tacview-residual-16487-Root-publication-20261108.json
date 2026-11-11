@@ -1,0 +1,253 @@
+{
+  "kind": "Root read-only exact Git packet and literal external publication binding",
+  "utc": "2026-11-08T00:30:49.293390+00:00",
+  "code": "eb7b6de7000ef35635b903089fd9aba4a46d5553",
+  "metadata": "16487c2ca7f0e7548d5851b5284fc2aa17a3de68",
+  "manifest_entries": 50,
+  "exact_committed_packet_coverage": true,
+  "external_literal_copies": [
+    {
+      "path": ".gitattributes",
+      "external": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\reference\\d3-entity-collision\\physical-flags-keyfix-020-reviewed\\.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-TACVIEW-GUARD-RESIDUAL-FROZEN-20261108.json",
+      "external": "R:\\d3-evidence\\D3-TACVIEW-GUARD-RESIDUAL-FROZEN-20261108.json",
+      "sha256": "31feadadfc923146451cdcf592b8c81d89953d253df929b2cac1d03b76f8823b"
+    },
+    {
+      "path": "independent-tacview-correction-bccd-source-20261108.json",
+      "external": "R:\\d3-evidence\\independent-tacview-correction-bccd-source-20261108.json",
+      "sha256": "873c09a44fe8bba0f5daff7c10c7db6c0d46a0ef0c4ffcc4bc8535430c2e1240"
+    },
+    {
+      "path": "runs/d1-fmt-apply.json",
+      "external": "R:\\d3-evidence\\flags-tvr69c-d1-fmt-apply.json",
+      "sha256": "cc8022a9fbac13ffabd934c7705eec247d101cb1f6d53ac56c276762d0827c63"
+    },
+    {
+      "path": "runs/d1-fmt-apply.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-d1-fmt-apply.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/d1-fmt-apply.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-d1-fmt-apply.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/g1-green-whitelist.json",
+      "external": "R:\\d3-evidence\\flags-tvr69c-g1-green-whitelist.json",
+      "sha256": "e27f4478602cbd3f27c6a054688fe416fbe94274c685f435370ff2a91e2077e4"
+    },
+    {
+      "path": "runs/g1-green-whitelist.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-g1-green-whitelist.stderr.log",
+      "sha256": "b55f96f7d1a0d742844938a4aee71a7fa0f27d537407f073cce454f67be3df29"
+    },
+    {
+      "path": "runs/g1-green-whitelist.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-g1-green-whitelist.stdout.log",
+      "sha256": "2ec9ad93a29d96f5dd4988820bc8381ad5a5a52e35c30bd5ae489ea44984f464"
+    },
+    {
+      "path": "runs/r1-red-negated-or.json",
+      "external": "R:\\d3-evidence\\flags-tvr69c-r1-red-negated-or.json",
+      "sha256": "8aada0e2b5cbd9efc33a744e7ffc9c1db39cd260487e29be826833528d804958"
+    },
+    {
+      "path": "runs/r1-red-negated-or.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-r1-red-negated-or.stderr.log",
+      "sha256": "90abb426de7a56e6167a9259e489fdeab59fa23973352ccc79e2f6404f3136bd"
+    },
+    {
+      "path": "runs/r1-red-negated-or.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-r1-red-negated-or.stdout.log",
+      "sha256": "7ba6ef150ca7a2c67078098ffd78f49414d67f6b41bd4a4c8d247b13f520a1a8"
+    },
+    {
+      "path": "runs/s1-fmt-check.json",
+      "external": "R:\\d3-evidence\\flags-tvr69c-s1-fmt-check.json",
+      "sha256": "fab1af886245ac06eed5fe589e5f6f5eab106e462747bb40820b3983376ada00"
+    },
+    {
+      "path": "runs/s1-fmt-check.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-s1-fmt-check.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/s1-fmt-check.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-s1-fmt-check.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/s2-clippy-engine-sys.json",
+      "external": "R:\\d3-evidence\\flags-tvr69c-s2-clippy-engine-sys.json",
+      "sha256": "43bf87db9fff54ae10b3f44a9d0973647dab5abcdbfba2323c3ae21eb2c9ed38"
+    },
+    {
+      "path": "runs/s2-clippy-engine-sys.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-s2-clippy-engine-sys.stderr.log",
+      "sha256": "2bbaae649939627b3a23a6bc6f5985f72c78ed4f0819c03b51f02ba5f278d03b"
+    },
+    {
+      "path": "runs/s2-clippy-engine-sys.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-s2-clippy-engine-sys.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s3-flags-guard.json",
+      "external": "R:\\d3-evidence\\flags-tvr69c-s3-flags-guard.json",
+      "sha256": "4137a70bf1ddd74316d71a5b212610cfa52ee83f181883e3c89c4b2fe2486b13"
+    },
+    {
+      "path": "runs/s3-flags-guard.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-s3-flags-guard.stderr.log",
+      "sha256": "4415f48fb65d3e8e74b4ae0357b059cd53f6d4df9bd6d362cc2760cfd9887687"
+    },
+    {
+      "path": "runs/s3-flags-guard.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvr69c-s3-flags-guard.stdout.log",
+      "sha256": "953cce5063dda5aeba645d3b6bb9a8b529fab0eedd9eb0cd254ac76a3921cdf7"
+    },
+    {
+      "path": "scripts/check-physical-flags-tvr69c-linux-20261107.sh",
+      "external": "R:\\d3-evidence\\check-physical-flags-tvr69c-linux-20261107.sh",
+      "sha256": "39e1f7b6515f722a7e7a5a3da9ce93f1aa35ddf1dab255de358da20ac17075a8"
+    },
+    {
+      "path": "scripts/derive-tvr69c-helpers-20261108.py",
+      "external": "R:\\d3-evidence\\derive-tvr69c-helpers-20261108.py",
+      "sha256": "03fff6eea7fed361960252349be3ba35ab87365065cde369524116a081c3b1ff"
+    },
+    {
+      "path": "scripts/freeze-tvr69c-20261107.py",
+      "external": "R:\\d3-evidence\\freeze-tvr69c-20261107.py",
+      "sha256": "4a9f1fe25f6829311b354d5821c2986f50c9b37cadd01df6964d3d9bc830fecd"
+    },
+    {
+      "path": "scripts/preflight-receipts-20261107.py",
+      "external": "R:\\d3-evidence\\preflight-receipts-20261107.py",
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+    },
+    {
+      "path": "scripts/publish-tvr69c-20261107.py",
+      "external": "R:\\d3-evidence\\publish-tvr69c-20261107.py",
+      "sha256": "16f1847818cbfd8a4434cfe57afe075b056e83d7d753e235c09d17dbbc060810"
+    },
+    {
+      "path": "scripts/run-physical-flags-tvr69c-direct-20261107.py",
+      "external": "R:\\d3-evidence\\run-physical-flags-tvr69c-direct-20261107.py",
+      "sha256": "8f1a87d44b3bc24bce687edf8ada36e09cec66b4b456765100de6ddbacfa3fa8"
+    },
+    {
+      "path": "scripts/run-tvr69c-final-set-20261107.sh",
+      "external": "R:\\d3-evidence\\run-tvr69c-final-set-20261107.sh",
+      "sha256": "f640be2797b0009bf33918fcee20adb29b52566e0e1b96becde5f9e579a10368"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "external": "R:\\d3-evidence\\sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "external": "R:\\d3-evidence\\sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "path": "scripts/tvr69c-extra-identity-20261107.py",
+      "external": "R:\\d3-evidence\\tvr69c-extra-identity-20261107.py",
+      "sha256": "0331d1334379958b1e08279b21b0c36c923ca2d408e13ce9e11c2810a1fb752f"
+    },
+    {
+      "path": "scripts/tvr69c-name-check-20261107.py",
+      "external": "R:\\d3-evidence\\tvr69c-name-check-20261107.py",
+      "sha256": "281788efee8a61852ad5993f4090b41d2f68135cf90eda0fc855fa9b7e224893"
+    },
+    {
+      "path": "tacview-correction-69c0-Root-publication-20261108.json",
+      "external": "R:\\d3-evidence\\tacview-correction-69c0-Root-publication-20261108.json",
+      "sha256": "28f6647c11c1341e8539fcf4699c3aaebf3067b783e97a1541c0814aeb331ea7"
+    },
+    {
+      "path": "tacview-correction-bccd-Root-binding-20261108.json",
+      "external": "R:\\d3-evidence\\tacview-correction-bccd-Root-binding-20261108.json",
+      "sha256": "25f89450ca54044aefed8a97af3d24a40ecf653f6a3b432f2ca319185b5a5153"
+    },
+    {
+      "path": "tvr69c-extra-identity-POST-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-extra-identity-POST-20261107.json",
+      "sha256": "0f9ff2e9e6e7a37a0c5a1d851d07b9f0e74633ec919f5e0cbc934d970deef1ec"
+    },
+    {
+      "path": "tvr69c-extra-identity-PRE-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-extra-identity-PRE-20261107.json",
+      "sha256": "0f9ff2e9e6e7a37a0c5a1d851d07b9f0e74633ec919f5e0cbc934d970deef1ec"
+    },
+    {
+      "path": "tvr69c-feedback-files-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-feedback-files-20261107.json",
+      "sha256": "d24d423c764933fb594c01361e1a2bf1cade18d2dde38f82ff8b47a00299bfce"
+    },
+    {
+      "path": "tvr69c-final-set-20261107.progress",
+      "external": "R:\\d3-evidence\\tvr69c-final-set-20261107.progress",
+      "sha256": "1f13a2d1a56d4423f062bb3ab9e9b222358d43cab0003aeb223f6748d5043e91"
+    },
+    {
+      "path": "tvr69c-final-set-lease-after-20261107.txt",
+      "external": "R:\\d3-evidence\\tvr69c-final-set-lease-after-20261107.txt",
+      "sha256": "e623f3489ac8c81df84e24de1f80398c9d3f76254135e17727cc3a79f904e4dd"
+    },
+    {
+      "path": "tvr69c-final-set-lease-before-20261107.txt",
+      "external": "R:\\d3-evidence\\tvr69c-final-set-lease-before-20261107.txt",
+      "sha256": "51ffd506e86edc99b2fbc125dfaa422bb63a97256ae4c0bd5d05721aa090a6f7"
+    },
+    {
+      "path": "tvr69c-inputmaps-compare-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-inputmaps-compare-20261107.json",
+      "sha256": "9bee868118b2e7c2de3c30ae177dc96b46b91f4c06ff9848964c6495d341e88d"
+    },
+    {
+      "path": "tvr69c-name-check-negative-control-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-name-check-negative-control-20261107.json",
+      "sha256": "a8148c41ef8f8ab919a9c317f219e4df6fab5160834254a079acd12676c105fd"
+    },
+    {
+      "path": "tvr69c-name-check-result-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-name-check-result-20261107.json",
+      "sha256": "3851f492b152759fcec42a54a5a2c5d4c059c3c11d4b567bdb239aea6e5a7259"
+    },
+    {
+      "path": "tvr69c-PRE-utc-20261107.txt",
+      "external": "R:\\d3-evidence\\tvr69c-PRE-utc-20261107.txt",
+      "sha256": "3d25cdfe71397c6ff529fc24c330a0f3644fde5b514e51b4182fabef6b4e12ab"
+    },
+    {
+      "path": "tvr69c-preflight-negative-control-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-preflight-negative-control-20261107.json",
+      "sha256": "bce53ad6f1cfff3d365358b7b9a7372910bd68cfff194d007f4e6e01d749bd44"
+    },
+    {
+      "path": "tvr69c-preflight-receipts-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-preflight-receipts-20261107.json",
+      "sha256": "0e5f0d10c5d454be51c720dca3294303cffb233ec971ba267e505c2a666d61b2"
+    },
+    {
+      "path": "tvr69c-readers-PRE-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-readers-PRE-20261107.json",
+      "sha256": "b74f65b7e19332e54b61dbe760712c4a9bf7cff50b7801b9b816a669e462930c"
+    },
+    {
+      "path": "tvr69c-retained-dev-runs-20261107.json",
+      "external": "R:\\d3-evidence\\tvr69c-retained-dev-runs-20261107.json",
+      "sha256": "c9f6fc9b3d946b4b0b24b137ebb5a2fe4ba94e3aca14cd8646b92726431f3972"
+    }
+  ],
+  "metadata_delta_only_STATUS_card": true,
+  "clean_pushed_HEAD": true,
+  "limits": "Unreviewed corrected finite dormancy disposition; IdentityID closed; SAME guard residual follow-up pending. No new runtime/fullpack/default acceptance or replay."
+}

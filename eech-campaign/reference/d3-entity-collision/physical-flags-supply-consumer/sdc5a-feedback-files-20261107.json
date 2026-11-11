@@ -1,0 +1,14 @@
+{
+  "read": {
+    "Root-physical-flags-witness-feedback-20261107-2012.json": "read in full in earlier batches and again at the start of the witness batches",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json": "read in full at 20:57:09Z in an earlier batch; its provenance recovery was carried out there",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2148.json": "read in full at 22:26:37Z: it was present earlier but MISSED by my own `ls ... | tail -1`, which showed only the last file; the freeze script's check of unread notes found it in the dry run. Supplemental publication identity: published as a literal",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2150.json": "read in full at 22:26:37Z (missed by the same `tail -1`): the live ledger/Jira/PR receipts, published as literals",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2154.json": "read in full at 22:26:37Z (missed by the same `tail -1`): the exact CI readback of c5a3ed, published as a literal",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2201.json": "read in full at 22:26:37Z (missed by the same `tail -1`): the mb_hostmodel.c gate is a changed raw product-source file; the README binds the exact guard-only delta and states the unchanged shipping behaviour only as the qualified source/preprocessor fact",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2205.json": "read in full at 22:11:57Z; adopted: Write/Edit for source, heredoc scripting kept to explicit files, the d4 failure preserved, the lesson recorded in the README",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2215.json": "read in full at 22:26:37Z: every final clippy and fmt invocation carries its own rustup component add and the version command; the d11/d12 setup slips are preserved as setup, not semantic RED",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2222.json": "read in full at 22:26:37Z: no further developer run only to learn counts (d18 to d20 were already started and are kept); the freeze parses the actual selected counts from the final receipts after they complete and pins none in advance; carried into the README and the final command block"
+  },
+  "note": "no Root-physical-flags-witness-residual-feedback file exists. The runner of this family globs Root-physical-flags-supply-consumer-feedback*.json (the real name). Process miss recorded plainly: I listed the directory with `tail -1` at 22:05 and so read one note of seven until the freeze script's own guard refused for the six I had not read; from now the whole directory listing is read each time (the full list is the one above)."
+}

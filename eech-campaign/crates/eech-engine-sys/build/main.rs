@@ -21,6 +21,7 @@
 //   EECH_ENGINE_OPT    C optimisation level (default 1)
 //
 
+mod core_crt_observer;
 #[path = "patches.rs"]
 mod patches;
 
@@ -57,6 +58,8 @@ fn main() {
     println!("cargo:rerun-if-changed=compat");
     println!("cargo:rerun-if-changed=csrc");
     println!("cargo:rerun-if-changed=sources.txt");
+    // the sector height control (csrc/eech_sector_height_check.c) compiles the host's raise expression beside the original response: the one header it shares with eech-world is an input too
+    println!("cargo:rerun-if-changed=../eech-world/csrc/sector_height_raise.h");
     // The original tree is an input too: its C, headers (textname.h feeds the generated texture names) and inlines are staged into OUT_DIR below
     // and compiled from the staged copies, so an edit under the resolved EECH_SOURCE_ROOT must rerun this script. Cargo scans a watched
     // directory recursively, so a file that appears or disappears reruns it as well.
@@ -216,6 +219,33 @@ fn main() {
         }
     }
 
+    if env::var_os("CARGO_FEATURE_CORE_TERRAIN_CRT_OBSERVER").is_some() {
+        assert!(
+            env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_none(),
+            "Core CRT observer cannot share the target-point RNG wrapper"
+        );
+        for file in core_crt_observer::files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap();
+            let source: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = core_crt_observer::apply(file, &source).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
+    // 1a3b. TEST-ONLY (feature sector-height-observer, EEDCS-49 D3): read-only observation hooks at the places the sector's tallest-structure word is raised, stated to the host, read,
+    //      used by the fixed-wing clearance and packed (patches.rs SECTOR_HEIGHT_OBSERVER_PATCHES, docs/d3-sector-height-public-baseline-plan.md). None of the eight files has a
+    //      shipping patch; with the feature off the staged files are exactly the shipping ones and the in-tree sources are never edited.
+    if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_OBSERVER").is_some() {
+        for file in patches::sector_height_observer_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_sector_height_observer(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
     // 1b. TEST-ONLY red build (feature dependent-fixture-old-guard): the staged copy of rv_hostmv.c gets the boolean apply guard
     //     EEDCS-40 replaced by a depth counter. The source tree and the shipping build are untouched.
     if env::var_os("CARGO_FEATURE_DEPENDENT_FIXTURE_OLD_GUARD").is_some() {
@@ -308,11 +338,63 @@ fn main() {
     if env::var_os("CARGO_FEATURE_WEAPON_FIXTURE").is_some() {
         build.define("EECH_WEAPON_FIXTURE", None);
     }
+    if env::var_os("CARGO_FEATURE_NORMAL_FIRE_CHECK").is_some() {
+        build.define("EECH_NORMAL_FIRE_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_NORMAL_FIRE_CORRELATION").is_some() {
+        build.define("EECH_NORMAL_FIRE_CORRELATION", None);
+    }
+    if env::var_os("CARGO_FEATURE_TREE_DIALOGUE_CHECK").is_some() {
+        build.define("EECH_TREE_DIALOGUE_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_ENTITY_DIALOGUE_CHECK").is_some() {
+        build.define("EECH_ENTITY_DIALOGUE_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_CHECK").is_some() {
+        build.define("EECH_SECTOR_HEIGHT_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_CHECK").is_some() {
+        build.define("EECH_PHYSICAL_FLAGS_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_CONSUMER_CHECK").is_some() {
+        build.define("EECH_PHYSICAL_FLAGS_CONSUMER_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_SUPPLY_CHECK").is_some() {
+        build.define("EECH_PHYSICAL_FLAGS_SUPPLY_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_MOTION_CHECK").is_some() {
+        build.define("EECH_PHYSICAL_FLAGS_MOTION_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_LIFETIME_CHECK").is_some() {
+        build.define("EECH_PHYSICAL_FLAGS_LIFETIME_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_PHYSICAL_FLAGS_COLLISION_CHECK").is_some() {
+        build.define("EECH_PHYSICAL_FLAGS_COLLISION_CHECK", None);
+        // the collision control's test bridge runs the real reference provider in a Lua state of its own (tests/support/lua_provider.rs), so its test binary needs the host's Lua 5.1 as eech-world's own tests do (eech-world/build.rs)
+        if !windows {
+            println!("cargo:rustc-link-arg-tests=-llua5.1");
+        }
+    }
+    if env::var_os("CARGO_FEATURE_MQ_REPORT_CHECK").is_some() {
+        build.define("EECH_MQ_REPORT_CHECK", None);
+    }
+    if env::var_os("CARGO_FEATURE_COLLISION_FIXTURE").is_some() {
+        build.define("EECH_COLLISION_FIXTURE", None);
+    } else {
+        // EEDCS-49 (D3): get_line_of_sight_collision_tree asks the host (mb_hostterrain.h, TREE_BEGIN and TREE_TERRAIN; en_cllsn.c). The ONE build that keeps the original tree
+        // solver is feature collision-fixture, the original characterisation, whose observer hooks are inside the original body.
+        build.define("EECH_CAMPAIGN_HOST_TREE", None);
+    }
     if env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_some() {
         build.define("EECH_MODEL_FIXTURE", None);
     } else {
         // EEDCS-50 (D3): the campaign asks the host for model data (mb_hostmodel.h)
         build.define("EECH_CAMPAIGN_HOST_MODEL", None);
+    }
+    // EEDCS-49 (D3): the per-candidate decisions and the narrow phase of get_line_of_sight_collision_entity ask the host (mb_hostmodel.h, ENTITY_CANDIDATE and ENTITY_COLLISION; en_cllsn.c). They need the host model operations, so it is
+    // defined where they are, and the ONE build that keeps the original entity solver besides the model fixtures is feature collision-fixture, the original characterisation.
+    if env::var_os("CARGO_FEATURE_COLLISION_FIXTURE").is_none() && env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_none() {
+        build.define("EECH_CAMPAIGN_HOST_ENTITY", None);
     }
     if env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some() {
         build.define("EECH_MODEL_HOST_FIXTURE", None);
@@ -332,10 +414,25 @@ fn main() {
     if env::var_os("CARGO_FEATURE_ROUTE_FIXTURE").is_some() {
         build.define("EECH_ROUTE_FIXTURE", None);
     }
+    if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_OBSERVER").is_some() {
+        build.define("EECH_SECTOR_HEIGHT_OBSERVER", None);
+        if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_FUNNEL_CHECK").is_some() {
+            build.define("EECH_SHO_FUNNEL_CHECK", None);
+        }
+        // EEDCS-49 (D3): the observer hooks the staged files call are declared by csrc/eech_sho_hooks.h, force-included only in this feature's build
+        build.flag("-include").flag(manifest.join("csrc/eech_sho_hooks.h").to_str().unwrap());
+    }
+    if env::var_os("CARGO_FEATURE_SECTOR_HEIGHT_WITNESS").is_some() {
+        build.define("EECH_SECTOR_HEIGHT_WITNESS", None);
+    }
     if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
         build.define("EECH_TARGET_POINT_FIXTURE", None);
         // EEDCS-52: every rand () of this build is counted (csrc/eech_tp_rand.h renames it; the real call happens once, in place); no other build includes the header
         build.flag("-include").flag(manifest.join("csrc/eech_tp_rand.h").to_str().unwrap());
+    }
+    if env::var_os("CARGO_FEATURE_CORE_TERRAIN_CRT_OBSERVER").is_some() {
+        build.define("EECH_CORE_TERRAIN_CRT_OBSERVER", None);
+        build.flag("-include").flag(manifest.join("csrc/eech_core_crt_observer.h").to_str().unwrap());
     }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());

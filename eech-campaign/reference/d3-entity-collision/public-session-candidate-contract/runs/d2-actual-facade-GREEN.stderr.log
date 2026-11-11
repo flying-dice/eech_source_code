@@ -1,0 +1,4 @@
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.83s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_dc-0dc7011ced65ab7c)
+     Running tests/lua_debug_layout.rs (/target/t/debug/deps/lua_debug_layout-43ec7082e672a3b1)

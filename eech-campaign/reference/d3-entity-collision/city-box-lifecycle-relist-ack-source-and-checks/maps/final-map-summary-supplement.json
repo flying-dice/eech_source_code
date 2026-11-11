@@ -1,0 +1,37 @@
+{
+  "schema": "d3-city-relist-ack-supplement-map-summary.v1",
+  "tool": "env/sector-roster-inputmap-batched-20261106.py <repo> <out> eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+  "head_rev_of_comparison": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+  "chronology": [
+    "the same reviewer feedback (Root-city-relist-ack-review-feedback-20261106.json, created 2026-11-06T22:55:54Z) was READ AFTER the first freeze: it appeared after the first check at the start of the session and was not re-read before the first code commit; this supplement answers its focused controls that are cheap",
+    "FINAL-PRE-CHECK map of the supplement 2026-11-06T23:19:15.269077Z to 2026-11-06T23:19:17.934715Z",
+    "targeted final checks relist-supp-final-fmt, -world, -clippy ran 2026-11-06T23:19:18.051780+00:00 to 2026-11-06T23:19:27.427461+00:00",
+    "FINAL-POST-CHECK map of the supplement 2026-11-06T23:19:27.574000Z to 2026-11-06T23:19:30.274397Z",
+    "the code commit e4895c121 (tests only) followed and was pushed; its blob equals the raw bytes of the map entry"
+  ],
+  "pre_map": {
+    "path": "R:/d3-evidence/city-relist-ack-supp-20261106/final-pre-check-inputmap.json",
+    "bytes": 2029939,
+    "sha256": "84f3364dc0dbccbf0ccc0c0053ba13844f251de6d875153779d84b472547d383"
+  },
+  "post_map": {
+    "path": "R:/d3-evidence/city-relist-ack-supp-20261106/final-post-check-inputmap.json",
+    "bytes": 2029939,
+    "sha256": "84f3364dc0dbccbf0ccc0c0053ba13844f251de6d875153779d84b472547d383"
+  },
+  "file_count": 3954,
+  "all_file_entries_equal_pre_to_post": true,
+  "changed_from_first_code_commit": [
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "changed_note": "the test file is the one intended change; the three tree-geometry Lua controls are the known checkout-filter files",
+  "test_file": {
+    "bytes": 360375,
+    "raw_sha256": "8c182620b40218a378bbda3398db01aeb84ea08fa2e3760888a379553fd368a6",
+    "git_blob": "4de4ef451c68119367cf1c976e9223251801d4c6",
+    "blob_at_first_code_commit": "7dc4b6de0f2d4f87e1f612b7868bfafcee4fc437"
+  }
+}

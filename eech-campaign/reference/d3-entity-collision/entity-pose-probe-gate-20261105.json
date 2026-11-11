@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05",
+  "scope": "Direct-exit Linux gate of the ENTITY_POSE characterisation probe (fifth slice): an OBSERVATION asked beside the original reads of a mobile candidate, against the host's Movers record of its host identity. It changes no decision, no read the original made and no order. NOT a native, Windows or retail run: the probe has not run against a real module, and no result of the campaign is claimed.",
+  "base_head": "31585104c93b086ce4da9ed8ca371454ff1257b6",
+  "source_commit": "3ad06e9530aff132dd1f0fbebf83d52cb1ad0b84",
+  "prior_runtime_not_reused": "8b85230826ad1c1bea289f6d2592f31b705a03f6",
+  "compiled_inputs_changed": [
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h",
+    "aphavoc/source/entity/mobile/mb_hostoffer.h",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-world/src/main.rs",
+    "eech-campaign/crates/eech-world/src/model_host.rs",
+    "eech-campaign/crates/eech-world/src/movement.rs"
+  ],
+  "lua": {
+    "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "git_blob": "3cb9c27ee40e6d0515ff18804c85f62f8ecbe821",
+    "sha256_raw": "dec0fa6098dcec60b27726ef7e994067bdec773a7a78f547a8205bcc56798400"
+  },
+  "changed_blobs": {
+    "mb_hostmodel.h": "3081d7ea212c03dac64cb4c867beb95ddf4eec7a",
+    "mb_hostentity.h": "0a974b39e03185575029e84eb1993a70854c6c81",
+    "mb_hostoffer.h": "70b3620c7f03a0ca50103ee4100aa6ed438d0bb5",
+    "mb_hostmodel.c": "8e9b978e6ac1659e3543c69dbaecc7a8e5dce114",
+    "en_cllsn.c": "a39af9ea3065b8d6270388933a0d3bb19dbc3cb3"
+  },
+  "steps": [
+    {
+      "step": "fmt",
+      "child_exit": 0
+    },
+    {
+      "step": "tests-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "test-model-walk",
+      "child_exit": 0
+    },
+    {
+      "step": "test-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "test-entity-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "build-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-host-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-and-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon-and-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-entity-dialogue",
+      "child_exit": 0
+    }
+  ],
+  "failed_steps": 0,
+  "test_result_rows": 66,
+  "tests_passed": 1220,
+  "tests_failed": 0,
+  "gate_log_sha256": "5acfa2a6980dc7c6e692c3e7b2a66a9d331640412b62300b65ad05147f571ddc",
+  "entity_dialogue_expectations": 344,
+  "mutation_controls": {
+    "first_run": [
+      "lua-control-alters-pose apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "lua-unreached-not-required apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "lua-named-consistency-dropped apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "lua-scan-none-pose-not-required apply=0 exits=[target=0 ] compile_errors=0 failed_results=0 restored=yes",
+      "lua-histogram-drops-alive apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "lua-marker-misnamed apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "host-stage-ignored apply=0 exits=[target=101 lib=0 ] compile_errors=1 failed_results=1 restored=yes",
+      "host-unnamed-is-unknown apply=0 exits=[target=101 lib=0 ] compile_errors=1 failed_results=1 restored=yes",
+      "movers-formula-dropped apply=0 exits=[target=101 lib=101 ] compile_errors=2 failed_results=2 restored=yes",
+      "movers-wreck-vector-not-held apply=0 exits=[target=0 lib=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "c-city-building-observed apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "c-placement-without-attitude apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "c-contradiction-not-checked apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "c-identity-not-sent apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "bridge-kind-range-dropped apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "bridge-difference-range-widened apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "done"
+    ],
+    "rerun": [
+      "lua-scan-none-pose-not-required apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "c-city-building-observed apply=0 exits=[target=101 ] compile_errors=1 failed_results=1 restored=yes",
+      "done"
+    ],
+    "meaning": "sixteen mutants of the witness, the host registry and provider, the C offer and exchange and both bridges; the first run raced with a manual restore for c-city-building-observed (void), so it and the survivor lua-scan-none-pose-not-required were rerun after a case was added that kills it. Every mutant must have failed its targeted tests and every file be restored byte for byte."
+  },
+  "source_identity": {
+    "rows_before": 2919,
+    "rows_after": 2919,
+    "filtered_before": "68e0f8c98453220a70313cc97a2c5cf3da6dccb8e0ddd89487d30888c4a799c3",
+    "filtered_after": "68e0f8c98453220a70313cc97a2c5cf3da6dccb8e0ddd89487d30888c4a799c3",
+    "raw_before": "5086c60def693513981a9ab8621b6c365130ed397418e6a90f30070ee3c3b110",
+    "raw_after": "5086c60def693513981a9ab8621b6c365130ed397418e6a90f30070ee3c3b110"
+  },
+  "not_claimed": [
+    "any native or retail result",
+    "that the observation changed nothing natively (the ordinary short is Root's)",
+    "host-sourced pose or any authority moved",
+    "the moving public path",
+    "backing/roster/sync/live pose",
+    "city children",
+    "effectful UPDATED and shared terrain record",
+    "raw tree/forest/cloud/RNG",
+    "hierarchy/devices/muzzles/rotor/smoke/host identities",
+    "DCS mapping",
+    "whole Task 49 or D3"
+  ]
+}

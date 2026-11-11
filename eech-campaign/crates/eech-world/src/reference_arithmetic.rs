@@ -72,6 +72,12 @@ pub fn select_sse_toward_zero() -> Result<Selection, String> {
     Err("the reference arithmetic profile (SSE round-toward-zero) is defined for x86 and x86_64 only".to_string())
 }
 
+/// Writes the calling thread's MXCSR, for tests: they prepare a rounding mode, sticky flags and unmasked exceptions with it, and restore the word they saved. The caller gives a word whose reserved bits are clear.
+#[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+pub fn write_mxcsr(value: u32) {
+    sse::write(value)
+}
+
 /// The calling thread's MXCSR, for tests and diagnostics.
 #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
 pub fn current_mxcsr() -> u32 {

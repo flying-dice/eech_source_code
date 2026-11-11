@@ -1,0 +1,183 @@
+{
+  "kind": "explicit join of the PRODUCTION batch against the reference POST map",
+  "reference_commit": "cf1026a4c635bf64b3602de7249f5ab8807d3121",
+  "map_rows_changed": [
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h",
+    "aphavoc/source/entity/mobile/mb_int.c",
+    "aphavoc/source/entity/special/update/up_update.c",
+    "aphavoc/source/entity/special/update/up_update.h",
+    "eech-campaign/Cargo.lock",
+    "eech-campaign/crates/eech-dc/Cargo.toml",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_consumer.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/src/lib.rs",
+    "eech-campaign/crates/eech-world/src/model_host.rs",
+    "eech-campaign/crates/eech-world/src/roster.rs",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "map_rows_added": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_hosted.h",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_hosted_faults.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/support/flags_host.rs",
+    "eech-campaign/crates/eech-world/src/flags.rs",
+    "eech-campaign/crates/eech-world/tests/physical_flags_host.rs"
+  ],
+  "map_rows_removed": [],
+  "compiled_rows_changed": [
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h",
+    "aphavoc/source/entity/mobile/mb_int.c",
+    "aphavoc/source/entity/special/update/up_update.c",
+    "aphavoc/source/entity/special/update/up_update.h",
+    "eech-campaign/Cargo.lock",
+    "eech-campaign/crates/eech-dc/Cargo.toml",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/src/lib.rs",
+    "eech-campaign/crates/eech-world/src/model_host.rs",
+    "eech-campaign/crates/eech-world/src/roster.rs"
+  ],
+  "compiled_rows_added": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_hosted.h",
+    "eech-campaign/crates/eech-world/src/flags.rs"
+  ],
+  "unchanged_compiled_rows": 3744,
+  "unchanged_compiled_aggregate_sha256": "6fd86f260b6deecd8fb078fe8d9d4cd98361af6fefa827f3878ed692c5160061",
+  "checks": [
+    {
+      "path": "aphavoc/source/entity/mobile/mb_int.c",
+      "class": "campaign C: the ORIGINAL profile's view has the reference's code",
+      "original_profile_code_equal_to_reference": true,
+      "hosted_profile_differs": true,
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/update/up_update.c",
+      "class": "campaign C: the ORIGINAL profile's view has the reference's code",
+      "original_profile_code_equal_to_reference": true,
+      "hosted_profile_differs": true,
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/update/up_update.h",
+      "class": "campaign C: the ORIGINAL profile's view has the reference's code",
+      "original_profile_code_equal_to_reference": true,
+      "hosted_profile_differs": true,
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "class": "campaign C: additions only (the dialogue, the binding, the enum members)",
+      "added_lines": 199,
+      "removed_lines": [],
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "class": "campaign C: additions only (the dialogue, the binding, the enum members)",
+      "added_lines": 108,
+      "removed_lines": [],
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "class": "campaign C: additions only (the dialogue, the binding, the enum members)",
+      "added_lines": 42,
+      "removed_lines": [
+        "CAMPAIGN_SCAN_PHASE_SECTOR_RESTORE",
+        "CAMPAIGN_MODEL_SCAN_RESTORED"
+      ],
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+      "class": "test-only C control wholly inside its feature gate EECH_PHYSICAL_FLAGS_CHECK",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+      "class": "test-only C control wholly inside its feature gate EECH_PHYSICAL_FLAGS_CONSUMER_CHECK",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "class": "test-only C control wholly inside its feature gate EECH_ENTITY_DIALOGUE_CHECK",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_hosted.h",
+      "class": "test-only header: include guard, wholly inside EECH_CAMPAIGN_HOST_ENTITY, included only by the two flag controls",
+      "includers": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c"
+      ],
+      "verified": true
+    },
+    {
+      "class": "Rust host store, provider, wire constants, bridge validator and the public Lua driver's pass-through (compiled or loaded inputs)",
+      "paths": [
+        "eech-campaign/crates/eech-world/src/lib.rs",
+        "eech-campaign/crates/eech-world/src/model_host.rs",
+        "eech-campaign/crates/eech-world/src/roster.rs",
+        "eech-campaign/crates/eech-world/src/flags.rs",
+        "eech-campaign/crates/eech-engine/src/lib.rs",
+        "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "eech-campaign/crates/eech-dc/src/module.rs",
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua"
+      ],
+      "verified": true
+    }
+  ],
+  "changed_in_git_since_reference": [
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h",
+    "aphavoc/source/entity/mobile/mb_int.c",
+    "aphavoc/source/entity/special/update/up_update.c",
+    "aphavoc/source/entity/special/update/up_update.h",
+    "eech-campaign/Cargo.lock",
+    "eech-campaign/crates/eech-dc/Cargo.toml",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_consumer_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_hosted.h",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_consumer.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_hosted_faults.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/support/flags_host.rs",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/src/flags.rs",
+    "eech-campaign/crates/eech-world/src/lib.rs",
+    "eech-campaign/crates/eech-world/src/model_host.rs",
+    "eech-campaign/crates/eech-world/src/roster.rs",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "eech-campaign/crates/eech-world/tests/physical_flags_host.rs",
+    "eech-campaign/docs/d3-physical-flags-contract.md"
+  ],
+  "conclusion": "the production move changes the campaign C only in six files; the ORIGINAL profile's view of the three files that carry the move has the reference's code (the hosted branches are the only difference), the other three files only add lines (two enum terminators aside); every control source is inside its feature gate; the Rust host, wire, bridge and driver files are the declared set; no other compiled or tested input changed",
+  "problems": []
+}

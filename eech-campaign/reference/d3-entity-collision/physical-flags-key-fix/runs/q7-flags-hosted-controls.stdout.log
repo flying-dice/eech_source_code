@@ -1,0 +1,67 @@
+
+running 1 test
+entity dialogue expectations made: 1149
+test the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+
+running 1 test
+physical flags expectations made: 199
+physical-flags-check: words=16384 array_bytes=65536 reset_bytes=16384 reset_indices=131072
+
+host traffic (groups, sets, reads, resets, fresh bindings): (42, 54, 64, 3, 33)
+test the_per_entity_updated_moved_rotated_word_is_a_mask_the_getter_destroys_neighbours_of_and_the_reset_only_reaches_a_quarter_of ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+physical flags collision expectations made: 16
+physical-flags-collision: consumer=get_line_of_sight_collision_entity (moving mobile pass-through, original profile)
+
+questions asked of the provider (scan, candidate, pose, collision, flag, other): [63, 33, 20, 6, 21, 3027]; candidate decisions: ["need_updated", "need_updated", "test", "need_updated", "test", "need_updated", "need_updated", "test", "need_updated", "test", "need_updated", "need_updated", "need_updated", "need_updated", "test", "need_updated", "test", "need_updated", "need_updated"]
+test the_moving_mobile_pass_through_of_the_collision_query_reads_the_raw_updated_word_destructively_and_swaps_the_path_it_tests ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+
+running 1 test
+physical flags consumer expectations made: 56
+physical-flags-consumer: consumer=response_to_check_mobile_reached_guide via message_responses[FIXED_WING][CHECK_MOBILE_REACHED_GUIDE]
+
+host traffic (groups, sets, reads, resets, fresh bindings): (14, 18, 37, 4, 14)
+test the_original_fixed_wing_arrival_response_reads_the_raw_updated_mask_destructively_only_on_its_pass_through_branch ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+test the_collision_pass_through_source_is_the_one_the_collision_control_ran_and_the_hosted_path_reads_the_word_once_when_the_host_asks ... ok
+test the_supply_arrival_descriptor_carries_the_raw_mask_into_a_field_the_rust_side_accepts_only_as_zero_or_one ... ok
+test the_getter_the_setter_and_the_reset_are_the_source_the_characterisation_ran ... ok
+test the_consumer_source_is_the_one_the_real_consumer_control_ran ... ok
+test the_hosted_build_holds_no_flag_array_and_every_access_goes_to_the_host ... ok
+test every_writer_and_reader_of_the_three_words_is_the_known_census ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.38s
+
+
+running 1 test
+a read that always answers the lane's mask: 13 of 199 expectations failed
+a read that always answers 0: 57 of 199 expectations failed
+a set that is acknowledged and never stored: 123 of 199 expectations failed
+a read that answers the right raw word but destroys no neighbour: 12 of 199 expectations failed
+test the_hosted_control_fails_for_a_host_that_does_not_do_what_the_original_arrays_did_and_passes_for_the_real_store ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 1 test
+physical flags identity expectations made: 85
+physical-flags-identity: keys=exact20+faults+duplicates through the real table
+
+test the_campaigns_key_table_takes_the_whole_20_byte_key_and_refuses_every_other_key_and_every_live_duplicate_before_it_commits ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

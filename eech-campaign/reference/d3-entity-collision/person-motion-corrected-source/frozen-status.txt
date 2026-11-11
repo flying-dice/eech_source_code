@@ -1,0 +1,6 @@
+fmt 0
+person-retention 0
+public-drivers 0
+nonweapon-helper-compile 0
+strict-world 0
+gate_failed_steps=0

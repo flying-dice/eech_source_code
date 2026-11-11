@@ -1,0 +1,5 @@
+{
+  "old_sha256": "30adcae241d43deddb710d014ac4585b3c0f282a7309b833c77c08cc71881ad7",
+  "new_initial_sha256": "c2c289e11c916d74a926e0a50021df5ea7c87b6a228b289e5decc0d4b1a689e2",
+  "scope": "New family/report prefixes, seven modes, existing full positive validator/oracle/causal checks reused plus transaction module; no old source overwritten"
+}

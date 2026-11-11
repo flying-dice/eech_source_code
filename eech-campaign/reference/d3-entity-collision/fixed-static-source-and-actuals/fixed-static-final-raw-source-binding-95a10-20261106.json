@@ -1,0 +1,325 @@
+{
+  "source": "95a10f8820349a9a0243035975d616b1d8447b0a",
+  "parent": "87e9a45482c51292c7dd7d3b25157d085457b56e",
+  "captured_utc": "2026-11-06T05:58:27.766707+00:00",
+  "checkpoint": {
+    "path": "R:\\d3-evidence\\fixed-static-backing-CODE-FROZEN-20261106.json",
+    "sha256": "243580ecfb6cb6579bffce5ef362a3c1f6ea424e06993c0312cd8eac08c8d839"
+  },
+  "author_final_map": {
+    "path": "R:\\d3-evidence\\qfixedstatic2-20261106-inputmap-after-final.json",
+    "sha256": "f81e5716af99bc49cde1b06f6b7b4bd0edf1b8b6334b8d2d5cd6bd1b3e76c8d9",
+    "before_after_literal_equal": true
+  },
+  "Root_frozen_raw_Git_map": {
+    "path": "R:\\d3-evidence\\fixed-static-95a10-snapshot-before-20261106.json",
+    "sha256": "0be3a992a9b0b9bbfa3fe31a3042f362baa0c7852923d01eff0792dce7de2257",
+    "file_count": 3952,
+    "all_raw_equal_committed_blob_bytes": true
+  },
+  "changed_files": [
+    {
+      "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "actual_author_raw_sha256": "a485a7e49a9b5b0019e6e8f6b77734c3ca3b6214efdb5fef5e89117999844b8f",
+      "actual_frozen_Git_blob_bytes_sha256": "a485a7e49a9b5b0019e6e8f6b77734c3ca3b6214efdb5fef5e89117999844b8f",
+      "size": 77714,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/cbuild/cb_dstry.c",
+      "actual_author_raw_sha256": "732f974e47d057130f7bc431659f513b9b5ae04376e72a3f8f6cf62dbc0532f3",
+      "actual_frozen_Git_blob_bytes_sha256": "732f974e47d057130f7bc431659f513b9b5ae04376e72a3f8f6cf62dbc0532f3",
+      "size": 13364,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/cbuild/cb_pack.c",
+      "actual_author_raw_sha256": "991d31f83e573689ce43c5fd42e754e5325e96bc9692b73cf64f87f56f6b63e2",
+      "actual_frozen_Git_blob_bytes_sha256": "991d31f83e573689ce43c5fd42e754e5325e96bc9692b73cf64f87f56f6b63e2",
+      "size": 8731,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/fx_float.c",
+      "actual_author_raw_sha256": "bf22359ea9f4c95f7d65c347d1b6ecedc8c197355d81a9442567f68b4439b291",
+      "actual_frozen_Git_blob_bytes_sha256": "bf22359ea9f4c95f7d65c347d1b6ecedc8c197355d81a9442567f68b4439b291",
+      "size": 11863,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/fx_int.c",
+      "actual_author_raw_sha256": "962dc0889addd776d2ef47f46c52aca3c740f24446683d5f457a386a156342ba",
+      "actual_frozen_Git_blob_bytes_sha256": "962dc0889addd776d2ef47f46c52aca3c740f24446683d5f457a386a156342ba",
+      "size": 17965,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/fx_vec3d.c",
+      "actual_author_raw_sha256": "96dda61eaa0b891253539106c0b7ab3e4e4ad997b1d0187bcdf192cbcdcdefdb",
+      "actual_frozen_Git_blob_bytes_sha256": "96dda61eaa0b891253539106c0b7ab3e4e4ad997b1d0187bcdf192cbcdcdefdb",
+      "size": 11421,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/object/ob_dstry.c",
+      "actual_author_raw_sha256": "3738508b253d57e667831dc68e20c0dfe729bce74255b5ff166361252468449d",
+      "actual_frozen_Git_blob_bytes_sha256": "3738508b253d57e667831dc68e20c0dfe729bce74255b5ff166361252468449d",
+      "size": 12383,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/pylon/py_dstry.c",
+      "actual_author_raw_sha256": "48734356b53ebb89cf82e93ca9139ded76c9a4d6ee5274305cac71d6e812ffae",
+      "actual_frozen_Git_blob_bytes_sha256": "48734356b53ebb89cf82e93ca9139ded76c9a4d6ee5274305cac71d6e812ffae",
+      "size": 13625,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/pylon/py_pack.c",
+      "actual_author_raw_sha256": "eefcc83f8b7691bb82ff4146b1c9f2b97df104fcb2adb620fae54773b172d0c8",
+      "actual_frozen_Git_blob_bytes_sha256": "eefcc83f8b7691bb82ff4146b1c9f2b97df104fcb2adb620fae54773b172d0c8",
+      "size": 9985,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/scenic/sn_dstry.c",
+      "actual_author_raw_sha256": "6cd1380024b009f3127de1d7ee6e6f74de5f50a3c9a84d04840e5ded49352a66",
+      "actual_frozen_Git_blob_bytes_sha256": "6cd1380024b009f3127de1d7ee6e6f74de5f50a3c9a84d04840e5ded49352a66",
+      "size": 13141,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/scenic/sn_pack.c",
+      "actual_author_raw_sha256": "01cfc73f3a07bb072d3fc6fbb87cb9e3d6eac33d6a670059aa0eb9a87808db0f",
+      "actual_frozen_Git_blob_bytes_sha256": "01cfc73f3a07bb072d3fc6fbb87cb9e3d6eac33d6a670059aa0eb9a87808db0f",
+      "size": 8194,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/segment/segment.c",
+      "actual_author_raw_sha256": "80fe7ca204a04676203bf49ac66693d815e7cc2072a0acfead41807979a2b108",
+      "actual_frozen_Git_blob_bytes_sha256": "80fe7ca204a04676203bf49ac66693d815e7cc2072a0acfead41807979a2b108",
+      "size": 4707,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/segment/sg_pack.c",
+      "actual_author_raw_sha256": "66dfe8f47564057ec39ad6ff5412e605869a663f922855260204196542d7ff48",
+      "actual_frozen_Git_blob_bytes_sha256": "66dfe8f47564057ec39ad6ff5412e605869a663f922855260204196542d7ff48",
+      "size": 9889,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/segment/sg_updt.c",
+      "actual_author_raw_sha256": "3206f0e27cdd8954c089da6f6707f6ee3373aaf87f48eef3a88cbe9418a09c0a",
+      "actual_frozen_Git_blob_bytes_sha256": "3206f0e27cdd8954c089da6f6707f6ee3373aaf87f48eef3a88cbe9418a09c0a",
+      "size": 8200,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/site/st_dstry.c",
+      "actual_author_raw_sha256": "b7b3cd005fb24da07e56ff158b749689b61260b624fd2038b2a3f103e80be72f",
+      "actual_frozen_Git_blob_bytes_sha256": "b7b3cd005fb24da07e56ff158b749689b61260b624fd2038b2a3f103e80be72f",
+      "size": 13256,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/site/st_pack.c",
+      "actual_author_raw_sha256": "d41ae33016557a296a78c896942c677b8c525dfe47951c0ad9015ee493cf92fe",
+      "actual_frozen_Git_blob_bytes_sha256": "d41ae33016557a296a78c896942c677b8c525dfe47951c0ad9015ee493cf92fe",
+      "size": 8674,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/siteupdt/su_dstry.c",
+      "actual_author_raw_sha256": "633a72193541f049042142753036fc6fa871e4cb5dde17e0b496c6c0502bbc3d",
+      "actual_frozen_Git_blob_bytes_sha256": "633a72193541f049042142753036fc6fa871e4cb5dde17e0b496c6c0502bbc3d",
+      "size": 13512,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/siteupdt/su_pack.c",
+      "actual_author_raw_sha256": "8113a2a65a113722f719092880c62daba500cdf060da71a25850b5a413560687",
+      "actual_frozen_Git_blob_bytes_sha256": "8113a2a65a113722f719092880c62daba500cdf060da71a25850b5a413560687",
+      "size": 8876,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "actual_author_raw_sha256": "86504209adb35fc21a3833cf1796e3a64a5e1c84cbd94b06de4363d863165098",
+      "actual_frozen_Git_blob_bytes_sha256": "86504209adb35fc21a3833cf1796e3a64a5e1c84cbd94b06de4363d863165098",
+      "size": 42179,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "actual_author_raw_sha256": "ab00ad3b522390fff083a218970a4b5d1f69f25e67f3eccb1f3f7baca45eea48",
+      "actual_frozen_Git_blob_bytes_sha256": "ab00ad3b522390fff083a218970a4b5d1f69f25e67f3eccb1f3f7baca45eea48",
+      "size": 87783,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "actual_author_raw_sha256": "98a29a12d693bf23f4fe1199c2f7f7e650b76646e347c4f76d8fb5eeefca5c8a",
+      "actual_frozen_Git_blob_bytes_sha256": "98a29a12d693bf23f4fe1199c2f7f7e650b76646e347c4f76d8fb5eeefca5c8a",
+      "size": 53825,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "actual_author_raw_sha256": "089ededa1cb6543f00597f7dec40d1ae1d0239f9cd05be87c12cf95e71a1018c",
+      "actual_frozen_Git_blob_bytes_sha256": "089ededa1cb6543f00597f7dec40d1ae1d0239f9cd05be87c12cf95e71a1018c",
+      "size": 14101,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostplace.c",
+      "actual_author_raw_sha256": "a31f644ba13b33aa0adf535402ca497e5698cdaa47d86b404210ffcc30d0b5dd",
+      "actual_frozen_Git_blob_bytes_sha256": "a31f644ba13b33aa0adf535402ca497e5698cdaa47d86b404210ffcc30d0b5dd",
+      "size": 5220,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostplace.h",
+      "actual_author_raw_sha256": "b615f5761faf3fd395292cb3a0519a07bf2288ebac1a852ef5e4e58ada9eb2f5",
+      "actual_frozen_Git_blob_bytes_sha256": "b615f5761faf3fd395292cb3a0519a07bf2288ebac1a852ef5e4e58ada9eb2f5",
+      "size": 3956,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+      "actual_author_raw_sha256": "79d39f5d138ec711da7390406e66ede52db823fe44854bbfb3a549aa323aa45c",
+      "actual_frozen_Git_blob_bytes_sha256": "79d39f5d138ec711da7390406e66ede52db823fe44854bbfb3a549aa323aa45c",
+      "size": 31166,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "actual_author_raw_sha256": "d79d4c18f003b179adfab640d14a8f8b7796d717ef293a1515f5340a3b4f6bfc",
+      "actual_frozen_Git_blob_bytes_sha256": "d79d4c18f003b179adfab640d14a8f8b7796d717ef293a1515f5340a3b4f6bfc",
+      "size": 162858,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "actual_author_raw_sha256": "4feea9f88424548e7d063040bbcfa6f4b3ebc43f03eda511066781a12d76f1c7",
+      "actual_frozen_Git_blob_bytes_sha256": "4feea9f88424548e7d063040bbcfa6f4b3ebc43f03eda511066781a12d76f1c7",
+      "size": 2560,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+      "actual_author_raw_sha256": "fe40eadb4e7c10f2d3c22d0a7642722a7f47438711b0ca6f002a2ed557e108c4",
+      "actual_frozen_Git_blob_bytes_sha256": "fe40eadb4e7c10f2d3c22d0a7642722a7f47438711b0ca6f002a2ed557e108c4",
+      "size": 45138,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "actual_author_raw_sha256": "5a747b8ee9bc25746a73edf863a3fc28002478a398a9b61b8d53b2d0940c6e43",
+      "actual_frozen_Git_blob_bytes_sha256": "5a747b8ee9bc25746a73edf863a3fc28002478a398a9b61b8d53b2d0940c6e43",
+      "size": 181647,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "actual_author_raw_sha256": "f5b60ea9e5acb03c120851e2f03b419a2ee134c2c40e7cc2c638ff0754af1485",
+      "actual_frozen_Git_blob_bytes_sha256": "f5b60ea9e5acb03c120851e2f03b419a2ee134c2c40e7cc2c638ff0754af1485",
+      "size": 142593,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/roster.rs",
+      "actual_author_raw_sha256": "e51ceb9bd2f4ce3e0b0335014c3caa8ae7324f3019b459b04dc10f4b2dc45be6",
+      "actual_frozen_Git_blob_bytes_sha256": "e51ceb9bd2f4ce3e0b0335014c3caa8ae7324f3019b459b04dc10f4b2dc45be6",
+      "size": 47906,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "actual_author_raw_sha256": "4acdb8ac5a99042e12d7bfc9ca2b73d2e81253a4fe0ca5865ef426437edabe02",
+      "actual_frozen_Git_blob_bytes_sha256": "4acdb8ac5a99042e12d7bfc9ca2b73d2e81253a4fe0ca5865ef426437edabe02",
+      "size": 254466,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+      "actual_author_raw_sha256": "e6f4cb38f74a8ffe8c47c51227c7718551347ac12088aee66e5428509aa08ba4",
+      "actual_frozen_Git_blob_bytes_sha256": "e6f4cb38f74a8ffe8c47c51227c7718551347ac12088aee66e5428509aa08ba4",
+      "size": 109637,
+      "literal_raw_equal": true
+    }
+  ],
+  "all_33_changed_author_raw_bytes_equal_frozen_Git_blob_bytes": true,
+  "total_equal_raw_files": 3949,
+  "unchanged_legacy_raw_differences": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "author_raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "frozen_Git_raw_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "author_raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "frozen_Git_raw_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "author_raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "frozen_Git_raw_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+    }
+  ],
+  "qualified_filter_identity_paths": [
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+  ],
+  "final_checks": [
+    {
+      "receipt": "sector-roster-direct-fixedstatic2-final-fmt-check.json",
+      "sha256": "333bef95461cf2a66ced5e9fa508bfb8073844447257ff29ff50a74caad2bb8f",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:50:29.914952+00:00",
+      "completed_utc": "2026-11-06T05:50:33.742506+00:00"
+    },
+    {
+      "receipt": "sector-roster-direct-fixedstatic2-final-check.json",
+      "sha256": "98ecdbfe16600acb15905c2c6586c7f4461d3c9c9aa443e553b33613797aef1b",
+      "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:50:33.829630+00:00",
+      "completed_utc": "2026-11-06T05:50:39.759950+00:00"
+    },
+    {
+      "receipt": "sector-roster-direct-fixedstatic2-final-c-dialogue-guards.json",
+      "sha256": "a57eefe40d958a65111bb37fa065883f265a0445510736c6a811fc543c5748f6",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:50:39.849382+00:00",
+      "completed_utc": "2026-11-06T05:50:52.563769+00:00"
+    },
+    {
+      "receipt": "sector-roster-direct-fixedstatic2-final-world.json",
+      "sha256": "a96e7133eb7fe4493dcb065c9a6ba1199c4dc856c38a8fd7d7ff1f312f707636",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:50:52.652795+00:00",
+      "completed_utc": "2026-11-06T05:51:07.969146+00:00"
+    },
+    {
+      "receipt": "sector-roster-direct-fixedstatic2-final-engine-callback.json",
+      "sha256": "5eada3c8deebb51170019498e5eaed8291a1fc370be6fcf0ddfa0fa49fd80bca",
+      "command": "cargo test --release --locked -p eech-engine --lib the_model_callback --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:51:08.066935+00:00",
+      "completed_utc": "2026-11-06T05:51:11.415555+00:00"
+    }
+  ],
+  "qualification": "Frozen checkpoint generated raw_equals_committed_blob from git hash-object --stdin-paths (filtered identity), so that boolean alone is NOT literal raw-byte proof and is misleading for three inherited Lua entries. THIS independent binding uses actual raw_sha256/size and clean frozen Git blob byte hashes. All33changedfiles are literally equal;3949of3952 allinputs equal. Three unchanged Lua raw differences and four inherited filter-only paths remain explicit. Earlier qfixedstatic chain/d924 is SUPERSEDED and not source95 final proof. Frozen report retained literally, not rewritten.",
+  "scope": "Source/evidence binding ONLY; independent source review active. No Windows/native/retail/current40all8/Task49/D3 acceptance."
+}

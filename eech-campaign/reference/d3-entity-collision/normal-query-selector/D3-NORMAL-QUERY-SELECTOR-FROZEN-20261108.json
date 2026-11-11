@@ -1,0 +1,125 @@
+{
+  "utc": "2026-11-08T11:14:34.721031+00:00",
+  "post_POST_publication_filter": {
+    "private_omitted": [
+      "normal-fire-56d1b-terminal-Root-binding-20261108.json",
+      "normal-fire-56d1b-offline-event-domain-scan-20261108.json"
+    ],
+    "safe_projections": 2,
+    "publisher": {
+      "path": "R:\\d3-evidence\\nq56-safe-publish-20261108.py",
+      "sha256": "9b82b46eba8bf4274c4a4c1f9e282b2c520ff584f839736c9a32b4fbff526ff7"
+    },
+    "test_readers_unchanged": true
+  },
+  "source_before": "56d1b7e31c8e4c4b45ed41f45c0e984ce7bbe6d8",
+  "source_rows": 4023,
+  "source_fingerprint": "bbd22cf1d59549f06c311268d8d679e9b77ccabd092665043033ffb29ba90006",
+  "readers": {
+    "run-normal-fire-nq56-direct-20261108.py": "5ac5b4d1d5939b4e6d062a65520a8b249303adfe4a1742463021908a6a0370d6",
+    "check-normal-fire-nq56-linux-20261108.sh": "ecca7ea602abb1507446ae962f3e8d262fd724be70b216561d475779476f869f",
+    "run-nq56-final-20261108.py": "443fc477c22831508a22f9bb25623def854fbe352d758651bc73d02dc53ab537",
+    "nq56-proof-20261108.py": "91cea741dab58f8eac24926c8322d4e6f134112f41f89e0f179b97ae5b15a97f",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+    "nq56-scan-retained-20261108.py": "a24d53ad1900f577675e62fb89ef718201dac75a87ffd0ff93ba75f86e915025"
+  },
+  "extras_count": 32,
+  "direct_exits": {
+    "s1-profile-census": 0,
+    "s2-python": 0,
+    "s3-fmt": 0,
+    "s4-world-clippy": 0,
+    "s5-session-lua": 0
+  },
+  "Rust_tests": 2,
+  "Python_tests": 10,
+  "Lua_semantic_faults": 25,
+  "before_output_reference_faults": 27,
+  "before_effect_prefix_faults": 4,
+  "actual_reference_FlagStore_calls": 16,
+  "ACK_faults": 3,
+  "ACK_failure_before_UNREACHED": 3,
+  "synthetic_healthy_B_pairs": 2,
+  "underreach_controls": 2,
+  "old_diagnostic_RED_exit": 101,
+  "selector_valid_domains": 3,
+  "selector_invalid_domains": 7,
+  "selector_real_provider_contexts": 3,
+  "retained_full_scan": {
+    "utc": "2026-11-08T11:08:36.321677+00:00",
+    "label": "GREEN",
+    "validator": {
+      "path": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\normal_fire_capture.py",
+      "sha256": "0905ff4b12b6c851f60379e7dde57089cad1fadf85b1c337438b88ebdfd7b6c1"
+    },
+    "raw": {
+      "path": "D:\\EECH-Migration-Evidence\\normal-fire-capture-56d1b-20261108-runs\\01-healthy\\capture.txt.events",
+      "bytes": 109435851,
+      "sha256": "efafe1bced72210778b30c187a59f55d86235ee1b70f589c90169be6a6822cef"
+    },
+    "complete_EOF": true,
+    "total_lines": 315244,
+    "normal_records": 314092,
+    "selected_codec_records": 313796,
+    "kinds": {
+      "legacy_wpn": 1152,
+      "normal_fire": 296,
+      "normal_detach": 296,
+      "normal_birth": 296,
+      "normal_end": 296,
+      "normal_step": 155096,
+      "normal_step_end": 155096,
+      "normal_query": 8,
+      "normal_model": 2700,
+      "normal_query_end": 8
+    },
+    "query_selector_counts": {
+      "0": 2,
+      "-1": 6
+    },
+    "fault_counts": {},
+    "first_safe_fault_projections": [],
+    "last_tick_ms": 149600,
+    "result": "PASS",
+    "scope": "Read-only complete retained raw selected-event codec scan, not N.feed/provider-order replay or native acceptance. normal_end/error intentionally outside Python EVENTS; observer errors separately fail. No coordinates/physical ids copied."
+  },
+  "reuse": {
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "prior_raw_map_sha256": "2de5d43cd67dfe7fd234a2e4d3e0e7325b7b7ceda6f21b48597e3a8a326955f7",
+    "whole_relevant_product_build_Cargo_static_rows": 3816,
+    "product_map_sha256": "3902079c35b4ce199a4d43b8dd80b6efeaaa3a3070936299fa8b7eb2d32c5869",
+    "extra_producer_files": {
+      "eech-campaign/.cargo/config.toml": "19ecec09029c9181db4046ceef51e86fb10feadba3fb56e535e8eb6e700eafde",
+      "tools/generate_bitmap.py": "2cdb23ba3646286cd593fa1a9800d6f1458e8f3aca12055b16f6ed8b66f9d582"
+    },
+    "unchanged_prior_raw_rows": 4021,
+    "changed_prior_test_or_Lua_rows": [
+      "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+      "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua"
+    ],
+    "artifacts": {
+      "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "73b3d2cc847f3274a28067ca79338fa47db50e7fc9181cbc10f21f9c761913aa",
+      "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "0381bd8a3725bae9d35fa3f3148a24c692548fadc961c2a94abdf10a3a354ddf",
+      "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+      "eech-campaign/tools/normal_fire_capture.py": "0905ff4b12b6c851f60379e7dde57089cad1fadf85b1c337438b88ebdfd7b6c1",
+      "eech-campaign/tools/normal_fire_capture_controller.py": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+      "eech-campaign/tools/test_normal_fire_capture.py": "983f1f44d771bdb0ad532b92a69750878f5c3ea4a1a382b2b9915b2b92a3fa4d",
+      "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+      "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+      "eech-campaign/docs/d3-normal-query-selector.md": "004317cc47cb17836bf2eee97333da57a265c2089b620c3818c06b641d2f62f8"
+    },
+    "scope": "No C/Rust product/build/Cargo/static input change. Exact2fc runtime retains its source identity and97 unchanged payloads, including unsafe unexecuted old Lua. Four corrected literals/validator/controller are separate. Accepted prior C controls reused at their original scope; retained C bytes are codec replay only."
+  },
+  "maps": {
+    "PRE": {
+      "path": "R:\\d3-evidence\\nq56-inputmap-PRE-20261108.json",
+      "sha256": "ef65bae49d091f82d159c9575fce7e1cb7a4448a22bf5afd8fc38ab9d4fd0479"
+    },
+    "POST": {
+      "path": "R:\\d3-evidence\\nq56-inputmap-POST-20261108.json",
+      "sha256": "ef65bae49d091f82d159c9575fce7e1cb7a4448a22bf5afd8fc38ab9d4fd0479"
+    }
+  },
+  "scope": "ONE exact signed selector correction UNREVIEWED; prior bootretention acceptedf0; runtime remains2fc. No native/build/root/cutover/all10 closure. Root records actual agent completion separately."
+}

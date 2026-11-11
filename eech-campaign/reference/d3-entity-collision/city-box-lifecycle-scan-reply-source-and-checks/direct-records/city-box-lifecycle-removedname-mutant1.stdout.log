@@ -1,0 +1,88 @@
+
+running 70 tests
+test module::tests::a_damage_echo_of_raw_bit_halves_is_read_exactly_and_a_not_a_number_float_is_still_refused ... ok
+test module::tests::a_backend_provider_that_raises_or_is_not_a_function_is_refused_by_name_and_a_foreign_phase_is_never_sent ... ok
+test module::tests::a_catalogue_provider_that_raises_is_refused_by_name_and_a_provider_that_is_not_a_function_is_refused_before_boot ... ok
+test module::tests::a_catalogue_answer_of_the_wrong_kind_or_shape_is_refused_by_name ... ok
+test module::tests::a_health_question_reaches_lua_by_value_and_its_answer_is_read_field_by_field ... ok
+test module::tests::a_blast_question_reaches_lua_by_value_and_the_walk_is_read_field_by_field ... ok
+test module::tests::a_bridge_question_reaches_lua_by_value_and_each_answer_is_read_field_by_field ... ok
+test module::tests::a_name_on_a_removal_outside_its_declared_domain_is_a_malformed_answer ... FAILED
+test module::tests::a_plain_removal_and_the_release_of_a_city_come_back_without_a_name ... ok
+test module::tests::a_route_node_and_a_route_face_keep_their_numbers_and_name_their_kind ... ok
+test module::tests::a_scene_answer_keeps_tiny_subnormal_and_negative_zero_numbers_exactly ... ok
+test module::tests::a_removal_names_the_record_the_host_retains_for_a_citys_box_only_in_the_two_removal_phases_that_declare_it ... ok
+test module::tests::a_ground_question_reaches_the_provider_by_value_and_its_answer_comes_back_exactly ... ok
+test module::tests::a_server_expiry_without_the_draw_is_refused_and_a_client_expiry_needs_none ... ok
+test module::tests::a_lightning_add_reaches_the_provider_by_value_and_the_whole_queue_comes_back_exactly ... ok
+test module::tests::a_route_answer_that_is_malformed_refused_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_structure_identity_question_reaches_lua_by_value_and_the_identities_of_offered_objects_are_read ... ok
+test module::tests::a_target_point_chain_crosses_as_sibling_positions_or_an_absence_with_the_scenes_name ... ok
+test module::tests::a_target_point_chain_that_is_withheld_too_deep_empty_fractional_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_completed_step_must_say_explicitly_whether_it_expired_and_a_draw_needs_an_expiry ... ok
+test module::tests::a_target_point_offset_that_is_withheld_malformed_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_target_point_pose_reaches_the_provider_as_exact_bits_and_the_position_comes_back_as_exact_bits ... ok
+test module::tests::a_target_point_offset_crosses_as_three_exact_bit_patterns_with_the_scenes_name ... ok
+test module::tests::a_target_point_position_that_is_withheld_non_finite_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_retained_record_name_is_a_roster_key_and_a_city_child_removal_names_the_list_it_was_asked_about ... FAILED
+test module::tests::a_provider_that_edits_the_request_cannot_change_what_the_campaign_asked ... ok
+test module::tests::a_terrain_point_answer_reaches_the_campaign_exactly_and_the_request_reaches_the_provider_by_value ... ok
+test module::tests::a_malformed_environment_answer_is_refused_by_operation_and_nothing_falls_back ... ok
+test module::tests::a_sound_lifetime_init_reaches_the_provider_by_value_and_one_finite_lifetime_comes_back_exactly ... ok
+test module::tests::a_tree_question_reaches_the_provider_as_bit_patterns_and_its_answers_reach_the_campaign_as_bit_patterns ... ok
+test module::tests::an_answer_that_decides_on_bits_must_carry_its_flags ... ok
+test module::tests::a_sound_pause_resume_reaches_the_provider_by_value_and_its_decision_comes_back_exactly ... ok
+test module::tests::an_entity_candidate_answer_that_is_refused_malformed_unnamed_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::an_entity_candidate_question_carries_the_facts_by_bit_pattern_and_every_decision_comes_back_with_its_state_and_exact_pose ... ok
+test module::tests::a_vehicle_lifecycle_answer_without_its_vector_is_an_error ... ok
+test module::tests::an_entity_collision_answer_that_is_refused_short_unnamed_masked_out_of_range_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::an_entity_collision_question_carries_only_the_segment_and_the_pose_and_the_computed_words_and_the_write_mask_come_back_exactly ... ok
+test module::tests::an_entity_pose_question_carries_the_words_by_bit_pattern_and_the_identity_and_every_class_comes_back ... ok
+test module::tests::an_entity_scan_question_carries_a_roster_key_or_identity_after_the_facts_and_the_key_comes_back_in_the_name ... ok
+test module::tests::an_entity_pose_answer_that_is_refused_malformed_or_out_of_range_stops_with_its_marker ... ok
+test module::tests::an_entity_scan_question_carries_the_facts_by_bit_pattern_and_every_decision_comes_back_with_its_state_and_cursor ... ok
+test module::tests::a_sector_answer_keeps_the_original_return_value_apart_from_the_flags_and_a_malformed_one_is_refused_by_marker ... ok
+test module::tests::a_sound_lifetime_update_reaches_the_provider_by_value_and_its_decision_comes_back_exactly ... ok
+test module::tests::an_entity_scan_answer_that_is_refused_malformed_or_of_the_wrong_kind_stops_with_its_marker ... ok
+test module::tests::a_lightning_update_may_ask_for_the_frame_count_once_and_a_malformed_queue_is_refused_by_marker ... ok
+test module::tests::an_environment_step_reaches_the_provider_with_its_signed_zero_camera_and_draw_and_its_answer_is_read_whole ... ok
+test module::tests::an_environment_weather_answer_reaches_the_campaign_exactly_and_the_request_reaches_the_provider_by_value ... ok
+test module::tests::an_environment_step_that_needs_the_draw_is_answered_once_and_a_second_ask_for_it_is_refused ... ok
+test module::tests::an_ambient_terrain_question_reaches_the_provider_by_value_and_its_amplitudes_are_one_finite_number_per_child ... ok
+test module::tests::a_tree_answer_that_is_not_a_well_formed_step_is_refused_with_its_marker ... ok
+test module::tests::an_explicit_zero_vector_and_zero_flags_are_accepted ... ok
+test module::tests::an_expanded_scan_answer_carries_six_bit_patterns_and_the_citys_key_and_a_short_or_non_finite_list_is_refused ... ok
+test module::tests::an_object_table_an_object_and_an_animation_name_cross_as_counts_exact_bits_and_logical_names ... ok
+test module::tests::an_impact_question_reaches_lua_by_value_and_its_plan_is_read_field_by_field ... ok
+test module::tests::an_object_or_animation_answer_that_is_malformed_numeric_or_refused_stops_with_its_marker ... ok
+test module::tests::a_malformed_point_answer_is_refused_with_the_marker_of_what_is_wrong ... ok
+test module::tests::an_ambient_environment_answer_is_four_levels_read_exactly_and_a_malformed_one_is_refused_by_marker ... ok
+test module::tests::the_backend_question_reaches_the_hosts_lua_by_value_and_only_a_boolean_answer_is_read ... ok
+test module::tests::the_catalogue_question_reaches_the_hosts_lua_by_value_and_its_answer_is_read_entry_by_entry ... ok
+test module::tests::bit_patterns_are_exact_and_a_non_finite_number_or_pattern_is_refused ... ok
+test module::tests::the_campaigns_walk_announcement_reaches_the_provider_with_its_directory_and_its_answers_come_back ... ok
+test module::tests::every_field_of_an_answer_is_read_from_a_stateful_getter_exactly_once ... ok
+test module::tests::the_kinds_of_triangle_answer_and_the_failures_of_the_provider_are_each_named ... ok
+test module::tests::the_whole_numbers_and_the_declarations_of_an_answer_reject_what_is_not_exactly_what_they_name ... ok
+test module::tests::an_environment_state_that_is_not_a_field_is_refused_with_the_state_marker ... ok
+test module::tests::a_triangle_is_a_table_or_a_text_of_exactly_nine_and_nothing_longer_or_sparser ... ok
+test module::tests::a_rotor_sound_question_reaches_the_provider_by_value_and_its_whole_answer_comes_back_exactly ... ok
+test module::tests::whether_a_surface_is_stored_is_the_providers_word_by_value_and_not_its_hint ... ok
+test module::tests::a_malformed_ground_answer_is_refused_before_the_campaign_reads_any_of_it ... ok
+test module::tests::the_fast_and_map_operations_are_read_and_refused_the_same_way ... ok
+
+failures:
+
+---- module::tests::a_name_on_a_removal_outside_its_declared_domain_is_a_malformed_answer stdout ----
+Error: "phase 0: a name on a removal was accepted"
+
+---- module::tests::a_retained_record_name_is_a_roster_key_and_a_city_child_removal_names_the_list_it_was_asked_about stdout ----
+Error: "name '0': a malformed retained name was accepted"
+
+
+failures:
+    module::tests::a_name_on_a_removal_outside_its_declared_domain_is_a_malformed_answer
+    module::tests::a_retained_record_name_is_a_roster_key_and_a_city_child_removal_names_the_list_it_was_asked_about
+
+test result: FAILED. 68 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

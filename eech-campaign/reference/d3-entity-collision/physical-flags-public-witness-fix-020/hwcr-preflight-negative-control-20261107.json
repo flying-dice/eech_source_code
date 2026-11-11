@@ -1,0 +1,10 @@
+{
+  "prefix": "flags-witfx-",
+  "label_regex": "^d\\d+-",
+  "declared_helper": "check-physical-flags-witfix-linux-20261107.sh",
+  "records": 0,
+  "rows": [],
+  "problems": [
+    "no run record matches flags-witfx-^d\\d+-"
+  ]
+}

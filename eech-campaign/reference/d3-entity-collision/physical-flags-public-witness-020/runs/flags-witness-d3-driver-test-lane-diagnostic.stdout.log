@@ -1,0 +1,269 @@
+
+running 18 tests
+test a_host_asked_for_a_flag_in_the_original_profile_is_a_failure_not_that_profile ... FAILED
+test a_host_that_loses_a_set_or_miscounts_a_reset_or_repeats_a_key_is_named_even_when_every_reply_is_well_formed ... FAILED
+test a_malformed_question_is_a_request_fault_passed_through_unaltered_and_never_a_pass ... ok
+test the_report_is_created_exclusively_and_never_overwritten ... ok
+test the_oracle_keeps_the_destructive_read_semantics_a_word_mates_read_destroys_a_bit_and_the_reads_own_is_kept ... FAILED
+test a_changed_host_answer_is_carried_by_the_campaign_into_its_next_candidate_question ... FAILED
+test a_campaign_that_ignores_the_changed_answer_is_a_failure_not_a_pass ... FAILED
+test an_original_report_must_be_the_hosts_never_asked_and_of_the_same_setup ... FAILED
+test the_healthy_control_counts_attempts_answered_and_accepted_apart_adds_no_question_and_the_oracle_agrees_with_the_real_store ... FAILED
+test an_intervention_is_never_made_on_a_step_whose_trajectory_differs_from_the_controls ... FAILED
+test a_fatal_before_the_eligible_intervention_is_a_failure_even_with_the_modes_own_marker ... FAILED
+test a_fatal_before_or_after_the_valid_changed_answer_is_a_failure ... FAILED
+test an_event_never_reached_is_unreached_never_a_pass ... FAILED
+test the_duplicate_key_is_made_at_the_second_group_after_a_healthy_first_one_and_a_key_of_21_bytes_at_the_first ... FAILED
+test the_original_profile_characterisation_comes_first_and_the_host_is_never_asked ... ok
+test an_event_the_control_never_reached_refuses_every_mode_that_intervenes_there_before_any_boot ... FAILED
+test each_refusal_mode_is_credited_only_when_the_campaign_stops_at_its_marker_after_the_one_eligible_intervention ... FAILED
+test an_intervention_accepts_only_a_whole_successful_paired_control_of_the_same_setup_and_checks_it_before_any_side_effect ... FAILED
+
+failures:
+
+---- a_host_asked_for_a_flag_in_the_original_profile_is_a_failure_not_that_profile stdout ----
+
+thread 'a_host_asked_for_a_flag_in_the_original_profile_is_a_failure_not_that_profile' (119) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:326:5:
+no not the original-solver profile in:
+pf-witness-identity schema=1 mode=flags_original profile=original-solver scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=0
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_original status=FAILURE detail=the engine stopped: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- a_host_that_loses_a_set_or_miscounts_a_reset_or_repeats_a_key_is_named_even_when_every_reply_is_well_formed stdout ----
+
+thread 'a_host_that_loses_a_set_or_miscounts_a_reset_or_repeats_a_key_is_named_even_when_every_reply_is_well_formed' (120) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:326:5:
+no the traffic implies in:
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=0
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- the_oracle_keeps_the_destructive_read_semantics_a_word_mates_read_destroys_a_bit_and_the_reads_own_is_kept stdout ----
+
+thread 'the_oracle_keeps_the_destructive_read_semantics_a_word_mates_read_destroys_a_bit_and_the_reads_own_is_kept' (130) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=0
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- a_changed_host_answer_is_carried_by_the_campaign_into_its_next_candidate_question stdout ----
+
+thread 'a_changed_host_answer_is_carried_by_the_campaign_into_its_next_candidate_question' (116) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- a_campaign_that_ignores_the_changed_answer_is_a_failure_not_a_pass stdout ----
+
+thread 'a_campaign_that_ignores_the_changed_answer_is_a_failure_not_a_pass' (115) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- an_original_report_must_be_the_hosts_never_asked_and_of_the_same_setup stdout ----
+
+thread 'an_original_report_must_be_the_hosts_never_asked_and_of_the_same_setup' (126) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- the_healthy_control_counts_attempts_answered_and_accepted_apart_adds_no_question_and_the_oracle_agrees_with_the_real_store stdout ----
+
+thread 'the_healthy_control_counts_attempts_answered_and_accepted_apart_adds_no_question_and_the_oracle_agrees_with_the_real_store' (129) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- an_intervention_is_never_made_on_a_step_whose_trajectory_differs_from_the_controls stdout ----
+
+thread 'an_intervention_is_never_made_on_a_step_whose_trajectory_differs_from_the_controls' (125) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- a_fatal_before_the_eligible_intervention_is_a_failure_even_with_the_modes_own_marker stdout ----
+
+thread 'a_fatal_before_the_eligible_intervention_is_a_failure_even_with_the_modes_own_marker' (118) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- a_fatal_before_or_after_the_valid_changed_answer_is_a_failure stdout ----
+
+thread 'a_fatal_before_or_after_the_valid_changed_answer_is_a_failure' (117) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- an_event_never_reached_is_unreached_never_a_pass stdout ----
+
+thread 'an_event_never_reached_is_unreached_never_a_pass' (122) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- the_duplicate_key_is_made_at_the_second_group_after_a_healthy_first_one_and_a_key_of_21_bytes_at_the_first stdout ----
+
+thread 'the_duplicate_key_is_made_at_the_second_group_after_a_healthy_first_one_and_a_key_of_21_bytes_at_the_first' (128) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- an_event_the_control_never_reached_refuses_every_mode_that_intervenes_there_before_any_boot stdout ----
+
+thread 'an_event_the_control_never_reached_refuses_every_mode_that_intervenes_there_before_any_boot' (123) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- each_refusal_mode_is_credited_only_when_the_campaign_stops_at_its_marker_after_the_one_eligible_intervention stdout ----
+
+thread 'each_refusal_mode_is_credited_only_when_the_campaign_stops_at_its_marker_after_the_one_eligible_intervention' (127) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+---- an_intervention_accepts_only_a_whole_successful_paired_control_of_the_same_setup_and_checks_it_before_any_side_effect stdout ----
+
+thread 'an_intervention_accepts_only_a_whole_successful_paired_control_of_the_same_setup_and_checks_it_before_any_side_effect' (124) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:339:5:
+Err("runtime error: physical-flags-witness: FAILURE: a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"physical-flags-witness.lua\"]:656: in main chunk")
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0003 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=0 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=0 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-fatal where=frame marker=flag.word line=host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+pf-witness-reply-fault set ordinal 3: a flag set answered the raw word 0x00000002, which is not the lane's mask
+pf-witness-verdict mode=flags_control status=FAILURE detail=a fatal before any intervention: host model: [model-provider:flag.word] the raw word 0x00000002 is not allowed for lane 1, whose mask is 0x00000001
+
+
+
+failures:
+    a_campaign_that_ignores_the_changed_answer_is_a_failure_not_a_pass
+    a_changed_host_answer_is_carried_by_the_campaign_into_its_next_candidate_question
+    a_fatal_before_or_after_the_valid_changed_answer_is_a_failure
+    a_fatal_before_the_eligible_intervention_is_a_failure_even_with_the_modes_own_marker
+    a_host_asked_for_a_flag_in_the_original_profile_is_a_failure_not_that_profile
+    a_host_that_loses_a_set_or_miscounts_a_reset_or_repeats_a_key_is_named_even_when_every_reply_is_well_formed
+    an_event_never_reached_is_unreached_never_a_pass
+    an_event_the_control_never_reached_refuses_every_mode_that_intervenes_there_before_any_boot
+    an_intervention_accepts_only_a_whole_successful_paired_control_of_the_same_setup_and_checks_it_before_any_side_effect
+    an_intervention_is_never_made_on_a_step_whose_trajectory_differs_from_the_controls
+    an_original_report_must_be_the_hosts_never_asked_and_of_the_same_setup
+    each_refusal_mode_is_credited_only_when_the_campaign_stops_at_its_marker_after_the_one_eligible_intervention
+    the_duplicate_key_is_made_at_the_second_group_after_a_healthy_first_one_and_a_key_of_21_bytes_at_the_first
+    the_healthy_control_counts_attempts_answered_and_accepted_apart_adds_no_question_and_the_oracle_agrees_with_the_real_store
+    the_oracle_keeps_the_destructive_read_semantics_a_word_mates_read_destroys_a_bit_and_the_reads_own_is_kept
+
+test result: FAILED. 3 passed; 15 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

@@ -1,0 +1,160 @@
+{
+  "recorded_utc": "2026-11-05T17:07:13.654703+00:00",
+  "runtime_source": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+  "literal_blob": "a5eb38b6663072599315b84da4e4128e19d68530",
+  "literal_sha256": "ef6186ee5930868b56e7d9091f2938256bf3b0b340d4e4f1448c671ccc4a6c1b",
+  "source_clearance_sha256": "d801a38d1459bfbf8876e38f9db0dc7eb4db9fd70f3d9fb577880f950357201d",
+  "controllers": [
+    {
+      "role": "ordinary",
+      "path": "D:\\EECH-Migration-Evidence\\pose-observer-ordinary-short-1f9a939bc-20261105\\controller.json",
+      "sha256": "15e38bba9edcbfc7c8c21db216b3d5fb66d738c51f9384cdf156b27bb5f5755e",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "outer_actual_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "complete_pre_post_manifest_bytes_equal": true,
+      "payloads": 88,
+      "native_seconds": 9.910328
+    },
+    {
+      "role": "healthy",
+      "path": "D:\\EECH-Migration-Evidence\\pose-observer-healthy-1f9a939bc-20261105\\controller.json",
+      "sha256": "3cf011d36820441acf390d072a3e017c37093a2d8b80c7fd1c44b33f675d3ac5",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "outer_actual_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "complete_pre_post_manifest_bytes_equal": true,
+      "payloads": 88,
+      "native_seconds": 102.524055
+    }
+  ],
+  "ordinary_three_complete_files_literal_equal_80fd": true,
+  "payload_seals": [
+    {
+      "profile": "ordinary",
+      "payloads": 88,
+      "all_payloads_rehashed_after_runs": true,
+      "build_info_sha256": "8011b6c8d297b2140e50f7ec9da67074d0402eb2d5101bbcac1c714fb0627a6b"
+    },
+    {
+      "profile": "hosted",
+      "payloads": 88,
+      "all_payloads_rehashed_after_runs": true,
+      "build_info_sha256": "b4b6ad24d5982df6d3895b3187c7dd11dcfb5237921823ae8e60665c34b036a9"
+    }
+  ],
+  "parent_common_authority_fields": 74,
+  "parent_common_fields_all_literal_equal": true,
+  "pose_facts": {
+    "pose_fact_aircraft_motion_differs": 0,
+    "pose_fact_attitude_compared": 3161,
+    "pose_fact_attitude_differs": 0,
+    "pose_fact_dead": 0,
+    "pose_fact_dead_recorded": 0,
+    "pose_fact_formula_differs": 2364,
+    "pose_fact_formula_equal": 3727,
+    "pose_fact_motion_held": 0,
+    "pose_fact_motion_held_differs": 0,
+    "pose_fact_motion_not_held": 6091,
+    "pose_fact_no_id": 0,
+    "pose_fact_observations": 9252,
+    "pose_fact_offers": 6091,
+    "pose_fact_position_differs": 0,
+    "pose_fact_recorded": 6091,
+    "pose_fact_recorded_by_kind": "1=6091",
+    "pose_fact_retired": 0,
+    "pose_fact_unknown": 0,
+    "pose_fact_unrecorded": 0,
+    "pose_fact_vehicle_formula_differs": 2364,
+    "pose_fact_vehicle_formula_equal": 3727
+  },
+  "histograms": [
+    {
+      "phase": "pre",
+      "stage": 0,
+      "entity_type": 1,
+      "alive": 1,
+      "record_class": "recorded",
+      "kind": 1,
+      "difference_mask": 24,
+      "observations": 2204
+    },
+    {
+      "phase": "pre",
+      "stage": 0,
+      "entity_type": 23,
+      "alive": 1,
+      "record_class": "recorded",
+      "kind": 1,
+      "difference_mask": 8,
+      "observations": 3578
+    },
+    {
+      "phase": "pre",
+      "stage": 1,
+      "entity_type": 23,
+      "alive": 1,
+      "record_class": "recorded",
+      "kind": 1,
+      "difference_mask": 8,
+      "observations": 3040
+    },
+    {
+      "phase": "post",
+      "stage": 0,
+      "entity_type": 1,
+      "alive": 1,
+      "record_class": "recorded",
+      "kind": 1,
+      "difference_mask": 24,
+      "observations": 130
+    },
+    {
+      "phase": "post",
+      "stage": 0,
+      "entity_type": 23,
+      "alive": 1,
+      "record_class": "recorded",
+      "kind": 1,
+      "difference_mask": 24,
+      "observations": 30
+    },
+    {
+      "phase": "post",
+      "stage": 0,
+      "entity_type": 23,
+      "alive": 1,
+      "record_class": "recorded",
+      "kind": 1,
+      "difference_mask": 8,
+      "observations": 149
+    },
+    {
+      "phase": "post",
+      "stage": 1,
+      "entity_type": 23,
+      "alive": 1,
+      "record_class": "recorded",
+      "kind": 1,
+      "difference_mask": 8,
+      "observations": 121
+    }
+  ],
+  "moving_queries": 0,
+  "candidate_need_updated": 0,
+  "limitations": [
+    "Observations are repeated questions, not unique mobiles.6091offers=stage0;3161attitude questions=stage1.",
+    "Only recorded kind1/alive1/type1or23 offers were observed. No missing/unrecorded/retired/unknown/dead/otherkind or moving path runtime claim.",
+    "Position and attitude match on reached offers only.2364 vector formula differences are factual; do not approximate held vectors from speed/heading. The canonical record holds no vector for these6091offers.",
+    "No writer attribution, universal lifecycle/pack/gunship/dependent-route coverage or physical pose authority. WholeTask49/D3 acceptance remains open."
+  ],
+  "next_production": "Store the actual characterized physical motion vector in the ONE authoritative Movers record at legitimate creation/placement/step/lifetime boundaries; use canonical host pose/motion for collision, never the formula approximation or query fallback toCore. Preserve skipped reads/order/effects; all unreached domains remain required."
+}

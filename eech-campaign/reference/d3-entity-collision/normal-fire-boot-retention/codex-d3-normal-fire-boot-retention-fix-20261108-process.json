@@ -1,0 +1,11 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T10:14:32.626672+00:00",
+  "started_time_qualification": "Actual service-agent checkpoint creation, not OS PID/birth or CLI exit",
+  "source_before": "426de7baf016e9dfbf54e1188622975fb5dcd8c2",
+  "scope": "Named boot/per-frame diagnostic retention blocker only; preserve actual failed426 native attempt/defaultPASS. Lua/tests/docs correction, unchanged2fc compiled input join, no native/build/default replay or all10 closure."
+}

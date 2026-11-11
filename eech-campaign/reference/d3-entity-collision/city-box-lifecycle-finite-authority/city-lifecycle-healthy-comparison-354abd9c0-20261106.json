@@ -1,0 +1,26 @@
+{
+  "source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+  "actual_exit": 0,
+  "candidate": "D:\\EECH-Migration-Evidence\\city-lifecycle-healthy-354abd9c0-20261106",
+  "parent_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+  "parent": "D:\\EECH-Migration-Evidence\\fixed-rules-healthy-681ccfe54-20261106",
+  "native_helper_outer_exits": [
+    0,
+    0,
+    0
+  ],
+  "common_authority_fields": 194,
+  "changed_common_fields": {},
+  "all_shared_fields_equal": true,
+  "no_fields_removed": true,
+  "new_fields": [],
+  "declared_new_field_values": {},
+  "eligible_fixed_joined": 1224,
+  "complete_terminal_literal_equal": true,
+  "complete_terminal_bytes": 180,
+  "complete_terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+  "request_faults": 0,
+  "reply_faults": 0,
+  "case_weapons_pending": 0,
+  "scope": "Finite healthy current CITY production conformance only; all existing fields must match the accepted681 parent, no new field allowed. No lifecycle retention, natural moving, full40all8 or wholeD3 acceptance."
+}

@@ -1,0 +1,10 @@
+{
+  "scope": "Evidence classification and focused validation, no new inventory or native replay",
+  "observed": "d4-hosted-traffic and d5-hosted-traffic2 exit101 because the test author expected the placeholder traffic tuple (0,0,0,0,0); actual nonzero traffic was42/54/64/3/33 and14/18/37/4/14. The original199 and guide56 expectations themselves passed. d6 true Original-profile controls exit0.",
+  "instructions": [
+    "Retain these development failures and label them test-author placeholder/count discovery, NOT pre-move capability REDs or regressions of original behavior. Do not replay a campaign or the closed baseline for them.",
+    "No more placeholder-zero expected counts to manufacture failed runs. Prefer meaningful nonzero operation/branch coverage plus preserved raw state/outcomes and actual changed/withheld/malformed/wrong-identity backing/refusal. Exact private diagnostic traffic counts alone are not host authority or a campaign contract; do not freeze a private call graph merely to match the observed tuple.",
+    "Keep the old199+56 cases and true Original profile distinct from new hosted controls. Public Lua/provider checks alone and direct C callback checks alone must not be described as an executed Lua-to-module-to-host campaign proof; state the exact path and keep remaining native/default acceptance open.",
+    "Root verified cf1026 publication all9 CI green separately. That does not accept this uncommitted candidate. Existing764 shipping processes and prefixes remain intact; no Root cache/source mutation while you own the lease."
+  ]
+}

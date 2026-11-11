@@ -1,0 +1,14 @@
+{
+  "observed_utc": "2026-11-08T11:11:04.873757+00:00",
+  "RED": {
+    "actual_tool_session": 95060,
+    "actual_exit": 1,
+    "command": "Python -I -B -X utf8 nq56-scan-retained-20261108.py RED"
+  },
+  "GREEN": {
+    "actual_tool_session": 25642,
+    "actual_exit": 0,
+    "command": "Python -I -B -X utf8 nq56-scan-retained-20261108.py GREEN"
+  },
+  "qualification": "Actual functions exec/write_stdin completion observations; no OS PID/birth invented. RED/GREEN safe fullEOF projections carry private raw/source hashes; no native replay."
+}

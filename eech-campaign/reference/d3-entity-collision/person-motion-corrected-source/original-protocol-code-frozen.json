@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "kind": "CODE_FROZEN",
+  "state": "UNREVIEWED; focused Linux checks only; not accepted source, native, Task49 or D3",
+  "task": "EEDCS-49", "pr": 109, "branch": "codex/d3-object-tree-collision",
+  "product_source_sha": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "product_source_parent": "c2aa4f52b4d2c114cae89747208874c1bcd2d8b0",
+  "metadata_sha": "07567426072fc41510ccad7e54129c0dc5696300",
+  "metadata_parent_before_lane": "097c6a5f4c7799499cb1f1b2a0dac4d07cc1b8c0",
+  "pushed": true,
+  "metadata_commit_changes": ["STATUS.md", "docs/handover/ACTIVE-EXTRACTION.json"],
+  "changed_source_paths": [
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "eech-campaign/docs/d3-entity-collision-provider.md"
+  ],
+  "code_delta": "mq_parse_run: hit_is_target=0 carrying the target's decoded identity (any type) is refused as malformed (+4 lines). Test: positive-first complete valid report, then faults run_target_identity_with_false_flag and run_target_identity_with_false_flag_and_other_type (27->29 faults). Provider doc: person removed from open disposition (b). No C, physical code, baseline, tolerance or scenario.",
+  "checks": [
+    {"cmd": "cargo fmt -p eech-world -- --check", "exit": 1, "note": "two test-line wraps; log preserved fmt-check.log"},
+    {"cmd": "cargo fmt -p eech-world", "exit": 0, "note": "an earlier launch failed on my unquoted script path (exit 2, ran nothing) and is preserved as *-launchfail.*"},
+    {"cmd": "cargo fmt -p eech-world -- --check", "exit": 0},
+    {"cmd": "cargo test --release --locked -p eech-world --test entity_authority", "exit": 0, "result": "43 passed; 0 failed"}
+  ],
+  "exits_from": "files written by the shell wrapper from the real wsl/docker/cargo status, not a pipeline",
+  "not_run": "full eech-world, engine/sys tests, strict lint, nonweapon profiles, workspace check, model/tree matrix, native, Windows, pack; a red run of the new faults against the old parser (not part of this invocation)",
+  "environment": {"distro": "EECH-D2-Build", "volume": "eech-linux-d3-collision-driver-5416adb3b-20261029", "image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51", "docker_owner": "no container existed or held the volume before launch (script guard + docker ps -a empty)"},
+  "evidence_dir": "R:/d3-evidence/query-reverse-identity-20261105",
+  "raw_input_sha256_before_and_after_tests_identical": {
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua": "e580b0e2752c28ccb440b66778bd0b4992de0651502dcdc9e9975d4b6af68d05",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs": "8185d3ddb5596af13e97484c94b23997ef024449ff9876de2e77eef6e9a40851",
+    "eech-campaign/docs/d3-entity-collision-provider.md": "8d647300cf4b90dc06bf3daa01486b7fb800bec9e318b1c8c31c217cd3b20347"
+  },
+  "hash_kind": "raw file bytes (sha256sum); working files carry no CR or NUL so Git blob IDs (filtered) name the same content: lua ad4238d9a51e, test 1db3f39f9026, doc d8a38deae48a",
+  "source_map": {
+    "scope": "sorted sha256 of every tracked file under eech-campaign/crates plus the provider doc (344 files)",
+    "map_before_sha256": "7146c239b3655ba46f3a4cdc7e2abebd78648bf2e173ded7d2eabc130cd0ad95",
+    "map_after_sha256": "7146c239b3655ba46f3a4cdc7e2abebd78648bf2e173ded7d2eabc130cd0ad95",
+    "identical": true,
+    "git_diff_c2aa4f52b_to_product_source_over_that_scope": "exactly the 3 changed paths above",
+    "existing_source_NULs_and_inherited_workingLua_CRLF": "untouched (no other path changed)"
+  },
+  "ab_provenance_condition": "Root binds the future B control_signature to the completed positive A's SAME source, target, rays and configuration. The caller argument is opaque; a script exit 0 alone does not prove cross-run identity.",
+  "native": "none run; no new native required for this Lua/test/prose change; old c2aa4f52b CODE_FROZEN record untouched",
+  "open": "All ten D3 requirements, Task49 40/all8/CI/review/normal merge open; D4/D5/TypeScript unstarted; same reviewer closes only this changed material with Root's frozen gates."
+}

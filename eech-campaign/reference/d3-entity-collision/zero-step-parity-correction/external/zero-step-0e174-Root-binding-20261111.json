@@ -1,0 +1,39 @@
+{
+  "utc": "2026-11-11T10:41:15.769126+00:00",
+  "reader_sha256": "2e7d61872cc1a7e27a212046cc4c0b1b7cfa83abe98c5c3ae6bb0ce85e1818e7",
+  "CODE": "594ef61368e2c5a9cbe6ed9f27cfdbad51ac7a94",
+  "META": "0e174c1a09a9d1f74c159ffe59378b77ce43e93a",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "clean_remote_exact": true,
+  "PRE_POST_rows": 4024,
+  "source_fingerprint": "5d701ebaa4a332bd9e88ff2389e5e00c090f708f5188b878da19c4246737ae75",
+  "raw_Git_literal_rows": 4021,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "compiled_product_rows_literal": 3815,
+  "inherited_cfg_test_exception_verified": true,
+  "producer_configs_literal": 2,
+  "extras_equal": 38,
+  "sealed_readers_equal": 5,
+  "artifacts_exact_Git": 16,
+  "packet_files_literal_Git": 116,
+  "publication_entries": 115,
+  "final_actual_exits": {
+    "s1-python": 0,
+    "s2-fmt": 0,
+    "s3-clippy": 0,
+    "s4-session-lua": 0,
+    "s5-facade-default": 0,
+    "s6-facade-observer": 0
+  },
+  "final_controller_actual_exit": 0,
+  "Rust_target_tests": 2,
+  "Python_tests": 15,
+  "old_gate_RED_actual_exit": 101,
+  "freeze_sha256": "0570a18b46f0d1c5cded780d7b3db02a4ce3ad158235c6895e653d6af71974dd",
+  "all10_preserved": true,
+  "scope": "Root mechanical joins only; one independent changed-material review pending. Genuine collaborator transport remains synthetic; no native/physical/Generic1/all10/D3 closure. Existing build/default evidence retains finite prior scope; no replay."
+}

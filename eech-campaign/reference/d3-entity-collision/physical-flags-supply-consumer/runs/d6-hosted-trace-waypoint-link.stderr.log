@@ -1,0 +1,84 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 08s
+     Running tests/physical_flags_supply.rs (/target/t/debug/deps/physical_flags_supply-4b134fa9334328e9)
+TRACE-TMP open:start
+TRACE-TMP open:saved
+TRACE-TMP open:overloads-done
+TRACE-TMP open:hosts-set
+TRACE-TMP open:resets-done
+TRACE-TMP world:records
+TRACE-TMP world:guide-stack-linked
+TRACE-TMP world:current-waypoint-linked
+TRACE-TMP open:world-built
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+TRACE-TMP check:enter
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+eech: debug_fatal: supply arrival: host supply_reached failed: invalid updated flag 2
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+eech: debug_fatal: supply arrival: host supply_reached failed: invalid updated flag 4
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+eech: debug_fatal: supply arrival: host supply_reached failed: invalid updated flag 1073741824
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+eech: debug_fatal: supply arrival: host supply_reached failed: invalid updated flag -2147483648
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+TRACE-TMP check:enter
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+eech: debug_fatal: supply arrival: host supply_reached failed: invalid updated flag 2
+TRACE-TMP check:enter
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP member:created
+TRACE-TMP member:in-member-list
+TRACE-TMP member:in-follower-list
+TRACE-TMP check:enter
+eech: debug_fatal: supply arrival: host supply_reached failed: invalid updated flag 2
+
+thread 'the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_the_real_rust_boundary_accepts_only_zero_and_one' (4070) panicked at crates/eech-engine/tests/physical_flags_supply.rs:247:9:
+the unlinked member is refused by name: supply arrival: host supply_reached failed: invalid updated flag 2
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-engine --test physical_flags_supply`

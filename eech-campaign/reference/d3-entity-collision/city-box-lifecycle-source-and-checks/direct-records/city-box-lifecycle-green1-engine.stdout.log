@@ -1,0 +1,32 @@
+
+running 1 test
+test the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal ... FAILED
+
+failures:
+
+---- the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal stdout ----
+
+thread 'the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal' (4139) panicked at crates/eech-engine-sys/tests/entity_dialogue.rs:23:5:
+assertion `left == right` failed: the dialogue disagreed with its expectations:
+FAIL line 2288: stopped && strstr (fatal_text, "entity_scan.key") != NULL
+FAIL line 2866: stopped && strstr (fatal_text, "entity_scan.key") != NULL && strstr (fatal_text, "issued a key") != NULL
+FAIL line 2992: !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == 16 && city_release_asks == 1 && place_list_of_slot[city->slot][0] == 0 && place_listed_of_slot[city->slot] == 0 && place_key_of_slot[city->slot][0] == 0
+FAIL line 3090: !stopped && roster_asks == 1 && city_asks == 0 && place_key_of_slot[city->slot][0] == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0 && place_listed_of_slot[city->slot] == 0
+FAIL line 3095: !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_LINK && strcmp (city_last_link, "2 1") == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0
+FAIL line 3102: !stopped && city_link_asks == 2 && strcmp (city_last_link, "3 1") == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0
+FAIL line 3108: !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == 16 && strcmp (city_seen.host_id, "1") == 0 && city_release_asks == 1 && strcmp (city_last_release, "1") == 0
+FAIL line 3111: !stopped && roster_asks == 1 && city_asks == 0 && city_link_asks == 2 && place_list_of_slot[city->slot][0] == 0
+FAIL line 3138: !stopped && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == 16 && strcmp (city_seen.host_id, list) == 0 && place_list_of_slot[city->slot][0] == 0
+FAIL line 3153: stopped && strstr (fatal_text, "holds the record") != NULL
+FAIL line 3173: stopped && strstr (fatal_text, "release of a city") != NULL
+
+  left: 11
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+

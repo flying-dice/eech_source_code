@@ -1,0 +1,44 @@
+{
+  "controller_pid": 20492,
+  "started_utc": "2026-11-08T08:44:45.912139+00:00",
+  "state": "running",
+  "commands": [
+    [
+      "s1-fmt",
+      "rustup component add rustfmt && cargo fmt --version && cargo fmt --all -- --check"
+    ],
+    [
+      "s2-original-clippy",
+      "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine -p eech-engine-sys -p eech-world --all-targets --features normal-fire-check,normal-fire-correlation,model-fixture -- -D warnings"
+    ],
+    [
+      "s3-hosted-clippy",
+      "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --all-targets --features physical-flags-collision-check,normal-fire-check,normal-fire-correlation -- -D warnings"
+    ],
+    [
+      "s4-normal-controls",
+      "cargo test --locked -p eech-engine --features normal-fire-check,normal-fire-correlation,model-fixture --test normal_fire -- --nocapture"
+    ],
+    [
+      "s5-hosted-join",
+      "cargo test --locked -p eech-engine-sys --features physical-flags-collision-check,normal-fire-check,normal-fire-correlation --test physical_flags_collision normal_query_joins_the_actual_host_callback_entries_without_claiming_a_normal_birth -- --nocapture"
+    ],
+    [
+      "s6-session-lua",
+      "cargo test --locked -p eech-world --test normal_fire_session -- --nocapture"
+    ],
+    [
+      "s7-profile-census",
+      "cargo test --locked -p eech-world --test host_callbacks every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not -- --nocapture"
+    ],
+    [
+      "s8-python",
+      null
+    ],
+    [
+      "s9-shipping-compile",
+      "cargo check --locked -p eech-dc -p eech-world"
+    ]
+  ],
+  "actual_exits": {}
+}

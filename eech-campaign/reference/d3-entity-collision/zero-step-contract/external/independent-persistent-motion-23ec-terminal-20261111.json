@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-11T01:17:29.047894+00:00",
+  "review_kind": "One new terminal actual-evidence correctness, causality and boundary review; no source/test/native replay",
+  "identity": {
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "diagnostic_git": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+    "report_schema": 3,
+    "plan_sha256": "d21f4336baf8f85fb8805fa8f725071f657363ce937936a7f0387e3c137a8120",
+    "controller_sha256": "fd7b3ebcb001821ed17f2a30a5b6e9fbb06808f90fa04e3331a53b4edebcd980",
+    "launch_review_sha256": "d5e6b8f399ebb35bc9f33ec8756ba19c42285cddc2e36a5c34bfb871b739ad12"
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/persistent-motion-23ec-terminal-Root-binding-20261111.json",
+      "bytes": 5329,
+      "sha256": "ad1496399d88026906e09e8a84516e72b78ad81c39653840d0601296f5be5a56"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/persistent-motion-capture-23ec-20261111-runs/completion.json",
+      "bytes": 5990,
+      "sha256": "1ce15863dddb2b8a6a776a75a56010db2e4580e04ab69ce9ba11a1bcc385dd01"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/persistent-motion-supervision-23ec-20261111/completion.json",
+      "bytes": 2159,
+      "sha256": "677e46cb599fe497a16de4a18a96a91ab5fee7febb0e45307dcebb7568104e79"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/persistent-motion-capture-23ec-20261111-runs/01-healthy/capture.txt",
+      "bytes": 1277,
+      "sha256": "8c28b0791c8bd578911ff113485efbc6a37933f86e237872e088fca263125e1a"
+    },
+    {
+      "path": "R:/d3-evidence/independent-persistent-motion-23ec-source-20261111.json",
+      "bytes": 14614,
+      "sha256": "04d45a40bb6a98012c114fef916afdb210dcb2a5efee161964b1175c46c17de5"
+    },
+    {
+      "path": "R:/d3-evidence/independent-persistent-motion-23ec-materialized-launch-20261111.json",
+      "bytes": 11941,
+      "sha256": "d5e6b8f399ebb35bc9f33ec8756ba19c42285cddc2e36a5c34bfb871b739ad12"
+    },
+    {
+      "path": "R:/d3-evidence/persistent-motion-23ec-all9-CI-20261111.json",
+      "bytes": 3109,
+      "sha256": "56f6dea2763406d6be528f57f00a7919d1713982d5baf759b69132f2c366370d"
+    }
+  ],
+  "findings": [],
+  "actual_execution": {
+    "supervisor_pid": 22756,
+    "supervisor_observed_controller_wait_exit": 0,
+    "supervisor_declared_exit": 0,
+    "supervisor_OS_exit_independently_observed": false,
+    "controller_pid": 548,
+    "controller_actual_exit": 0,
+    "controller_completed_utc": "2026-11-11T01:12:19.512905+00:00",
+    "native_pid": 20276,
+    "native_actual_exit": 1,
+    "pre_input_actual_exit": 0,
+    "post_input_actual_exit": 0,
+    "controller_verdict": "UNREACHED",
+    "controller_error": null,
+    "exit_scope": "Supervisor actually observed the original child controller wait0; source controller recorded native1 and input0/0. Native1 is the reviewed clean UNREACHED contract. Starter0 is launch only, and supervisor-declared0 is not an independent OS-exit observation. Neither is relabeled native0 or a healthy positive.",
+    "supervisor_join": "Completion self/spec/review hashes exactly match launch review; original controller CIM parent/birth/argv is retained, no identity observer or supervisor error is recorded. Root terminal process observation found no original controller/native/input stage identity remaining. No restart or window change evidenced.",
+    "report": {
+      "sha256": "8c28b0791c8bd578911ff113485efbc6a37933f86e237872e088fca263125e1a",
+      "bytes": 1277,
+      "status": "UNREACHED",
+      "reason": "no eligible normal moving cohort",
+      "frames": 1500,
+      "fires": 297,
+      "births": 297,
+      "step_pairs": 155296,
+      "queries": 26,
+      "provider_calls": 19714996,
+      "moving": 0,
+      "failed": 0,
+      "changed": 0,
+      "selection_present": false
+    },
+    "B": {
+      "status": "NOT_LAUNCHED_UNREACHED",
+      "root_prepared": false,
+      "output_prepared": false,
+      "native_executed": false
+    }
+  },
+  "accounting_and_new_fact": {
+    "processed_queries": 26,
+    "decisions": 40,
+    "outcomes": {
+      "8_no_lawful_NEED_offer": 24,
+      "11_missing_finite_captured_base": 16,
+      "all_other_codes": 0
+    },
+    "first_query": {
+      "query": 1,
+      "query_frame": 1477,
+      "selector": 0,
+      "model_entries": 504,
+      "candidate_offers": 241,
+      "traversed_NEED": 8,
+      "traversed_READ": 0,
+      "traversed_reask": 0,
+      "traversed_TEST": 0,
+      "mode_code": 1,
+      "registered": 1,
+      "type_word": 23,
+      "birth_frame": 938,
+      "completed_move_frame": 1476,
+      "captured_move_call": 808659,
+      "latest_move_call_at_NEED": 808659,
+      "later_move_call": 0,
+      "receipt_state": 1
+    },
+    "accepted_finite_provenance_fact": "The first actual NEED now carries completed routed-MOVE provenance: receipt1/mode1, matching captured/latest ordinal and birth938<MOVE1476<query1477. The prior schema2 mode0/no-routed-receipt rejection is no longer the observed blocker in this run. This supports the needed persistent receipt timing fact at this first observed candidate, not all lifetimes or moving acceptance.",
+    "remaining_rejection": "All sixteen actual candidate rejections are now code11: the diagnostic did not obtain a finite captured terrain base from its supported MOVE input lookup. The actual condition may be missing/nonfinite captured data or a source-contract lookup mismatch; the report alone does not distinguish them. It is not proof that terrain is absent from the physical world or that the provider/solver is defective.",
+    "predicate_order_limit": "Code11 occurs before ceiling, motion-norm and READ/reask/TEST qualification. A completed mode=move callback is not itself proof of nonzero motion. No code14 stationary rejections occurred, so stationarity is also unproved. Zero traversed READ/reask/TEST counts do not establish zero Core traffic.",
+    "count_scope": "Forty decisions versus26 queries is consistent with multiple rejected candidates within a query. First-query metadata covers the first observed matching NEED, not every candidate or an independent full Host transcript."
+  },
+  "complete_stream_and_noninterference": {
+    "private_path": "D:\\EECH-Migration-Evidence\\persistent-motion-capture-23ec-20261111-runs\\01-healthy\\capture.txt.events",
+    "bytes": 110076923,
+    "sha256": "1fd73aa2f08338eeeabbcb3500137f884ede4762522233e2284261f26b706898",
+    "Root_complete_EOF": true,
+    "consecutive_normal_records": 319569,
+    "last_tick_ms": 149900,
+    "event_counts": {
+      "normal_fire": 297,
+      "normal_detach": 297,
+      "normal_birth": 297,
+      "normal_end": 297,
+      "normal_step": 155296,
+      "normal_step_end": 155296,
+      "normal_query": 26,
+      "normal_model": 7737,
+      "normal_query_end": 26
+    },
+    "query_selectors": {
+      "0": 2,
+      "-1": 24
+    },
+    "comparison": "Root direct1MiB byte comparison reached both EOF and found equality with the complete old failedb502 raw at identical compiledruntime/input/seed/frame/window. That raw is not an accepted baseline; old phantom-close FAIL remains FAIL. Prior pde333 completeUNREACHED/def6 remains its own accepted finite evidence.",
+    "scope": "Accept noninterference of this complete captured C event stream only. Do not extend it to all Host/world state, default recordings, physical outcomes, natural moving/collision or authority. No diagnostic Tacview comparison or B effect was produced.",
+    "reviewer_method": "Reviewed report/receipts and read Root binder logic/identity joins. Did not rescan110MB, invoke its validator/checker, recompare raw, rerun source controls or execute a native."
+  },
+  "provenance": {
+    "inputs": "Actual pre/post audits0, two full1179-row observations match pinned reference, five config rows match both observations and actual final root per Root binding. One healthy root/two observations is not fullpack four-root acceptance.",
+    "artifacts": "Root final rehash binds all97 runtime2fc payloads and ten separate artifacts unchanged. Supervisor source/spec/review completion hashes independently joined in this pass. Source04d45 and launchd5e6 stay closed at their exact scopes; diagnostic23ec never relabels compiled2fc.",
+    "CI": "Exact23ec all3workflows/all9jobs success per bound56f6dea2763406d6be528f57f00a7919d1713982d5baf759b69132f2c366370d. This is current CI only, not native positive/fullpack/cutover acceptance.",
+    "checkpoint_lag": "Canonical checkpoint still described capture running when read; actual terminal receipts supersede that observation. Root owns bounded metadata reconciliation; reviewer made no tracking changes.",
+    "other_history": "Old3abf shipping is interrupted/no completion/unknown actual exits/prefix-only; consumed roots not reusable. Old764 accepted default pack remains separate. No active job or old result was touched."
+  },
+  "production_cutover_gate": {
+    "still_blocked": true,
+    "what_this_actual_resolves": "Persistent completed post-birth MOVE provenance can be observed at the lawful candidate NEED without same-frame movement or synthetic physical ownership. The source correction now has this finite actual timing observation.",
+    "what_is_still_missing": "No selected healthy witness completed the finite terrain-input eligibility, motion>1 and lawful same-candidate NEED→READ→exact44-word carry→moving16-word TEST chain. Therefore B has no healthy prerequisite and no actual same-cohort/prefix-bound single-terrain-input position/pose effect exists. The natural-moving/GenericNative1 acceptance required before the intended physical cutover remains unsatisfied.",
+    "next_bounded_fact": "Reconcile the existing actual routed MOVE terrain input shape with the diagnostic’s finite base lookup using source-supported contract facts. This report does not authorize a guessed fallback value, new terrain query/API, actor/threshold/window hunt, policy/flag change, or unreviewed repair. Root may determine the smallest needed changed-material step; no new native launch follows automatically.",
+    "named_source_finding": "ENV-PUBLIC-SESSION-PERSISTENT-MOVE-PROVENANCE-1 source04d45 remains accepted. This finite first-candidate observation is not whole natural-moving/physical authority, lifetime or generic-row closure."
+  },
+  "decision": {
+    "status": "ACCEPTED_COMPLETE_UNREACHED_WITH_FINITE_PROVENANCE_FACT",
+    "completed_planned_capture_evidence_accepted": true,
+    "complete_UNREACHED_disposition_accepted": true,
+    "first_postbirth_completed_MOVE_provenance_accepted": true,
+    "captured_C_stream_noninterference_accepted": true,
+    "moving_witness_accepted": false,
+    "B_counterfactual_accepted": false,
+    "native_controller_launch_clearance": false,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "natural_moving_acceptance": false,
+    "generic_native_acceptance_1_closed": false,
+    "all10_closed": false,
+    "Task49_acceptance": false,
+    "whole_D3_acceptance": false,
+    "delivery_acceptance": false
+  },
+  "limits": [
+    "One new actual-evidence pass only. No reviewer source/test/build/cache/native/controller/scanner/checker/Git/process mutation or replay, no nested agents; only this new immutable report written.",
+    "No raw retail coordinates, pose tuples or actor identities published here. Scalar ordinals/frames/counts/hashes are safe aggregates; originals remain private and unchanged.",
+    "No default replay, source re-review, solver/API/physics/baseline/tolerance/seed/window/config change, restart, scene/candidate/cohort fallback or relaxed predicate is authorized.",
+    "All ten/GenericNative1/preparation2/wholeheight/other physical consumers/DCS/lifetimes/FPU/natural moving, finalCURRENT40/all8/four inputs/census/currentCI/review/normal merge, Task49/D3/delivery remain required at their own scopes. No D4/D5/TypeScript, formal approval, service closure or merge authority."
+  ]
+}

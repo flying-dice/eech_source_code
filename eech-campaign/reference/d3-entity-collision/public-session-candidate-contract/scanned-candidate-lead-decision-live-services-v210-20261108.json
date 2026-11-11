@@ -1,0 +1,14 @@
+{
+  "observed_utc": "2026-11-08T12:15:19.268Z",
+  "ledger_version": 210,
+  "entire_prior_chars": 592427,
+  "prior_body_literal": true,
+  "new_section_equal_ignoring_generated_local_ids": true,
+  "five_reports_preserved": true,
+  "Jira_comment": "11023",
+  "Jira_whole_expected_body_literal": true,
+  "PR_expected_body_literal_prefix": true,
+  "PR_draft": true,
+  "PR_state": "open",
+  "scope": "Lead-authorized diagnostic consumer correction only; actualfacade/accounting/scannedcandidate fix inprogress. No newretailrun/physical/baseline/tolerance/all10 acceptance."
+}

@@ -1,0 +1,62 @@
+{
+  "kind": "Root read-only Tacview disposition source/direct-check binding; no runtime change or native acceptance",
+  "utc": "2026-11-08T00:30:32.412704+00:00",
+  "code": "eb7b6de7000ef35635b903089fd9aba4a46d5553",
+  "whole_source_rows": 3995,
+  "all_raw_PRE_POST_current_equal": true,
+  "all_actual_Git_blobs_joined": true,
+  "raw_vs_Git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "Git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "Git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "Git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+    }
+  ],
+  "extras_PRE_POST_current_equal": true,
+  "extras_count": 29,
+  "all_PRE_readers_current": true,
+  "reader_count": 11,
+  "final_commands": [
+    {
+      "label": "s1-fmt-check",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s2-clippy-engine-sys",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s3-flags-guard",
+      "actual_exit": 0,
+      "selected_test_instances": 8,
+      "result_rows": 1,
+      "selected_targets": {
+        "physical_flags_guard": 8
+      }
+    }
+  ],
+  "selected_test_instances": 8,
+  "production_and_other_mapped_inputs_Git_unchanged_from_true3abf": 3994,
+  "changed_mapped_files": [
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs"
+  ],
+  "freeze_sha256": "31feadadfc923146451cdcf592b8c81d89953d253df929b2cac1d03b76f8823b",
+  "author_completion_sha256": "0d271bbdefc3c1047810553e69f4fb509264c4faa11edb2439b65a31a97dc91d",
+  "scope": "Source-reachability/retained compiled-reference disposition only, SAME changed-material review pending; identityID closed873c; one guardID residual pending SAME closure. No new native/default/Windows/fullpack replay. Generic allconsumers/READ/lifetimes/FPU/DCS/all10/Task49/D3 open. Not whole host authority."
+}

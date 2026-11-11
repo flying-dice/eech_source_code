@@ -1,0 +1,34 @@
+{
+  "CODE": "79784f4b3758eb4c6c7fbd05c78dca0417de3bc6",
+  "source_rows": 4010,
+  "raw_equals_Git": 4007,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "source_fingerprint": "e733236642585f6627b0a2673a55cc656f970957db39ac418f98f48330483764",
+  "other_raw_rows_unchanged": 4008,
+  "compiled_observer_source": "552ee8e079b75626199c4e348ed0e986bc02b7ba",
+  "final_direct_exits": [
+    0,
+    0,
+    0
+  ],
+  "final_Rust_tests": 5,
+  "changed_contract": "latest_count==1 -> last==latest first; no other Lua relation changed",
+  "post_POST_metadata": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "outer-session.json",
+    "manifest.json",
+    "code-publication.json",
+    "publication-manifest.json"
+  ],
+  "literal_log_qualification": "Raw logs retain CRLF/EOF blanks; source/metadata whitespace check excludes runs.",
+  "publication_helper": {
+    "private_path": "R:\\d3-evidence\\crend724-publication-only-20261108.py",
+    "sha256": "c5bc031946d4ecc0c71068a7e5fd861071ee1f08fa004923ff7f746d71520da4"
+  },
+  "scope": "UNREVIEWED endpoint residual only; no Windows/native/capture/removal or whole-D3 acceptance; Root completion separate."
+}

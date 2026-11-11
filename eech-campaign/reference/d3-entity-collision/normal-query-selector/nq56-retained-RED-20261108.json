@@ -1,0 +1,81 @@
+{
+  "utc": "2026-11-08T11:06:59.300463+00:00",
+  "label": "RED",
+  "validator": {
+    "path": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\normal_fire_capture.py",
+    "sha256": "f9919158c045e17d6e0f2871bfad8c2feecc25e14c813165c1d7d235dc918e62"
+  },
+  "raw": {
+    "path": "D:\\EECH-Migration-Evidence\\normal-fire-capture-56d1b-20261108-runs\\01-healthy\\capture.txt.events",
+    "bytes": 109435851,
+    "sha256": "efafe1bced72210778b30c187a59f55d86235ee1b70f589c90169be6a6822cef"
+  },
+  "complete_EOF": true,
+  "total_lines": 315244,
+  "normal_records": 314092,
+  "selected_codec_records": 313796,
+  "kinds": {
+    "legacy_wpn": 1152,
+    "normal_fire": 296,
+    "normal_detach": 296,
+    "normal_birth": 296,
+    "normal_end": 296,
+    "normal_step": 155096,
+    "normal_step_end": 155096,
+    "normal_query": 8,
+    "normal_model": 2700,
+    "normal_query_end": 8
+  },
+  "query_selector_counts": {
+    "0": 2,
+    "-1": 6
+  },
+  "fault_counts": {
+    "integer domain which": 6
+  },
+  "first_safe_fault_projections": [
+    {
+      "file_line": 313426,
+      "seq": 312274,
+      "tick": 149600,
+      "kind": "normal_query",
+      "which": "-1",
+      "error": "integer domain which"
+    },
+    {
+      "file_line": 313486,
+      "seq": 312334,
+      "tick": 149600,
+      "kind": "normal_query",
+      "which": "-1",
+      "error": "integer domain which"
+    },
+    {
+      "file_line": 313523,
+      "seq": 312371,
+      "tick": 149600,
+      "kind": "normal_query",
+      "which": "-1",
+      "error": "integer domain which"
+    },
+    {
+      "file_line": 313559,
+      "seq": 312407,
+      "tick": 149600,
+      "kind": "normal_query",
+      "which": "-1",
+      "error": "integer domain which"
+    },
+    {
+      "file_line": 313605,
+      "seq": 312453,
+      "tick": 149600,
+      "kind": "normal_query",
+      "which": "-1",
+      "error": "integer domain which"
+    }
+  ],
+  "last_tick_ms": 149600,
+  "result": "FAIL",
+  "scope": "Read-only complete retained raw selected-event codec scan, not N.feed/provider-order replay or native acceptance. normal_end/error intentionally outside Python EVENTS; observer errors separately fail. No coordinates/physical ids copied."
+}

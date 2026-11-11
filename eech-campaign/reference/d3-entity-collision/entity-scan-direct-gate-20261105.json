@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05",
+  "scope": "Direct-exit Linux gate of the entity scan cutover (ENTITY_CANDIDATE, third slice): compiled C, Rust and the model-provider protocol changed. Every step is a direct child whose exit was read on the next line; one combined log. Not a native, Windows or retail run: the campaign scan loop in en_cllsn.c is engine C exercised only natively; the host decisions are exercised through a differential against a TRANSCRIPTION of the original scan.",
+  "base_head": "b007f215c",
+  "source_commit": "2d1a16273f599e852eefaf9b10581be49cf80309",
+  "steps": [
+    {
+      "step": "fmt",
+      "child_exit": 0
+    },
+    {
+      "step": "tests-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "test-model-walk",
+      "child_exit": 0
+    },
+    {
+      "step": "test-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "test-entity-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "build-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-host-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-and-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon-and-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-entity-dialogue",
+      "child_exit": 0
+    }
+  ],
+  "failed_steps": 0,
+  "test_result_rows": 65,
+  "tests_passed": 1179,
+  "tests_failed": 0,
+  "gate_log": {
+    "bytes": 273035,
+    "sha256": "45745eb715111c73e62d7c502dab95f7e36a407b9268347bcfb724b26552d807"
+  },
+  "new_checks": {
+    "entity_candidate_host": "8 tests: a contract per branch of the original scan and a differential of the whole scan over 400 generated worlds x 6 segments (quarter-unit coordinates so boundary equalities occur): same entity and equal transcripts of UPDATED reads, terrain questions and narrow-phase poses, bit for bit",
+    "entity_dialogue": "170 expectations of the campaign half of the dialogue (the real mb_hostentity.h against a scripted host)",
+    "entity_host_guard": "4 tests: the ordinary module holds none of the original decisions, the original profile keeps them",
+    "dc_bridge_and_engine_callback": "2 + 2 tests: the 42 facts cross bit for bit, every decision comes back with its state and exact pose, malformed and refused answers stop by marker"
+  },
+  "mutation_controls": {
+    "summary": [
+      "original sha256 8e10cc7397487e30e4fd8805f632ede0723c18c0a49a4b82471b5e5c6c48ffda",
+      "squared-speed-ge apply=0 child_exit=101",
+      "updated-flag-inverted apply=0 child_exit=101",
+      "tallest-skip-ge apply=0 child_exit=101",
+      "broad-phase-strict apply=0 child_exit=101",
+      "city-height-after-xz apply=0 child_exit=101",
+      "restored sha256 8e10cc7397487e30e4fd8805f632ede0723c18c0a49a4b82471b5e5c6c48ffda equal=yes"
+    ],
+    "meaning": "five mutants of csrc/entity_candidate_step.c each made entity_candidate_host exit 101; the file was restored byte for byte (sha256 equal). Run on the kernel of the frozen source; the test file received only lint changes afterwards.",
+    "summary_sha256": "143a84e2547f882c163c8e16c317981e1f6c5e4b3cf5374b811ab272987abd60"
+  },
+  "failed_and_fixed_before_this_gate": [
+    {
+      "dir": "gate-uncorrected-stopped",
+      "what": "first gate: fmt exit 1 (the new guard test) and tests-four-crates exit 101: a bridge type error E0308 (match on a String); stopped by the lane after the compile failure, retained"
+    },
+    {
+      "dir": "gate-2-failed-hostcallbacks-count-and-test-clippy",
+      "what": "tests-four-crates exit 101: host_callbacks 81/82, the count of reference scripts that select the arithmetic profile read 61 but a Lua script added by b24ca9038 (entity-authority.lua) made it 62: a stale expectation of the previous batch, whose focused gate did not run that suite; corrected to 62 with the reason in the comment (not a tolerance change). Four clippy steps exit 101 (neg_cmp_op_on_partial_ord and is_multiple_of in the new test)"
+    },
+    {
+      "dir": "gate-3-failed-dc-test-clippy",
+      "what": "clippy exit 101 on the new dc bridge test (indexing_slicing, unwrap_used); fixed"
+    }
+  ],
+  "code_inputs": {
+    "rows": 2915,
+    "filtered_column_sha256_before_gate": "53b81df004de0723b4eae97e580095791165ac6a879a2245b7e02050c745a561",
+    "filtered_column_sha256_after_commit": "53b81df004de0723b4eae97e580095791165ac6a879a2245b7e02050c745a561",
+    "raw_column_sha256_before_gate": "e20e0e04a2838fd75d699f958f56385fd725018d4dcf19eb2d86a33d9b69809f",
+    "raw_column_sha256_after_commit": "e20e0e04a2838fd75d699f958f56385fd725018d4dcf19eb2d86a33d9b69809f",
+    "equal": true,
+    "meaning": "filtered = Git blob id as the clean filter would store each working file; raw = SHA-256 of the raw working bytes; three pre-existing CRLF files (aphavoc/laa.c, xp_types.h, sl_types.h) keep the qualification in filter-qualification-20261105.txt; no accepted file was normalised"
+  }
+}

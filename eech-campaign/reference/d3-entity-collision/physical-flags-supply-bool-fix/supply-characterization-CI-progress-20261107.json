@@ -1,0 +1,69 @@
+{
+  "source_metadata": "4eec43115c14c9fa68d8658bac8dbe081b5c21e2",
+  "source_runs": [
+    {
+      "id": 42421183493,
+      "name": "eech-loss-structural",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 437,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421183493/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421183493/logs",
+      "workflow_id": 391769320
+    },
+    {
+      "id": 42421183518,
+      "name": "eech-core-ts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 646,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421183518/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421183518/logs",
+      "workflow_id": 364678585
+    },
+    {
+      "id": 42421183558,
+      "name": "eech-campaign",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "run_number": 792,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421183558/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421183558/logs",
+      "workflow_id": 367324141
+    }
+  ],
+  "current_metadata": "120581ac4f14fe98be8b7bb8a524b682554234c2",
+  "current_runs": [
+    {
+      "id": 42421548887,
+      "name": "eech-loss-structural",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 438,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421548887/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421548887/logs",
+      "workflow_id": 391769320
+    },
+    {
+      "id": 42421548877,
+      "name": "eech-core-ts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 647,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421548877/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421548877/logs",
+      "workflow_id": 364678585
+    },
+    {
+      "id": 42421548878,
+      "name": "eech-campaign",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 793,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421548878/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42421548878/logs",
+      "workflow_id": 367324141
+    }
+  ],
+  "scope": "Exactreadback. 4eec campaign cancelled afternewmetadata push; NOTall9success and no rerun of oldhead. Current120581 campaign pending; legacy/loss successes are not fullcurrent acceptance."
+}

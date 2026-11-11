@@ -1,0 +1,22 @@
+{
+  "controller_pid": 19696,
+  "state": "terminal",
+  "started_utc": "2026-11-07T22:05:37.245471+00:00",
+  "command": "cargo test -p eech-engine --features physical-flags-supply-check --test physical_flags_supply -- --nocapture",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-physical-flags-sdc5a-linux-20261107.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test -p eech-engine --features physical-flags-supply-check --test physical_flags_supply -- --nocapture"
+  ],
+  "scope": "Working-tree check in the sole leased volume eech-linux-d3-physical-flags-9d247-20261107, image sha256:9d247b4e... named, never substituted.",
+  "pid": 24940,
+  "actual_exit": 101,
+  "completed_utc": "2026-11-07T22:06:47.288383+00:00"
+}

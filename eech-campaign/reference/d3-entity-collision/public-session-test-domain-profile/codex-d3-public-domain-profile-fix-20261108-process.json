@@ -1,0 +1,11 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T12:54:42.034111+00:00",
+  "started_time_qualification": "Root observed existing Codex service agent actively responding to followup; observation time, not OS process birth or CLI exit",
+  "source_before": "e333fa14bc73529d51fa597ac229272546fc96ea",
+  "scope": "ONE combined named-blocker fix: Python/Lua TEST-reference domain parity and cfg(test)-only actual-userdata default/observer profile distinction. No C/API/build/default/retail/native replay, no all10 closure."
+}

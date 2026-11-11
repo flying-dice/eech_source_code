@@ -1,0 +1,251 @@
+{
+  "schema": 1,
+  "review_date": "2026-11-05",
+  "reviewer_role": "sole independent Codex reviewer",
+  "review_type": "ONE changed-witness correctness, clean-code and boundary-safety source/focused-gate join; no production source rereview or new native actual acceptance",
+  "source": {
+    "witness_commit": "605e1a71a5f362e2ee779b69705727f73518fae4",
+    "metadata_commit": "e39b1162532a68501a5f709b6dc571d3d91537a7",
+    "delta_base": "ce59c7ade80fdec1d5f5bcdc76627d29e79cce11",
+    "compiled_runtime_reused": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "compiled_runtime_not_relabelled": true,
+    "literal": {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "fa903d02c3904143ae5c0c608acbcefe46e99d85",
+      "sha256_raw": "e931ac77b1e90b199181d5455043ff80ff7679292b49c18ebfa70e784d192cce",
+      "bytes": 105861
+    },
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "git_blob": "fa903d02c3904143ae5c0c608acbcefe46e99d85",
+        "sha256_raw": "e931ac77b1e90b199181d5455043ff80ff7679292b49c18ebfa70e784d192cce",
+        "bytes": 105861
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "git_blob": "4ef6f1cebd14a6c71dc013db6bab9c317676274a",
+        "sha256_raw": "d2232a442e53a5a9db70e6a330a2b87240d4fb98092463d404428ac993f1a868",
+        "bytes": 132851
+      },
+      {
+        "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+        "git_blob": "d6b82dcf39cf429d6e8cd273ffd000b35763c150",
+        "sha256_raw": "8750dd2b1b54f216192c1f9a71b494faa077d643b29779ffe3bc988918055337",
+        "bytes": 88831
+      }
+    ],
+    "metadata_delta": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "all_changed_blobs_raw_SHA_lengths_and_current_clean_bytes_independently_verified": true,
+    "compiled_C_production_Rust_wire_builds_manifests_and_campaign_driver_unchanged": true
+  },
+  "decision": {
+    "status": "WITNESS_SOURCE_CLEAR_FOR_ONE_FRESH_A",
+    "findings": [],
+    "source_review_no_blocking_findings": true,
+    "diagnostic_native_launch_clearance": true,
+    "native_launch_clearance": true,
+    "launch_scope": {
+      "first": "ONE fresh hosted moving_control A with exact new literal blob on already-built ea2b runtime, standard sealed payload/full input checks, unchanged declared seed/warmup/frame/settle",
+      "B": "Only a genuinely positive A unlocks terrain_lift B using the same declared case/configuration",
+      "Original": "Only genuinely positive A and B unlock planned bounded Original comparisons; no API-absence or target-selection success substitutes for query/physical coverage",
+      "required_actuals": [
+        "Campaign engagement and unchanged target link proved by the strict launch report",
+        "Target-specific actual NeedUpdated and test, not only a moving selection or global mobile counts",
+        "For B: actual lifted target move plus a later target question, conformance intact and the declared changed physical result comparison",
+        "Full exit/input/payload/diagnostic identity joins; any UNREACHED remains unaccepted"
+      ]
+    },
+    "moving_public_path_accepted": false,
+    "positive_physical_authority_accepted": false,
+    "whole_pose_ownership_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "source_findings_and_reasoning": [
+    {
+      "topic": "Campaign engagement observation",
+      "result": "No blocker",
+      "facts": [
+        "Before arming, the aim wrapper records the last vectors request per source with target, selected weapon, target motion data and current frame",
+        "The same request table is forwarded to base_aim unchanged. It introduces no target/link/pose/turret writes and no additional aim or movement call",
+        "Eligibility uses the canonical host movement answer from the same final warmup frame; recorded target motion in the aim request is diagnostic data, not a second physical store",
+        "AIM vectors carries source/target IDs and weapon metadata. AIM Step carries source and angle/rate demands but no weapon identity; the driver explicitly records no invented heading/weapon correlation"
+      ]
+    },
+    {
+      "topic": "Bounded selection and actual link",
+      "result": "No blocker",
+      "facts": [
+        "Moving modes iterate the existing numeric identity order and select the first qualifying last-frame campaign engagement, without distance ranking or a nearest-enemy fallback",
+        "Target must still be alive, opposing blue/red, have a descriptor, be routed and have an actual final-frame host move with finite squared motion norm above one",
+        "The engaged weapon must be integral and within the existing finite catalogue selection range, in stock, unguided, aiming-capable and non-decoy",
+        "The existing launch fixture changes the target link only when previous differs from target. Its restored value stays -1 when it performed no link change",
+        "The new strict target_link_before=1 and restored=-1 join therefore rejects launches that had to retarget; it does not merely credit a nonempty previous link",
+        "No new waiting/slew update is injected and no campaign targeting policy is overridden"
+      ]
+    },
+    {
+      "topic": "Coverage and authority limits retained",
+      "result": "No blocker; actual gate remains open",
+      "facts": [
+        "The prior strict target NeedUpdated/test and post-lift-query requirements are unchanged",
+        "No qualifying last-frame engagement is explicit UNREACHED; no fallback, seed/warmup/distance tuning or successful-zero-query result is introduced",
+        "The unchanged bounded terrain input wrapper affects only the armed target routed move; prior lift scope and restoration/profile limits are reused",
+        "A campaign vectors request and existing target link do not guarantee turret alignment, projectile intercept or a moving query. Dispersion/lead/rate of fire may still leave A UNREACHED",
+        "Coherent Host/Core movement and changed outcomes alone do not identify which representation was consumed; the earlier provider canonical-versus-discarded-words control remains separate evidence",
+        "Original provides outcome/trace comparison, not per-candidate NeedUpdated proof; no new Original run is claimed"
+      ]
+    },
+    {
+      "topic": "Natural and unrelated modes",
+      "result": "No blocker",
+      "facts": [
+        "Natural nearest-enemy selection stays in the non-moving branch and its prior predicates remain; unrelated modes retain their answer transforms and refusal rules",
+        "Scripted controls verify the unchanged natural selection and identity-equal unchanged aim-request forwarding",
+        "Only witness Lua, its Rust scripted test and provider prose differ from the publication base; no compiled cutover changes"
+      ]
+    }
+  ],
+  "focused_actuals": {
+    "eng1": {
+      "direct_steps": [
+        {
+          "name": "fmt apply",
+          "exit": 0
+        },
+        {
+          "name": "entity_authority",
+          "exit": 0,
+          "passed": 37,
+          "failed": 0
+        },
+        {
+          "name": "host_callbacks",
+          "exit": 0,
+          "passed": 82,
+          "failed": 0
+        }
+      ],
+      "container_wrapper_exit": 0
+    },
+    "eng_lint": {
+      "direct_steps": [
+        {
+          "name": "fmt check",
+          "exit": 0
+        },
+        {
+          "name": "World all-target strict Clippy",
+          "exit": 0
+        }
+      ],
+      "container_wrapper_exit": 0
+    },
+    "old_driver_red": {
+      "actual_test_exit": 101,
+      "passed": 35,
+      "failed": 2,
+      "container_wrapper_exit": 0,
+      "meaning": "The new engagement assertion sees the old nearest-moving selection and the new no-engagement predicate sees the old UNREACHED wording. The log failure is retained; wrapper zero is not green.",
+      "qualification": "Author freeze binds this to the previous Lua substitution; the retained log itself proves the observed old behavior, not a separate cryptographic copy identity."
+    },
+    "new_controls_checked": [
+      "Same request table forwarded unchanged",
+      "Natural selection remains unchanged",
+      "Campaign target/weapon and numeric identity order beat a nearer launcher",
+      "Unengaged moving enemy is never substituted for an engaged stationary target",
+      "Absent/stale-frame engagement or missing/ineligible weapon/move is UNREACHED",
+      "A launch that retargets is rejected",
+      "Target NeedUpdated/test and later lift query remain required",
+      "Existing terrain-lift/Original/refusal checks retained"
+    ],
+    "scope": "Real Lua scripted driver tests and affected World strict lint. No new engine C execution, fixture matrix, Windows build or retail capture was performed by this author batch or reviewer."
+  },
+  "source_gate_binding": {
+    "post_format_clean_commit_map_rows": 2920,
+    "all_current_raw_files_match_that_post_commit_map_independently_checked": true,
+    "changed_Lua_and_test_map_SHA_matches_committed_Git": true,
+    "source_map_time": "Post-format clean committed source only",
+    "no_before_after_map_or_immutable_test_snapshot_claim": true,
+    "qualification": "The focused author logs and post-commit source map support this bounded changed-witness review; no absent pre-gate/final immutable before/after map is invented. Actual Windows execution of the exact new literal is still the next gate.",
+    "working_Git_line_ending_qualifications": [
+      "Three unchanged test Lua fixtures remain working CRLF / committed LF",
+      "Separate three Core filtered-hash exceptions remain; these are not accepted-output normalizations"
+    ],
+    "no_baseline_output_or_retained_raw_changes": true
+  },
+  "ordinary_shipping_scope": {
+    "proposed_runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "new_witness_source_establishes_a_concrete_ordinary_pack_blocker": false,
+    "reason": "No C, production Rust, wire, build flags, ordinary campaign driver or sealed ea2b binary changes. The new literal is an external diagnostic override, not a relabeled production binary.",
+    "conditions": "Root may proceed with the already-authorized established ordinary40/all8 pack on the frozen ea2b ordinary module under its normal input/payload/complete-output gates. This source review accepts no pending pack output, CI, dependency merge or delivery.",
+    "no_rebuild_or_default_replay_required_for_this_Lua_only_delta": true
+  },
+  "prior_evidence_preserved": [
+    {
+      "path": "R:/d3-evidence/independent-entity-canonical-pose-corrected-source-ea2b-20261105.json",
+      "sha256": "0a00c32fa7d607677451385574276389c8d2b59de425ff1a733e22436a021569",
+      "scope": "Closed source clearance at ea2b only"
+    },
+    {
+      "path": "R:/d3-evidence/independent-entity-canonical-pose-first-actuals-ea2b-20261105.json",
+      "sha256": "8a64c2af7c4c1c577c8135756091678a0a9f2d197a23b088a7c910c445f4d7ce",
+      "scope": "Default/ordinary short verified, first moving attempt remains UNREACHED; no rerun or relabel"
+    }
+  ],
+  "remaining_required": [
+    "Positive moving and changed physical query authority, including the strict per-target and physical result gates",
+    "Player/pack/other writer ownership/coherence and Core-origin lifecycle adoption",
+    "All remaining roster/backing/list/live-pose/synchronization/identity/raw loader/hierarchy/devices/rotor/smoke/DCS mapping scope",
+    "Full Task49 conformance/current CI/review/dependency delivery and whole D3"
+  ],
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/moving-campaign-engagement-CODE-FROZEN-20261105.json",
+      "bytes": 8290,
+      "sha256": "621e132d11c2b4241798366329c621ab07c7ff1376153f896658be529cb2ae19"
+    },
+    {
+      "path": "R:/d3-evidence/host-pose-fix-20261105/source-identity-605e1a71a.txt",
+      "bytes": 466092,
+      "sha256": "8e4ac1b4d8b09c9746902ce0ec9ebaed24ba9b666ad85e42caac20ae212f35b0"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/eng1/tests.log",
+      "bytes": 20053,
+      "sha256": "8114ae806b0b0bb442957bf9d38b30b38d57444588fa0d56e6f19c56d01272f1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/eng1/runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/eng-red/tests.log",
+      "bytes": 13168,
+      "sha256": "163bdb667016f2e2c2226fbcbcba38c8430d83a97b002b52a0da825e264199c2"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/eng-red/runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/eng-lint/tests.log",
+      "bytes": 158,
+      "sha256": "3adb896b4027cdd1a0883da2b48cb875755f6ff4ef65a82c001baab2e3402d7f"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/eng-lint/runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    }
+  ],
+  "review_operations": "Read-only changed Git source/caller/test/log/map inspection and this new safe report write. No reviewer builds, tests, campaigns, cache/VM operations, agents, source edits or external actions.",
+  "publication_safety": "Source paths, hashes and aggregate scripted counts only; no retail vectors, coordinates, cohort signatures, private host-ID suffixes, recordings or assets."
+}

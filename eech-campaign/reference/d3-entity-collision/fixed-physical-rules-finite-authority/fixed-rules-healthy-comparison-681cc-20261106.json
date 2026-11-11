@@ -1,0 +1,36 @@
+{
+  "source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+  "actual_exit": 0,
+  "candidate": "D:\\EECH-Migration-Evidence\\fixed-rules-healthy-681ccfe54-20261106",
+  "parent_source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+  "parent": "D:\\EECH-Migration-Evidence\\city-box-healthy-4c0b89263-20261106",
+  "native_helper_outer_exits": [
+    0,
+    0,
+    0
+  ],
+  "common_authority_fields": 190,
+  "changed_common_fields": {},
+  "all_shared_fields_equal": true,
+  "no_fields_removed": true,
+  "new_fields": [
+    "fixed_rule_changed",
+    "fixed_rule_changed_cause",
+    "fixed_rule_changed_next",
+    "fixed_rule_eligible"
+  ],
+  "declared_new_field_values": {
+    "fixed_rule_changed": 0,
+    "fixed_rule_changed_cause": "",
+    "fixed_rule_changed_next": "",
+    "fixed_rule_eligible": 0
+  },
+  "eligible_fixed_joined": 1224,
+  "complete_terminal_literal_equal": true,
+  "complete_terminal_bytes": 180,
+  "complete_terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+  "request_faults": 0,
+  "reply_faults": 0,
+  "case_weapons_pending": 0,
+  "scope": "Finite healthy fixed/CITY physical rules conformance only; four explicitly declared new diagnostic fields. No lifecycle retention, natural moving, full40all8 or wholeD3 acceptance."
+}

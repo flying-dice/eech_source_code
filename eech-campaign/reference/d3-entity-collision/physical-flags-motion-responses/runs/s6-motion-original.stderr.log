@@ -1,0 +1,6 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.37s
+     Running tests/physical_flags_motion.rs (/target/t/debug/deps/physical_flags_motion-64931c03f1f4865a)
+eech: debug_fatal: host movement: host move_vehicle returned an invalid result for eech-world:1
+eech: debug_fatal: host movement: host move_vehicle returned an invalid result for eech-world:1
+eech: debug_fatal: host movement: entity 229 has no host identity

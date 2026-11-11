@@ -1,0 +1,432 @@
+diff --git a/eech-campaign/crates/eech-world/lua/sector-height-witness.lua b/eech-campaign/crates/eech-world/lua/sector-height-witness.lua
+index c1f139766..638985483 100644
+--- a/eech-campaign/crates/eech-world/lua/sector-height-witness.lua
++++ b/eech-campaign/crates/eech-world/lua/sector-height-witness.lua
+@@ -51,8 +51,10 @@
+ --                              ONE fault at the FIRST restore, the campaign's own boot stopping at the named marker: callback / entity_scan.sector_height (a restore echoed for another sector) / entity_scan.state (`height` for a
+ --                              restore) / entity_scan.sector_height (the host stored a word that is not the one stated). Positive-first: each is the single fault of the same boot as `load` (same `expect=` validation).
+ --
+--- Every report this driver consumes (original=, control=, expect=) is read as a WHOLE successful report of this driver version (schema 2): known records only, unique single records, ordered rows, no fault record, a terminal
+--- PASS of the expected mode and profile, and the same scenario, seed, frame_ms and hours; anything else refuses before any side effect. Every host request and reply it credits is checked as the exact raw grammar of the public
++-- Every report this driver consumes (original=, control=, expect=) is read as a WHOLE successful report of this driver version (schema 3): known records only, unique single records, ordered rows, no fault record, a terminal
++-- PASS of the expected mode and profile, and the same SEMANTIC setup (scenario, seed, frame_ms, hours and the EFFECTIVE map and campaign the run boots, never the fresh root's path; a save report's own campaign is the original
++-- of which a load boots the generated saved script, so only its name relation and the map are bound); a clearance reference must also hold EVERY field its parity or effect claim consumes (hand-off, trajectory and counts: whole
++-- numbers, and the four physical words elevation, min_height, pre_y, answered_y as FINITE raw words; the saved raw HEIGHT histories of M6 keep every word, a NaN too); anything else refuses before any side effect. Every host request and reply it credits is checked as the exact raw grammar of the public
+ -- C bridge: comma lists of exactly the stated 0x%08x patterns (an empty or extra comma segment is malformed), no placement name, the sector echoed, a restore's word acknowledged.
+ --
+ -- host.args: root, out (the report; created EXCLUSIVELY first), mode, scenario (lebanon_retail default, georgia_retail), map, campaign (a load's saved script), hours (M5 default 3: the accepted regression-pack window, 3
+@@ -233,6 +235,65 @@ local KNOWN = {
+ 	["sh-witness-save"] = "one", ["sh-witness-pack"] = "one", ["sh-save-seed"] = "many", ["sh-save-word"] = "many", ["sh-load-restore"] = "many", ["sh-witness-verdict"] = "one",
+ }
+ local REFUSED_RECORD = { ["sh-witness-fatal"] = true, ["sh-witness-reply-fault"] = true, ["sh-witness-request-fault"] = true }
++-- the EFFECTIVE setup this run boots (the campaign script and the map the campaign really loads, an override or the scenario's own), never a physical root path: two fresh roots are separate paths of one setup
++local effective_campaign = args.campaign or scenario.campaign
++local effective_map = args.map or scenario.map
++for _, key in ipairs ({ "map", "campaign" }) do
++	local value = args [key]
++	if value ~= nil and (type (value) ~= "string" or value == "" or string.find (value, "%s")) then refuse (key .. "= must be one non-empty token without white space (it is part of the report's setup identity)") end
++end
++-- a whole non-negative integer in canonical decimal form (a report's count, ordinal or window), or nil
++local function whole_number (text, minimum, maximum)
++	if type (text) ~= "string" or not string.match (text, "^%d+$") or #text > 9 then return nil end
++	local n = tonumber (text)
++	if tostring (n) ~= text or n < (minimum or 0) or (maximum ~= nil and n > maximum) then return nil end
++	return n
++end
++-- a finite single as a raw word: eight hex digits whose exponent field is not all ones (an infinity or a NaN is no physical value); the saved raw HEIGHT histories of M6 keep every word and are never tested by this
++local function finite_word (text)
++	local word = strict_patterns (text, 1)
++	if word == nil then return nil end
++	local n = tonumber (string.sub (word [1], 3), 16)
++	local exponent = math.floor (n * 0.00000011920928955078125) -- n * 2^-23, exact
++	if exponent >= 256 then exponent = exponent - 256 end
++	if exponent == 255 then return nil end
++	return word [1]
++end
++-- the first hand-off record of a clearance report as exact data: EVERY field a parity or effect claim consumes is present, canonical and in its domain, or the run is refused before it writes, boots or intervenes
++local function whole_handoff (h, role)
++	if h == nil then refuse ("the " .. role .. " report holds no hand-off record") end
++	local out = {}
++	-- the original-solver profile never asks the host, so its first hand-off has no window, read or sector; a hosted hand-off always has all three
++	local floor = role == "original" and 0 or 1
++	for _, item in ipairs ({ { "ordinal", 1 }, { "window", floor }, { "reads", floor }, { "phase", 0, 3 } }) do
++		if whole_number (h [item [1]], item [2], item [3]) == nil then refuse ("the " .. role .. " report's hand-off " .. item [1] .. " is absent or malformed: " .. tostring (h [item [1]])) end
++		out [item [1]] = h [item [1]]
++	end
++	if type (h.host_id) ~= "string" or h.host_id == "" or h.host_id == "nil" then refuse ("the " .. role .. " report's hand-off host_id is absent") end
++	out.host_id = h.host_id
++	if type (h.sector) ~= "string" or not (string.match (h.sector, "^%d+,%d+$") or (role == "original" and h.sector == "none")) then refuse ("the " .. role .. " report's hand-off sector is absent or malformed: " .. tostring (h.sector)) end
++	out.sector = h.sector
++	for _, key in ipairs ({ "real_word", "answered_word" }) do
++		if h [key] ~= "none" and strict_patterns (h [key], 1) == nil then refuse ("the " .. role .. " report's hand-off " .. key .. " is neither none nor one raw word: " .. tostring (h [key])) end
++		out [key] = h [key] == "none" and "none" or string.lower (h [key])
++	end
++	for _, key in ipairs ({ "elevation", "min_height", "pre_y", "answered_y" }) do
++		local word = finite_word (h [key])
++		if word == nil then refuse ("the " .. role .. " report's hand-off " .. key .. " is absent or not a finite raw word (a missing physical answer is never a changed one): " .. tostring (h [key])) end
++		out [key] = word
++	end
++	return out
++end
++-- the counts and trajectory records of a clearance report: every field present and a whole number
++local function whole_fields (record, names, role, what)
++	if record == nil then refuse ("the " .. role .. " report has no " .. what .. " record") end
++	local out = {}
++	for _, name in ipairs (names) do
++		if whole_number (record [name], 0) == nil then refuse ("the " .. role .. " report's " .. what .. " " .. name .. " is absent or malformed: " .. tostring (record [name])) end
++		out [name] = record [name]
++	end
++	return out
++end
+ -- the whole successful report of this driver at `path` for `role` (original | control | save), or a refusal naming what is missing or inconsistent with THIS run's setup
+ local function read_reference (path, role, expected_mode)
+ 	local file = io.open (path, "rb")
+@@ -264,29 +325,43 @@ local function read_reference (path, role, expected_mode)
+ 	file:close ()
+ 	if order [1] ~= "sh-witness-identity" or last ~= "sh-witness-verdict" then refuse ("the " .. role .. " report does not begin with its identity and end with its verdict") end
+ 	local id, verdict_record = rec ["sh-witness-identity"], rec ["sh-witness-verdict"]
+-	if id.schema ~= "2" or id.mode ~= expected_mode or verdict_record.mode ~= expected_mode or verdict_record.status ~= "PASS" then
+-		refuse ("the " .. role .. " report is not a successful schema 2 " .. expected_mode .. " report (mode " .. tostring (id.mode) .. ", verdict " .. tostring (verdict_record.status) .. ")")
++	if id.schema ~= "3" or id.mode ~= expected_mode or verdict_record.mode ~= expected_mode or verdict_record.status ~= "PASS" then
++		refuse ("the " .. role .. " report is not a successful schema 3 " .. expected_mode .. " report (mode " .. tostring (id.mode) .. ", verdict " .. tostring (verdict_record.status) .. ")")
+ 	end
+ 	if id.profile ~= MODES [expected_mode].profile then refuse ("the " .. role .. " report names profile " .. tostring (id.profile) .. ", not " .. MODES [expected_mode].profile) end
+-	for key, mine in pairs ({ scenario = scenario_name, seed = tostring (seed), frame_ms = tostring (frame_ms), hours = tostring (hours) }) do
++	-- the semantic setup: scenario, seed, frame, hours and the EFFECTIVE map; the effective campaign too, except for a save report, whose own campaign is the ORIGINAL script of which the load boots the generated saved script
++	local setup = { scenario = scenario_name, seed = tostring (seed), frame_ms = tostring (frame_ms), hours = tostring (hours), map = effective_map }
++	if role ~= "save" then setup.campaign = effective_campaign end
++	for key, mine in pairs (setup) do
+ 		if id [key] ~= mine then refuse ("the " .. role .. " report is of another setup: " .. key .. "=" .. tostring (id [key]) .. ", this run " .. mine) end
+ 	end
++	if role == "save" and (type (id.campaign) ~= "string" or id.campaign == "" or id.campaign == "none") then refuse ("the save report names no effective campaign") end
+ 	if rec ["sh-witness-counts"] == nil then refuse ("the " .. role .. " report has no counts record") end
+ 	return rec
+ end
+ 
+ local reference = {}
++local COUNT_FIELDS = { "windows", "windows_without_handoff", "scan_reads", "height_reads", "altered_windows", "altered_reads", "handoffs", "unbound_lookaheads", "frames" }
++local TRAJECTORY_FIELDS = { "window", "frame", "windows_without_handoff", "scan_reads", "handoffs" }
++local PAIR_FIELDS = "host_id,elevation,min_height,pre_y,answered_y,phase"
+ if mode == "clearance_control" and args.original ~= nil then
+ 	local rec = read_reference (args.original, "original", "clearance_original")
+-	local h = rec ["sh-witness-handoff"]
+-	if h == nil or h.ordinal ~= "1" or rec ["sh-witness-counts"].height_reads ~= "0" then refuse ("the original report holds no first hand-off with the host never asked") end
++	local counts = whole_fields (rec ["sh-witness-counts"], COUNT_FIELDS, "original", "counts")
++	local h = whole_handoff (rec ["sh-witness-handoff"], "original")
++	if h.ordinal ~= "1" or counts.height_reads ~= "0" or counts.altered_windows ~= "0" or counts.altered_reads ~= "0" then refuse ("the original report holds no first hand-off with the host never asked and nothing altered") end
+ 	reference.original = h
+ elseif plan.family == "clearance" and plan.intervene then
++	-- the whole paired control BEFORE any output, boot or intervention: its counts, hand-off (every physical word finite and raw), trajectory and pairing record, all present and well formed
+ 	local rec = read_reference (args.control, "control", "clearance_control")
+-	local h, t = rec ["sh-witness-handoff"], rec ["sh-witness-trajectory"]
+-	if h == nil or t == nil or rec ["sh-witness-original"] == nil or rec ["sh-witness-original"].equal ~= "1" then
+-		refuse ("the control report is not a PAIRED control with its hand-off and trajectory (an unpaired control makes no parity and unlocks no intervention)")
++	local counts = whole_fields (rec ["sh-witness-counts"], COUNT_FIELDS, "control", "counts")
++	local paired = rec ["sh-witness-original"]
++	if paired == nil or paired.equal ~= "1" or paired.fields ~= PAIR_FIELDS then
++		refuse ("the control report is not a PAIRED control with its pairing record (an unpaired control makes no parity and unlocks no intervention)")
+ 	end
++	local h = whole_handoff (rec ["sh-witness-handoff"], "control")
++	local t = whole_fields (rec ["sh-witness-trajectory"], TRAJECTORY_FIELDS, "control", "trajectory")
++	if counts.altered_windows ~= "0" or counts.altered_reads ~= "0" then refuse ("the control report altered a window: it is not an unaltered control") end
++	if tonumber (counts.height_reads) < 1 then refuse ("the control report's host never answered a sector height: it is not the hosted control") end
+ 	if tonumber (t.window) ~= target_window or tonumber (h.window) ~= target_window then refuse ("window=" .. tostring (target_window) .. " is not the control's window " .. tostring (t.window)) end
+ 	reference.control, reference.trajectory = h, t
+ elseif loading then
+@@ -802,7 +877,10 @@ local function clearance_verdict ()
+ 			end
+ 			return verdict ("FAILURE", string.format ("%s: the hand-off %s is neither the round-toward-zero value %s of 100000.0 - elevation nor the control's larger term", mode, tostring (bits_or (h.min_height)), tostring (bits_or (expected))))
+ 		end
+-		state.effect = { handoff = bits_or (h.min_height) ~= c.min_height and "changed" or "unchanged", physical = bits_or (h.answered_y) ~= c.answered_y and "changed" or "unchanged" }
++		-- a physical or hand-off effect is claimed only between two REAL finite words: an absent word of either side is no effect and no pass (the reference was validated whole before the run; this keeps the claim from ever resting on nil)
++		local mine_min, mine_y = bits_or (h.min_height), bits_or (h.answered_y)
++		if mine_min == nil or mine_y == nil or c.min_height == nil or c.answered_y == nil then return verdict ("FAILURE", mode .. ": a hand-off or physical answer word to compare is absent: no effect is claimed") end
++		state.effect = { handoff = mine_min ~= c.min_height and "changed" or "unchanged", physical = mine_y ~= c.answered_y and "changed" or "unchanged" }
+ 		return verdict ("PASS", string.format ("%s: window %d, the hand-off %s is the round-toward-zero value of 100000.0 - elevation %s, the control's caller", mode, h.window, tostring (bits_or (h.min_height)), tostring (bits_or (h.elevation))))
+ 	end
+ 	-- the control: the hand-off is bounded below by the original expressions over the word the host answered, under the accepted round-toward-zero profile
+@@ -954,7 +1032,7 @@ local function session_verdict ()
+ end
+ 
+ local function report ()
+-	emit (string.format ("sh-witness-identity schema=2 mode=%s profile=%s scenario=%s seed=%s frame_ms=%s hours=%s window=%s campaign=%s name=%s", mode, plan.profile, scenario_name, tostring (seed), tostring (frame_ms), tostring (hours), target_window and tostring (target_window) or "none", args.campaign or "none", save_name or "none"))
++	emit (string.format ("sh-witness-identity schema=3 mode=%s profile=%s scenario=%s seed=%s frame_ms=%s hours=%s window=%s campaign=%s map=%s name=%s", mode, plan.profile, scenario_name, tostring (seed), tostring (frame_ms), tostring (hours), target_window and tostring (target_window) or "none", effective_campaign, effective_map, save_name or "none"))
+ 	if plan.family == "clearance" then
+ 		emit (string.format ("sh-witness-counts windows=%d windows_without_handoff=%d scan_reads=%d height_reads=%d altered_windows=%d altered_reads=%d handoffs=%d unbound_lookaheads=%d frames=%s", state.window, state.windows_without_handoff, state.scan_reads, state.height_reads, state.altered_windows, state.altered_reads, state.handoff_count, state.unbound_lookaheads, tostring (state.frames_run)))
+ 		local h = state.handoff
+diff --git a/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs b/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs
+index f8cb84c05..2bfb43831 100644
+--- a/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs
++++ b/eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs
+@@ -476,7 +476,8 @@ fn damaged(report: &str, how: &str) -> String {
+             let at = position(&lines, "sh-witness-counts");
+             lines.remove(at);
+         }
+-        "schema1" => lines[0] = lines[0].replace("schema=2", "schema=1"),
++        "schema1" => lines[0] = lines[0].replace("schema=3", "schema=1"),
++        "schema2" => lines[0] = lines[0].replace("schema=3", "schema=2"),
+         "no_pack" => {
+             let at = position(&lines, "sh-witness-pack ");
+             lines.remove(at);
+@@ -503,11 +504,52 @@ fn damaged(report: &str, how: &str) -> String {
+             let at = position(&lines, "sh-witness-original");
+             lines.remove(at);
+         }
+-        other => panic!("unknown damage {other}"),
++        other => {
++            // `<verb>_<record>_<key>[=<value>]`: drop a key, set a key, or add a second copy of a key, in one record (handoff, identity, counts, trajectory)
++            let (verb, rest) = other.split_once('_').unwrap_or_else(|| panic!("unknown damage {other}"));
++            let (record, key) = rest.split_once('_').unwrap_or_else(|| panic!("unknown damage {other}"));
++            let prefix = match record {
++                "handoff" => "sh-witness-handoff ",
++                "identity" => "sh-witness-identity ",
++                "counts" => "sh-witness-counts ",
++                "trajectory" => "sh-witness-trajectory ",
++                _ => panic!("unknown damage {other}"),
++            };
++            match verb {
++                "drop" => edit_token(&mut lines, prefix, key, None),
++                "set" => {
++                    let (key, value) = key.split_once('=').unwrap_or_else(|| panic!("unknown damage {other}"));
++                    edit_token(&mut lines, prefix, key, Some(value))
++                }
++                "dup" => {
++                    let at = position(&lines, prefix);
++                    lines[at].push_str(&format!(" {key}"));
++                }
++                _ => panic!("unknown damage {other}"),
++            }
++        }
+     }
+     lines.join("\n") + "\n"
+ }
+ 
++/// drop (None) or replace (Some) the one `key=value` token of the first line starting with `prefix`; the key must exist, so a damage never silently does nothing
++fn edit_token(lines: &mut [String], prefix: &str, key: &str, value: Option<&str>) {
++    let at = lines.iter().position(|l| l.starts_with(prefix)).unwrap_or_else(|| panic!("no {prefix} line"));
++    let mut seen = false;
++    let tokens: Vec<String> = lines[at]
++        .split(' ')
++        .filter_map(|token| match token.split_once('=') {
++            Some((k, _)) if k == key => {
++                seen = true;
++                value.map(|v| format!("{key}={v}"))
++            }
++            _ => Some(token.to_string()),
++        })
++        .collect();
++    assert!(seen, "no {key} token in the {prefix} record: {}", lines[at]);
++    lines[at] = tokens.join(" ");
++}
++
+ fn write_temp(text: &str) -> std::path::PathBuf {
+     let path = temp_path("damaged");
+     std::fs::write(&path, text).unwrap();
+@@ -621,10 +663,15 @@ fn the_original_profile_characterisation_comes_first_and_the_paired_control_must
+     let r = report(&o);
+     assert!(
+         line_of(&r, "sh-witness-identity").starts_with(
+-            "sh-witness-identity schema=2 mode=clearance_original profile=original-solver scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0002 window=none"
++            "sh-witness-identity schema=3 mode=clearance_original profile=original-solver scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0002 window=none"
+         ),
+         "{r}"
+     );
++    // the EFFECTIVE setup, never a root path: the scenario's own campaign script and map
++    assert!(
++        line_of(&r, "sh-witness-identity").contains(r" campaign=LEBANON.CHC map=..\common\maps\map5 name=none"),
++        "{r}"
++    );
+     assert!(
+         line_of(&r, "sh-witness-counts")
+             .contains("windows=0 windows_without_handoff=0 scan_reads=0 height_reads=0 altered_windows=0 altered_reads=0 handoffs=1"),
+@@ -698,6 +745,7 @@ fn a_reference_report_that_is_not_whole_successful_and_of_the_same_setup_is_refu
+         "wrong_mode",
+         "no_counts",
+         "schema1",
++        "schema2",
+         "wrong_profile",
+     ] {
+         let file = write_temp(&damaged(&original, how));
+@@ -720,6 +768,7 @@ fn a_reference_report_that_is_not_whole_successful_and_of_the_same_setup_is_refu
+         "no_trajectory",
+         "unpaired",
+         "profile_original",
++        "schema2",
+     ] {
+         let file = write_temp(&damaged(&control, how));
+         let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, control = '{}'", path_text(&file)), "");
+@@ -775,6 +824,136 @@ fn the_clearance_control_credits_the_first_window_followed_by_a_complete_same_ca
+     assert_eq!(o.log.iter().filter(|l| l.as_str() == "move fixed_wing_move").count(), 1, "{:?}", o.log);
+ }
+ 
++// the consumed reference's physical words and effective setup (ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1, residual of the review 507f49b7): positive first, then ONE removal or ONE damage at a time
++#[test]
++fn a_control_reference_must_hold_every_physical_word_finite_and_whole_before_anything_is_compared_or_credited() {
++    let p = paired("");
++    let original = std::fs::read_to_string(&p.original).unwrap();
++    let control = std::fs::read_to_string(&p.control).unwrap();
++    // positive first: the coherent pair and a valid changed-word run, whose effect is a stated comparison of two REAL words
++    let o = p.intervene("clearance_changed_word", "");
++    o.result.as_ref().expect("the valid changed-word run passes");
++    let effect = line_of(&report(&o), "sh-witness-effect").to_string();
++    assert!(effect.contains("handoff=changed physical=") && !effect.contains("nil"), "{effect}");
++    // ONE removal or ONE damage of a field the intervention consumes: refused BEFORE the output, the boot or the intervention, never a changed physical output
++    let needle_word = |key: &str| format!("hand-off {key} is absent or not a finite raw word");
++    let cases: Vec<(String, String)> = vec![
++        ("drop_handoff_answered_y".into(), needle_word("answered_y")),
++        ("drop_handoff_min_height".into(), needle_word("min_height")),
++        ("drop_handoff_elevation".into(), needle_word("elevation")),
++        ("drop_handoff_pre_y".into(), needle_word("pre_y")),
++        ("set_handoff_answered_y=nil".into(), needle_word("answered_y")),
++        ("set_handoff_min_height=nil".into(), needle_word("min_height")),
++        ("set_handoff_answered_y=0x1234".into(), needle_word("answered_y")),
++        ("set_handoff_answered_y=0x3F80000G".into(), needle_word("answered_y")),
++        ("set_handoff_answered_y=0x7f800000".into(), needle_word("answered_y")),
++        ("set_handoff_answered_y=0xff800000".into(), needle_word("answered_y")),
++        ("set_handoff_answered_y=0x7fc00000".into(), needle_word("answered_y")),
++        ("set_handoff_min_height=0x7f800001".into(), needle_word("min_height")),
++        ("set_handoff_min_height=0xffc00000".into(), needle_word("min_height")),
++        ("drop_handoff_host_id".into(), "hand-off host_id is absent".into()),
++        ("set_handoff_host_id=nil".into(), "hand-off host_id is absent".into()),
++        ("drop_handoff_phase".into(), "hand-off phase is absent or malformed".into()),
++        ("set_handoff_phase=7".into(), "hand-off phase is absent or malformed".into()),
++        ("set_handoff_ordinal=0".into(), "hand-off ordinal is absent or malformed".into()),
++        ("drop_handoff_sector".into(), "hand-off sector is absent or malformed".into()),
++        ("set_handoff_real_word=0x12".into(), "hand-off real_word is neither none nor one raw word".into()),
++        ("dup_handoff_answered_y=0x3f800000".into(), "the key answered_y is given twice".into()),
++        ("drop_counts_height_reads".into(), "counts height_reads is absent or malformed".into()),
++        ("set_counts_altered_reads=1".into(), "altered a window".into()),
++        ("set_counts_height_reads=0".into(), "never answered a sector height".into()),
++        ("drop_trajectory_frame".into(), "trajectory frame is absent or malformed".into()),
++        ("set_trajectory_scan_reads=x".into(), "trajectory scan_reads is absent or malformed".into()),
++    ];
++    for (how, needle) in &cases {
++        let file = write_temp(&damaged(&control, how));
++        let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, control = '{}'", path_text(&file)), "");
++        assert_refused_before_any_effect(&o, needle);
++        remove(&[&file]);
++    }
++    // the same for the first-hand-off reference of the original profile (consumed by the control's parity claim)
++    for (how, needle) in [
++        ("drop_handoff_answered_y", needle_word("answered_y")),
++        ("set_handoff_min_height=nil", needle_word("min_height")),
++        ("set_handoff_elevation=0x7f800000", needle_word("elevation")),
++        ("drop_handoff_pre_y", needle_word("pre_y")),
++        ("set_counts_altered_windows=1", "no first hand-off with the host never asked".to_string()),
++    ] {
++        let file = write_temp(&damaged(&original, how));
++        let o = clearance(&format!("mode = 'clearance_control', original = '{}'", path_text(&file)), "");
++        assert_refused_before_any_effect(&o, &needle);
++        remove(&[&file]);
++    }
++    p.clean();
++}
++
++#[test]
++fn a_reference_must_name_the_same_effective_campaign_and_map_and_never_a_root_path() {
++    let p = paired("");
++    let original = std::fs::read_to_string(&p.original).unwrap();
++    let control = std::fs::read_to_string(&p.control).unwrap();
++    // the references carry the effective setup; two fresh roots are separate paths of ONE setup (the pair above was made from two roots and passes)
++    for report in [&original, &control] {
++        assert!(line_of(report, "sh-witness-identity").contains(r" campaign=LEBANON.CHC map=..\common\maps\map5 "), "{report}");
++    }
++    // change ONLY the effective campaign or ONLY the effective map of the supplied control: refused before any effect
++    for (how, needle) in [
++        ("set_identity_campaign=GEORGIA.CHC", "of another setup: campaign=GEORGIA.CHC"),
++        (r"set_identity_map=..\common\maps\map3", "of another setup: map="),
++        ("drop_identity_campaign", "of another setup: campaign=nil"),
++        ("drop_identity_map", "of another setup: map=nil"),
++    ] {
++        let file = write_temp(&damaged(&control, how));
++        let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, control = '{}'", path_text(&file)), "");
++        assert_refused_before_any_effect(&o, needle);
++        remove(&[&file]);
++        let file = write_temp(&damaged(&original, how));
++        let o = clearance(&format!("mode = 'clearance_control', original = '{}'", path_text(&file)), "");
++        assert_refused_before_any_effect(&o, needle);
++        remove(&[&file]);
++    }
++    // a run whose OWN effective setup differs from the control's is refused too, and an explicit override equal to the default is the same setup
++    let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, campaign = 'GEORGIA.CHC', control = '{}'", path_text(&p.control)), "");
++    assert_refused_before_any_effect(&o, "of another setup: campaign=GEORGIA.CHC");
++    let o = clearance(&format!(r"mode = 'clearance_changed_word', window = 2, map = '..\\common\\maps\\map3', control = '{}'", path_text(&p.control)), "");
++    assert_refused_before_any_effect(&o, "of another setup: map=");
++    let o = clearance(
++        &format!(r"mode = 'clearance_changed_word', window = 2, campaign = 'LEBANON.CHC', map = '..\\common\\maps\\map5', control = '{}'", path_text(&p.control)),
++        "",
++    );
++    o.result.as_ref().expect("an explicit override equal to the default is the same effective setup");
++    let line = line_of(&report(&o), "sh-witness-identity").to_string();
++    assert!(line.contains(r" campaign=LEBANON.CHC map=..\common\maps\map5 "), "{line}");
++    // an override that is not one token cannot be a setup identity
++    let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, map = 'a b', control = '{}'", path_text(&p.control)), "");
++    assert_refused_before_any_effect(&o, "map= must be one non-empty token");
++    p.clean();
++}
++
++#[test]
++fn a_save_report_binds_the_map_and_names_a_campaign_but_the_generated_script_of_the_load_is_a_different_campaign() {
++    let (path, saved) = healthy_save();
++    // the positive relationship stays valid: the save booted the original campaign, the load boots the generated saved script `alpha.Sch`, and the saved raw NaN and infinite histories are untouched by the finiteness rule of the clearance fields
++    assert!(line_of(&saved, "sh-witness-identity").contains(r" campaign=LEBANON.CHC map=..\common\maps\map5 "), "{saved}");
++    assert!(saved.contains("word=0x7fc00000") && saved.contains("word=0xff800000"), "{saved}");
++    let o = load_run(&path, &saved, &format!("mode = 'load', name = 'beta', seeds = '{SEEDS}'"), "");
++    let loaded = o.result.as_ref().map(|_| report(&o)).expect("the load of the generated script passes");
++    assert!(line_of(&loaded, "sh-witness-identity").contains(" campaign=alpha.Sch map="), "{loaded}");
++    // change ONLY the save report's effective map, or remove its campaign or map: refused before any load side effect
++    for (how, needle) in [
++        (r"set_identity_map=..\common\maps\map3", "of another setup: map="),
++        ("drop_identity_map", "of another setup: map=nil"),
++        ("drop_identity_campaign", "names no effective campaign"),
++        ("set_identity_campaign=none", "names no effective campaign"),
++    ] {
++        let file = write_temp(&damaged(&saved, how));
++        let o = load_run(&file, &saved, "mode = 'load', name = 'beta'", "");
++        assert_refused_before_any_effect(&o, needle);
++        remove(&[&file]);
++    }
++    remove(&[&path]);
++}
++
+ #[test]
+ fn a_clearance_control_with_no_hand_off_is_unreached_never_a_pass_and_scan_reads_are_never_windows() {
+     let o = clearance("mode = 'clearance_control'", "frames = { 'scan', 'step', 'step' }");
+@@ -1318,6 +1497,7 @@ fn a_save_report_that_is_not_whole_successful_and_matched_is_refused_before_any_
+         "gap",
+         "bad_word",
+         "wrong_profile",
++        "schema2",
+     ] {
+         let file = write_temp(&damaged(&saved, how));
+         let o = load_run(&file, &saved, "mode = 'load', name = 'beta'", "");
+diff --git a/eech-campaign/docs/d3-sector-height-production-contract.md b/eech-campaign/docs/d3-sector-height-production-contract.md
+index b2e5c9c58..b76525168 100644
+--- a/eech-campaign/docs/d3-sector-height-production-contract.md
++++ b/eech-campaign/docs/d3-sector-height-production-contract.md
+@@ -233,10 +233,23 @@ Test-only source and its scripted/real-C checks; nothing here was run natively,
+   the longest fitting pair (255 bytes) is accepted, the first byte more is refused for the data path and for the longer-suffix script path, both outputs stay empty on a refusal and no file is touched.
+ - **Consumer join.** (1) The hand-off is credited only for the SAME caller: a `fixed_wing_lookahead` binds a host id and the next `fixed_wing_move` must carry that id; any other callback in between drops the binding; complete hand-off evidence (id, finite elevation and `min_height`, finite pre pose, phase 0..3 and a real answer with a
+   finite position) is required before eligibility, intervention or consumption, else a request/reply fault. (2) An intervening mode requires `control=`, a whole successful `clearance_control` report, and proceeds only if its own window trajectory (window ordinal, frame, windows without hand-off, scan reads, hand-offs; `sh-witness-trajectory`)
+-  equals the control's BEFORE intervening: the reads carry no caller identity, so the trajectory binds the window, and a mismatch is a FAILURE with no intervention (no created task leader was needed). (3) `original=`, `control=` and `expect=` are validated as WHOLE reports (schema 2: known records only, unique ordered single records, no fault record, terminal PASS of the expected mode and
+-  profile, the same scenario, seed, frame and hours; `expect=` rows contiguous with matching counts, save/pack records, the saved name equal to the campaign's base name and the new name different, equal seeds). (4) Raw lists (`seeds=`, scan names, phases, sectors, echoes, restore ACKs) use one strict comma-list grammar: an empty, extra or trailing segment is malformed. (5) A missing physical answer never means "changed";
++  equals the control's BEFORE intervening: the reads carry no caller identity, so the trajectory binds the window, and a mismatch is a FAILURE with no intervention (no created task leader was needed). (3) `original=`, `control=` and `expect=` are validated as WHOLE reports (schema 3, see section 12.5: known records only, unique ordered single records, no fault record, terminal PASS of the expected mode and
++  profile, the same semantic setup; `expect=` rows contiguous with matching counts, save/pack records, the saved name equal to the campaign's base name and the new name different, equal seeds). (4) Raw lists (`seeds=`, scan names, phases, sectors, echoes, restore ACKs) use one strict comma-list grammar: an empty, extra or trailing segment is malformed. (5) A missing physical answer never means "changed";
+   a request fault, a reply fault or an abort outranks a clean UNREACHED, and nothing is inspected or closed after a fatal. Positive-first and single-fault controls cover each.
+ 
++### 12.5 The residual of the review 507f49b7 (`ENV-SECTOR-HEIGHT-WITNESS-CONSUMER-JOIN-1`): the consumed reference's physical words and effective setup
++
++The SAME review closed the three other corrections at source and left two facts of the consumer join open; this section states their correction. Test-only: `lua/sector-height-witness.lua`, its scripted tests, this contract. No C, Rust product, build, Cargo or compiled input changed.
++
++- **Every field a claim consumes is validated before anything happens.** A `clearance_original` reference (`original=`) and a paired `clearance_control` reference (`control=`) are read whole and then checked field by field before the output file, the boot or the intervention: the counts record (`windows`, `windows_without_handoff`, `scan_reads`,
++  `height_reads`, `altered_windows`, `altered_reads`, `handoffs`, `unbound_lookaheads`, `frames`: canonical whole numbers); the hand-off record (`ordinal`, `window`, `reads`, `phase` 0..3, `host_id`, `sector`, `real_word`/`answered_word` as `none` or one raw word, and the four physical words `elevation`, `min_height`, `pre_y`, `answered_y` as FINITE raw words:
++  eight hex digits, exponent field not all ones); for a control also the trajectory record and the pairing record with its field list, no altered window or read, and a host that answered. An absent, `nil`, short, non-hex, infinite, NaN, duplicate or out-of-domain field is a refusal naming the field. The original profile's first hand-off legitimately has window 0, no reads and no sector and the host never asked.
++  A physical or hand-off effect (`sh-witness-effect`) is claimed only between two real finite words; a missing word never means "changed".
++- **The effective setup is bound.** Schema 3 reports carry the EFFECTIVE `campaign` (the override or the scenario's script) and `map` the run really boots, next to scenario, seed, frame and hours; `campaign=` and `map=` overrides must be single tokens. Original, control and intervention must have the same semantic setup (the fresh root's path is not part of it: two roots are
++  separate paths of one setup); matching defaults and explicitly matching overrides are the same setup, a different campaign or map is refused before any effect. A save report is the exception for the campaign only: it names the ORIGINAL campaign, while the load boots the generated saved script `<name>.S..`, so the load binds the saved name relation, the map and the seeds and requires the save report to name a campaign.
++  The finiteness rule is ONLY for these physical fields: the saved raw HEIGHT histories of M6 (a quiet NaN, an infinity, a negative word) are untouched.
++- **Controls** (`tests/sector_height_witness_driver.rs`): positive first (the coherent pair, the valid changed-word run with a stated real effect, the explicit-default override pair, the save-to-generated-script load with NaN and infinite seeds), then ONE removal or ONE damage at a time: each physical word dropped, `nil`, short, non-hex, infinite, NaN; host id, phase, ordinal, sector, counts, trajectory; a changed effective campaign or map of the control, the original, the run or the save report. Each is refused with no output and no log.
++
+ ### 12.3 What this does NOT establish
+ 
+ Nothing in section 12 has been run natively. The scripted tests prove the driver credits only what it intervened on and refuses every single-fault variant of its controls; they never reach `fw_move.c`, `store_session`, `pack_session` or `unpack_session`. The C refusals test proves the method's

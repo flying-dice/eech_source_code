@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T03:58:09.392771+00:00",
+  "review_kind": "Independent combined changed-material source/evidence disposition review; documentation only",
+  "source": {
+    "HEAD": "1516f5a9279dbfbb3a7d8ac309a8bb722c58e40e",
+    "parent": "b4ddd9ca2dd05c79b847ef6a8e7a32edb36c949a",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_full_status": "clean; Root verifies exact upstream",
+    "changed_paths": 8,
+    "runtime_code_API_semantic_test_build_changes": false
+  },
+  "document": {
+    "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-flag-boundary-disposition.md",
+    "bytes": 6573,
+    "sha256": "7c5d70ffc79a2f296ff9c875131c56baa6304926f2feeb131e255ebcfaf1eedc"
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/fpuB4-disposition-FROZEN-20261108.json",
+      "bytes": 2464,
+      "sha256": "d49f8381945d1b8e560b597cd584454a20ad5f5a7b3831604c9476b6d30a5555"
+    },
+    {
+      "path": "R:/d3-evidence/flag-boundary-disposition-1516-Root-binding-20261108.json",
+      "bytes": 643,
+      "sha256": "40592c8927bfad0c899c6165d18e32f1d6ab709e9e5cd3c40fbf5c738d087605"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-flag-supported-boundary-20261108-completion.json",
+      "bytes": 1977,
+      "sha256": "f73e3ca6119bc2bff73cf21899d7122ae4a9f75db4dec2501b92b16f15817ee7"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/flag-boundary-disposition/evidence-identities.json",
+      "bytes": 6365,
+      "sha256": "e61750908d3ea20bed0c558aad72e0d4e7de130a818becb979481faa85409f82"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/flag-boundary-disposition/manifest.json",
+      "bytes": 826,
+      "sha256": "0be00c35a1261bfb8b18a0a9e8584875246a807545d7b55cef0e0db56954c8d5"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-model-characterization/independent-reference-host-profile-closeout-e48808f53-20261030.json",
+      "bytes": 16060,
+      "sha256": "77edfac9d67c5ed20adf773daf16ac9a431f85d8bb9f7c59e5556c39ac7948de"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/physical-flags-lifetime-reviewed/independent-flag-lifetime-0c7b-source-20261108.json",
+      "bytes": 10473,
+      "sha256": "7d458d4a2430b17cd4d09ffdcaa46f8ad21af6c56526264cca2324fe1f8234a7"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/native-flag-read-accepted/independent-native-flag-read-nr602-actual-20261108-v2.json",
+      "bytes": 16818,
+      "sha256": "400394a42c1883c3c50e0a3e3cef552c5ac184e06e5b1f0daa1978f67efea3dd"
+    }
+  ],
+  "findings": [],
+  "mechanical_join": {
+    "document_lines": 93,
+    "document_sha256": "7c5d70ffc79a2f296ff9c875131c56baa6304926f2feeb131e255ebcfaf1eedc",
+    "eight_changed_documentation_metadata_paths": "Raw-current bytes equal immutable1516 Git bytes; no product/test/build path changes.",
+    "current_relevant_source_files": 14,
+    "current_source_identity": "All14 relevant files equal their startingb4ddd immutable Git bytes. This establishes current-source disposition identity, not a fresh compile or runtime measurement.",
+    "accepted_proof_hashes_bound": 6,
+    "literal_useful_receipts": 2,
+    "manifest_entries": 4,
+    "packet_files": 5,
+    "author_completion": "Actual service FINAL and completed status, typed receipt; no invented CLI exit/PID.",
+    "checks_executed_for_this_disposition": 0
+  },
+  "assessment": {
+    "current_flag_route": {
+      "status": "ACCEPTED_SOURCE_DISPOSITION",
+      "basis": "Hosted mb_int setters/getters and up_update resets reach campaign_model_flag_set/read/reset and optional GROUP, entity_scan phases19..22, the common C model exchange and owned Rust MODEL callback, then the existing Lua model_provider/MODEL_BRIDGE/call_model into the reference roster FlagStore. Raw masks, destructive read and reset extent remain the accepted word protocol, not a new boolean pose-freshness store.",
+      "limits": "Existing raw199/guide56/collision controls retain their TEST-bridge scopes; actual400394 supports its one selected zero-word UPDATED READ/carry/refusals only."
+    },
+    "FPU": {
+      "status": "ACCEPTED_SUPPORTED_OUTER_MECHANISM_SOURCE_INFERENCE",
+      "historical_measurement": "Accepted77ed measured16 public entries at runtime80fd, all four initial rounding controls with nonzero status and exact x87 control/status plus complete MXCSR words, including normal and fresh-process provider-fatal paths. That historical proof is reused at its original scope, not rerun or relabelled as current flag measurement.",
+      "current_source_join": "Current ENTER saves caller fenv and explicit full MXCSR before toward-zero operation; both LEAVE and the setjmp fatal return restore fenv followed by MXCSR. Current flag exchanges execute inside those same entries through the existing model callback, with no new outer exit. FlagStore manipulates integers/keys, and the bridge carries exact word patterns.",
+      "accepted_conclusion": "The documented supported x86 outer-word restoration reuse is a source-supported inference. A repeat of the already accepted wrapper experiment is not required merely to restate that unchanged route.",
+      "not_claimed": [
+        "Fresh flag-specific full-FPU measurement",
+        "Arbitrary provider inner-state preservation",
+        "Unmasked exception/trap safety",
+        "Other architectures or all platform/toolchain combinations",
+        "x87 register-stack contents",
+        "All consumer/global/RNG properties"
+      ]
+    },
+    "ownership_lifetime": {
+      "status": "ACCEPTED_ONE_PERSISTENT_BINDING_SOURCE_CONTRACT",
+      "basis": "Engine boot sets BOOTED before installing the owned TLS MODEL; its PhantomData prevents safe Send/Sync transfer. with_host entry context is not retained by model_callback. C retains the callback with userNULL. model_provider owns the Lua bridge function; the reference process installs one SharedRoster and its FlagStore. Roster clear preserves flags and C issued group bindings persist.",
+      "evidence_scope": "Accepted7d458 supplies the actual preboot/entry/error/fatal/poison mechanism. Accepted400394 adds successful public boot and reached READ for the actual persistent binding; it is not replayed here.",
+      "supported_domain": "One boot attempt and one persistent owner-thread/provider/store/VM binding.",
+      "unsupported": "Replacement, reentrancy, session or VM recreation, owner-thread destruction/transfer and cross-thread use remain unsupported or unproved. A new store may issue a coincident fN key and alias an old binding; no generation/refusal/alias-safety or reset architecture is invented."
+    },
+    "needed_DCS_boundary": {
+      "status": "ACCEPTED_NEEDED_SOURCE_CONTRACT_DISPOSITION_ONLY",
+      "basis": "GROUP/SET/READ/RESET operate on group eligibility, array, lane, issued key and owned three-word state. They do not require a simulator geometry/time/object-property query. This is an internal host metadata contract inference, not evidence that a DCS API is absent or that DCS runtime behavior was exercised.",
+      "guide_predicate": "check_guide_reached_waypoint requires a task leader. check_mobile_reached_waypoint first selects supply arrival for the qualifying supply task/waypoint, otherwise radius arrival recognizes fixed-wing, helicopter, routed vehicle, ship, anti-aircraft and person with a task leader, before the notify/legacy fallback. Engine build/main.rs defines HOST_ARRIVALS unconditionally for its build path.",
+      "qualification": "Supply selection retains its own aircraft/guide-criteria checks. The existing fallback body remains; no blanket dormancy claim is accepted. Physical pose, time, arrival and other needed simulator contracts remain separate and required. No boolean/DCS-sampled UPDATED truth is reintroduced as a competing store."
+    },
+    "clean_wording_and_boundary_safety": "The document explicitly labels source inference versus historical measurement, supported ownership versus unsupported replacement, internal metadata versus physical simulator decisions, and actual public READ scope versus generic acceptance. It adds no API, normalization, fallback provider, epoch framework, test or runtime behavior. No concrete wording/correctness/boundary issue requiring a change was found."
+  },
+  "next_required_coupling": {
+    "name": "Existing D3G-04 / Core raw TREE-FOREST-CLOUD loader and CRT RNG disposition",
+    "status": "REQUIRED_OPEN; NOT_IMPLEMENTED_OR_CLEARED",
+    "first_missing_fact": "Effective constructor/cloud-loop CRT draws, relevant season/skin behavior and the first consumer before the session reseed. Current boot calls load_3d_terrain_game_data before campaign/session construction; zone_sc calls load_3d_terrain and terrdata still constructs FOREST_TREE_OBJECT/CLOUD and consumes CRT random values.",
+    "boundary": "This review accepts naming that existing required fact as the next responsibility. It does not authorize loader removal, dummy draw replacement, a new observer/empirical implementation, changed random stream/baseline, or a physical cutover. Effective runtime draw counts and consumer ordering remain unmeasured here."
+  },
+  "decision": {
+    "status": "ACCEPTED_BOUNDED_SOURCE_DISPOSITION",
+    "supported_source_disposition_accepted": true,
+    "fresh_flag_FPU_measurement_accepted": false,
+    "generic_flags_NativeAcceptance1_accepted": false,
+    "new_physical_cutover_clearance": false,
+    "new_native_or_build_launch_clearance": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "limits": [
+    "Only the new93-line documentation, necessary current source routes and exact evidence joins are reviewed. Accepted earlier FPU/lifetime/key/default/native READ proofs retain their original identities and finite scopes; no closed control is replayed or reopened.",
+    "GenericNativeAcceptance1 and all ten D3 requirements remain OPEN as applicable, including remaining consumers/native word scope/natural moving-weapon integration, physical DCS contracts, shared terrain/height/RNG/hierarchy/services, final consumer/compile census, current40/all8/four inputs/current CI/normal review and merge.",
+    "Exact precedingb4ddd CI all9 success is historical to that head; no new1516 CI success is inferred. This documentation disposition is not runtime, shipping, fullpack or wholeD3 acceptance.",
+    "Both original fullpacks, all original process identities and immutable source/bin/root/output trees remain untouched. Any checked growing prefix is PARTIAL only.",
+    "No reviewer source/Git/cache/process mutation, build/test/native/campaign/API call or nested agent occurred. Only this new immutable external JSON review is written. Prep2 and the prohibition on D4/D5/historical TypeScript work remain."
+  ]
+}

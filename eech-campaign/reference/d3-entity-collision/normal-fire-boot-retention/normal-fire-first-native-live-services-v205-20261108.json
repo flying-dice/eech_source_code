@@ -1,0 +1,15 @@
+{
+  "observed_utc": "2026-11-08T10:14:50.412Z",
+  "ledger_version": 205,
+  "entire_prior_chars": 579016,
+  "entire_prior_literal": true,
+  "newsection_equal_ignoring_generated_ids": true,
+  "report_wrappers": 5,
+  "Jira_id": "11022",
+  "Jira_entire_expected_literal": true,
+  "PR_prefix_literal": true,
+  "PR_draft": true,
+  "PR_state": "open",
+  "PR_suffix_qualification": "Connector may append EEDCS-49 Atlassian tracking reference; expected complete authored body remains literal prefix.",
+  "result": "Focused default COMPLETE literalPASS, healthy bootFAIL1/frame0, Bnotprepared/notlaunched; no acceptance beyond those measured facts."
+}

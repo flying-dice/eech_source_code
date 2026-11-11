@@ -1,0 +1,77 @@
+{
+  "schema": "native-flag-read-safe-witness-summary/v1",
+  "mode": "read_malformed",
+  "native_pid": 21492,
+  "native_birth_utc": "2026-11-08T03:25:57.750062+00:00",
+  "native_actual_exit": 0,
+  "status": "PASS",
+  "original_private_report": {
+    "path": "D:/EECH-Migration-Evidence/native-flag-read-nr395-20261108/runs/04-read_malformed/witness.txt",
+    "bytes": 3209,
+    "sha256": "d49b7bdff5533554fb81a67ba585a6899cf0648442880feccab41152aa67fb8e"
+  },
+  "counts": {
+    "frames": "16",
+    "attempts_group": "492",
+    "attempts_set": "22301",
+    "attempts_read": "1",
+    "attempts_reset": "16",
+    "answered_group": "492",
+    "answered_set": "22301",
+    "answered_read": "1",
+    "answered_reset": "16",
+    "accepted_group": "492",
+    "accepted_set": "22301",
+    "accepted_read": "0",
+    "accepted_reset": "16",
+    "altered": "1",
+    "changed_accepted": "0",
+    "keys_issued": "492",
+    "reads_zero": "1",
+    "reads_mask": "0",
+    "reads_consumable": "1",
+    "resets_cleared": "7380",
+    "oracle_sets": "22301",
+    "oracle_reads": "1",
+    "oracle_resets": "16",
+    "oracle_mismatches": "0",
+    "candidate_questions": "421",
+    "bind_calls": "3432"
+  },
+  "selected_transaction": {
+    "full_tuple_sha256": "d6e0aa416665289166a5bc9006dbef08fde0c5971ec859140c853a7a6bf9e965",
+    "same_complete_preintervention_tuple_as_healthy": true,
+    "request": "diagnostic",
+    "frame": "16",
+    "entry": "frame:16",
+    "array": "0",
+    "lane": "10",
+    "original_result": "skip",
+    "optional_group_opened": "0",
+    "optional_group_acked": "0",
+    "pre_request_sha256": "70f11a94818911633a285e64514275819aa072ca2515565d4b9c23dc0eaaf6b2"
+  },
+  "store_traffic_oracle": {
+    "array": "0",
+    "lane": "10",
+    "before": "0x00000000",
+    "mask": "0x00000400",
+    "real": "0x00000000",
+    "answered": "none",
+    "after": "0x00000000"
+  },
+  "reask": null,
+  "intervention": {
+    "at": "read_ordinal_22810",
+    "entry": "frame:16",
+    "callback_after": "none"
+  },
+  "fatal": {
+    "where": "frame",
+    "marker": "entity_scan.answer",
+    "entry": "frame:16"
+  },
+  "pre_input_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+  "post_input_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+  "projection": "Derived summary, not a literal witness file. Retail scene/name/id/registration, positions/full fact words and private error line omitted; raw SHA/pointer retained. Store is transcript-derived, not independent snapshot."
+}

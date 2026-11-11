@@ -1,0 +1,283 @@
+{
+  "kind": "Root read-only exact Git packet and literal external publication binding",
+  "utc": "2026-11-08T00:04:08.275461+00:00",
+  "code": "8ffd4c937fd4b4fd14bd813d896b340fd01b76d0",
+  "metadata": "4596534a5d8c40e4e1cefc233a569488f7f16bda",
+  "manifest_entries": 56,
+  "exact_committed_packet_coverage": true,
+  "external_literal_copies": [
+    {
+      "path": ".gitattributes",
+      "external": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\reference\\d3-entity-collision\\physical-flags-keyfix-020-reviewed\\.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-TACVIEW-CONSUMER-DISPOSITION-FROZEN-20261107.json",
+      "external": "R:\\d3-evidence\\D3-TACVIEW-CONSUMER-DISPOSITION-FROZEN-20261107.json",
+      "sha256": "634125b69b0b931cad742f595b335ea597c5a8f3d42ee932be57c11787b5caa1"
+    },
+    {
+      "path": "Root-tacview-consumer-feedback-20261107-2349.json",
+      "external": "R:\\d3-evidence\\Root-tacview-consumer-feedback-20261107-2349.json",
+      "sha256": "37bbdc7902cf02c13b4819ca8b2b520ed5bf90afaf982e50a200c96f2b4374bc"
+    },
+    {
+      "path": "Root-tacview-consumer-feedback-20261107-2350.json",
+      "external": "R:\\d3-evidence\\Root-tacview-consumer-feedback-20261107-2350.json",
+      "sha256": "66b163280328961956cb14544215fb40afa72530e590674488866343d31e13ef"
+    },
+    {
+      "path": "runs/d1-fmt-apply.json",
+      "external": "R:\\d3-evidence\\flags-tvb1-d1-fmt-apply.json",
+      "sha256": "0b2424d2773375ca2b28dbd8327f3866c4c706b464d64a7aa9aebf1706d01789"
+    },
+    {
+      "path": "runs/d1-fmt-apply.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-d1-fmt-apply.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/d1-fmt-apply.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-d1-fmt-apply.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/g1-guard-first.json",
+      "external": "R:\\d3-evidence\\flags-tvb1-g1-guard-first.json",
+      "sha256": "d7e0fde4b3693f74e820929100a21763a9c770e0c24efcc93fe350cec1abf2f0"
+    },
+    {
+      "path": "runs/g1-guard-first.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-g1-guard-first.stderr.log",
+      "sha256": "35434fd9dabf585471123061dd16e925a246238edceb7ff81950b5be5d199615"
+    },
+    {
+      "path": "runs/g1-guard-first.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-g1-guard-first.stdout.log",
+      "sha256": "48e37d99e7ce1f35bced577aa2244841d81656ae4d247c643901e13b9cadbe20"
+    },
+    {
+      "path": "runs/g2-guard-second.json",
+      "external": "R:\\d3-evidence\\flags-tvb1-g2-guard-second.json",
+      "sha256": "9ab7563ac021a52a3718e2c472f25286a892e0c050ad360bfa4e5223a6288ecc"
+    },
+    {
+      "path": "runs/g2-guard-second.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-g2-guard-second.stderr.log",
+      "sha256": "205b9c2bbc1f06f8a1fbec33ff467a49797da68856ac3311a5c97036fc67fcf5"
+    },
+    {
+      "path": "runs/g2-guard-second.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-g2-guard-second.stdout.log",
+      "sha256": "411e0c5b20913f653a8e294f6a1fb44da8ebf7594fc71c0d15689c7e4ecd4f0f"
+    },
+    {
+      "path": "runs/g3-guard-third.json",
+      "external": "R:\\d3-evidence\\flags-tvb1-g3-guard-third.json",
+      "sha256": "46d2052b9766bfc8d672eb85a69715fa4c5bb12cd69a7e8dac403dc17ce3a1bb"
+    },
+    {
+      "path": "runs/g3-guard-third.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-g3-guard-third.stderr.log",
+      "sha256": "d6f05b5c3ab34d937f84583f07d4aa026cd0258339e92a96702fa96b2c7ef916"
+    },
+    {
+      "path": "runs/g3-guard-third.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-g3-guard-third.stdout.log",
+      "sha256": "0b8d4aae1b8cb2ab851fdbd6e58e545e4a2eb3b3d0b9fd92b23e1e8f83b35971"
+    },
+    {
+      "path": "runs/s1-fmt-check.json",
+      "external": "R:\\d3-evidence\\flags-tvb1-s1-fmt-check.json",
+      "sha256": "efd4efd867b0bab40d85b56c7033776ca607f74d398e44d0639e76f057516622"
+    },
+    {
+      "path": "runs/s1-fmt-check.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-s1-fmt-check.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/s1-fmt-check.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-s1-fmt-check.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/s2-clippy-engine-sys.json",
+      "external": "R:\\d3-evidence\\flags-tvb1-s2-clippy-engine-sys.json",
+      "sha256": "6ef27fcdc8a4d700eeed8d212366a78071ad44fbde967ffe04eb1f555a95dd24"
+    },
+    {
+      "path": "runs/s2-clippy-engine-sys.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-s2-clippy-engine-sys.stderr.log",
+      "sha256": "5caf4b6183af5ceb18ee70b31fe609c1e2e88b081b20cbba61b1f6535843f5d9"
+    },
+    {
+      "path": "runs/s2-clippy-engine-sys.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-s2-clippy-engine-sys.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s3-flags-guard.json",
+      "external": "R:\\d3-evidence\\flags-tvb1-s3-flags-guard.json",
+      "sha256": "49404d4f8ba40491c572b1e9ef7aa9305772e1b36d594ebb398da151c11cb778"
+    },
+    {
+      "path": "runs/s3-flags-guard.stderr.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-s3-flags-guard.stderr.log",
+      "sha256": "5d3b988b026b9ebbda457ecccbd8487a3426621f506210cb7aefc2e28eefb403"
+    },
+    {
+      "path": "runs/s3-flags-guard.stdout.log",
+      "external": "R:\\d3-evidence\\flags-tvb1-s3-flags-guard.stdout.log",
+      "sha256": "0428b4ccb69a5f2a8c636cf2b27b5b28bc67644acb42c563be6f90484e5b7ae8"
+    },
+    {
+      "path": "scripts/check-physical-flags-tvb1-linux-20261107.sh",
+      "external": "R:\\d3-evidence\\check-physical-flags-tvb1-linux-20261107.sh",
+      "sha256": "1f912efbac96b0a8ef7d906f676ba8571147031097b80a18b84cba966757a7ce"
+    },
+    {
+      "path": "scripts/derive-tvb1-helpers-20261107.py",
+      "external": "R:\\d3-evidence\\derive-tvb1-helpers-20261107.py",
+      "sha256": "de64ae75c67d6352a9f324fe61eb6509e7daacff4de2347791f0da7d28a72d76"
+    },
+    {
+      "path": "scripts/freeze-tvb1-20261107.py",
+      "external": "R:\\d3-evidence\\freeze-tvb1-20261107.py",
+      "sha256": "c052e908a4f13974fba23385ef44f9fd6439f2b52b60a7786f2fecaafcba6188"
+    },
+    {
+      "path": "scripts/preflight-receipts-20261107.py",
+      "external": "R:\\d3-evidence\\preflight-receipts-20261107.py",
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+    },
+    {
+      "path": "scripts/publish-tvb1-20261107.py",
+      "external": "R:\\d3-evidence\\publish-tvb1-20261107.py",
+      "sha256": "ce1d6920ced671744443250aecda22f40132abb97d36e90b1c7a76a0a1dd318d"
+    },
+    {
+      "path": "scripts/run-physical-flags-tvb1-direct-20261107.py",
+      "external": "R:\\d3-evidence\\run-physical-flags-tvb1-direct-20261107.py",
+      "sha256": "0d1a4d96e4d40691a7767fcfba697619df12bfe4956c348903e77db42c0852c6"
+    },
+    {
+      "path": "scripts/run-tvb1-final-set-20261107.sh",
+      "external": "R:\\d3-evidence\\run-tvb1-final-set-20261107.sh",
+      "sha256": "9bd4d8b0154dd13b7212ee7e5f5f1994ef357725d4174b5bae8d266555960920"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "external": "R:\\d3-evidence\\sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "external": "R:\\d3-evidence\\sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "path": "scripts/tvb1-extra-identity-20261107.py",
+      "external": "R:\\d3-evidence\\tvb1-extra-identity-20261107.py",
+      "sha256": "e8d87f7fa1a675a012933138f350abc8e58ba50479e644ee0c4e33b9f1122b43"
+    },
+    {
+      "path": "scripts/tvb1-extract-evidence-20261107.py",
+      "external": "R:\\d3-evidence\\tvb1-extract-evidence-20261107.py",
+      "sha256": "1a15f7b63c6b9dbca2a431844c8eb44fe5dab54921807377d687f19197966e6d"
+    },
+    {
+      "path": "scripts/tvb1-name-check-20261107.py",
+      "external": "R:\\d3-evidence\\tvb1-name-check-20261107.py",
+      "sha256": "3f0d7aaf8ad99012587af690ff2daa84851aa88cec30b4b32e95779cb428af66"
+    },
+    {
+      "path": "supply-boolean-b1b9-all9-CI-readback-20261107.json",
+      "external": "R:\\d3-evidence\\supply-boolean-b1b9-all9-CI-readback-20261107.json",
+      "sha256": "66132b97936f0867ca9affdb56c565d1caf7cb24eadfee42a9bb9c915442ee08"
+    },
+    {
+      "path": "supply-closed-packets-Root-publication-20261107.json",
+      "external": "R:\\d3-evidence\\supply-closed-packets-Root-publication-20261107.json",
+      "sha256": "e69b9426fc0ba99a0c7235e1e541bc836075e198205f2fa784699480d73947a1"
+    },
+    {
+      "path": "tvb1-dormancy-evidence-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-dormancy-evidence-20261107.json",
+      "sha256": "4bf168c52786ac94329ffc97d83998b586a40e6c5031ee77f036d4c5393f4240"
+    },
+    {
+      "path": "tvb1-extra-identity-POST-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-extra-identity-POST-20261107.json",
+      "sha256": "c0f994442aff66edb6720734f3e5f0e05b9e0246b67577ac0d339643bbadf9c6"
+    },
+    {
+      "path": "tvb1-extra-identity-PRE-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-extra-identity-PRE-20261107.json",
+      "sha256": "c0f994442aff66edb6720734f3e5f0e05b9e0246b67577ac0d339643bbadf9c6"
+    },
+    {
+      "path": "tvb1-feedback-files-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-feedback-files-20261107.json",
+      "sha256": "aa3774424b54ac104211dcbe00a95d571422c715208cdc0fff9fb4ac04150471"
+    },
+    {
+      "path": "tvb1-final-set-20261107.progress",
+      "external": "R:\\d3-evidence\\tvb1-final-set-20261107.progress",
+      "sha256": "1f13a2d1a56d4423f062bb3ab9e9b222358d43cab0003aeb223f6748d5043e91"
+    },
+    {
+      "path": "tvb1-final-set-lease-after-20261107.txt",
+      "external": "R:\\d3-evidence\\tvb1-final-set-lease-after-20261107.txt",
+      "sha256": "cac719b9f51623482ec4f656bdecc2c23e56203a1337d34f79e3ead77f20b6fc"
+    },
+    {
+      "path": "tvb1-final-set-lease-before-20261107.txt",
+      "external": "R:\\d3-evidence\\tvb1-final-set-lease-before-20261107.txt",
+      "sha256": "05938efa2aee0569be81bac2f68508b5c2e4e80d3cfd80c70637d8707ba21d42"
+    },
+    {
+      "path": "tvb1-inputmaps-compare-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-inputmaps-compare-20261107.json",
+      "sha256": "fe8c836d81a8fd3a699f5f918fc39624b532cd7a780612a9b199e943b6d45a59"
+    },
+    {
+      "path": "tvb1-name-check-negative-control-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-name-check-negative-control-20261107.json",
+      "sha256": "489cf82a56471cb80a22550f35c17f4d65301e85a738d416dd61c2094adc9cf1"
+    },
+    {
+      "path": "tvb1-name-check-result-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-name-check-result-20261107.json",
+      "sha256": "3851f492b152759fcec42a54a5a2c5d4c059c3c11d4b567bdb239aea6e5a7259"
+    },
+    {
+      "path": "tvb1-PRE-utc-20261107.txt",
+      "external": "R:\\d3-evidence\\tvb1-PRE-utc-20261107.txt",
+      "sha256": "7262206112c36278e1d25cf339ff4d444831d83216d8c81b72d454549751efc3"
+    },
+    {
+      "path": "tvb1-preflight-negative-control-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-preflight-negative-control-20261107.json",
+      "sha256": "213808ba2d5b0e2e8c276de142e65426a605408906375fdd7da5c89249dccf1d"
+    },
+    {
+      "path": "tvb1-preflight-receipts-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-preflight-receipts-20261107.json",
+      "sha256": "45fe401cfa9081a0fa3da709292cf4799a8a1eb1141cb1fca807788e8b567553"
+    },
+    {
+      "path": "tvb1-readers-PRE-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-readers-PRE-20261107.json",
+      "sha256": "d2d226e1434aaee10305dc21416d91e5375910a4a022c5372ae9f2b75f849c0c"
+    },
+    {
+      "path": "tvb1-retained-dev-runs-20261107.json",
+      "external": "R:\\d3-evidence\\tvb1-retained-dev-runs-20261107.json",
+      "sha256": "005255c72f61ff5b43775b1882f59469485c7e4b2b5ae8875914fa7cac65f56a"
+    }
+  ],
+  "metadata_delta_only_STATUS_card": true,
+  "clean_pushed_HEAD": true,
+  "limits": "Unreviewed finite dormancy disposition; reviewer two findings require correction. No new runtime/fullpack/default acceptance or replay."
+}

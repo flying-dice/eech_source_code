@@ -1,0 +1,36 @@
+{
+  "runtime": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+  "binary_dir": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\bin",
+  "bundle_manifest": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\metadata\\bundle-manifest.json",
+  "bundle_manifest_sha256": "bf1eafc4157854c1c51e89e817751fa655a9c106412940dd2eeeef9d0c8af98a",
+  "literal_dir": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\literals",
+  "pristine": "R:\\eech-regression-20261025\\roots\\lebanon",
+  "input_tool": "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\tools\\input-manifest.py",
+  "input_reference": "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+  "healthy_root": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\healthy-root",
+  "root_base": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\child-roots",
+  "out_base": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\runs",
+  "schema": 1,
+  "state": "MATERIALIZED_FOR_REVIEW",
+  "source_plan_sha256": "1c472eec613c09041491617d692c91b957568a21d18d9137c316ea1cfebe7352",
+  "modes": [
+    "read_probe_control",
+    "read_changed",
+    "read_withheld",
+    "read_malformed",
+    "read_wrong_state",
+    "read_wrong_array",
+    "read_wrong_word"
+  ],
+  "lua": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\literals\\physical-flags-read-witness.lua",
+  "protocol": "D:\\EECH-Migration-Evidence\\native-flag-read-nr395-20261108\\literals\\physical-flags-read-transaction.lua",
+  "hashes": {
+    "controller": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "validator": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "binding": "3c27e9aaed8bfadb6a60c577d054790f74604fbab905515a4b80a24bf6af6084",
+    "lua": "2e8ccebca6f0255543b76d4e42b44a17c1bf649ed51a7e4a01043f600843931c",
+    "protocol": "3a18cfe7ca647da6bd3f6c6c567fe0517b529271b7b2229a25fba8ac1ef4f2e7",
+    "input_tool": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+    "input_reference": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+  }
+}

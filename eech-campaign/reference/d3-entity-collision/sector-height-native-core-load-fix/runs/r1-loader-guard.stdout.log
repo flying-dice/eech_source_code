@@ -1,0 +1,22 @@
+
+running 3 tests
+test every_byte_must_arrive_and_the_unpack_must_not_overflow_or_the_loader_stops_by_name ... ok
+test the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open ... FAILED
+test the_unpack_side_still_returns_its_overflow_and_the_pack_side_still_sizes_to_the_last_used_byte ... ok
+
+failures:
+
+---- the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open stdout ----
+
+thread 'the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open' (4097) panicked at crates/eech-engine-sys/tests/saved_campaign_load_guard.rs:53:5:
+assertion `left == right` failed: the data file is opened exactly once
+  left: 2
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_saved_data_is_sized_from_its_own_binary_handle_not_from_a_second_text_mode_open
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

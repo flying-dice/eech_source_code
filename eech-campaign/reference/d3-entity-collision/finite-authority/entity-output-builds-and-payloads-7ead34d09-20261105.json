@@ -1,0 +1,45 @@
+{
+  "source": "7ead34d09e05c394c56bc2ef0d8bd315929b312c",
+  "snapshot": "D:\\EECH-Migration-Evidence\\entity-output-production-7ead34d09",
+  "checked_utc": "2026-11-05T10:02:17.678755+00:00",
+  "profiles": [
+    {
+      "profile": "ordinary",
+      "bin": "D:\\EECH-Migration-Evidence\\entity-output-production-7ead34d09\\eech-campaign\\target\\windows-entity-output-7ead34d09",
+      "actual_build_exit": 0,
+      "verified_payloads": 87,
+      "BUILD_INFO_sha256": "9390ec8a15c703555e113343edc5af0993da2c8af450ab6a17b220256c9c6339",
+      "toolchain": [
+        "commit: 7ead34d09e05c394c56bc2ef0d8bd315929b312c",
+        "uncommitted changes in the build inputs: 0 files",
+        "image: "
+      ]
+    },
+    {
+      "profile": "hosted",
+      "bin": "D:\\EECH-Migration-Evidence\\entity-output-production-7ead34d09\\eech-campaign\\target\\weapon-fixture\\entity-output-7ead34d09",
+      "actual_build_exit": 0,
+      "verified_payloads": 87,
+      "BUILD_INFO_sha256": "8f01788956a8a505469ef5a2736bf0c17a0fa60a9562e939bf603e78eefaefc6",
+      "toolchain": [
+        "commit: 7ead34d09e05c394c56bc2ef0d8bd315929b312c",
+        "uncommitted changes in the build inputs: 0 files",
+        "image: "
+      ]
+    },
+    {
+      "profile": "original",
+      "bin": "D:\\EECH-Migration-Evidence\\entity-output-production-7ead34d09\\eech-campaign\\target\\weapon-fixture\\original-entity-output-7ead34d09",
+      "actual_build_exit": 0,
+      "verified_payloads": 87,
+      "BUILD_INFO_sha256": "a6b290f490866e061462b24419cc9241377a61c1780d411795650c9e724acf6e",
+      "toolchain": [
+        "commit: 7ead34d09e05c394c56bc2ef0d8bd315929b312c",
+        "uncommitted changes in the build inputs: 0 files",
+        "image: "
+      ]
+    }
+  ],
+  "all_current_payloads_verified": true,
+  "scope": "Windows build/profile/source seals only; no native execution or shipping acceptance."
+}

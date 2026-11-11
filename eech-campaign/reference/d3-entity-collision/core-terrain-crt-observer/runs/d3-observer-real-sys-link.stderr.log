@@ -1,0 +1,10 @@
+info: downloading component rustfmt
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 34s
+     Running tests/core_terrain_crt_observer.rs (/target/t/debug/deps/core_terrain_crt_observer-859552eeeb2ad1ed)
+
+thread 'additive_hooks_keep_original_rand_expressions_and_reject_a_changed_anchor' (4145) panicked at crates/eech-engine-sys/tests/../build/core_crt_observer.rs:22:9:
+assertion `left == right` failed: CRT1 in modules/3d/terrain/terrdata.c
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

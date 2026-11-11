@@ -1,0 +1,255 @@
+{
+  "schema": 1,
+  "state": "CODE_FROZEN_UNREVIEWED_BEFORE_THE_FINAL_FIXTURE_AND_CLIPPY_MATRIX",
+  "written_utc": "2026-11-05",
+  "lane": "sole Sonnet 5.5 High implementation session, whole D3 / EEDCS-21, Task49 / PR109",
+  "branch": "codex/d3-object-tree-collision",
+  "source_commit": "4f790b712871561c2b04c3d3173ad7ad51ee8a24",
+  "parent_metadata_commit": "0f5b8443e564810e7ba7b38932d3f88f0e8ee946",
+  "frozen_observer_runtime_not_these_bytes": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+  "observer_actuals_publication_commit": "88e457c78 (the reviewer's finite observer closure dc7b, literal receipts, exact bytes, manifest-verified in Git; NOT clearance of these production bytes)",
+  "production_change": "the host's canonical Movers record decides a mobile candidate's pose and holds every kind's legacy motion vector (see the provider doc, \"The host's physical record decides a mobile candidate's pose\")",
+  "literal_witness": {
+    "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "git_blob": "abc5cf0d9dda2747bf48bdccc8b545854a304cd1",
+    "sha256_raw": "007166f160ce68e9e5ee884fd7f112501897815a211b3713ddf2877beddd7e80",
+    "bytes": 93064
+  },
+  "changed_since_observer_runtime": [
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "git_blob": "6b93b5ad6963a518329f38af835ed9ad253a06af",
+      "sha256_raw": "04c2f4ee1e2e377ad11c8e5c2520a7100ef729bd4e095659161206493912efe3",
+      "bytes": 26819
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "git_blob": "41425762b9aaef3d4053b03837be0862408960fb",
+      "sha256_raw": "555f93d9a5c29a4b7d3e37aa3e1523b7120bc2daa0b5b04f9f046b5af162be08",
+      "bytes": 84807
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "git_blob": "05aa2bbc1d767842dd4fae296f3b04a34b809024",
+      "sha256_raw": "658ae4d95db0abb20e08fdd067cbe3af7e9e0e7ec0feacd2fb66499c58276f0b",
+      "bytes": 44182
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "git_blob": "69f3b97ae391a4948d83d286af646239cb5609ca",
+      "sha256_raw": "1f2b67b838f367beef923581fa02de121cbc5aba5ec69a1fa3ec9790904b5497",
+      "bytes": 11718
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c",
+      "git_blob": "c36dc28c106dd524d61acfaa068fb27ec799cd7b",
+      "sha256_raw": "ebc6fa9d0a6780d94492f44b3c6118224fb040fe770265b0877fb01655d4c40c",
+      "bytes": 65296
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.h",
+      "git_blob": "0bd66127450bf6369a6fb9b029d2a9a9797c395f",
+      "sha256_raw": "62894fad3a92d9376defc7d7375d05331670a7dfcb7585dff42785fc24e3ad55",
+      "bytes": 46479
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_move.c",
+      "git_blob": "f6420d2afcea3ad8eefd17fc9e55ece3e7819850",
+      "sha256_raw": "5a82726f371ac6dbb56be982181cbfffaf7291a847c53cd6f380688400060194",
+      "bytes": 30093
+    },
+    {
+      "path": "aphavoc/source/entity/special/group/gp_roster.c",
+      "git_blob": "7d05369ff71945cf897b7c5f1ec106788ab0f6e5",
+      "sha256_raw": "75c3c34dcef8c5f2cc02e6d124c99f25099fa217f2001712c8760565993409f9",
+      "bytes": 66388
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "git_blob": "0b2e61c4b756b7e04c342bf041728135179d631d",
+      "sha256_raw": "2a4944c16d41c0d6407e1eb11b30cad6b59a4a88561a4daf288a8251e1d50a88",
+      "bytes": 460292
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "git_blob": "70845fe0b2c55f3e32d209a6bd914686681a4e60",
+      "sha256_raw": "e96052fca6f713e70a25e844d3391f25cfa5ddff25f7bf6611f689bcca47f571",
+      "bytes": 81781
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "git_blob": "98e7890e33213ded3f2879cee724008fa58e936f",
+      "sha256_raw": "f0cd610f15f578a322fe6650cc820e4ae92673c41319550470b7a6dc8db9ba56",
+      "bytes": 78772
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "git_blob": "e9737dd70ab77cb8e2d48e0170ec6d40cd5a49ab",
+      "sha256_raw": "e7ed31eb4d46100eb0ecc5b2ce7ef6270c8c8d51d762ab1bc931b9c8786130c9",
+      "bytes": 2324
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "git_blob": "47c25d521bfb15298b3b64e3f35bb59bd6b49e2f",
+      "sha256_raw": "8cf73bf5548bcc6d8c1dcaaa577dc436b6a97a8fbb8e1e907d08058adc1c432d",
+      "bytes": 678778
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "abc5cf0d9dda2747bf48bdccc8b545854a304cd1",
+      "sha256_raw": "007166f160ce68e9e5ee884fd7f112501897815a211b3713ddf2877beddd7e80",
+      "bytes": 93064
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "git_blob": "e27a81272f837e6bce62a132aeb4551c15fa2d5c",
+      "sha256_raw": "0148b5d7a57fd351f8f97cbb1456acddabcb44df2df2144335ccebc4b3cdd6ac",
+      "bytes": 20958
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "git_blob": "d98535e81f285c9a6eec8bfa2eea188c725b3ada",
+      "sha256_raw": "6dd54d83a2653609d0502a9f347bbdc9f301206152d1c076379b7ec993a12ea4",
+      "bytes": 197467
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "git_blob": "795b0a56ccd26111991cd871a8504f47e0ecc5b4",
+      "sha256_raw": "c0bf17e1757947fd4e3184f6e1fcaae32e5a7a0fe37aa2138d807c94de5e519a",
+      "bytes": 109757
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/movement.rs",
+      "git_blob": "5d3a1f39b3dd42c2c9a4f30e38f8b6c4b1465b2b",
+      "sha256_raw": "926bde9acec058466e41dc7731c53d64bf3f28470383a18d716ffd4abc848eb1",
+      "bytes": 359444
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "git_blob": "562838ae598400de2d9bf7a0653651f63b0547be",
+      "sha256_raw": "d53f9b9186a38844cda0657a37819ed49de71512cf149eb6035366f2574cd0e5",
+      "bytes": 115927
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_pose_host.rs",
+      "git_blob": "290fbc415226b87802f890bf77a448928dd9447e",
+      "sha256_raw": "d2ec332cfb014a832e300b62fda28b63e331428062c6c16fda6d7eda62a82d52",
+      "bytes": 11881
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "git_blob": "cf3113a14ddf8fdb120132a3aee0b147f7dc23bc",
+      "sha256_raw": "a78dd1e7fbd8024145ec7247bd944fa7bb1b744c3ab54d287dca97e3143a1442",
+      "bytes": 358962
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+      "git_blob": "5a8948a8259f1ddb5cd9932ffbff3e12b545080c",
+      "sha256_raw": "0ec44094a38ce04d788c710c626e2201fe5ba973932bfb34db95bc34d722052b",
+      "bytes": 80553
+    },
+    {
+      "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+      "git_blob": "4f682df0ee5fd081c045845444c32178f6188e95",
+      "sha256_raw": "be7edc4e54c3c9d942c08b728135002efca78f5e0658c1addf42bd55f6a6ab54",
+      "bytes": 81710
+    }
+  ],
+  "source_identity": {
+    "rows": 2919,
+    "filtered_column_sha256": {
+      "after_formatting_before_commit": "88eee2a18d1859a79687880d57c1b9e3ebcd6da50041b0e8b5b654b26527f343",
+      "after_commit": "88eee2a18d1859a79687880d57c1b9e3ebcd6da50041b0e8b5b654b26527f343"
+    },
+    "raw_column_sha256": {
+      "after_formatting_before_commit": "5f14cec280d5182dd4b92f2e06ab985ef3b90bd095bacd1dc717977fb84bc82b",
+      "after_commit": "5f14cec280d5182dd4b92f2e06ab985ef3b90bd095bacd1dc717977fb84bc82b"
+    },
+    "committed_bytes_equal_the_formatted_bytes": true,
+    "core_filtered_hash_exceptions_unchanged": [
+      "aphavoc/laa.c",
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h"
+    ],
+    "tests_lua_working_crlf_git_lf_qualification_separate": [
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "working_crlf": 83,
+        "committed_crlf": 0,
+        "unchanged_since_observer": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "working_crlf": 128,
+        "committed_crlf": 0,
+        "unchanged_since_observer": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "working_crlf": 83,
+        "committed_crlf": 0,
+        "unchanged_since_observer": true
+      }
+    ],
+    "binary_safety": "no changed file has a NUL or CRLF count different from the parent; eech-dc/src/module.rs keeps its two pre-existing NULs; git diff --check clean"
+  },
+  "focused_checks_on_the_formatted_bytes": {
+    "log": "D:/EECH-Migration-Evidence/pose-cutover-20261105-a/final/final.log",
+    "log_sha256": "d5e661bfe1fc2e26a287ae044682942ee6f53f3d3a1a48c6d5ce03b2ded1e17c",
+    "direct_child_exits": {
+      "fmt_apply": 0,
+      "fmt_check": 0,
+      "check_four": 0,
+      "dialogue": 0,
+      "engine_lib": 0,
+      "dc_lib": 0,
+      "movement": 0,
+      "pose_host": 0,
+      "model_target_point": 0,
+      "entity_candidate_host": 0,
+      "entity_authority": 0,
+      "tree_authority": 0,
+      "host_callbacks": 0
+    },
+    "test_result_rows": 10,
+    "tests_passed": 512,
+    "tests_failed": 0,
+    "dialogue_rerun_after_the_floor_edit": {
+      "log": "D:/EECH-Migration-Evidence/pose-cutover-20261105-a/dialogue-final/dialogue.log",
+      "exits": {
+        "fmt_check": 0,
+        "dialogue": 0
+      },
+      "expectations": 361
+    },
+    "selection": "per the Root execution change: the default four-crate cargo check --all-targets and the real shared C dialogue control as the compile prechecks; the focused targets of the changed inputs (eech-engine lib, eech-dc lib, movement, entity_pose_host, model_target_point incl. the RED/GREEN provider tests, entity_candidate_host, entity_authority incl. the host-side modes, tree_authority, host_callbacks)",
+    "deferred_to_the_frozen_review_join": "the fixture profile builds, strict clippy, the full four-crate suite; no mutant loop was run and none is claimed"
+  },
+  "preserved_logs": [
+    "D:/EECH-Migration-Evidence/pose-cutover-20261105-a/early1/early.log (the first compile: the provider borrow error and the three C-control call sites)",
+    "D:/EECH-Migration-Evidence/pose-cutover-20261105-a/tests1/tests.log (the nine tests the cutover legitimately changed: every kind now seeds its vector)",
+    "D:/EECH-Migration-Evidence/pose-cutover-20261105-a/early2",
+    "D:/EECH-Migration-Evidence/pose-cutover-20261105-a/tests2",
+    "D:/EECH-Migration-Evidence/pose-cutover-20261105-a/witness1",
+    "D:/EECH-Migration-Evidence/pose-cutover-20261105-a/vector1"
+  ],
+  "honest_scope": {
+    "reached_domain_of_the_native_observer": "recorded, alive, kind-1 offers of entity types 1 (ENTITY_TYPE_ANTI_AIRCRAFT) and 23 (ENTITY_TYPE_ROUTED_VEHICLE); the record held no vector on any of them; moving 0 and candidate_need_updated 0",
+    "new_refusal_on_unreached_states": "a mobile candidate of a sector list with no identity, an unknown, retired or unrecorded one, a record with no vector, a host with no movers or a busy registry is refused by name (entity_candidate.refused, \"candidate record\"); the native run did not reach any of them; an unreached state that occurs is the named blocker, not a fallback",
+    "vector_writers": "routed solver and the two early returns (host-derived), ship solver result (retained), lifecycle claim (the existing explicit contract: it ADOPTS the campaign vector at its first claim, Core-origin, required to retire), placement (adopted for every kind); an alive anti-aircraft gun and a person have no hosted vector writer, so their vector stays at its seed",
+    "conformance": "ENTITY_POSE is retained as the staged conformance assertion (entity_pose.mirror on a position, attitude or motion-vector difference); the three metadata reads and the wall-time cost of its round trips are unchanged",
+    "not_established": [
+      "the moving public path (no moving candidate reached on Linux or natively)",
+      "any native result for these bytes",
+      "pack, gunship, dependent-carry and every unreached writer",
+      "wrecks and persons and aircraft as collision candidates natively",
+      "physical-cohort parity for these bytes"
+    ]
+  },
+  "what_root_runs": {
+    "builds": "the Windows retail module and eech-world.exe from the source commit, ORDINARY shipping and HOSTED profiles; no Original native matrix before the one healthy probe",
+    "ordinary_short": "the ordinary shipping profile only, comparing its THREE complete output files with the preserved 80fd files",
+    "healthy_control": "eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new .jsonl> (the literal blob and SHA-256 above); the host-side modes withdrawn_record and displaced_record only after it reached"
+  },
+  "next_after_review": "a moving public path derived from the legitimate supported placement and movement sources once a moving candidate (candidate_need_updated and moving counters positive) is reached; all other D3 requirements remain required; D4/D5/TypeScript unstarted"
+}

@@ -1,0 +1,47 @@
+{
+  "runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "metadata_before_publication": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 74,
+      "sha256": "4451d6cadb89cfc2f000cd7baaf5a515c6804a2e73be47efd4604b607c15898e"
+    },
+    {
+      "path": "corrected-gate-source-binding.json",
+      "bytes": 2639,
+      "sha256": "307a91bfced8a7a60d55493438a8867bbcb3eb869c7f963588fcb35e239f2362"
+    },
+    {
+      "path": "focused-gate-status.txt",
+      "bytes": 66,
+      "sha256": "442d94d677d3fd54bef1133d14ce627ee578c8ff95b94ffcec73f9ad9f53b427"
+    },
+    {
+      "path": "original-matrix-actuals.json",
+      "bytes": 9359,
+      "sha256": "7aace59e73d21db6ce20d94fb46f8764ce5095a8b2b283d44b3d561a2ff4ce12"
+    },
+    {
+      "path": "production-checkpoint.json",
+      "bytes": 10759,
+      "sha256": "3863870445348ca69bb08586c5a54e74099754ff5f75b4cda3265ac07928b8f1"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3366,
+      "sha256": "060d8e2d54e29db538eb632f0a10f83cfe99e21fc639a97b103fb0c99fb13afd"
+    },
+    {
+      "path": "source-review.json",
+      "bytes": 15550,
+      "sha256": "0a00c32fa7d607677451385574276389c8d2b59de425ff1a733e22436a021569"
+    },
+    {
+      "path": "test-lint-checkpoint.json",
+      "bytes": 2195,
+      "sha256": "a605e1c47c1baed609f1e2147b107495ed1452740d22d6bdc011825ed25c74dc"
+    }
+  ],
+  "scope": "Corrected source and Linux validation only"
+}

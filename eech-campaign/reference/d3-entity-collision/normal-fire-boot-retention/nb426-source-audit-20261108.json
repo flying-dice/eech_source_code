@@ -1,0 +1,29 @@
+{
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "prior_raw_map_sha256": "06942bed7416a32e5385310291507ec08952ff9bcb777585829433c4b9f188e1",
+  "whole_relevant_product_build_Cargo_static_rows": 3816,
+  "product_map_sha256": "3902079c35b4ce199a4d43b8dd80b6efeaaa3a3070936299fa8b7eb2d32c5869",
+  "extra_producer_files": {
+    "eech-campaign/.cargo/config.toml": "19ecec09029c9181db4046ceef51e86fb10feadba3fb56e535e8eb6e700eafde",
+    "tools/generate_bitmap.py": "2cdb23ba3646286cd593fa1a9800d6f1458e8f3aca12055b16f6ed8b66f9d582"
+  },
+  "unchanged_prior_raw_rows": 4020,
+  "changed_prior_test_or_Lua_rows": [
+    "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+    "eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+    "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua"
+  ],
+  "artifacts": {
+    "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "73b3d2cc847f3274a28067ca79338fa47db50e7fc9181cbc10f21f9c761913aa",
+    "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "5b4deb11bae278c5d51c707d707785e4c9386f28c76c761ff46722633ac78848",
+    "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+    "eech-campaign/tools/normal_fire_capture.py": "f9919158c045e17d6e0f2871bfad8c2feecc25e14c813165c1d7d235dc918e62",
+    "eech-campaign/tools/normal_fire_capture_controller.py": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+    "eech-campaign/tools/test_normal_fire_capture.py": "1fb209e15e9d644e8ca75db8a631ba2662cf24fee1b4be62da61c7f6950bc1f9",
+    "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "eech-campaign/docs/d3-normal-fire-boot-retention.md": "89c4c87948d9fb3b3a02579dcce130f8a7c2782f258ed7e2e5f4a18838b3f128"
+  },
+  "scope": "No C/Rust product/build/Cargo/static input change. Exact2fc runtime retains its source identity and97 unchanged payloads, including unsafe unexecuted old Lua. Four corrected literals/validator/controller are separate. Accepted prior C controls reused at their original scope; retained C bytes are codec replay only."
+}

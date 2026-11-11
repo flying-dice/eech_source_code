@@ -1,0 +1,8 @@
+pf-witness-identity schema=1 mode=flags_control profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.001 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=35 attempts_group=492 attempts_set=50540 attempts_read=0 attempts_reset=35 answered_group=492 answered_set=50540 answered_read=0 answered_reset=35 accepted_group=492 accepted_set=50540 accepted_read=0 accepted_reset=35 altered=0 changed_accepted=0 keys_issued=492 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=16728 oracle_sets=50540 oracle_reads=0 oracle_resets=35 oracle_mismatches=0
+pf-witness-oracle sets=50540 reads=0 resets=35 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=group_second ordinal=4 frame=1 before_group=1 before_set=1 before_read=0 before_reset=1
+pf-witness-verdict mode=flags_control status=PASS detail=attempts group=492 set=50540 read=0 reset=35; accepted group=492 set=50540 read=0 reset=35; reads_consumable=0 consumed=0 in 35 frames

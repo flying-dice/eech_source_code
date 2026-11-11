@@ -1,0 +1,346 @@
+{
+  "controller_pid": 18788,
+  "state": "terminal",
+  "started_utc": "2026-11-08T05:41:41.248790+00:00",
+  "plan_sha256": "134284354240d9588395e95579632dafea20297b1fad2f1769a9c3fff7984f5d",
+  "controller_sha256": "5db6802740703bb05220e53eb98d864bb4c3e63f7bd54dbbbaded00a4496485d",
+  "launch_review_sha256": "070a49d7daa0701b457c89bc3b2db64ed79b8d2aac13ee8314cdb4ac8ffdf3bd",
+  "cases": [
+    {
+      "id": "georgia-ordinary",
+      "root": "D:\\EECH-Migration-Evidence\\core-crt-matched-20261108-roots\\georgia-ordinary",
+      "output": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary",
+      "stages": [
+        {
+          "stage": "pre-inputs",
+          "pid": 22508,
+          "birth_utc": "2026-11-08T05:41:41.767837+00:00",
+          "argv": [
+            "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "-I",
+            "-B",
+            "-X",
+            "utf8",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\tools\\input-manifest.py",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-20261108-roots\\georgia-ordinary",
+            "--compare",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json",
+            "--output",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\pre-inputs.json"
+          ],
+          "cwd": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary",
+          "started_utc": "2026-11-08T05:41:41.777070+00:00",
+          "state": "terminal",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-08T05:41:43.120309+00:00"
+        },
+        {
+          "stage": "native",
+          "pid": 24584,
+          "birth_utc": "2026-11-08T05:41:43.134166+00:00",
+          "argv": [
+            "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\target\\windows-supply-boolean-3abf-ordinary\\eech-world.exe",
+            "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source\\eech-campaign\\target\\windows-supply-boolean-3abf-ordinary\\lua\\campaign.lua",
+            "hours=0.001",
+            "frame_ms=100",
+            "seed=1",
+            "record=1",
+            "record_every=10",
+            "observe_every=1",
+            "observe_supply=1",
+            "root=D:/EECH-Migration-Evidence/core-crt-matched-20261108-roots/georgia-ordinary",
+            "scenario=georgia_retail",
+            "out=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/georgia-ordinary/model.jsonl",
+            "metrics=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/georgia-ordinary/metrics.json",
+            "acmi=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/georgia-ordinary/recording.acmi",
+            "observe=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/georgia-ordinary/observations.jsonl"
+          ],
+          "cwd": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary",
+          "started_utc": "2026-11-08T05:41:43.141132+00:00",
+          "state": "terminal",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-08T05:41:58.052052+00:00"
+        },
+        {
+          "stage": "post-inputs",
+          "pid": 15776,
+          "birth_utc": "2026-11-08T05:41:58.055977+00:00",
+          "argv": [
+            "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "-I",
+            "-B",
+            "-X",
+            "utf8",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\tools\\input-manifest.py",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-20261108-roots\\georgia-ordinary",
+            "--compare",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json",
+            "--output",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\post-inputs.json"
+          ],
+          "cwd": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary",
+          "started_utc": "2026-11-08T05:41:58.066610+00:00",
+          "state": "terminal",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-08T05:41:59.372695+00:00"
+        }
+      ],
+      "state": "terminal",
+      "native_actual_exit": 0,
+      "new_matched_control_files": [
+        {
+          "file": "recording.acmi",
+          "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\recording.acmi",
+          "sha256": "d5f4b57fc518d6934fb4d62eae8cb6700b1f76fa5c7ef00d53fa041ed5d7b55e",
+          "bytes": 177607
+        },
+        {
+          "file": "observations.jsonl",
+          "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\observations.jsonl",
+          "sha256": "29be8ec647181c3836511cf164707c94799ab461c78a6568d9f47917ee701975",
+          "bytes": 1196680
+        },
+        {
+          "file": "metrics.json",
+          "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-ordinary\\metrics.json",
+          "sha256": "3944fab18592a6deb5b83cd1d9b592aea04a9475a7e375ef6599cd77689dd202",
+          "bytes": 3155
+        }
+      ],
+      "actual_exit": 0,
+      "completed_utc": "2026-11-08T05:41:59.921048+00:00"
+    },
+    {
+      "id": "georgia-observer",
+      "root": "D:\\EECH-Migration-Evidence\\core-crt-matched-20261108-roots\\georgia-observer",
+      "output": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer",
+      "stages": [
+        {
+          "stage": "pre-inputs",
+          "pid": 10536,
+          "birth_utc": "2026-11-08T05:42:00.440835+00:00",
+          "argv": [
+            "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "-I",
+            "-B",
+            "-X",
+            "utf8",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\tools\\input-manifest.py",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-20261108-roots\\georgia-observer",
+            "--compare",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json",
+            "--output",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\pre-inputs.json"
+          ],
+          "cwd": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer",
+          "started_utc": "2026-11-08T05:42:00.448709+00:00",
+          "state": "terminal",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-08T05:42:01.852741+00:00"
+        },
+        {
+          "stage": "native",
+          "pid": 12868,
+          "birth_utc": "2026-11-08T05:42:02.079264+00:00",
+          "argv": [
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-build\\bin\\eech-world.exe",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-build\\bin\\lua\\core-terrain-crt-observer.lua",
+            "hours=0.001",
+            "frame_ms=100",
+            "seed=1",
+            "record=1",
+            "record_every=10",
+            "observe_every=1",
+            "observe_supply=1",
+            "root=D:/EECH-Migration-Evidence/core-crt-matched-20261108-roots/georgia-observer",
+            "scenario=georgia_retail",
+            "out=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/georgia-observer/model.jsonl",
+            "metrics=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/georgia-observer/metrics.json",
+            "acmi=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/georgia-observer/recording.acmi",
+            "observe=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/georgia-observer/observations.jsonl",
+            "campaign_lua=D:/EECH-Migration-Evidence/core-crt-observer-599958-20261108-build/bin/lua/campaign.lua",
+            "crt_out=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/georgia-observer/crt.txt"
+          ],
+          "cwd": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer",
+          "started_utc": "2026-11-08T05:42:02.089568+00:00",
+          "state": "terminal",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-08T05:42:17.456805+00:00"
+        },
+        {
+          "stage": "post-inputs",
+          "pid": 13052,
+          "birth_utc": "2026-11-08T05:42:17.468602+00:00",
+          "argv": [
+            "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "-I",
+            "-B",
+            "-X",
+            "utf8",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\tools\\input-manifest.py",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-20261108-roots\\georgia-observer",
+            "--compare",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json",
+            "--output",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\post-inputs.json"
+          ],
+          "cwd": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer",
+          "started_utc": "2026-11-08T05:42:17.477095+00:00",
+          "state": "terminal",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-08T05:42:18.787789+00:00"
+        }
+      ],
+      "state": "terminal",
+      "native_actual_exit": 0,
+      "crt_report": {
+        "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\georgia-observer\\crt.txt",
+        "sha256": "0de8d22509451b06d1f1090e8d0b9b3c5bcc2b0d76ea37bcb3f636f8185c1243",
+        "bytes": 2868
+      },
+      "complete_comparisons": [
+        {
+          "file": "recording.acmi",
+          "bytes": 177607,
+          "candidate_sha256": "d5f4b57fc518d6934fb4d62eae8cb6700b1f76fa5c7ef00d53fa041ed5d7b55e",
+          "baseline_sha256": "d5f4b57fc518d6934fb4d62eae8cb6700b1f76fa5c7ef00d53fa041ed5d7b55e",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "observations.jsonl",
+          "bytes": 1196680,
+          "candidate_sha256": "29be8ec647181c3836511cf164707c94799ab461c78a6568d9f47917ee701975",
+          "baseline_sha256": "29be8ec647181c3836511cf164707c94799ab461c78a6568d9f47917ee701975",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "metrics.json",
+          "bytes": 3155,
+          "candidate_sha256": "3944fab18592a6deb5b83cd1d9b592aea04a9475a7e375ef6599cd77689dd202",
+          "baseline_sha256": "3944fab18592a6deb5b83cd1d9b592aea04a9475a7e375ef6599cd77689dd202",
+          "complete_literal_equal": true
+        }
+      ],
+      "actual_exit": 0,
+      "completed_utc": "2026-11-08T05:42:19.302002+00:00"
+    },
+    {
+      "id": "lebanon-observer",
+      "root": "D:\\EECH-Migration-Evidence\\core-crt-matched-20261108-roots\\lebanon-observer",
+      "output": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer",
+      "stages": [
+        {
+          "stage": "pre-inputs",
+          "pid": 16920,
+          "birth_utc": "2026-11-08T05:42:19.749051+00:00",
+          "argv": [
+            "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "-I",
+            "-B",
+            "-X",
+            "utf8",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\tools\\input-manifest.py",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-20261108-roots\\lebanon-observer",
+            "--compare",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+            "--output",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\pre-inputs.json"
+          ],
+          "cwd": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer",
+          "started_utc": "2026-11-08T05:42:19.758084+00:00",
+          "state": "terminal",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-08T05:42:20.956876+00:00"
+        },
+        {
+          "stage": "native",
+          "pid": 15648,
+          "birth_utc": "2026-11-08T05:42:20.972136+00:00",
+          "argv": [
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-build\\bin\\eech-world.exe",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-build\\bin\\lua\\core-terrain-crt-observer.lua",
+            "hours=0.001",
+            "frame_ms=100",
+            "seed=1",
+            "record=1",
+            "record_every=10",
+            "observe_every=1",
+            "observe_supply=1",
+            "root=D:/EECH-Migration-Evidence/core-crt-matched-20261108-roots/lebanon-observer",
+            "scenario=lebanon_retail",
+            "out=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/lebanon-observer/model.jsonl",
+            "metrics=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/lebanon-observer/metrics.json",
+            "acmi=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/lebanon-observer/recording.acmi",
+            "observe=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/lebanon-observer/observations.jsonl",
+            "campaign_lua=D:/EECH-Migration-Evidence/core-crt-observer-599958-20261108-build/bin/lua/campaign.lua",
+            "crt_out=D:/EECH-Migration-Evidence/core-crt-matched-599958-20261108-runs/lebanon-observer/crt.txt"
+          ],
+          "cwd": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer",
+          "started_utc": "2026-11-08T05:42:20.981237+00:00",
+          "state": "terminal",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-08T05:42:40.274715+00:00"
+        },
+        {
+          "stage": "post-inputs",
+          "pid": 17660,
+          "birth_utc": "2026-11-08T05:42:40.278615+00:00",
+          "argv": [
+            "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+            "-I",
+            "-B",
+            "-X",
+            "utf8",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\tools\\input-manifest.py",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-20261108-roots\\lebanon-observer",
+            "--compare",
+            "D:\\EECH-Migration-Evidence\\core-crt-observer-599958-20261108-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+            "--output",
+            "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\post-inputs.json"
+          ],
+          "cwd": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer",
+          "started_utc": "2026-11-08T05:42:40.287408+00:00",
+          "state": "terminal",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-08T05:42:41.477825+00:00"
+        }
+      ],
+      "state": "terminal",
+      "native_actual_exit": 0,
+      "crt_report": {
+        "path": "D:\\EECH-Migration-Evidence\\core-crt-matched-599958-20261108-runs\\lebanon-observer\\crt.txt",
+        "sha256": "0215f70639e6e62d1ae7a4b3668aa4319932bfc6a947bd52b160abb273004d92",
+        "bytes": 1202
+      },
+      "complete_comparisons": [
+        {
+          "file": "recording.acmi",
+          "bytes": 230871,
+          "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "observations.jsonl",
+          "bytes": 1553674,
+          "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "complete_literal_equal": true
+        },
+        {
+          "file": "metrics.json",
+          "bytes": 7477,
+          "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "complete_literal_equal": true
+        }
+      ],
+      "actual_exit": 0,
+      "completed_utc": "2026-11-08T05:42:41.978042+00:00"
+    }
+  ],
+  "scope": "Finite Core-only CRT capture/noninvasiveness, one fixed short per map plus new Georgia ordinary counterpart. Not full trace/Host CRT/reload/loader removal/fullpack/D3 acceptance.",
+  "actual_exit": 0,
+  "completed_utc": "2026-11-08T05:42:41.978042+00:00",
+  "all_six_complete_files_literal_equal": true
+}

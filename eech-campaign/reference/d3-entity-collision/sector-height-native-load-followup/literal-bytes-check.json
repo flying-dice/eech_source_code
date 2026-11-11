@@ -1,0 +1,21 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the external records",
+  "files": {
+    "Root-height-native-load-binary-size-cause-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 1316,
+      "sha256": "3dbf5688b0f53284028600836fcfe7fc3c8e3b5ab21b4c6db611f5ca8de25b90"
+    },
+    "Root-height-native-load-restore-order-constraint-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 1597,
+      "sha256": "8a7070dedf7cd6f2634c4aadc252d709aea11300f81bfb76c932e5465c13c2b5"
+    },
+    "Root-height-native-load-reviewer-constraints-20261107.json": {
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 1076,
+      "sha256": "76343e63d669a35db3df5fb2702eb8ee79a877573cd7b1d140af407f4650d1e2"
+    }
+  },
+  "problems": []
+}

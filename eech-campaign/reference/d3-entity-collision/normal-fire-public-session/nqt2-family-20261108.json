@@ -1,0 +1,9 @@
+{
+  "family": "nqt2",
+  "source_before": "94fe4309eedddc634b37fa9294b93263866e6ea7",
+  "created": "2026-11-08T08:43:32.819388+00:00",
+  "same_task": true,
+  "prior_failed_attempt": "nq94f-final-completion-20261108.json",
+  "prior_actual_exit": 101,
+  "scope": "Profile-call spelling and explicit none/ineligible domain correction; original source/maps/readers/failures retained. No C/Windows/native changes."
+}

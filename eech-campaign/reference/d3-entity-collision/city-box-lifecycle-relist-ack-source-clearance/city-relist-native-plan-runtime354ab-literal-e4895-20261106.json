@@ -1,0 +1,85 @@
+{
+  "source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+  "metadata_commit": "90dbf29e034f09b66ae2b8ba070cd1aacbd6ce79",
+  "created_utc": "2026-11-06T23:27:33.360038+00:00",
+  "snapshot": "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-354abd9c0-20261106-source",
+  "artifacts": {
+    "build_receipt": {
+      "path": "R:\\d3-evidence\\city-lifecycle-witness-354abd9c0-windows-20261106-completion.json",
+      "sha256": "5545eaac75e35f16d7c617022b058987eef4e1b9024360c7a8642ea9ec8a78c8"
+    },
+    "source_review": {
+      "path": "R:\\d3-evidence\\independent-city-lifecycle-relist-ack-source-e4895-20261106.json",
+      "sha256": "5b5cbc95ddf9e64cc5f9545578e854aed362741269d664c966ae83507a3de628"
+    },
+    "profile_proof": {
+      "path": "R:\\d3-evidence\\city-lifecycle-windows-profile-isolation-354abd9c0-20261106.json",
+      "sha256": "be65923b0da42a76d4ba320723f9606a2009e6048afcaca811d34b8cf29df12e"
+    },
+    "World_proof": {
+      "path": "R:\\d3-evidence\\city-lifecycle-world-objects-354abd9c0-20261106.json",
+      "sha256": "481117188596479c3a2eeb7351f7434848d44e55a7b77724927fec62dc722722"
+    },
+    "input_preparation": {
+      "path": "R:\\d3-evidence\\city-relist-literal-inputs-20261106\\preparation.json",
+      "sha256": "6a5eb0540702d12cf7081683ccbfeccab19725113f7d3f7d05f7f8b8a68dc552"
+    },
+    "native_helper": {
+      "path": "R:\\d3-evidence\\run-entity-public-native-pipe-20261105.py",
+      "sha256": "3da2855f8b8b67c73d4ac0e157b40c81acdf633bdf21560daa3e588f024b0582"
+    },
+    "row_checker": {
+      "path": "R:\\d3-evidence\\validate-city-lifecycle-authority-20261106.py",
+      "sha256": "e18f2609ea317514e1d9866b0d04616b9ff9191bb1e5ac25ae0ad616e4124c2b"
+    },
+    "runtime_equivalence": {
+      "path": "R:\\d3-evidence\\city-relist-runtime-equivalence-e4895-on-354ab-20261106.json",
+      "sha256": "1a6ff7af841e352ae3a033bdd3ef1b719745fbade514d8dea5885bd89c980ae8"
+    }
+  },
+  "profiles": {
+    "ordinary": "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-354abd9c0-20261106-source\\eech-campaign\\target\\windows-city-lifecycle-witness-354abd9c0",
+    "hosted": "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-354abd9c0-20261106-source\\eech-campaign\\target\\weapon-fixture\\city-lifecycle-witness-354abd9c0",
+    "original": "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-354abd9c0-20261106-source\\eech-campaign\\target\\weapon-fixture\\city-lifecycle-witness-original-354abd9c0"
+  },
+  "roots": {
+    "city-box-lifecycle": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-354abd9c0-20261106\\city-box-lifecycle",
+    "short": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-354abd9c0-20261106\\short",
+    "healthy": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\healthy",
+    "city-box-lifecycle-missing": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\city-box-lifecycle-missing",
+    "city-box-lifecycle-changed": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\city-box-lifecycle-changed"
+  },
+  "runs": {
+    "city_box_lifecycle": {
+      "stem": "city-relist-control-runtime354ab-literal-e4895-20261106",
+      "root": "D:\\EECH-Migration-Evidence\\city-relist-literal-control-20261106-root",
+      "output": "D:\\EECH-Migration-Evidence\\city-relist-control-runtime354ab-literal-e4895-20261106",
+      "process_receipt": "R:\\d3-evidence\\city-relist-control-runtime354ab-literal-e4895-20261106-process.json",
+      "completion_receipt": "R:\\d3-evidence\\city-relist-control-runtime354ab-literal-e4895-20261106-completion.json",
+      "consumption_marker": "D:\\EECH-Migration-Evidence\\CONSUMED-city-relist-control-runtime354ab-literal-e4895-20261106.json"
+    },
+    "city_box_lifecycle_missing": {
+      "stem": "city-relist-missing-runtime354ab-literal-e4895-20261106",
+      "root": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\city-box-lifecycle-missing",
+      "output": "D:\\EECH-Migration-Evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106",
+      "process_receipt": "R:\\d3-evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106-process.json",
+      "completion_receipt": "R:\\d3-evidence\\city-relist-missing-runtime354ab-literal-e4895-20261106-completion.json",
+      "consumption_marker": "D:\\EECH-Migration-Evidence\\CONSUMED-city-relist-missing-runtime354ab-literal-e4895-20261106.json"
+    },
+    "city_box_lifecycle_changed": {
+      "stem": "city-relist-changed-runtime354ab-literal-e4895-20261106",
+      "root": "D:\\EECH-Migration-Evidence\\city-lifecycle-native-roots-215a8f738-20261106\\city-box-lifecycle-changed",
+      "output": "D:\\EECH-Migration-Evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106",
+      "process_receipt": "R:\\d3-evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106-process.json",
+      "completion_receipt": "R:\\d3-evidence\\city-relist-changed-runtime354ab-literal-e4895-20261106-completion.json",
+      "consumption_marker": "D:\\EECH-Migration-Evidence\\CONSUMED-city-relist-changed-runtime354ab-literal-e4895-20261106.json"
+    }
+  },
+  "scope": "Source-cleared diagnostic literal e4895 on sealed unchanged runtime354ab. Fresh control FIRST, then exactly2 matched negatives. Historical failures untouched; no wholeD3 or shipping acceptance.",
+  "diagnostic_literal": {
+    "path": "R:\\d3-evidence\\city-relist-ack-e4895c121-literal.lua",
+    "source": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+    "git_blob": "3591429759763d9ed3a2216790402c2d5e9e0c09",
+    "sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "controller_pid": 21300,
+  "state": "terminal",
+  "started_utc": "2026-11-07T22:46:16.242479+00:00",
+  "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt -p eech-engine -p eech-engine-sys",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-physical-flags-sb120-linux-20261107.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "rustup component add rustfmt && cargo fmt --version && cargo fmt -p eech-engine -p eech-engine-sys"
+  ],
+  "scope": "Working-tree check in the sole leased volume eech-linux-d3-physical-flags-9d247-20261107, image sha256:9d247b4e... named, never substituted.",
+  "pid": 19092,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T22:46:19.450196+00:00"
+}

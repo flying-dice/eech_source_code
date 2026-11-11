@@ -1,0 +1,67 @@
+{
+  "created_utc": "2026-11-06T21:57:17.812263+00:00",
+  "source": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+  "metadata_commit": "12698d05b1a3441b23a31a4927f24a4fa65972a4",
+  "final_pre_g_to_Root_post_terminal_per_path_hashes_and_sizes_identical": true,
+  "full_input_count": 3954,
+  "inherited_raw_vs_Git_exceptions": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "all_two_changed_raw_equal_Git": true,
+  "changed_paths": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "sha256": "1ab11670dc508d4570c5043642481627dc6accc7a3e4609d379828bc02aeebbb",
+      "bytes": 253777
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "sha256": "0dfb4a05a9aa0ae3be1afc8b9d687f460ece97065eb9fb3b57172e764e79c649",
+      "bytes": 350145
+    }
+  ],
+  "pre_g_map": {
+    "path": "R:\\d3-evidence\\city-box-lifecycle-20261106\\identity\\identity-inputmap-after.json",
+    "sha256": "55f2816626253961609274bc8ebe041a4cc7ca16cd6cbaa8ac773e6f2c801f7f"
+  },
+  "Root_post_terminal_map": {
+    "path": "R:\\d3-evidence\\city-lifecycle-215a-Root-postterminal-inputmap-20261106.json",
+    "sha256": "44658411c735190321fb95acf0fb909eee9aea89245492d2cdf3c8fd53698c95",
+    "inputmap_actual_exit": 0
+  },
+  "raw_driver_command_ordering": "cd /r/d3-evidence; PY=/c/Users/starscream/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe; R=\"$PY -I -B -X utf8 run-city-box-lifecycle-direct-20261106.py\"; D=city-box-lifecycle-20261106; I=$D/identity\nmv $I/identity-inputmap-after.json $I/identity-inputmap-after-prefmt.json; mv $I/identity-inputmap-after.stdout.log $I/identity-inputmap-after-prefmt.stdout.log; mv $I/identity-inputmap-after.stderr.log $I/identity-inputmap-after-prefmt.stderr.log\n$PY -I -B -X utf8 sector-roster-inputmap-batched-20261106.py R:/d3-evidence/collision-characterization-20261029 R:/d3-evidence/$I/identity-inputmap-after.json HEAD > $I/identity-inputmap-after.stdout.log 2> $I/identity-inputmap-after.stderr.log; echo map=$?\nsha256sum $I/identity-inputmap-*.json\n$R identity-g-fmt-world 'cargo fmt -p eech-world -- --check' >/dev/null 2>&1; echo fmt=$?\n$R identity-g-clippy-world 'cargo clippy --locked --all-targets -p eech-world -- -D warnings' >/dev/null 2>&1; echo clippy=$?\n$R identity-g-test-world 'cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test city_box_lifecycle' >/dev/null 2>&1; echo test=$?\ngrep -a \"test result\" $D/city-box-lifecycle-identity-g-test-world.stdout.log",
+  "raw_controller_stream_sha256": "4053c9128395ffb60e35b8f2fa755b593b37449d9f51af36116b371b5681cd39",
+  "chronology_erratum": "Frozen report calls identity-inputmap-after after_final_checks; actual sequential command captures it after fmt-apply BEFORE all3 identity-g checks. This is final PRE-g. Root independent post-terminal map now supplies actual post-check boundary. Parent baseline-before differs in2intended files; full map JSON headers differ by reference HEAD and are not called literal identical. No test/C/native rerun.",
+  "final_checks": [
+    {
+      "path": "R:\\d3-evidence\\city-box-lifecycle-20261106\\city-box-lifecycle-identity-g-fmt-world.json",
+      "sha256": "1321e15d4d53f157bad5e054f6c621367a8475b7ace69b09fc68126e9312d25a",
+      "started_utc": "2026-11-06T21:51:36.397144+00:00",
+      "completed_utc": "2026-11-06T21:51:39.772613+00:00",
+      "actual_exit": 0
+    },
+    {
+      "path": "R:\\d3-evidence\\city-box-lifecycle-20261106\\city-box-lifecycle-identity-g-clippy-world.json",
+      "sha256": "cdee739a7882c94a1b65771ed1c441941ea0077e31a72b04cd093e110e327c00",
+      "started_utc": "2026-11-06T21:51:39.876060+00:00",
+      "completed_utc": "2026-11-06T21:51:41.762016+00:00",
+      "actual_exit": 0
+    },
+    {
+      "path": "R:\\d3-evidence\\city-box-lifecycle-20261106\\city-box-lifecycle-identity-g-test-world.json",
+      "sha256": "78031f2924c94df65ea3271bc9997f11976da632b56eb31e4d5648825771d92a",
+      "started_utc": "2026-11-06T21:51:41.860371+00:00",
+      "completed_utc": "2026-11-06T21:51:44.569944+00:00",
+      "actual_exit": 0
+    }
+  ],
+  "metadata_literal_files_including_manifest": 37,
+  "listed_files": 36,
+  "metadata_source_inputs_unchanged": true,
+  "producer_actual_exit": 0,
+  "producer_result_is_error": false,
+  "scope": "Source/raw/check chronology and literal metadata evidence only; source reviewer must grant conditional build/native clearance. No native/40all8/CITY/Task49/D3 acceptance.",
+  "native_launch_clearance": false
+}

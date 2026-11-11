@@ -1,0 +1,100 @@
+{
+  "scope": "Literal SOURCE/frozen/profile/complete-short and FINITE real city-list dependency evidence. No wholephysical/naturalmoving/fullpack/Task49/D3 acceptance.",
+  "files": [
+    {
+      "path": "city-building-backing-CODE-FROZEN-20261106.json",
+      "bytes": 46094,
+      "sha256": "ac7f855a27775f29083c0e98e02adc706849a76429afdd475571bd5b14f09848"
+    },
+    {
+      "path": "city-building-corrections-CODE-FROZEN-20261106.json",
+      "bytes": 56900,
+      "sha256": "e8a79549b488beaec861445868ad9a420e3dba3782a155ad8db830e287399401"
+    },
+    {
+      "path": "city-building-residuals-CODE-FROZEN-20261106.json",
+      "bytes": 36715,
+      "sha256": "52a90529b87379fe9c1a770e833d3487e6b1f01431605d97addfd29c6f836236"
+    },
+    {
+      "path": "independent-city-building-early-review-20261106.json",
+      "bytes": 4258,
+      "sha256": "979d6ea691281ae1d236904e064dad0766e6a9f67f2842a7e996b2206f5e87f3"
+    },
+    {
+      "path": "independent-city-building-source-findings-254-20261106.json",
+      "bytes": 7690,
+      "sha256": "bd383042af5cbb83014fb787510ba024f6bd568c2c1e579d832b675dc0ceeef7"
+    },
+    {
+      "path": "independent-city-building-backing-source-2541843-20261106.json",
+      "bytes": 19772,
+      "sha256": "0d9a7a255c0a81cd1a4638999b9c4333ca3144471766bff927f9b009bbf2f67d"
+    },
+    {
+      "path": "independent-city-building-correction-findings-168-20261106.json",
+      "bytes": 5539,
+      "sha256": "2e2e131a3abc7587eecec7f35d9ff4d1bec77e354bc1adfd3d4428730bd3a13b"
+    },
+    {
+      "path": "independent-city-building-corrected-source-1687431-20261106.json",
+      "bytes": 18686,
+      "sha256": "d92d877a670fac6861b1c0b6d51acb14fd93916fb722e679928f59baf59bb259"
+    },
+    {
+      "path": "independent-city-building-residual-source-76fb-20261106.json",
+      "bytes": 15356,
+      "sha256": "a049a1baf9104dad1f29d357dfb499d544427dd56be0399bf2b0a5cbdaeb4ae9"
+    },
+    {
+      "path": "CITY-BUILDING-EARLY-REVIEW-20261106.txt",
+      "bytes": 2350,
+      "sha256": "3850e4da2e3042b84406e5a80dc08523a96496a22eb4fcf6d3805a0d908dc950"
+    },
+    {
+      "path": "city-76fb-frozen-gates-20261106-completion.json",
+      "bytes": 4377,
+      "sha256": "da47db88dbbb75692f88d314869a70b277ff29ab49f5979fc22ee5ce7e922bc4"
+    },
+    {
+      "path": "city-source-review-default-prefix-3475-20261106.json",
+      "bytes": 1438,
+      "sha256": "f7ecdb0edf762d69a4d8b9bbbb4c42cdc15da85c258fd43a4930f4cf40c12575"
+    },
+    {
+      "path": "independent-city-building-backing-actuals-76fb-20261106.json",
+      "bytes": 16280,
+      "sha256": "56845d764b575f436224b2085024510aaa539f23c1085929a1267a71b17d529a"
+    },
+    {
+      "path": "city-safe-actual-facts-76fb-20261106.json",
+      "bytes": 3745,
+      "sha256": "bdd0b303f61885a3893f9f25eeaeafd658bb95fed5e2196f88e34607b8efa835"
+    },
+    {
+      "path": "city-final-frozen-binding-76fb-20261106.json",
+      "bytes": 959,
+      "sha256": "79765ed91d7cf96fd4d8f50930e9254db399645782c6f3b28a133dc5a269d860"
+    },
+    {
+      "path": "city-windows-profile-isolation-76fb-20261106.json",
+      "bytes": 6235,
+      "sha256": "0e1460f8f694109286b2bb70240c91c8823d72c59a8324ab045dfee185ac4cae"
+    },
+    {
+      "path": "city-ordinary-short-comparison-76fb-20261106.json",
+      "bytes": 1739,
+      "sha256": "c108048f015a17e46381806d580e97e1db19cc1f3e76ae3f8a473fac1ef23d0d"
+    },
+    {
+      "path": "cleanup-closed-city-76fb-windows-cache-20261106.json",
+      "bytes": 687,
+      "sha256": "6254ee6a580c6ea3af318cd052341bead7352e9394a77615db60af3710af6e69"
+    },
+    {
+      "path": "ledger-city-source-clear-short-v159-preservation-20261106.json",
+      "bytes": 207,
+      "sha256": "baee385a554201fda227af002531ff45ad1048abb29f40269404f49c82e51893"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "ledger": {
+    "page": "14548994",
+    "snapshot": "v:186",
+    "entire_previous_body_literal_prefix": true,
+    "previous_characters": 524732,
+    "all_five_macro_parameters_literal": true,
+    "new_section_readback_equal_ignoring_generated_new_local_ids": true
+  },
+  "jira": {
+    "issue": "EEDCS-49",
+    "comment": "11021",
+    "exact_readback": true,
+    "entire_previous_body_preserved": true
+  },
+  "PR": {
+    "number": 109,
+    "head": "7b9854f5c693668a9444fc4c42dc8cda23c0aaf2",
+    "base": "84775522f9eb9c7182ff89f75387115b9e3883fd",
+    "open": "open",
+    "draft": true,
+    "expected_body_literal_prefix": true,
+    "connector_appended_tail": ""
+  },
+  "scope": "Source closure73bec and concrete0573 finite native clearance; positiveOriginal/control actualPASS, remaining refusal plan running/readcasesunreached. No genericnative/fullshipping/Task49/D3 acceptance."
+}

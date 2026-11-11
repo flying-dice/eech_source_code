@@ -1,0 +1,511 @@
+{
+ "schema": 1,
+ "kind": "sector-roster-CODE-FROZEN",
+ "written_utc": "2026-11-06T01:15:09.281821+00:00",
+ "lane": "Sonnet 5.5 High implementation lane, Task49/PR109 (EEDCS-21/EEDCS-49)",
+ "status": "UNREVIEWED CODE_FROZEN; focused Linux checks only. Not a Task49, D3, native, ordinary or full-pack acceptance, not a native clearance.",
+ "branch": "codex/d3-object-tree-collision",
+ "worktree": "R:/d3-evidence/collision-characterization-20261029",
+ "codeSHA": "7bec89e45a9e45f14c76e0cf3f5d1bb001809f94",
+ "directParentSHA": "9ba396da9dad49bd68cef1249c45499389d6b49b",
+ "metadataSHA": "64d4bc899f4baeb4aa8566aeff210f9f448209bb",
+ "metadataParentSHA": "7bec89e45a9e45f14c76e0cf3f5d1bb001809f94",
+ "metadata_only_files_over_code": [
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json"
+ ],
+ "pushed": "normal push, no force; origin/codex/d3-object-tree-collision == metadataSHA at the time of writing",
+ "baseline_for_characterization": "9ba396da9dad49bd68cef1249c45499389d6b49b (the head that carried the closed finite configured-input query authority; compiled/frozen 3475fb93b pack untouched)",
+ "what_moved_to_the_host": [
+  "Which entities stand in each sector and in what order a scan visits them (membership and insertion history): the host holds it (eech-world/src/roster.rs SectorRoster, served by model_host.rs entity_scan_answer/roster_event). A key is issued per insertion and never reused; a relink is a removal plus a new insertion with a new sequence number (tail-first = oldest first).",
+  "The sector of an entity is decided by the host: a hosted mobile from its own ONE canonical Movers record (the stated position is only compared; mismatch is a named [roster.pose] refusal), every other entity from the position the campaign states at the insertion (only the sector and sequence are kept, no coordinate, no second pose).",
+  "The scan entry is served by the host key: FIRST (oldest of the named sector), NEXT (the entry after the one the campaign is standing at, named in the identity place). The real Core sector list is only the conformance mirror: entity_scan.roster_mirror (disagreement), entity_scan.roster_key (key names no entity), entity_scan.key (malformed key / key on a state that serves none), [roster.key] (ended/unknown/misplaced), [roster.missing] (no roster); never an end, a miss or a fallback.",
+  "The campaign reports every sector-list write through the existing funnel (en_list.c insert/delete hooks), heap release (set_free_entity) and boot (campaign_place_reset). Transport: the existing ENTITY_SCAN question (phases 4 INSERT, 5 REMOVE, 6 RESET; identity place carries a hosted mobile identity or the key; the reply name carries the key); engine/dc/sys layers carry identity and key."
+ ],
+ "still_core_or_required": [
+  "tallest-structure height of a sector; city building (LIST_TYPE_CITY_BUILDING) child lists and first-hit order inside a city",
+  "every entity shape, collision flags, live flags (UPDATED getter, terrain normal), static pose of fixed entities",
+  "structure semantic IDs: still issued lazily by campaign_object_identify exactly as before and NOT linked to the placement key (two host-issued names for a structure, no mapping in the host)",
+  "exclusion of the source/target comparison; Core sector lists as conformance mirror; LINK/UNLINK campaign bookkeeping unchanged",
+  "whole-world physical backing, raw tree/forest/cloud RNG, hierarchy/sub-objects/devices/muzzles/rotor/smoke, remaining physical DLL services, DCS needed-only mapping, natural weapon integration, complete Task49 (40/all8, CI, review, normal merge) and all ten D3 requirements"
+ ],
+ "source_contract_and_writer_coverage": {
+  "funnel_exclusivity": "tests/entity_roster_guard.rs walks every .c/.h under aphavoc/source (block comments excluded) and requires every use of LIST_TYPE_SECTOR (token-exact) outside en_list.c to be: insert_local_entity_into_parents_child_list with a NULL predecessor, delete_local_entity_from_parents_child_list, a getter, remove_mobile_values_from_sector, ENTITY_ATTR_PARENT (only ai/faction/popread.c city creation, whose creator ct_creat.c inserts through the funnel), unlink_local_entity_children (only sector/sc_dstry.c), the sector message handlers, the en_list accessor dispatch tables, or the enumerator. unpack_list_link/root never name the sector list (only SECTOR_TASK etc.). Counts: >=35 insertions and >=25 deletions exist in source.",
+  "writers_joined": "creators cb/ct/cr/ob/py/sn/sg/st/su fixed, fw/hc/aa/ps/rv/sh/cg/wn mobile, xp/pa/sl/sp effects, ks keysite; live unpack inserts in cr/fw/hc(2)/cg/ps/rv/sh/wn/xp/pa/sl/sp _pack.c (ob_pack insert is in a block comment); relinks mb_vec3d/vh_vec3d/ac_vec3d/fx_vec3d/wn_vec3d/ef_vec3d; destroyers *_dstry.c; set_free_entity release; sc_dstry unlink. All reach the one funnel; none is refused for being uncharacterized.",
+  "order": "every sector insertion has a NULL predecessor (head), so the tail is the oldest and the host sequence order equals the Core tail-first order; relink = remove then insert at head. Hosted mobiles are bound (member link) before their sector insert in all six creators (existing guard).",
+  "bind_is_not_insert": "the roster event is the sector insertion in the funnel, not bind; bind still seeds the Movers record only.",
+  "gate_A": "resolved from source (eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/compare_complete_packs.py): the comparator digests exactly eight files, reference/run1 and run2 recording.acmi, observations.jsonl and metrics.json plus regress/georgia_retail.json and regress/lebanon_retail.json, against the accepted PASS report of 40 checks; model-channel question/answer transcripts are not among them, and the ordinary build compiles no model-host fixture counters. The roster adds no new operation (the existing ENTITY_SCAN question carries the events). Whether those eight files stay byte-equal is decided by the native ordinary run, not claimed here.",
+  "gate_B": "source-read of movement.rs record writes: staged infantry/helicopter/crash/death phases keep candidate positions in outcome/pending state and write record.pose.position only at their settle/end phase (2712, 2761, 2962, 3036, 3065, 3156, 3237) whose outcome is the pose Core applies; dependent carry (2374/2390) is applied by Core in the apply window. Campaign-owned pose writes outside the apply window (campaign_movement_place) used to follow the relink: vh_vec3d.c/ac_vec3d.c now place BEFORE the insert on the relink branch (one placement, guarded by placed). No counterexample found; only a native run can falsify (it would show a named [roster.pose] refusal).",
+  "gate_C_boot_cost": "one model-channel call per sector insertion and removal; not batched, order preserved; native cost unmeasured.",
+  "lazy_report_ids": "unchanged: no eager eech-world:object:{k} allocation; mobiles keep eech-world:{n}.",
+  "zero_flag_families": "not excluded: every sector-list entity (including weapons, cargo, effects, keysites, Person) is placed, so no smaller-roster claim is needed."
+ },
+ "tests_and_evidence": {
+  "runner": "R:/d3-evidence/sector-roster-20261105/run.sh (WSL EECH-D2-Build via check-pose-motion-diag-linux-20261105.sh, image sha256:4a5618cb..., cache eech-linux-d3-collision-driver-5416adb3b-20261029, single owner, nothing else running). run.sh escapes $ because wsl.exe expanded $? and $(...) in the early logs: b2/c3/c4/c5/c6 echoed exits are NOT child exits (only their test result lines are evidence); c7 onwards, r1, f*, m*, z* use the corrected runner.",
+  "baseline_9ba396da9": {
+   "b1-baseline-check.log": "cargo check --release --locked of the four crates: wrapper exit 0 (single command, status propagated)",
+   "b2-baseline-dialogue-authority.log": "dialogue test passed, entity_authority 53 passed, entity_candidate_host 13 passed (echoed exits unreliable, see runner note); the baseline expectation count was not captured"
+  },
+  "RED": {
+   "r1-red-core-authority.log": "mutation control: mb_hostscan.h campaign_scan_served made to return the Core list (host key ignored) -> dialogue_exit=101, FAIL lines 1864/1866/1868/1875: roster_mirror (served head vs tail, served end vs entries, served entry on an empty list) and roster_key (unknown key). Header restored byte-identical (mutation/before.sha == mutation/after.sha 368adfed...). This is a control over the new authority rule, not a pre-change failure of a defect.",
+   "note": "no manufactured red for the pure moves; the host/roster tests and guards are new capability contracts that do not compile or run against the old source (module/operation absent), which is a missing capability, not a measured red."
+  },
+  "GREEN_frozen_tree_7bec89e45": {
+   "z1-check.log": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world: check_exit=0",
+   "z2-fmt.log": "cargo fmt -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world -- --check: fmt_exit=0 (fmt had been applied once before the freeze: f1 failed on the new test files, f2 applied it, exit 0)",
+   "z3-sys.log": "sys_exit=0: entity_dialogue 439 expectations (real mb_hostscan.h/mb_hostentity.h/mb_hostplacemap.h) 1 passed; entity_host_guard 5; entity_pose_lifecycle_guard 4; entity_roster_guard 5",
+   "z4-world.log": "world_exit=0: entity_roster_host 7, entity_authority 53, entity_candidate_host 13, entity_collision_host 9, entity_pose_host 5, host_callbacks 82",
+   "z5-libs.log": "libs_exit=0: eech-dc 65, eech-engine 117, eech-world 356"
+  },
+  "earlier_failures_kept": {
+   "c1-check.log": "cargo check exit 101: my C message strings had lost their escaped quotes (invalid suffix \"s\"); fixed",
+   "c6-dialogue.log": "one wrong expectation of mine (second insertion key) failed the dialogue; fixed in c7",
+   "c9/c10-rguard.log": "the funnel guard first reported legitimate non-writes (tables, enumerator, popread ENTITY_ATTR_PARENT, sc_dstry unlink, the SECTOR_TASK/FRONTLINE names); the allowed forms were made explicit, none hidden"
+  },
+  "no_strict_clippy": "strict clippy, the full feature matrix, workspace/all-targets, the full eech-world suite, Windows, native and the full war were NOT run (Root selects them)."
+ },
+ "input_maps": {
+  "before": {
+   "file": "sector-roster-20261105/inputmap-before.json",
+   "head_sha": "7bec89e45a9e45f14c76e0cf3f5d1bb001809f94",
+   "file_count": 3952,
+   "fingerprint_raw_sha256_map": "8117c486647335d07d87dd11ad01e1c3bed3f0c6ad02c6af23c986ff203f952c"
+  },
+  "after": {
+   "file": "sector-roster-20261105/inputmap-after.json",
+   "head_sha": "7bec89e45a9e45f14c76e0cf3f5d1bb001809f94",
+   "file_count": 3952,
+   "fingerprint_raw_sha256_map": "8117c486647335d07d87dd11ad01e1c3bed3f0c6ad02c6af23c986ff203f952c"
+  },
+  "identical_before_after": true,
+  "git_status_before_after": "both empty (clean tree) at 7bec89e45",
+  "scope": "every tracked or untracked file under aphavoc/source, modules, eech-campaign/Cargo.toml, Cargo.lock, rust-toolchain.toml and crates eech-engine-sys, eech-engine, eech-dc, eech-world (raw SHA-256 per file, Git blob identity of the raw bytes, the HEAD blob and byte equality)",
+  "raw_vs_git_qualification": {
+   "unchanged_files_raw_bytes_differ_from_blob_bytes": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+   ],
+   "unchanged_files_where_git_clean_filter_would_rewrite_identity": [
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+   ],
+   "meaning": "pre-existing CRLF files (retail-era headers, the nedmalloc sources, three tree-geometry Lua controls) are NOT normalised; none is a file changed by this commit; the first before-map labelled four of them changed_from_head because the tool compared Git-filtered ids, which the tool then corrected (the before JSON is kept literally, its raw SHA-256 map is what is compared)."
+  }
+ },
+ "changed_files_git_byte_join": [
+  {
+   "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+   "status": "M",
+   "parent_blob": "04afeb8a0713a03bb2c65927fe85f7881e518e00",
+   "code_blob": "aeea6a2ea057362fb00d17587b0abb76f75b964d",
+   "raw_worktree_sha256": "a9a334f162526b2af1af0aaa8b81da2a045bb453570c02fd5be6d8248e4250da",
+   "committed_blob_bytes_sha256": "a9a334f162526b2af1af0aaa8b81da2a045bb453570c02fd5be6d8248e4250da",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/aircraft/ac_vec3d.c",
+   "status": "M",
+   "parent_blob": "c225962f330e1f234824d6eba07bc95178b03647",
+   "code_blob": "fa08e74836f9487d0d155dedd939ae0d684bce77",
+   "raw_worktree_sha256": "4055fc97af4b4cbdf411ea9dfa536f818fc284d170c83ffeec89b808a24bf447",
+   "committed_blob_bytes_sha256": "4055fc97af4b4cbdf411ea9dfa536f818fc284d170c83ffeec89b808a24bf447",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+   "status": "M",
+   "parent_blob": "d79e3f64e2962ed14537a5acdaca7232c4e8dddf",
+   "code_blob": "63c220c4d42d97e56dc501415bc393240e65ee61",
+   "raw_worktree_sha256": "ddca556d77ab94b01fbd74e4401198c6fd544f463b7631f35e27ec2fddf52b44",
+   "committed_blob_bytes_sha256": "ddca556d77ab94b01fbd74e4401198c6fd544f463b7631f35e27ec2fddf52b44",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+   "status": "M",
+   "parent_blob": "41425762b9aaef3d4053b03837be0862408960fb",
+   "code_blob": "e3166bc5d73f4b87a98bfcf1d07db02a28fc7481",
+   "raw_worktree_sha256": "dfa83e4eabeaf1b1afed91c4a6d5c04750877a1b0cca3b2a2153961b67e04bbd",
+   "committed_blob_bytes_sha256": "dfa83e4eabeaf1b1afed91c4a6d5c04750877a1b0cca3b2a2153961b67e04bbd",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+   "status": "M",
+   "parent_blob": "1b1242c6e2c727bad55c2d99eaed43e10abfcf21",
+   "code_blob": "54a0ec00514e6091c3f5da2ae0dcb9e0d03b3d8a",
+   "raw_worktree_sha256": "16d625b8d0cee340db27f298b6485a26376bff6a9c119f7b4a24ac22e4e3ddef",
+   "committed_blob_bytes_sha256": "16d625b8d0cee340db27f298b6485a26376bff6a9c119f7b4a24ac22e4e3ddef",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostplace.c",
+   "status": "A",
+   "parent_blob": null,
+   "code_blob": "5125b74726994edeb2b616b597eb1281c4cb7c3a",
+   "raw_worktree_sha256": "fde7c04f8bdfdeab105258ec0d4e1a503c43132cdac995f4377f24c196c211be",
+   "committed_blob_bytes_sha256": "fde7c04f8bdfdeab105258ec0d4e1a503c43132cdac995f4377f24c196c211be",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostplace.h",
+   "status": "A",
+   "parent_blob": null,
+   "code_blob": "5ad2e3ebdeef02e18c06bb131a2f6bc3c21fac50",
+   "raw_worktree_sha256": "d60d57512834ed4bc8ed4d50549388730613ddd3edad9d4e0bbed246f7d34f0d",
+   "committed_blob_bytes_sha256": "d60d57512834ed4bc8ed4d50549388730613ddd3edad9d4e0bbed246f7d34f0d",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+   "status": "A",
+   "parent_blob": null,
+   "code_blob": "ae1be9eb8d1e425a5a447958254eb898edf68e91",
+   "raw_worktree_sha256": "92b9dea3a61459769606735439dfeee192455c359557fa832f2e19645d291221",
+   "committed_blob_bytes_sha256": "92b9dea3a61459769606735439dfeee192455c359557fa832f2e19645d291221",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostscan.h",
+   "status": "M",
+   "parent_blob": "8f36332382fb27f08bb11d827c7b18ccf59af8d3",
+   "code_blob": "9ef5755130dc8e047e8308304873c9d8e47accf3",
+   "raw_worktree_sha256": "368adfed628ebfe64010ce0257779a75f415ef565bd6cd4ab82714db565d8d26",
+   "committed_blob_bytes_sha256": "368adfed628ebfe64010ce0257779a75f415ef565bd6cd4ab82714db565d8d26",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/mobile/vehicle/vh_vec3d.c",
+   "status": "M",
+   "parent_blob": "4766ef48c2fe31fcc92df59380f1a45c45e89901",
+   "code_blob": "cd7799570e5941a3b8d9cc68aed1a7d56c0c966a",
+   "raw_worktree_sha256": "f679141097d815ecfd60cbcfb9cc3ea203e0b304c3f4a0b244af1817fc371d05",
+   "committed_blob_bytes_sha256": "f679141097d815ecfd60cbcfb9cc3ea203e0b304c3f4a0b244af1817fc371d05",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/special/group/gp_roster.c",
+   "status": "M",
+   "parent_blob": "7d05369ff71945cf897b7c5f1ec106788ab0f6e5",
+   "code_blob": "04144f8fa708fe870f8967ae98a283fa08f44348",
+   "raw_worktree_sha256": "f3cd8052561b6130d82685dff49f102628a4113179e7cde8709809429fb561ef",
+   "committed_blob_bytes_sha256": "f3cd8052561b6130d82685dff49f102628a4113179e7cde8709809429fb561ef",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/system/en_funcs/en_list.c",
+   "status": "M",
+   "parent_blob": "1d28e160ac014eed11c5c86c72a2b421064c55c4",
+   "code_blob": "4855aa0c69be2a43cb4335edfcc3fb09cdc96958",
+   "raw_worktree_sha256": "936c5004333982819e1a65fef97a80bf20b0d614c483c3c68cf96bc552f45166",
+   "committed_blob_bytes_sha256": "936c5004333982819e1a65fef97a80bf20b0d614c483c3c68cf96bc552f45166",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "aphavoc/source/entity/system/en_main/en_heap.c",
+   "status": "M",
+   "parent_blob": "52cf45ae10f1f36be2e5af6d7f11bc400359c56c",
+   "code_blob": "e222cccf675a0b945bdd0f1ca1b79acf21aa9e4c",
+   "raw_worktree_sha256": "328b94b5d494bb9b8200b583924f4cfb8f92c44160b5976410b9107dfe4d67d4",
+   "committed_blob_bytes_sha256": "328b94b5d494bb9b8200b583924f4cfb8f92c44160b5976410b9107dfe4d67d4",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-dc/src/module.rs",
+   "status": "M",
+   "parent_blob": "22a75a87397083ef30c0ade674c5425a62ba7959",
+   "code_blob": "6b6acf20d5b772bcfe899e91572cf9fc8c249d0a",
+   "raw_worktree_sha256": "a867c4ec401363bef018e969669cca40d66723bf880362ad22e808c6cc3a76ea",
+   "committed_blob_bytes_sha256": "a867c4ec401363bef018e969669cca40d66723bf880362ad22e808c6cc3a76ea",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+   "status": "M",
+   "parent_blob": "a794d90ebbff7707e13dfb040d979f9d279ae1db",
+   "code_blob": "61980467e4e41977ddf75862373c2ce691a6977a",
+   "raw_worktree_sha256": "9bba39834c4fd3ed9a7b25881dbe782c6a9e835d769942adfe29507cb47853f4",
+   "committed_blob_bytes_sha256": "9bba39834c4fd3ed9a7b25881dbe782c6a9e835d769942adfe29507cb47853f4",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+   "status": "M",
+   "parent_blob": "70845fe0b2c55f3e32d209a6bd914686681a4e60",
+   "code_blob": "b8c431d02d472d7215e82dc0ae8690b8116e9c7f",
+   "raw_worktree_sha256": "ff3836dc4026d5f273d32d47b815aebcf68dcf18fa4deccce57c9f34621c6dd9",
+   "committed_blob_bytes_sha256": "ff3836dc4026d5f273d32d47b815aebcf68dcf18fa4deccce57c9f34621c6dd9",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/sources.txt",
+   "status": "M",
+   "parent_blob": "9bd0eda264e3a5fdd8648d2d26607ad325ecf5cf",
+   "code_blob": "80a34c950d46f2346680363bc0dc6825ed2d29e0",
+   "raw_worktree_sha256": "212ea8d6bad9e78999ec2baecb65694def76aaa52c355cff6f7764050b5b6cb8",
+   "committed_blob_bytes_sha256": "212ea8d6bad9e78999ec2baecb65694def76aaa52c355cff6f7764050b5b6cb8",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+   "status": "M",
+   "parent_blob": "b2cb96866591bd3acae7d4e5c7a7806cdf1e399c",
+   "code_blob": "55ba0ae6719098cb18d2c0d3b9392af0a2c61c9c",
+   "raw_worktree_sha256": "54c406eb9a9a79d7e6e830a300fb3947be60e93667e523ae9ba2c0bbb2c0eda4",
+   "committed_blob_bytes_sha256": "54c406eb9a9a79d7e6e830a300fb3947be60e93667e523ae9ba2c0bbb2c0eda4",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+   "status": "M",
+   "parent_blob": "e9737dd70ab77cb8e2d48e0170ec6d40cd5a49ab",
+   "code_blob": "1f4e94faf16c4b29bb8d4b200433d61ed7be0a16",
+   "raw_worktree_sha256": "633b43094d1654eae8070f05bcde773679d4ad3746b45a665cdb9a38333c1b1f",
+   "committed_blob_bytes_sha256": "633b43094d1654eae8070f05bcde773679d4ad3746b45a665cdb9a38333c1b1f",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+   "status": "A",
+   "parent_blob": null,
+   "code_blob": "d145c74f7a22da2cbb1918e6c73230ef2c70d755",
+   "raw_worktree_sha256": "27439815cd50e8d6e1d839d96d201a1caec0760d698c80b562876330b28e7200",
+   "committed_blob_bytes_sha256": "27439815cd50e8d6e1d839d96d201a1caec0760d698c80b562876330b28e7200",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+   "status": "M",
+   "parent_blob": "deb19e9686ac27d0ec0406d6cf532243394d18e0",
+   "code_blob": "5e18c536281f08e4e0622f4b971b6f34ba68bcbe",
+   "raw_worktree_sha256": "a9d7b675a7cd457a20f14f05245e9e76cb568193e745d3d3ff13832a11f94fad",
+   "committed_blob_bytes_sha256": "a9d7b675a7cd457a20f14f05245e9e76cb568193e745d3d3ff13832a11f94fad",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/csrc/entity_scan_step.c",
+   "status": "M",
+   "parent_blob": "e2127a7589219799be7ae7dbf9c6fdbc2e65026c",
+   "code_blob": "9d6cebdf90a0847e8b624db18a3b06d963339a3c",
+   "raw_worktree_sha256": "b0116f88a4381780b6fffb008b0095a0a16826b4a9a4df824ac17e7a2ed26445",
+   "committed_blob_bytes_sha256": "b0116f88a4381780b6fffb008b0095a0a16826b4a9a4df824ac17e7a2ed26445",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+   "status": "M",
+   "parent_blob": "77aa5762696d374a9979ee138054378e2bfc933d",
+   "code_blob": "c309afd93d272a9564c029313fbdeae75c1988c7",
+   "raw_worktree_sha256": "4d5cd35409392eac239af90426364c37590ddb55523da8701a7afda45ff74eed",
+   "committed_blob_bytes_sha256": "4d5cd35409392eac239af90426364c37590ddb55523da8701a7afda45ff74eed",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/src/lib.rs",
+   "status": "M",
+   "parent_blob": "4fb504fdf731698526918c6a06a5c0c3abb58715",
+   "code_blob": "b3eda464778b0aab2c10113b6a508878ed3e0ead",
+   "raw_worktree_sha256": "25b967d5136db2765f692aca1ed56d1711175eef25f43d4181e988c3722e3efa",
+   "committed_blob_bytes_sha256": "25b967d5136db2765f692aca1ed56d1711175eef25f43d4181e988c3722e3efa",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/src/main.rs",
+   "status": "M",
+   "parent_blob": "d98535e81f285c9a6eec8bfa2eea188c725b3ada",
+   "code_blob": "4f97d54bacfff40b00cebe2805e5a86b63f49436",
+   "raw_worktree_sha256": "99f8769c29deef38a22c8b1d47b7c0aa52f2ad2dfd869ed99a70c60d21acb9dd",
+   "committed_blob_bytes_sha256": "99f8769c29deef38a22c8b1d47b7c0aa52f2ad2dfd869ed99a70c60d21acb9dd",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+   "status": "M",
+   "parent_blob": "7db967398a42ca9132ef73607a50fc78bf15a484",
+   "code_blob": "8fb18bdf72532a337f11c22266226f6640a9a7c6",
+   "raw_worktree_sha256": "eee72abdb1d2f5ce459ecd791ff3db6c15d41513839503db02b823ef1b0a87be",
+   "committed_blob_bytes_sha256": "eee72abdb1d2f5ce459ecd791ff3db6c15d41513839503db02b823ef1b0a87be",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/src/roster.rs",
+   "status": "A",
+   "parent_blob": null,
+   "code_blob": "68b69970bf81780ab800c627746a6e5bd71803e6",
+   "raw_worktree_sha256": "eba7ac88c628cd02d2739a511b52daa04c2b1233b31152715e7264936e447be8",
+   "committed_blob_bytes_sha256": "eba7ac88c628cd02d2739a511b52daa04c2b1233b31152715e7264936e447be8",
+   "raw_equals_committed_blob_bytes": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+   "status": "A",
+   "parent_blob": null,
+   "code_blob": "d2fd9d1bf701ef3f6313971428bcb8077649353b",
+   "raw_worktree_sha256": "42f1c8e12c399f646cc654af829665886d2be1870d0dccb314268cac5ea6aebf",
+   "committed_blob_bytes_sha256": "42f1c8e12c399f646cc654af829665886d2be1870d0dccb314268cac5ea6aebf",
+   "raw_equals_committed_blob_bytes": true
+  }
+ ],
+ "changed_file_count": 28,
+ "unreviewed_risks_for_the_reviewer_and_root": [
+  "the new hook path (en_list.c -> mb_hostplace.c -> model callback) has not run on a real campaign: Linux cannot boot one without retail data",
+  "Gate B (host record equals Core position at every hosted relink) is source-read only; the ENTITY_POSE equality at scan time held in accepted runs but is not the same instant",
+  "a provider installed after entities were inserted would make the first later removal refuse (never placed); the production boot installs the model host before create_campaign",
+  "each sector insertion/removal is a model-channel call (Lua round trip): effects and weapons are frequent; cost unmeasured",
+  "structures keep two host-issued names (placement key and the lazy object id) with no mapping; city building lists stay with the campaign"
+ ],
+ "pending_not_done": [
+  "one independent combined correctness/clean-code/boundary review of 7bec89e45",
+  "Root native builds (Windows hosted/Original/ordinary), a changed-roster authority control through the public native path, ordinary short 3 and full 40/all8 literal equality",
+  "complete Task49: full 40/all8, CI, review, normal merge; whole D3 final census/acceptance; all ten D3 requirements; natural weapon integration; D4/D5/TypeScript unstarted"
+ ],
+ "do_not_claim": "the corrected 3475 full-40 pack has NOT passed (still running, untouched: controller 12732 / launcher 23720 / runner 20760); nothing here is a Task49/D3/native/ordinary/full-pack acceptance and no new native clearance.",
+ "log_inventory": {
+  "b1-baseline-check.log": {
+   "sha256": "72a0adb2e83c1c403e2a31be27015a6e7dc3ec4e855a21eba124416f9e262cf3",
+   "bytes": 614
+  },
+  "b2-baseline-dialogue-authority.log": {
+   "sha256": "4901c5f3fd8a124d3cd1ef31fde01f2e35c00c32501d366e2aa4c5e03b61eaf4",
+   "bytes": 11370
+  },
+  "c1-check.log": {
+   "sha256": "0e75a6789cd2d5a2afb39c2bde430a2ee9b48e6792c0e3390d42742e7d52b855",
+   "bytes": 898907
+  },
+  "c10-rguard.log": {
+   "sha256": "82a4414e23f28cfe046dfe2a7caddbad2a08b0b36ab96dc4ef9627dbb932bcfc",
+   "bytes": 1480
+  },
+  "c11-rguard.log": {
+   "sha256": "c44f2511ab90bf5ba1fa9ff4472407a186280a2fdd9c8e9274c265f8914b0b8d",
+   "bytes": 842
+  },
+  "c2-check.log": {
+   "sha256": "e211d09d007bffb82ac359320501a2f53ad951513633d9a891aff75f51ff4eed",
+   "bytes": 437
+  },
+  "c3-focused.log": {
+   "sha256": "21fe1c03ccbfb9c4956f49b2a0225265ae89db5616bb05389c4316d40aba8123",
+   "bytes": 2161
+  },
+  "c4-authority.log": {
+   "sha256": "1a20628c28c38b628a0e5e394f5b785c9d50a649adf29834ee192a508f4392a1",
+   "bytes": 11337
+  },
+  "c5-roster-host.log": {
+   "sha256": "bf797bac9a3e2c4ae516c9176befb38bae29e10d18ab48b4b5fdb7cb37810008",
+   "bytes": 971
+  },
+  "c6-dialogue.log": {
+   "sha256": "7965fec3e7716ffcccddccf533f98da7b1bc039a9c955a946d89ac724d4316cc",
+   "bytes": 981
+  },
+  "c7-dialogue.log": {
+   "sha256": "cf5562b54672777421f8863559d76d2116e3dd20bf116343b36d66e2c7de74ef",
+   "bytes": 502
+  },
+  "c8-guards.log": {
+   "sha256": "e3b632c94d2570e5f0dd509a77799c5c4508aeb05e28564b70560efc03b8e9d2",
+   "bytes": 1773
+  },
+  "c9-rguard.log": {
+   "sha256": "fa70b6d48a82c3f19405d877589ac505a1ef109818b32a73aafe771ade74c77a",
+   "bytes": 8027
+  },
+  "commit-msg-meta.txt": {
+   "sha256": "fe1b54cebb59147cb4dd00373f14c8b1fa807ec375dfe8a98ca7bf0c4eeb812b",
+   "bytes": 733
+  },
+  "commit-msg.txt": {
+   "sha256": "4ce9da0b7c5cbe0418c65f1c6ce1e48d635c4ab21f6e9486ed31d6bd67a4f7e8",
+   "bytes": 2152
+  },
+  "f1-fmt.log": {
+   "sha256": "48745973b37006614e158541dbf16779da43f05df2d84e8ced4c7499e19e1752",
+   "bytes": 20177
+  },
+  "f2-fmt-apply.log": {
+   "sha256": "16fcaf4e13ce9ceeb2368f241a715b936d9c13e48f6f6c2ef785fe1498cb9476",
+   "bytes": 305
+  },
+  "final-head.txt": {
+   "sha256": "aba340d940ef49443012a0b87754e21d6b72590793ecd2a18c8b2b6fbe74b827",
+   "bytes": 41
+  },
+  "final-status-after.txt": {
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0
+  },
+  "final-status-before.txt": {
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0
+  },
+  "final.sh": {
+   "sha256": "79b47180fad7f368d3f7fb95124de48ca7ad475b84b962d674b5d2023486b797",
+   "bytes": 1618
+  },
+  "inputmap-after.json": {
+   "sha256": "012c62774954a96901c78cefa0bc4bca404e43e654820ed8d048e0e5f5093c36",
+   "bytes": 2028777
+  },
+  "inputmap-before.json": {
+   "sha256": "b3469aa42cfd223a9fe72b55814191d46927be8d080eaa3e66e6123c4f33a845",
+   "bytes": 1838798
+  },
+  "inputmap.py": {
+   "sha256": "7b1863bd6c6439930329d89ff1934cc59bd563629778346847bbfe2d72e3043e",
+   "bytes": 4142
+  },
+  "m1-libs.log": {
+   "sha256": "f53ca1c9943a4ab3dee331d39507963e0204c572b221c00d4f2a874544896264",
+   "bytes": 56355
+  },
+  "m2-world-entity.log": {
+   "sha256": "69e34b411ee2b0306e65fb2ec162870c876a011283be143132835042f1d3ef87",
+   "bytes": 19060
+  },
+  "r1-red-core-authority.log": {
+   "sha256": "f86606c0f3664835aa64c6077a7c1c63d0f0acee948f0fccf2e243e6ea9a27c2",
+   "bytes": 1614
+  },
+  "run.sh": {
+   "sha256": "d670ea97a0a1a0d5ea8503bc803318924dc77f3c79a00b4648fc71015b63b27f",
+   "bytes": 948
+  },
+  "t-exit.log": {
+   "sha256": "cd9793c19614a66a8cfea3517c266761413aea3a7f36590bafabf65727852d07",
+   "bytes": 251
+  },
+  "t-exit2.log": {
+   "sha256": "9f1ff0d78f3b3e44bccbee82404854925f0bc6395eec1204abdc32129c4c3ed2",
+   "bytes": 138
+  },
+  "z1-check.log": {
+   "sha256": "bd31ae9696b320991aef10ea4e9b44e7a274a038d50084b7936c3e5c81c3d511",
+   "bytes": 528
+  },
+  "z2-fmt.log": {
+   "sha256": "854200c499adc76f653df34591c4837b8de704b01a01bdd3ea19826088906a74",
+   "bytes": 176
+  },
+  "z3-sys.log": {
+   "sha256": "3cbef38c4f5d7635a98721410a25ec957555566ec2dceef382c41df996d92bf1",
+   "bytes": 2505
+  },
+  "z4-world.log": {
+   "sha256": "63c77c79b074fe2151886ffea1e973f003fdaf6180af2aa261f81313bc135bcb",
+   "bytes": 19053
+  },
+  "z5-libs.log": {
+   "sha256": "9851397f28afd4d0225cf2941e4242bcce1012195555efcea65bf70403de7a0b",
+   "bytes": 56355
+  }
+ }
+}

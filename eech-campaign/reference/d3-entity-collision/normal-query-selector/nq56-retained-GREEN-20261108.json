@@ -1,0 +1,38 @@
+{
+  "utc": "2026-11-08T11:08:36.321677+00:00",
+  "label": "GREEN",
+  "validator": {
+    "path": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\normal_fire_capture.py",
+    "sha256": "0905ff4b12b6c851f60379e7dde57089cad1fadf85b1c337438b88ebdfd7b6c1"
+  },
+  "raw": {
+    "path": "D:\\EECH-Migration-Evidence\\normal-fire-capture-56d1b-20261108-runs\\01-healthy\\capture.txt.events",
+    "bytes": 109435851,
+    "sha256": "efafe1bced72210778b30c187a59f55d86235ee1b70f589c90169be6a6822cef"
+  },
+  "complete_EOF": true,
+  "total_lines": 315244,
+  "normal_records": 314092,
+  "selected_codec_records": 313796,
+  "kinds": {
+    "legacy_wpn": 1152,
+    "normal_fire": 296,
+    "normal_detach": 296,
+    "normal_birth": 296,
+    "normal_end": 296,
+    "normal_step": 155096,
+    "normal_step_end": 155096,
+    "normal_query": 8,
+    "normal_model": 2700,
+    "normal_query_end": 8
+  },
+  "query_selector_counts": {
+    "0": 2,
+    "-1": 6
+  },
+  "fault_counts": {},
+  "first_safe_fault_projections": [],
+  "last_tick_ms": 149600,
+  "result": "PASS",
+  "scope": "Read-only complete retained raw selected-event codec scan, not N.feed/provider-order replay or native acceptance. normal_end/error intentionally outside Python EVENTS; observer errors separately fail. No coordinates/physical ids copied."
+}

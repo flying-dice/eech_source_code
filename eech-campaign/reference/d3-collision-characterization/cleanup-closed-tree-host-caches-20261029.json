@@ -1,0 +1,43 @@
+{
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T21:08:22.509880+00:00",
+  "rows": [
+    {
+      "volume": "eech-win-tests-d3-tree-host-first-0db20ab3a-20261029",
+      "source_snapshot": "tree-host-first-source-20261029",
+      "all8_exports_verified": true,
+      "all3_cached_logs_equal_exports": true,
+      "zero_container_owners": true,
+      "actual_rm_exit": 0,
+      "preserved": "All frozen source, tested binaries, roots, raw successes/failures and reports"
+    },
+    {
+      "volume": "eech-win-tests-d3-tree-host-rounding-d72610f85-20261029",
+      "source_snapshot": "tree-host-rounding-source-20261029",
+      "all8_exports_verified": true,
+      "all3_cached_logs_equal_exports": true,
+      "zero_container_owners": true,
+      "actual_rm_exit": 0,
+      "preserved": "All frozen source, tested binaries, roots, raw successes/failures and reports"
+    },
+    {
+      "volume": "eech-win-tests-d3-tree-host-boundary-684fb6981-20261029",
+      "source_snapshot": "tree-host-boundary-source-20261029",
+      "all8_exports_verified": true,
+      "all3_cached_logs_equal_exports": true,
+      "zero_container_owners": true,
+      "actual_rm_exit": 0,
+      "preserved": "All frozen source, tested binaries, roots, raw successes/failures and reports"
+    },
+    {
+      "volume": "eech-win-tests-d3-tree-host-final-f81eb31bc-20261029",
+      "source_snapshot": "tree-host-final-source-20261029",
+      "all8_exports_verified": true,
+      "all3_cached_logs_equal_exports": true,
+      "zero_container_owners": true,
+      "actual_rm_exit": 0,
+      "preserved": "All frozen source, tested binaries, roots, raw successes/failures and reports"
+    }
+  ],
+  "kept": "Current8c452Windows test cache, LinuxRust/Lua cache, shared registry, WSL daemon, shipping115 and all original input/native fixture caches untouched"
+}

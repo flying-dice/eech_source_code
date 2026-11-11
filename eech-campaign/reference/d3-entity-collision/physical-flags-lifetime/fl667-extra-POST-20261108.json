@@ -1,0 +1,23 @@
+{
+  "files": {
+    "eech-campaign/docs/d3-flag-provider-lifetime.md": "2c4bd3ef14236b021ff342005b025ce1e174ed31164119278e8d7d68b2134e9f",
+    "eech-campaign/docs/m5-model-host-authority.md": "f160f502554ef46abe0f921555d0dd178f1bb2de87621d8262f10a2b0212c07c",
+    "eech-campaign/tools/migration-progress.py": "004b6a41519d6eaf9a6277d20bba1535f36e71041a0b5cbbb6bdc493867dca92",
+    "eech-campaign/rustfmt.toml": "478e818c64a27dc341fffc827ee4b00c5aeef237ab8745efc9690f87ad245de9",
+    "derive-fl667-helpers-20261108.py": "65c1b61901cfe3c7666e9513128a7082a5c83ce8770cb2260870d47b120ed6b2",
+    "run-physical-flags-fl667-direct-20261108.py": "651a156786ee41328f5969be29c8846e82af2de17501af6fe506bb4b4782d9d7",
+    "check-physical-flags-fl667-linux-20261108.sh": "a2bb190a2008a76e26e472de3ab9576389d47cc4f2e2571a294ddb81c78d0e6a",
+    "run-fl667-final-20261108.py": "e13b1025aa0714937e060bd95bca0a54024f6a77058c8a422c5acb07b5361656",
+    "fl667-proof-20261108.py": "769cfc3dab3a32aa7e62a3080af78e4b7b1611654b00f76912e59058c375ac32",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+    "sho-compare-maps-20261107.py": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+    "codex-d3-flag-lifetime-20261108-process.json": "595db727fae839b1c8686432d22cd83830f8ea0d1fc0ddebec142ced623977e4",
+    "motion-flags-reviewed-live-services-20261108.json": "a5805c2929242cea10c4bd333707d3abc39023f4e2b935628af1d193cdb05307",
+    "ledger-motion-closure-v191-preservation-20261108.json": "a1ae14ba3f94bffd02e28cc38b8751aec59e4f8a5de9dcfef95376b5d3f0d879",
+    "motion-reviewed-667ff-Root-publication-20261108.json": "b65c40ceb701ef2f85942bb6b988cf98550ba96a2bd4d6878ccbadf8303f39a2",
+    "motion-667ff-all9-CI-readback-20261108.json": "1935195115ac801ac99a5a44a9bf77fddfb72bfd1317948e027db8aad017e50b",
+    "motion-58b25-all9-CI-readback-20261108.json": "aa507f2a86aad4e93768555a5be3da8a9713a4e0866c0f218d0ca95be9c1d99d",
+    "Root-flag-lifetime-feedback-20261108-0133.json": "b202d0e201254405661a3cced8725c6d846735f8f9146f09355d0a5c172cfe32"
+  },
+  "aggregate": "e930bb2727622a7c312d4c2e471f2d53ca4cf1d3a1505dfa76c111d7f665a7b8"
+}

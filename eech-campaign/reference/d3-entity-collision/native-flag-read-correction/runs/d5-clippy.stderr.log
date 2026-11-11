@@ -1,0 +1,6 @@
+info: downloading component clippy
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 32s

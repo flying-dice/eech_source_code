@@ -1,0 +1,13 @@
+
+running 1 test
+actual_public_userdata_methods={"clock", "frame", "wpn_events"} no_Engine_construction_or_boot_or_teardown=1
+test module::native_flag_read_refusal_check::public_normal_session_driver_consumes_only_registered_userdata_methods ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 75 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+clippy 0.1.99 (58cf8f9c35 2026-10-13)

@@ -1,0 +1,57 @@
+{
+  "new_checker_source": "b44d2c96faa4e84e92b0f7507d81e4d80106edb9",
+  "unchanged_measured_native_source": "47a4af0d1a5a5694c1678147a19240b071627fac",
+  "scope": "Diagnostic-only correction; native C/DLL/module/kernel/replay evidence reused by exact code identity, not relabelled as a new DLL build",
+  "files": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_collision_fixture.c",
+      "sha256": "9df24398c08870297684653b2306e60579ebd66414ab0c723b838cef1ccf2873",
+      "git_blob_bytes_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "sha256": "8fe856a62e1c05ac964ebe37a309149be1e01cd2d63395ab43c99bf3d0f19582",
+      "git_blob_bytes_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "sha256": "921525126971ecc0cc60c6333fcaba470a691ef794eab259840f993dc5ac83c4",
+      "git_blob_bytes_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "sha256": "57647b55d3d1da4b7ef92f568a7f7a357ce2df341df23b52012df8eb82f08541",
+      "git_blob_bytes_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "818558c51d250ed350a60eb07e2a6745d6933d3aeb78099173737d22ff8c2311",
+      "git_blob_bytes_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "sha256": "bad9698eee05507cbed95c287b4cdfe8aea173f6d8a3090fab0ee161e467e146",
+      "git_blob_bytes_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/tree_step.c",
+      "sha256": "b3551388b40512fa02d2fdb541cf4802db138cf00e16a9cc6aedd645264178db",
+      "git_blob_bytes_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/trees.rs",
+      "sha256": "832a3105c2b60c53f1f8ea01d5302a49ce318b5cb326c90666b80100be23f33b",
+      "git_blob_bytes_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "sha256": "264405fc4ed2d94316fd507c268c242a0581a8b3b029e2f1cd712e4f99815454",
+      "git_blob_bytes_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/tree-collision-replay.lua",
+      "sha256": "820d6609ad44446b4b4cc25825913cfab3124b73630f405e9d77d7e1375fcfd8",
+      "git_blob_bytes_equal": true
+    }
+  ]
+}

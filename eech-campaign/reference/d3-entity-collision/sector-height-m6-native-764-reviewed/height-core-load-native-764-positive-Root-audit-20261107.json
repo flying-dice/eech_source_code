@@ -1,0 +1,80 @@
+{
+  "kind": "READ_ONLY actualpositive savedsector/lifecycle audit; no campaign/native replay",
+  "utc": "2026-11-07T14:47:57.816210+00:00",
+  "actual_exit": 0,
+  "source": "764cfc4aa254c3efd3cb8ed77d43c83c3a3f2199",
+  "literal_sha256": "912e8840a5776b755cb382c2d00d43a0486541f6a2d9570232463e4dc00c6613",
+  "plan_sha256": "555e42b79cbb8b284bdc3bd1d70cb62b825d5c0b3ded689aa9768ad07d51aadf",
+  "save_report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\save\\witness.txt",
+  "save_report_sha256": "2769ea548a58138822ed30724cce9788987d9af6a93809b2fc4fb711d673c4c8",
+  "load_report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\load\\witness.txt",
+  "load_report_sha256": "5516accae722f13234f71d0a9b7d89d0d1be52cb70966cc69c11cf6e8f1b6f91",
+  "exact_restore_sequence_verified": true,
+  "sequence_rows": 1748,
+  "keys_indices_coverage_words_ACKs_equal_in_actual_report_order": true,
+  "both_actual_binary_sector_sections_decoded": true,
+  "source_saved_binary_words_equal_report": true,
+  "second_saved_binary_words_equal_final_report": true,
+  "seeded_negative_inf_qNaN_raw_held": true,
+  "post_restore_relation_counts": {
+    "held": 1748
+  },
+  "baseline_boot_insertions": 282933,
+  "inter_restore_insertions": 0,
+  "post_restore_insertions": 4635,
+  "proofs": [
+    {
+      "mode": "save",
+      "receipt": "R:\\d3-evidence\\height-core-load-native-764-save-20261107-completion.json",
+      "receipt_sha256": "803915bb588f02479385543f868ae73b63aedcdd27a6a598ed2505c5931344cf",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "post_repository_compare_exit": 1,
+      "all_1179_original_retail_current_unchanged": true,
+      "declared_saved_artifact_deltas": 2,
+      "artifacts": [
+        {
+          "relative": "common/maps/map5/camp01/HW764SAVE.SCH",
+          "path": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-roots-20261107\\save\\common\\maps\\map5\\camp01\\HW764SAVE.SCH",
+          "size": 2354,
+          "sha256": "ca41e2cb207a2aef2005c929c2f6013c17db6d7cc96374c6492bde2c5885c833"
+        },
+        {
+          "relative": "common/maps/map5/camp01/HW764SAVE.sav",
+          "path": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-roots-20261107\\save\\common\\maps\\map5\\camp01\\HW764SAVE.sav",
+          "size": 300873,
+          "sha256": "ff0fa7b04ea46190de638a72807e12a526744a60f2978ac696824014afb37862"
+        }
+      ],
+      "report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\save\\witness.txt",
+      "report_sha256": "2769ea548a58138822ed30724cce9788987d9af6a93809b2fc4fb711d673c4c8"
+    },
+    {
+      "mode": "load",
+      "receipt": "R:\\d3-evidence\\height-core-load-native-764-load-20261107-completion.json",
+      "receipt_sha256": "cb1893198d48d79f16abbb4bf212ee0a095fb70fde07209711dcfa247ff8b590",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "post_repository_compare_exit": 1,
+      "all_1179_original_retail_current_unchanged": true,
+      "declared_saved_artifact_deltas": 4,
+      "artifacts": [
+        {
+          "relative": "common/maps/map5/camp01/HW764LOAD.SCH",
+          "path": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-roots-20261107\\load\\common\\maps\\map5\\camp01\\HW764LOAD.SCH",
+          "size": 2354,
+          "sha256": "ca41e2cb207a2aef2005c929c2f6013c17db6d7cc96374c6492bde2c5885c833"
+        },
+        {
+          "relative": "common/maps/map5/camp01/HW764LOAD.sav",
+          "path": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-roots-20261107\\load\\common\\maps\\map5\\camp01\\HW764LOAD.sav",
+          "size": 303855,
+          "sha256": "da7eca9f0cd3aad06b925e4afcf9d0e1bdc1192236747dbba973e93331e827ba"
+        }
+      ],
+      "report": "D:\\EECH-Migration-Evidence\\height-core-load-native-764-runs-20261107\\load\\witness.txt",
+      "report_sha256": "5516accae722f13234f71d0a9b7d89d0d1be52cb70966cc69c11cf6e8f1b6f91"
+    }
+  ],
+  "limits": "Independent actualSEQUENCE check complementsLua keyedchecks; ordernotinferredfromcounts. RealCoreboot ofactualgeneratedscript completed+real2ndpack. Prepopulationkeptastelemetry; postrestoreinsertionattributionbyposition/sourceCoreunpackflow, no inventedpercallbackcalleridentity. SourcebinaryfirstsaveSHAequalspriorvalidsave; secondwholefileDIFFERS, onlysectorwordrelationaudited, no fullcampaign-savebyteparity. Originalretailunchanged, repositorycompare1explicitgenerateddeltas notexclusion. Bothnewshortdefault3filescompleteequal80fd, notfull40/all8/wholeheight/Task49/D3. Matchednegativesnowunlocked; SAMEactualreviewstillrequired."
+}

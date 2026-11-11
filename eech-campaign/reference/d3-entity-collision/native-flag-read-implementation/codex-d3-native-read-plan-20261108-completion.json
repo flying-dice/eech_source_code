@@ -1,0 +1,23 @@
+{
+  "provider": "codex_agent",
+  "state": "terminal",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T02:07:28.203088+00:00",
+  "started_time_qualification": "Root observed service agent running after followup/list_agents; not OS process creation",
+  "source_before": "7e6bed4c702869611ead639610c47abc3d86aa08",
+  "scope": "Compact source-informed lawful publicnativeREAD+changed/carriedfact plan FIRST actualpublic/candidateprotocol and17PASS6UNREACHEDreuse; nr7e6. No windowhunt/newfakeshippingAPI/baselineconfigrelaxation/build/native before RootSAMEplanreview. Bothpacks/all10preserved.",
+  "actual_OS_process_identity": "Not applicable to Codex service agent; no fabricated PID/CLI exit.",
+  "delivery_state": "plan_ready_for_independent_review",
+  "completed_observed_utc": "2026-11-08T02:15:54.460921+00:00",
+  "actual_service_agent_status": "completed",
+  "observation_source": "Root received FINAL_ANSWER and verified completed via collaboration.list_agents; no OS PID/CLI exit attributed",
+  "HEAD": "395913f9a3c877a894a0030257730153fe0bd579",
+  "clean_pushed_HEAD_verified": true,
+  "plan_sha256": "1c472eec613c09041491617d692c91b957568a21d18d9137c316ea1cfebe7352",
+  "tests_run": false,
+  "builds_run": false,
+  "native_runs": false,
+  "scope_limits": "Source-informed plan only; new Lua/controller uncreated; no launch clearance or publicREAD/allD3 acceptance"
+}

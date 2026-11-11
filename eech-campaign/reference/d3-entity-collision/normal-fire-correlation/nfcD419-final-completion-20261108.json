@@ -1,0 +1,20 @@
+{
+  "provider": "actual_python_final_controller",
+  "controller_pid": 584,
+  "started_utc": "2026-11-08T07:31:37.470338+00:00",
+  "state": "terminal",
+  "steps": {
+    "s1-fmt": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+    "s2-clippy": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine -p eech-engine-sys -p eech-dc --all-targets --features eech-engine/normal-fire-check,eech-engine/normal-fire-correlation,eech-engine/model-fixture,eech-dc/normal-fire-correlation -- -D warnings",
+    "s3-controls": "cargo test --locked -p eech-engine -p eech-engine-sys --features eech-engine/normal-fire-check,eech-engine/normal-fire-correlation,eech-engine/model-fixture --test normal_fire -- --nocapture",
+    "s4-shipping-check": "cargo check --locked -p eech-dc"
+  },
+  "actual_exits": {
+    "s1-fmt": 0,
+    "s2-clippy": 0,
+    "s3-controls": 0,
+    "s4-shipping-check": 0
+  },
+  "current_label": "s4-shipping-check",
+  "completed_utc": "2026-11-08T07:36:31.757355+00:00"
+}

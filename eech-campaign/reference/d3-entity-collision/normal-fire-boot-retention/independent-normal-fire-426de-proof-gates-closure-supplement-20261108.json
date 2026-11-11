@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "observed_utc": "2026-11-08T09:55:34.214142+00:00",
+  "kind": "Post-seal factual CI/typed-completion supplement; no second source review",
+  "sealed_review": {
+    "path": "R:/d3-evidence/independent-normal-fire-426de-proof-gates-closure-20261108.json",
+    "bytes": 15198,
+    "sha256": "3c9bfe51f110cbca615bf6adebd495eb08e7c6768f92bad1a72c2d24b2a5a7f3"
+  },
+  "new_evidence": [
+    {
+      "path": "R:/d3-evidence/normal-fire-426de-all9-CI-readback-20261108.json",
+      "bytes": 17126,
+      "sha256": "96225519423b40ca7ded1039e23c66aaf916276634f806e0f1c1da549d614d9b"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-normal-fire-proof-gate-fixes-20261108-completion.json",
+      "bytes": 2203,
+      "sha256": "a160546929dc934b6403578823a20cd8cffbd8509964cd087ed552c8d5cba37a"
+    }
+  ],
+  "new_actual_facts": [
+    "Exact426de all three workflows/all nine jobs terminal success, no reruns, as independently recorded by Root. The original review's no-current-green observation is historical to its seal, not a residual gate.",
+    "Actual author service FINAL/completed typed receipt now explicitly hash-joined; no fabricated author OS PID or CLI exit.",
+    "Root publication-readerV1 assumed a list but the actual forty-copy checkpoint table was a dict; V2 corrected only that reader. Final63d8 binding actual0 remains the accepted proof; no source/test/build/native replay."
+  ],
+  "decision_unchanged": {
+    "findings": [],
+    "three_P2s": "CLOSED_SOURCE",
+    "bounded_prerequisite_source_accepted": true,
+    "windows_build_clearance": true,
+    "retained_compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "native_controller_launch_clearance": false,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false
+  },
+  "limits": "No runtime/literal/root/plan materialization or native acceptance inferred. No source re-review, tests/build/native/cache/Git mutation. All original review limits remain."
+}

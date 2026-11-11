@@ -1,0 +1,17 @@
+info: downloading component clippy
+    Checking eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+error: called `unwrap_err` on `r` after checking its variant with `is_ok`
+   --> crates/eech-world/tests/core_terrain_crt_driver.rs:173:25
+    |
+147 |         if r.is_ok() {
+    |         ------------ help: try: `if let Err(<item>) = r`
+...
+173 |             let error = r.unwrap_err();
+    |                         ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unnecessary_unwrap
+    = note: `-D clippy::unnecessary-unwrap` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_unwrap)]`
+
+error: could not compile `eech-world` (test "core_terrain_crt_driver") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

@@ -1,0 +1,28 @@
+{
+  "previous_post_fingerprint": "ed55208c789e7820413f360af265fbfe13d057ba1dccc8b5277f090dabf49683",
+  "current_post_fingerprint": "13c2b2c2ebc2c4071a2d35eca1972baf7b9ce990473b3bc6bdf7b518baf55a91",
+  "files_previous": 3967,
+  "files_current": 3967,
+  "map_rows_changed_since_the_d74_final_post": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs",
+    "eech-campaign/crates/eech-world/tests/data/sector-height-observer-report.txt",
+    "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs"
+  ],
+  "map_rows_added": [],
+  "map_rows_removed": [],
+  "unchanged_map_rows": 3962,
+  "tool_and_script_rows_changed": [
+    "eech-campaign/docs/d3-sector-height-public-baseline-plan.md"
+  ],
+  "tool_and_script_rows_unchanged": [
+    "R:/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+    "R:/d3-evidence/check-sho-windows-wrapper-ast-20261107.ps1",
+    "R:/d3-evidence/run-sector-height-baseline-direct-20261107.py",
+    "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py",
+    "eech-campaign/tools/build-windows-sector-height-observer.sh",
+    "eech-campaign/tools/native-arguments.ps1",
+    "eech-campaign/tools/sector-height-baseline-windows.ps1"
+  ]
+}

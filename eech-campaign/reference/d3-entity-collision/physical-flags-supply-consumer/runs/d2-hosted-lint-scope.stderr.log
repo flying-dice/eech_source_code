@@ -1,0 +1,16 @@
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+error: linking with `cc` failed: exit status: 1
+  |
+  = note:  "cc" "-m64" "/target/t/debug/deps/rustcx65P51/symbols.o" "<78 object files omitted>" "-Wl,--as-needed" "-Wl,-Bstatic" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libtest-*,libgetopts-*,librustc_std_workspace_std-*}.rlib" "/target/t/debug/deps/{libeech_world-b27d5a0059d5d207,libserde_json-d12431ff82245dfd,libitoa-b101c554dc96d6c2,libzmij-017fa04e9bfbd0ce,libmlua-c6fb1fc3060e2305,libserde_value-0e0bbe2f994ef165,libordered_float-bedded0a11c90498,liberased_serde-c8ccf76192419b75,libtypeid-d23d6c44b1099d58,libeither-e0798e91e70f9392,librustc_hash-8e05c43c65198e13,libparking_lot-cfc998e7a36c51eb,libparking_lot_core-855511e2265bea09,liblibc-9aa02241a4ece1e5,libcfg_if-0fbeb365b695d2ff,libsmallvec-0bdff46320ecb430,liblock_api-d9f2137027a4748a,libscopeguard-72077e85bdc77ec2,libmlua_sys-a72419d6e08a51d5,libnum_traits-986d23b2a8089b43,libbstr-e77b2d31ad0b6677,libmemchr-2974315c36bbf455,libeech_engine-c2cf41102ba95f36,libserde-731b01fb3c2fd3ff,libserde_core-620e41238864dea4,libeech_engine_sys-a75c3d00d4397c92}.rlib" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libstd-*,libpanic_unwind-*,libobject-*,libmemchr-*,libaddr2line-*,libgimli-*,libcfg_if-*,librustc_demangle-*,libstd_detect-*,libhashbrown-*,librustc_std_workspace_alloc-*,libminiz_oxide-*,libadler2-*,libunwind-*,liblibc-*,librustc_std_workspace_core-*,liballoc-*,libcore-*,libcompiler_builtins-*}.rlib" "-Wl,-Bdynamic" "-lm" "-lpthread" "-lgcc_s" "-lutil" "-lrt" "-lpthread" "-lm" "-ldl" "-lc" "-L" "/target/t/debug/deps/rustcx65P51/raw-dylibs" "-B<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld" "-fuse-ld=lld" "-Wl,--eh-frame-hdr" "-Wl,-z,noexecstack" "-L" "/target/t/debug/build/eech-engine-sys-4b10219f9ee94abd/out" "-L" "/target/t/debug/build/eech-world-f98de30e09ecd556/out" "-L" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib" "-o" "/target/t/debug/deps/physical_flags_supply-4b134fa9334328e9" "-Wl,--gc-sections" "-pie" "-Wl,-z,relro,-z,now" "-nodefaultlibs"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: rust-lld: error: undefined symbol: campaign_model_flag_forget_keys_for_test
+          >>> referenced by eech_physical_flags_hosted.h:50 (/src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_hosted.h:50)
+          >>>               67fd5db87f5aeca0-eech_physical_flags_supply_check.o:(eech_supply_begin) in archive /target/t/debug/deps/libeech_engine_sys-a75c3d00d4397c92.rlib
+          
+          rust-lld: error: undefined symbol: campaign_model_flag_key_for_test
+          >>> referenced by eech_physical_flags_hosted.h:59 (/src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_hosted.h:59)
+          >>>               67fd5db87f5aeca0-eech_physical_flags_supply_check.o:(eech_supply_word) in archive /target/t/debug/deps/libeech_engine_sys-a75c3d00d4397c92.rlib
+          collect2: error: ld returned 1 exit status
+          
+
+error: could not compile `eech-engine` (test "physical_flags_supply") due to 1 previous error

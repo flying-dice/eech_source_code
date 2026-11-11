@@ -302,7 +302,7 @@ static int observe_reach (entity *member, entity *guide, entity *task, entity *w
 
 	if (mobile == CAMPAIGN_SUPPLY_MOBILE_FIXED_WING)
 	{
-		descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED);
+		descriptor.updated = get_local_entity_int_value (member, INT_TYPE_UPDATED) ? TRUE : FALSE;
 		descriptor.velocity = get_local_entity_float_value (member, FLOAT_TYPE_VELOCITY);
 		descriptor.delta_seconds = get_delta_time ();
 		copy_vec3d (descriptor.motion, get_local_entity_vec3d_ptr (member, VEC3D_TYPE_MOTION_VECTOR));

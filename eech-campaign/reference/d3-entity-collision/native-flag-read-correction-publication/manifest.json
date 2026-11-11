@@ -1,0 +1,21 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "committed-bytes-and-checkpoint.json",
+      "sha256": "0bf2fbc5b1d395a8228dbd846814e6182fd5bcfd943a6010a60f94863026368b"
+    },
+    {
+      "path": "publisher.py",
+      "sha256": "04bc45e7ff5a80c3dfaabe8deaa7a7bf9444b0ca579870830898b5d40bcf5765"
+    },
+    {
+      "path": "README.md",
+      "sha256": "bf191cdf528de2862fb089ba5b6b9dc1b94995bdb3f0cdf4573c4bd2d6ab25de"
+    }
+  ],
+  "scope": "Post-CODE actual Git byte publication only; no new tests/native/acceptance"
+}

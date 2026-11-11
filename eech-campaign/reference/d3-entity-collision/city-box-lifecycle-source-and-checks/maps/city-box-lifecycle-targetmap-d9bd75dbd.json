@@ -1,0 +1,205 @@
+{
+ "changed_paths_raw": {
+  "aphavoc/source/entity/mobile/mb_hostentity.h": {
+   "blob_at_681": "7c1cc9d2a23f9ec3b9586d32c4116f79791c7f74",
+   "blob_at_head": "5ec5e691db672df41d471523b537147292645b87",
+   "blob_at_parent": "7c1cc9d2a23f9ec3b9586d32c4116f79791c7f74",
+   "bytes": 49263,
+   "git_blob_of_raw_bytes": "5ec5e691db672df41d471523b537147292645b87",
+   "sha256": "981aea24d5526b714e9544f2b29b91addfca2acda843d0b15c8ea2043ba6a372"
+  },
+  "aphavoc/source/entity/mobile/mb_hostmodel.c": {
+   "blob_at_681": "f6b788406df35792020ca3749ea83d36d6090490",
+   "blob_at_head": "0b2578b568d44ee59f1fa54e2a924546d4776200",
+   "blob_at_parent": "f6b788406df35792020ca3749ea83d36d6090490",
+   "bytes": 89187,
+   "git_blob_of_raw_bytes": "0b2578b568d44ee59f1fa54e2a924546d4776200",
+   "sha256": "93934978d1441d1028d1bbdadc06cedd5e59c4e61a0561af977763b703e9ca27"
+  },
+  "aphavoc/source/entity/mobile/mb_hostmodel.h": {
+   "blob_at_681": "569282dc7c1a8c3c425d9a40ee7e58fafce8b754",
+   "blob_at_head": "3ff694aee440c63ace0dfd4c25c21eec579fc141",
+   "blob_at_parent": "569282dc7c1a8c3c425d9a40ee7e58fafce8b754",
+   "bytes": 61019,
+   "git_blob_of_raw_bytes": "3ff694aee440c63ace0dfd4c25c21eec579fc141",
+   "sha256": "b5baf192424501eff87de4f29e92685fa15a85031625eb737483fbca6a76c299"
+  },
+  "aphavoc/source/entity/mobile/mb_hostplacemap.h": {
+   "blob_at_681": "e7ff711efa053a30e21b411c51b30e26f19eb13d",
+   "blob_at_head": "c451134f21d7f4f4c6ebd3021d13f79081ca0cb1",
+   "blob_at_parent": "e7ff711efa053a30e21b411c51b30e26f19eb13d",
+   "bytes": 38195,
+   "git_blob_of_raw_bytes": "c451134f21d7f4f4c6ebd3021d13f79081ca0cb1",
+   "sha256": "d36915bb6bfe0e9e88dac14ad6170b9e9ef1f0b32cf3f5d9ac8c0c2f71ca8cf2"
+  },
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c": {
+   "blob_at_681": "890ca23637f71760405e2ce2e0bec85ab2bab2d8",
+   "blob_at_head": "08641331cf48d7b3d817602fd5c8fc911a871aeb",
+   "blob_at_parent": "890ca23637f71760405e2ce2e0bec85ab2bab2d8",
+   "bytes": 199875,
+   "git_blob_of_raw_bytes": "08641331cf48d7b3d817602fd5c8fc911a871aeb",
+   "sha256": "39b64e394b105ea06fa3d6e0934da925e2b386997953a5db4e6fbc06343b898b"
+  },
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs": {
+   "blob_at_681": "8a9757c226c8904798f4f6a73c01966a0510cb6e",
+   "blob_at_head": "e878beeeaaf3b16c4c426ede82c07392e47a4da4",
+   "blob_at_parent": "8a9757c226c8904798f4f6a73c01966a0510cb6e",
+   "bytes": 72348,
+   "git_blob_of_raw_bytes": "e878beeeaaf3b16c4c426ede82c07392e47a4da4",
+   "sha256": "c6cf50731c6a790854e1bf734a52cbf530d3a18261c01f4a3ff4413ca82f1b27"
+  },
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
+   "blob_at_681": "55d808c104f8f84db3f3f2d88b80743b8b3c418f",
+   "blob_at_head": "82504e4492d7dc98c8823f1cd4a51c22e1ec4976",
+   "blob_at_parent": "e27c2da83ee59dda1ac614a36d0755698f302722",
+   "bytes": 229666,
+   "git_blob_of_raw_bytes": "82504e4492d7dc98c8823f1cd4a51c22e1ec4976",
+   "sha256": "330c4c783728e5172e4b681ad4a3036b5effb83966042bd3787ab3fdf4214a4f"
+  },
+  "eech-campaign/crates/eech-world/src/model_host.rs": {
+   "blob_at_681": "98bd0b4d5d2bc17df275d00609b568d04e9279cf",
+   "blob_at_head": "a9e95b5e444fc57abb669cb7e77f507bc37936d4",
+   "blob_at_parent": "98bd0b4d5d2bc17df275d00609b568d04e9279cf",
+   "bytes": 163208,
+   "git_blob_of_raw_bytes": "a9e95b5e444fc57abb669cb7e77f507bc37936d4",
+   "sha256": "f337bb72ad868e0c7d88c5e4ab6948275ee1d8c230732ef40290774c7f8675c2"
+  },
+  "eech-campaign/crates/eech-world/src/roster.rs": {
+   "blob_at_681": "560162e4be1dd069e1f2b38ca170854ed116094c",
+   "blob_at_head": "19d892fb1a04c50d16afca6a81051ad5701da7f7",
+   "blob_at_parent": "560162e4be1dd069e1f2b38ca170854ed116094c",
+   "bytes": 89877,
+   "git_blob_of_raw_bytes": "19d892fb1a04c50d16afca6a81051ad5701da7f7",
+   "sha256": "d867235b030e87bdff66966c283a31f45c75095ac852e64e534c7d5fd800aefd"
+  },
+  "eech-campaign/crates/eech-world/tests/city_box_lifecycle.rs": {
+   "blob_at_681": null,
+   "blob_at_head": "4a54876a953fe951cfdaffe4a0e27fae3187a1fb",
+   "blob_at_parent": null,
+   "bytes": 19444,
+   "git_blob_of_raw_bytes": "4a54876a953fe951cfdaffe4a0e27fae3187a1fb",
+   "sha256": "fbf7dd7d8bb02fb18ed845e8e2ce2a29c470589cdc1ad7d626fd35370c4d091f"
+  },
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs": {
+   "blob_at_681": "92ef0e5d9f2735bdf7d463c81d2b4f2079d739a8",
+   "blob_at_head": "2a102120620f3f0195631c1cf27b08dc7c7c4af8",
+   "blob_at_parent": "240a1f6ef603221b82e31f03e2925adae712d59c",
+   "bytes": 324813,
+   "git_blob_of_raw_bytes": "2a102120620f3f0195631c1cf27b08dc7c7c4af8",
+   "sha256": "1fc670c3b2ab4cbe9f71ae27772326ac33708688a3e26e9edd339886c1c24a4f"
+  }
+ },
+ "created_utc": "2026-11-06T20:22:58.475538+00:00",
+ "git_status_porcelain": [],
+ "head": "d9bd75dbd93f42ac106a23160696ce00aa04f48f",
+ "label": "committed-d9bd75dbd",
+ "parent": "071f8dd524cf38a3de0e9da74733650a3a45a2d5",
+ "paths_changed_parent_to_head": [
+  "aphavoc/source/entity/mobile/mb_hostentity.h",
+  "aphavoc/source/entity/mobile/mb_hostmodel.c",
+  "aphavoc/source/entity/mobile/mb_hostmodel.h",
+  "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+  "eech-campaign/crates/eech-world/src/model_host.rs",
+  "eech-campaign/crates/eech-world/src/roster.rs",
+  "eech-campaign/crates/eech-world/tests/city_box_lifecycle.rs",
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+ ],
+ "production_roots": {
+  ".github": {
+   "at_681": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+   "at_parent": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+   "at_working_head": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "aphavoc": {
+   "at_681": "19b02698c59cfd2e27c377b68dbb79ca9e3c5c49",
+   "at_parent": "19b02698c59cfd2e27c377b68dbb79ca9e3c5c49",
+   "at_working_head": "c09419e8aba36b6c5f6da9223884d68aefa80a4f",
+   "equal_681": false,
+   "equal_parent": false
+  },
+  "aphavoc/source/entity/mobile": {
+   "at_681": "121b9187e3d786cd680a7837dd2c5a4964fa279e",
+   "at_parent": "121b9187e3d786cd680a7837dd2c5a4964fa279e",
+   "at_working_head": "225c2045d2892a571072f5b3d0819fe7d26c7ad3",
+   "equal_681": false,
+   "equal_parent": false
+  },
+  "eech-campaign/.cargo": {
+   "at_681": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+   "at_parent": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+   "at_working_head": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/Cargo.lock": {
+   "at_681": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+   "at_parent": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+   "at_working_head": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/Cargo.toml": {
+   "at_681": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+   "at_parent": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+   "at_working_head": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-dc": {
+   "at_681": "46a71de0be81f99319221c40ec4b1ecaa40fd4c7",
+   "at_parent": "46a71de0be81f99319221c40ec4b1ecaa40fd4c7",
+   "at_working_head": "46a71de0be81f99319221c40ec4b1ecaa40fd4c7",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-engine": {
+   "at_681": "09ed68d80ff651c0be69918015c460d4999d8292",
+   "at_parent": "09ed68d80ff651c0be69918015c460d4999d8292",
+   "at_working_head": "09ed68d80ff651c0be69918015c460d4999d8292",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-engine-sys": {
+   "at_681": "00899a43872414218b03463a8d45937d2f6614a4",
+   "at_parent": "00899a43872414218b03463a8d45937d2f6614a4",
+   "at_working_head": "74fc5b56f5475bcd181c746fbaeb2c9ef8227453",
+   "equal_681": false,
+   "equal_parent": false
+  },
+  "eech-campaign/crates/eech-world/lua": {
+   "at_681": "db481dda16a60b93f6609e1cc373f4afa2a7330e",
+   "at_parent": "4063cc9b9244fc2faae0d88983462f38ee4b86e4",
+   "at_working_head": "09638b6f5e6aafbf56eb4be0f741718006e67748",
+   "equal_681": false,
+   "equal_parent": false
+  },
+  "eech-campaign/crates/eech-world/lua/campaign.lua": {
+   "at_681": "bdb1bb144ba845bec558dfeafd863650b4457995",
+   "at_parent": "bdb1bb144ba845bec558dfeafd863650b4457995",
+   "at_working_head": "bdb1bb144ba845bec558dfeafd863650b4457995",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-world/src": {
+   "at_681": "1a4adafce920d9fdbd922815081fd6d11e354c10",
+   "at_parent": "1a4adafce920d9fdbd922815081fd6d11e354c10",
+   "at_working_head": "a15327efd318a555b5ba9ca5652331dc7f157ca8",
+   "equal_681": false,
+   "equal_parent": false
+  },
+  "modules": {
+   "at_681": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+   "at_parent": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+   "at_working_head": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+   "equal_681": true,
+   "equal_parent": true
+  }
+ },
+ "runtime_681": "681ccfe5476a7c0a90036bc01cd054358c751162",
+ "untracked": []
+}

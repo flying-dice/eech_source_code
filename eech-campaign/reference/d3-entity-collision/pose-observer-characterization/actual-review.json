@@ -1,0 +1,278 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T17:15:18.067065+00:00",
+  "review": "One combined independent actual-evidence review of the frozen mobile pose observer, its two Windows profiles, one ordinary short and one healthy classification run. No new source sweep, test/build/engine launch, old-control rerun, Original/matrix expansion, cache/VM/process/auth operation or subagent.",
+  "source": {
+    "runtime_commit": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+    "snapshot": "D:/EECH-Migration-Evidence/pose-observer-production-1f9a939bc",
+    "literal_witness_blob": "a5eb38b6663072599315b84da4e4128e19d68530",
+    "literal_witness": {
+      "path": "R:\\d3-evidence\\pose-observer-authority-1f9a939bc-literal.lua",
+      "bytes": 88493,
+      "sha256": "ef6186ee5930868b56e7d9091f2938256bf3b0b340d4e4f1448c671ccc4a6c1b"
+    },
+    "literal_independently_equal_to_frozen_Git_blob": true,
+    "source_clearance": {
+      "path": "R:/d3-evidence/independent-entity-pose-observer-source-369-runtime1f9a-20261105.json",
+      "sha256": "d801a38d1459bfbf8876e38f9db0dc7eb4db9fd70f3d9fb577880f950357201d"
+    },
+    "active_next_implementation_worktree_not_reviewed": true
+  },
+  "decision": {
+    "findings": [],
+    "status": "FINITE_OBSERVER_CHARACTERIZATION_CLOSED",
+    "finite_observer_characterization_closed": true,
+    "finite_ordinary_short_conformance_closed": true,
+    "physical_pose_authority_closed": false,
+    "moving_public_parity_or_authority_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "evidence": {
+    "safe_root_projection": {
+      "path": "R:\\d3-evidence\\pose-observer-safe-actual-facts-1f9a-20261105.json",
+      "bytes": 5236,
+      "sha256": "3884e649c1dc2314551ab11ae2395a2a55bf9ca8ae87631deb3833de087eb880"
+    },
+    "private_complete_audit": {
+      "path": "R:\\d3-evidence\\pose-observer-private-actual-audit-1f9a-20261105.json",
+      "bytes": 18757,
+      "sha256": "cbed87faf6b834a6bcea203a729e931de3afe863e53c50f1614014bc878f83cc"
+    },
+    "private_audit_not_safe_to_publish_literally": true,
+    "safe_projection_independently_equal_to_private_safe_summary": true,
+    "raw_artifacts_independently_rehashed": 11,
+    "build_seal": {
+      "path": "R:\\d3-evidence\\pose-observer-builds-and-payloads-1f9a939bc-20261105.json",
+      "bytes": 29861,
+      "sha256": "043e9c5ab60c5e7e5b9a272e21c275fb1ea6ba4b2c8b3542ad16f38061e8fde8"
+    },
+    "profiles": [
+      {
+        "profile": "ordinary",
+        "bin": "D:\\EECH-Migration-Evidence\\pose-observer-production-1f9a939bc\\eech-campaign\\target\\windows-pose-observer-1f9a939bc",
+        "actual_build_exit": 0,
+        "payloads_independently_rehashed_after_runs": 88,
+        "BUILD_INFO_sha256": "8011b6c8d297b2140e50f7ec9da67074d0402eb2d5101bbcac1c714fb0627a6b"
+      },
+      {
+        "profile": "hosted",
+        "bin": "D:\\EECH-Migration-Evidence\\pose-observer-production-1f9a939bc\\eech-campaign\\target\\weapon-fixture\\pose-observer-1f9a939bc",
+        "actual_build_exit": 0,
+        "payloads_independently_rehashed_after_runs": 88,
+        "BUILD_INFO_sha256": "b4b6ad24d5982df6d3895b3187c7dd11dcfb5237921823ae8e60665c34b036a9"
+      }
+    ],
+    "terminal_completions": [
+      {
+        "path": "R:\\d3-evidence\\pose-observer-1f9a939bc-windows-20261105-completion.json",
+        "bytes": 1683,
+        "sha256": "2ccded70e11b1789facaff4e5dee1ca3e568a0c5f63ac488c9f0696561e6119c"
+      },
+      {
+        "path": "R:\\d3-evidence\\pose-observer-healthy-1f9a939bc-20261105-completion.json",
+        "bytes": 1609,
+        "sha256": "0137efffaf4dc8e4d711dda77d1862016c30e179054e54d267e2004ca170949d"
+      },
+      {
+        "path": "R:\\d3-evidence\\pose-observer-ordinary-short-1f9a939bc-20261105-completion.json",
+        "bytes": 1482,
+        "sha256": "13054dba4f988aeefa99cf0847ee60ded9e3a3c863fbe6467ac93f676529a31c"
+      }
+    ],
+    "controllers": [
+      {
+        "role": "ordinary",
+        "controller": {
+          "path": "D:\\EECH-Migration-Evidence\\pose-observer-ordinary-short-1f9a939bc-20261105\\controller.json",
+          "bytes": 3964,
+          "sha256": "15e38bba9edcbfc7c8c21db216b3d5fb66d738c51f9384cdf156b27bb5f5755e"
+        },
+        "native_actual_exit": 0,
+        "helper_controller_actual_exit": 0,
+        "outer_actual_exit": 0,
+        "pre_post_full_input_checks": [
+          0,
+          0
+        ],
+        "input_files_each": 1179,
+        "input_bytes_each": 102239559,
+        "pre_post_manifest_bytes_literal_equal": true,
+        "manifest": {
+          "path": "D:\\EECH-Migration-Evidence\\pose-observer-ordinary-short-1f9a939bc-20261105\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "payloads_verified": 88,
+        "native_wall_seconds": 9.910328
+      },
+      {
+        "role": "healthy",
+        "controller": {
+          "path": "D:\\EECH-Migration-Evidence\\pose-observer-healthy-1f9a939bc-20261105\\controller.json",
+          "bytes": 4187,
+          "sha256": "3cf011d36820441acf390d072a3e017c37093a2d8b80c7fd1c44b33f675d3ac5"
+        },
+        "native_actual_exit": 0,
+        "helper_controller_actual_exit": 0,
+        "outer_actual_exit": 0,
+        "pre_post_full_input_checks": [
+          0,
+          0
+        ],
+        "input_files_each": 1179,
+        "input_bytes_each": 102239559,
+        "pre_post_manifest_bytes_literal_equal": true,
+        "manifest": {
+          "path": "D:\\EECH-Migration-Evidence\\pose-observer-healthy-1f9a939bc-20261105\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "payloads_verified": 88,
+        "native_wall_seconds": 102.524055
+      }
+    ]
+  },
+  "healthy_actual": {
+    "raw_JSONL": {
+      "path": "D:\\EECH-Migration-Evidence\\pose-observer-healthy-1f9a939bc-20261105\\model.jsonl",
+      "bytes": 3930,
+      "sha256": "9c82953d7f7e7297a9c96a4db68d278972bd6ca38c32ead7a0761d7475ea0b0b"
+    },
+    "row_count": 7,
+    "native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "mode": "control",
+    "profile": "hosted",
+    "request_faults": 0,
+    "reply_faults": 0,
+    "all_classifications_unaltered": true,
+    "selected_case_launch_and_cohort_join_verified": true,
+    "cohort_size": 1,
+    "cohort_complete": true,
+    "physical_signature_rebuilt_from_terminal_fields_excluding_ordinal": true,
+    "terminal_outcome": {
+      "code": "hit_land",
+      "steps": 6
+    },
+    "common_parent_authority_fields": 74,
+    "all_common_JSON_value_lexemes_literal_equal": true,
+    "physical_cohort_signature_literal_equal_parent": true,
+    "parent_runtime": "8b85230826ad1c1bea289f6d2592f31b705a03f6",
+    "parent_diagnostic": "ff608178070e247c8be5e5648b236d435884235d",
+    "parent_raw_JSONL": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-scan-healthy-ff608-native8b852-20261105\\model.jsonl",
+      "bytes": 2668,
+      "sha256": "87ea1eef5f283dcde1de72de47cd5c5460ee14d574f768cf18e27e5de8109500"
+    },
+    "no_parent_rerun": true,
+    "whole_old_and_new_JSONL_equal": false,
+    "scope": "The new pose fields make whole JSONLs intentionally unequal. Exact common values and the physical terminal are retained; no field or output was normalized. The provider/caller counts and configured VIEW input remain global, not per-weapon attribution or an unconfigured camera claim."
+  },
+  "pose_characterization": {
+    "observations": 9252,
+    "stage0_offer_observations": 6091,
+    "stage1_attitude_observations": 3161,
+    "phase_totals": {
+      "prelaunch_offer": 5782,
+      "prelaunch_attitude": 3040,
+      "armed_offer": 309,
+      "armed_attitude": 121
+    },
+    "denominators": "An offer means one stage0 observation, not a unique mobile or record. Repeat offers count again. Attitude facts count stage1 questions; total observations counts both. Offer-level class/dead/position/motion/formula facts count stage0 only.",
+    "all_reached_offer_records": {
+      "class": "recorded",
+      "kind": 1,
+      "alive": 1,
+      "entity_types": [
+        1,
+        23
+      ]
+    },
+    "aggregate_facts": {
+      "pose_fact_aircraft_motion_differs": 0,
+      "pose_fact_attitude_compared": 3161,
+      "pose_fact_attitude_differs": 0,
+      "pose_fact_dead": 0,
+      "pose_fact_dead_recorded": 0,
+      "pose_fact_formula_differs": 2364,
+      "pose_fact_formula_equal": 3727,
+      "pose_fact_motion_held": 0,
+      "pose_fact_motion_held_differs": 0,
+      "pose_fact_motion_not_held": 6091,
+      "pose_fact_no_id": 0,
+      "pose_fact_observations": 9252,
+      "pose_fact_offers": 6091,
+      "pose_fact_position_differs": 0,
+      "pose_fact_recorded": 6091,
+      "pose_fact_recorded_by_kind": "1=6091",
+      "pose_fact_retired": 0,
+      "pose_fact_unknown": 0,
+      "pose_fact_unrecorded": 0,
+      "pose_fact_vehicle_formula_differs": 2364,
+      "pose_fact_vehicle_formula_equal": 3727
+    },
+    "histogram_buckets_independently_joined": 7,
+    "formula_differs_meaning": "2364 offer observations carried the reference-formula-difference bit and3727 did not. This class is the defined IEEE gradual-RTZ product comparison; the bit also covers an undefined nonfinite-operand formula by contract. The aggregate does not identify a writer or prove that speed/attitude reconstructs the actual physical vector.",
+    "observed_mirror_result": "No position-difference bit in the reached buckets and no attitude-difference bit in the3161 reached placement observations. This applies only to what this run observed.",
+    "observed_motion_record_limit": "All6091 reached offers reported NO_HELD_MOTION. A matching position/attitude record is therefore not yet a complete authoritative collision-pose/vector handoff. The2364 formula-difference flags are a concrete reason not to substitute a derived vector for the actual physical motion vector."
+  },
+  "ordinary_short": {
+    "proof": {
+      "path": "R:\\d3-evidence\\pose-observer-ordinary-short-comparison-1f9a939bc-20261105.json",
+      "bytes": 2299,
+      "sha256": "46bb167f7427aec8e9a1e24237263db11bd912e0e49e42b5ec147e32fcd29581"
+    },
+    "all_three_COMPLETE_files_independently_literal_compared": true,
+    "files": [
+      {
+        "name": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "literal_equal": true
+      },
+      {
+        "name": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "literal_equal": true
+      },
+      {
+        "name": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "literal_equal": true
+      }
+    ],
+    "native_controller_pre_post_all_actual_zero": true,
+    "native_wall_seconds": 9.910328,
+    "prior_SCAN_short_seconds": 14.679271,
+    "timing_qualification": "One elapsed observation, not a benchmark or evidence that adding the observer improves performance. Prior build contention and process conditions can affect walltime. No flags, tolerances, scenario duration, baseline or complete output bytes were adjusted."
+  },
+  "correctness_clean_code_boundary_assessment": [
+    "The newly executed Windows profiles and normal semantic-ID/record crossing validate this frozen build/literal combination; all88 payloads per profile were independently rehashed after the runs. This does not relabel earlier Linux or parent binaries.",
+    "The raw pre/post manifests are byte-identical for both fresh roots, with four actual checks of1179 files/102239559 bytes each. Both ordinary and healthy native/helper/outer exits are actual zero.",
+    "The seven histogram buckets reconstruct all9252 questions,6091 offers and3161 attitude comparisons and agree with every emitted pose_fact_* aggregate. No-ID/unrecorded/retired/unknown/dead counts are zero because those domains were not reached, not because their support or absence was proved.",
+    "The retained74 common authority value lexemes, physical terminal signature and complete ordinary outputs match without rewriting or normalizing the retained parent. These are bounded observations of noninterference, not whole-world/default/global-RNG/full-FP equivalence.",
+    "No new safety or evidence inconsistency was found. The required next physical change must preserve/capture the actual motion vector at legitimate creation/placement/step/lifetime boundaries in the same authoritative registry; this report supplies characterization only and reviews none of that later implementation."
+  ],
+  "reused_source_qualification": {
+    "source_review_reused_without_reopening": true,
+    "Linux_final_pre_gate_or_after_fmt_map_available": false,
+    "meaning": "Source d801 explicitly records that source-before.txt belongs to12ce before the residual corrections. Only post-gate/post-commit2919-row maps were equal; no immutable Linux snapshot or full final before/after source equality is claimed. Fresh immutable Windows build/native evidence now adds its own identities, without retroactively filling that Linux capture gap.",
+    "FP_scope": "The closed source validation used four rounding modes, eight seeded sticky-flag patterns (0, six single flags,0x3f) and two mask settings for64 MXCSR cases. It was not all64 sticky-flag combinations or a new full public/native FPU measurement. The integer formula is fixed gradual-underflow RTZ; another caller DAZ/FTZ mode is not its mathematical oracle."
+  },
+  "unreached_and_required_scope": [
+    "No missing-ID, unrecorded, retired, unknown, dead/wreck or other-record-kind runtime coverage from this healthy probe",
+    "No moving narrowphase queries and no NEED_UPDATED: both actual counters0; mobile offers are not moving-path parity or authority",
+    "No writer attribution or universal creation/placement/lifetime/packet/pack/gunship/dependent-route coverage",
+    "No Host physical use of pose/vector, silent fallback decision or physical pose authority accepted by this observer report",
+    "Core backing roster/sector lists, identity/lifetime/synchronization, city children/effectful services and required raw tree/forest/cloud/hierarchy/device/muzzle/rotor/smoke/DCS mapping work remain open",
+    "Eventual consolidated Task49 full-pack/dependency/delivery and whole-D3 requirements remain required"
+  ],
+  "publication_safety": "Safe aggregates/counts/hashes/outcome labels/source and private paths only. No raw retail coordinates/vectors/physical tuples, full cohort signatures, host-ID suffixes, entity indices/pointers, model catalogue, recordings/transcripts/assets/binaries/credentials. The private18757-byte audit must remain private; the5236-byte safe projection is separately identified."
+}

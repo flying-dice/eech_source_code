@@ -1,0 +1,366 @@
+{
+  "schema": 1,
+  "created_utc": "2026-11-07T10:21:50.156957+00:00",
+  "source": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982",
+  "snapshot_clean": true,
+  "plan": {
+    "file": "sector-height-native-1b89-plan-20261107.json",
+    "bytes": 9091,
+    "sha256": "9dd4b3f3f9081db29d8435a7f865ebd3fb7a3f254aa2fcfbe1d82d43afafec7b"
+  },
+  "build": {
+    "file": "sector-height-native-windows-1b89-20261107-completion.json",
+    "bytes": 56089,
+    "sha256": "ef258aa015307509fb110286a43ff6756aacd7cc76bb2ac3c4f8fb8e46ed43c5"
+  },
+  "profile_audit": {
+    "file": "sector-height-native-1b89-profile-v2-20261107-completion.json",
+    "bytes": 6030,
+    "sha256": "299276a4ced20a9415332aa04a08b002fcb9a15f4f3fa8e0d8cab4a4ec66da6f"
+  },
+  "profiles": {
+    "ordinary": {
+      "payloads_current_unchanged": 89,
+      "producer_image": "sha256:c7841409917e33ef92a64ce5a7d9fbd7d144350c123428ba1e998db58c498fd9",
+      "binary": "D:\\EECH-Migration-Evidence\\sector-height-native-1b89-20261107-source\\eech-campaign\\target\\windows-height-1b89-ordinary"
+    },
+    "observer": {
+      "payloads_current_unchanged": 89,
+      "producer_image": "sha256:8c3c45c837dc0a78193dc9dea233f6d67633c8a0cb46dcc0ac983b3bd87dc1ed",
+      "binary": "D:\\EECH-Migration-Evidence\\sector-height-native-1b89-20261107-source\\eech-campaign\\target\\sector-height-observer\\1b89"
+    },
+    "weapon": {
+      "payloads_current_unchanged": 89,
+      "producer_image": "sha256:810e0121c7081fc7f4b51d8973beec085759e659be46e241e0bb8864245b13c2",
+      "binary": "D:\\EECH-Migration-Evidence\\sector-height-native-1b89-20261107-source\\eech-campaign\\target\\weapon-fixture\\height-1b89"
+    }
+  },
+  "cases": {
+    "ordinary_short": {
+      "receipt": {
+        "file": "sector-height-native-1b89-ordinary_short-20261107-completion.json",
+        "bytes": 5918,
+        "sha256": "8a98d236872d5b768c4936a4fe39360ce807bfe9d7f25ead3b3db0d21febe44e"
+      },
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 89,
+      "pre-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "complete_comparison": [
+        {
+          "file": "recording.acmi",
+          "candidate_bytes": 230871,
+          "baseline_bytes": 230871,
+          "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "literal_complete_equal": true
+        },
+        {
+          "file": "observations.jsonl",
+          "candidate_bytes": 1553674,
+          "baseline_bytes": 1553674,
+          "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "literal_complete_equal": true
+        },
+        {
+          "file": "metrics.json",
+          "candidate_bytes": 7477,
+          "baseline_bytes": 7477,
+          "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "literal_complete_equal": true
+        }
+      ]
+    },
+    "observer_short": {
+      "receipt": {
+        "file": "sector-height-native-1b89-observer_short-20261107-completion.json",
+        "bytes": 5916,
+        "sha256": "532c8f369011b02b355e5e722759cf2fa35d281bbfe2ebdc5941887283633aa6"
+      },
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 89,
+      "pre-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "complete_comparison": [
+        {
+          "file": "recording.acmi",
+          "candidate_bytes": 230871,
+          "baseline_bytes": 230871,
+          "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "literal_complete_equal": true
+        },
+        {
+          "file": "observations.jsonl",
+          "candidate_bytes": 1553674,
+          "baseline_bytes": 1553674,
+          "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "literal_complete_equal": true
+        },
+        {
+          "file": "metrics.json",
+          "candidate_bytes": 7477,
+          "baseline_bytes": 7477,
+          "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "literal_complete_equal": true
+        }
+      ]
+    },
+    "scan_baseline": {
+      "receipt": {
+        "file": "sector-height-native-1b89-scan_baseline-20261107-completion.json",
+        "bytes": 5198,
+        "sha256": "1cac93e94535ac895c333db3958fce9f9c1815dd8146f340e7a40705f1c92922"
+      },
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 89,
+      "pre-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "scoped_verdict": "sho-verdict scope=hosted-scan scan_whole=1 status=EQUAL_AT_SCOPE clearances=0 sectors=2 original_link_pack_hooks=not_compared",
+      "report_sha256": "118a60fd74392dd97b7644a5a6c49686ad38340e5e1d7932d9bd71c152683d56",
+      "actual_wrapper_exit": 0
+    },
+    "sector_height_control": {
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_control-20261107-completion.json",
+        "bytes": 11227,
+        "sha256": "5c4e027b019688d4b0d047c3832ffedbd51065ad8f8a321e93976f7e4a9f2867"
+      },
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 89,
+      "pre-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "authority_sha256": "3a0fc173a645e5b1527561588e4a607f5dde4b3c4f4d8367d91bb8b754e82788",
+      "authority": {
+        "height_eligible": 45,
+        "height_scan_joined": 45,
+        "height_consumed": 90,
+        "height_consumed_altered": 0,
+        "height_altered": 0,
+        "height_mismatch": 0,
+        "completed": true,
+        "incomplete": false,
+        "failure_marker": ""
+      }
+    },
+    "sector_height_wrong_word": {
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_wrong_word-20261107-completion.json",
+        "bytes": 11401,
+        "sha256": "af6d0e044fe5b38a720aaff3e7dfc0ecc1c7380d7db301b9bb155e0356945ffc"
+      },
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 89,
+      "pre-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "authority_sha256": "df1e6630d58404ee6f4c887649b9cfc3c5d4e3fff3c13e80b03573cf9bf88b5b",
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 1,
+        "height_consumed_altered": 1,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_candidate.refused"
+      }
+    },
+    "sector_height_withheld": {
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_withheld-20261107-completion.json",
+        "bytes": 11170,
+        "sha256": "90f057f5147c49370c90a99befe15e4c862ec6ae5c7f481991068d162391a534"
+      },
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 89,
+      "pre-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "authority_sha256": "b5a8a31e03978b643719b1171a8ae109985178df81b5d5fd44687801bdb8470c",
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 0,
+        "height_consumed_altered": 0,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_scan.callback"
+      }
+    },
+    "sector_height_malformed": {
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_malformed-20261107-completion.json",
+        "bytes": 11174,
+        "sha256": "233e97a8df579b27c21ad6f103eb322bb3613e1259d9d7aec779649acf7b5b3b"
+      },
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 89,
+      "pre-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "authority_sha256": "6d2c808e30a28eb3a37df72b29fc6dada9856fa47773ecbab0127d3046bc959f",
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 0,
+        "height_consumed_altered": 0,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_scan.answer"
+      }
+    },
+    "sector_height_wrong_state": {
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_wrong_state-20261107-completion.json",
+        "bytes": 11217,
+        "sha256": "b30d00d29129c9dc9d1a9f0a9b3e3a69c8e9b0e526df5e41fb75b3772e7a6333"
+      },
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 89,
+      "pre-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "authority_sha256": "d35ac89dbb3db102f76a54112881f8b5f889475b7ff1c13fc3db3ab6771373db",
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 0,
+        "height_consumed_altered": 0,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_scan.state"
+      }
+    },
+    "sector_height_wrong_sector": {
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_wrong_sector-20261107-completion.json",
+        "bytes": 11252,
+        "sha256": "ee31e3f80a4c28b002e736f561b8342dcc07ee91d422c248b3143d9061c809d1"
+      },
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 89,
+      "pre-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "authority_sha256": "cb7a00547a063980c3269f94b1b096352cbcd55ee540c51f5da2375d3008932e",
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 0,
+        "height_consumed_altered": 0,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_scan.sector_height"
+      }
+    }
+  },
+  "scope": "Read-only Root binding of 9 completed frozen1b89 finite gates. COMPLETE short byte comparisons, scoped live FIRST/fact12 equality, configured eligible height consumption and 5 matched refusals only. Not visual inspection, natural engagement, guarded fixed-wing execution, native Core save/load, final current40/all8, whole Task49/D3 or delivery. SAME independent review still required. No run replay or baseline change."
+}

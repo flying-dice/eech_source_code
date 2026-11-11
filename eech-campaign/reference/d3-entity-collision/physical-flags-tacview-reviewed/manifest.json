@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "independent-tacview-correction-bccd-source-20261108.json",
+      "bytes": 7128,
+      "sha256": "873c09a44fe8bba0f5daff7c10c7db6c0d46a0ef0c4ffcc4bc8535430c2e1240"
+    },
+    {
+      "path": "independent-tacview-residual-eb7b-source-20261108.json",
+      "bytes": 6117,
+      "sha256": "7a4df12e8548aaf6afd03cd4accee0b0c12dd77ca56b430c920e754a4f381cc6"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1400,
+      "sha256": "03bce064f4ed3f0b66b4ec6cb373f53cf8bf5f560ed4c51b2ec751d5ed058e7e"
+    },
+    {
+      "path": "tacview-residual-16487-Root-publication-20261108.json",
+      "bytes": 11860,
+      "sha256": "f7d31c0a996ebbb6df7636e73c3a1209fef1208e159a6d3e8020114686a2902a"
+    },
+    {
+      "path": "tacview-residual-eb7b-Root-binding-20261108.json",
+      "bytes": 2676,
+      "sha256": "4d0db32a5b2aadfc332ae641a4965c7e6132095fc4c33c5482dc729d5ab73f35"
+    }
+  ]
+}

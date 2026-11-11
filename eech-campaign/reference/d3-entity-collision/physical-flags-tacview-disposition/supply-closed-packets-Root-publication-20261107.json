@@ -1,0 +1,117 @@
+{
+  "kind": "Read-only exact committed Git packet and external-byte binding; no experiment replay",
+  "utc": "2026-11-07T23:47:57.244130+00:00",
+  "packets": [
+    {
+      "commit": "b4fbe45900dd21878ca848921045f1f28be672c3",
+      "parent": "442a834a5b52793249145f7253ba9b68c68e3182",
+      "packet": "eech-campaign/reference/d3-entity-collision/supply-boolean-source-reviewed/",
+      "manifest_entries": 5,
+      "exact_committed_packet_coverage": true,
+      "external_literal_copies": [
+        {
+          "file": "independent-supply-boolean-3abf-source-20261107.json",
+          "external": "R:\\d3-evidence\\independent-supply-boolean-3abf-source-20261107.json",
+          "sha256": "bbfdb6b0fc39a8285d0447e58b1991ef219aef9688c9492a5dc097df2e692ff8"
+        },
+        {
+          "file": "supply-boolean-3abf-Root-binding-20261107.json",
+          "external": "R:\\d3-evidence\\supply-boolean-3abf-Root-binding-20261107.json",
+          "sha256": "cb77e86f3e4fe5930e711f85876b554ecc57b8da4ab65cfe9e57d912ef8c7011"
+        },
+        {
+          "file": "supply-boolean-442a-publication-Root-20261107.json",
+          "external": "R:\\d3-evidence\\supply-boolean-442a-publication-Root-20261107.json",
+          "sha256": "5abed0a631ef8bdf77ce7b074150f88abf7df54471aff95b76491608bc6156e0"
+        },
+        {
+          "file": "supply-boolean-native-source-snapshot-3abf-20261107.json",
+          "external": "R:\\d3-evidence\\supply-boolean-native-source-snapshot-3abf-20261107.json",
+          "sha256": "12f48bc313a7951d294b29fece157170c8f832e5cc1c206a983a9d1e85c80fc7"
+        }
+      ],
+      "publication_delta_only_metadata_and_this_packet": true
+    },
+    {
+      "commit": "b1b9a5d9ea27cbbbeda33035972e416ee7925001",
+      "parent": "b4fbe45900dd21878ca848921045f1f28be672c3",
+      "packet": "eech-campaign/reference/d3-entity-collision/supply-boolean-native-3abf/",
+      "manifest_entries": 15,
+      "exact_committed_packet_coverage": true,
+      "external_literal_copies": [
+        {
+          "file": "independent-supply-boolean-3abf-default-actual-20261107.json",
+          "external": "R:\\d3-evidence\\independent-supply-boolean-3abf-default-actual-20261107.json",
+          "sha256": "43feb909d9c81f99f36aba17f4db6ad0aa9e76afb6e8ba807c7057b33295c263"
+        },
+        {
+          "file": "independent-supply-boolean-3abf-default-plan-20261107.json",
+          "external": "R:\\d3-evidence\\independent-supply-boolean-3abf-default-plan-20261107.json",
+          "sha256": "86d8936ebd620537f252e90fd5f2f7a0072e933ba8ce0e4cef13349a55bac01f"
+        },
+        {
+          "file": "ordinary-profile.json",
+          "external": "D:\\EECH-Migration-Evidence\\supply-boolean-native-3abf-profile-20261107\\ordinary\\profile.json",
+          "sha256": "14a421b54834fa03a287643c8ec1770c54abd605a638b3d18a56164ab259ae66"
+        },
+        {
+          "file": "original-profile.json",
+          "external": "D:\\EECH-Migration-Evidence\\supply-boolean-native-3abf-profile-20261107\\original\\profile.json",
+          "sha256": "2b054c1901781acca5e33499dd25cf0722bb9d9920e7deaf64049de0a2896702"
+        },
+        {
+          "file": "run-supply-boolean-default-3abf-20261107.py",
+          "external": "R:\\d3-evidence\\run-supply-boolean-default-3abf-20261107.py",
+          "sha256": "6e882b8169710cb00a49b5eaf867a17958a0e424872046ba4e77c6f2bbe3f8c0"
+        },
+        {
+          "file": "supply-boolean-3abf-closed-Windows-cache-cleanup-20261107.json",
+          "external": "R:\\d3-evidence\\supply-boolean-3abf-closed-Windows-cache-cleanup-20261107.json",
+          "sha256": "48add1f5e9e300cfd08a679000681dc4e9e86f49d272e5d8e57ffd27675581cc"
+        },
+        {
+          "file": "supply-boolean-3abf-WINDOWS-CACHE-RELEASE-20261107.json",
+          "external": "R:\\d3-evidence\\supply-boolean-3abf-WINDOWS-CACHE-RELEASE-20261107.json",
+          "sha256": "696218c350bf56368edebb603a6fd452210d38e48397c4e84a1b40df19f23fb3"
+        },
+        {
+          "file": "supply-boolean-b4fbe4-all9-CI-readback-20261107.json",
+          "external": "R:\\d3-evidence\\supply-boolean-b4fbe4-all9-CI-readback-20261107.json",
+          "sha256": "1dd69cd839f3d824f36b34ddd8411a2bce69163047efc88c7307417e5a426188"
+        },
+        {
+          "file": "supply-boolean-default-3abf-ordinary_short-20261107-completion.json",
+          "external": "R:\\d3-evidence\\supply-boolean-default-3abf-ordinary_short-20261107-completion.json",
+          "sha256": "9b9411061544927ad75b414ca4db44a19b06e230e2611832cb73dd9be80da05f"
+        },
+        {
+          "file": "supply-boolean-default-3abf-original_short-20261107-completion.json",
+          "external": "R:\\d3-evidence\\supply-boolean-default-3abf-original_short-20261107-completion.json",
+          "sha256": "494bb41b3e3757bf4daf66bdd1be2e701b0562dfe5b089f7bffef3963d283f0e"
+        },
+        {
+          "file": "supply-boolean-default-3abf-plan-20261107.json",
+          "external": "R:\\d3-evidence\\supply-boolean-default-3abf-plan-20261107.json",
+          "sha256": "47ef82ec5f1194ec536702a9e402e3a54a738965283e4174567fa850c20cb9a0"
+        },
+        {
+          "file": "supply-boolean-default-3abf-Root-binding-20261107.json",
+          "external": "R:\\d3-evidence\\supply-boolean-default-3abf-Root-binding-20261107.json",
+          "sha256": "87876f17dec3de2f6da0c3740ecff96083a9719ba982401b7ead740eb5061f6b"
+        },
+        {
+          "file": "supply-boolean-native-3abf-profile-20261107-completion.json",
+          "external": "R:\\d3-evidence\\supply-boolean-native-3abf-profile-20261107-completion.json",
+          "sha256": "67664feea24162bbd1d24c40f913a9219f551e341e14a6c9ab30df825b7a1aed"
+        },
+        {
+          "file": "supply-boolean-native-windows-3abf-20261107-completion.json",
+          "external": "R:\\d3-evidence\\supply-boolean-native-windows-3abf-20261107-completion.json",
+          "sha256": "dc632ab7b5f80f8a1f412aff7019b9b4e84fe3154cb6daf832f167baeecf0358"
+        }
+      ],
+      "publication_delta_only_metadata_and_this_packet": true
+    }
+  ],
+  "limits": "Closed finite source/default/build evidence only; not fullpack/all10/Task49/D3 acceptance. No current source/cache/native job mutation."
+}

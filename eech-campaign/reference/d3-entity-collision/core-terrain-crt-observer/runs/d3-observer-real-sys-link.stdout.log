@@ -1,0 +1,8 @@
+rustfmt 1.10.0-stable (58cf8f9c35 2026-10-13)
+
+running 2 tests
+test actual_crt_calls_are_forwarded_once_with_same_seed_values_order_and_fp_words ... ok
+test additive_hooks_keep_original_rand_expressions_and_reject_a_changed_anchor ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

@@ -1,0 +1,78 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "cda599-family-20261108.json",
+      "sha256": "504ceded129bbdf5e553c79330684d3cea21b391fed26c36e21d24d4bab6c7dc"
+    },
+    {
+      "path": "codex-d3-core-crt-actual-disposition-20261108-process.json",
+      "sha256": "2f429096cb518f7f02447db65c76bf83ce4e01e5acf47cd4d988368259e4d141"
+    },
+    {
+      "path": "core-crt-build-and-capture-plan-Root-binding-20261108.json",
+      "sha256": "8df2c609f5489c5a74931727361aa785aace01d6d3b26549b8ac0a0e5d4c0d4e"
+    },
+    {
+      "path": "core-crt-capture-actual-Root-binding-20261108.json",
+      "sha256": "a69640a697608076646e94fe7db185b3980876a4cfc563f2ddcf65969917ef8e"
+    },
+    {
+      "path": "core-crt-matched-599958-20261108-completion.json",
+      "sha256": "0283543f1303e0206e7d32a12d8d4e21cd6b4c723a685cce44986df1abf6534d"
+    },
+    {
+      "path": "core-crt-matched-599958-capture-plan-20261108.json",
+      "sha256": "134284354240d9588395e95579632dafea20297b1fad2f1769a9c3fff7984f5d"
+    },
+    {
+      "path": "core-crt-observer-599958-20261108-completion.json",
+      "sha256": "8dc29a08ebf1a3029915596be8d1b3ee6e188245f98dc3c740c752c1d5fb237f"
+    },
+    {
+      "path": "core-crt-windows-profile-audit-v2-599958-20261108-completion.json",
+      "sha256": "288d2185b4c4e66d4c6637fd2004da282b3d6ed846a47600478ba50275689af0"
+    },
+    {
+      "path": "D3-CORE-CRT-ACTUAL-DISPOSITION-FROZEN-20261108.json",
+      "sha256": "906f475ce15e3365397719385f7959b510c927a962a8d3c2482541efd42ad792"
+    },
+    {
+      "path": "evidence-index.json",
+      "sha256": "2f6240b3aa9f20d3df33e2d25a0b5fe76d61ebef3cecc038921f389dc1a1af79"
+    },
+    {
+      "path": "independent-core-crt-capture-599958-plan-20261108.json",
+      "sha256": "070a49d7daa0701b457c89bc3b2db64ed79b8d2aac13ee8314cdb4ac8ffdf3bd"
+    },
+    {
+      "path": "independent-core-crt-endpoint-79784-source-20261108.json",
+      "sha256": "af9501075b5f03df1f8e73808f743ad0748064c31d6dce8431ff85e1efbf1583"
+    },
+    {
+      "path": "numeric-projection.json",
+      "sha256": "55d00c30b9e62064f5c5671c9455a4e93f20e828b2f36b73c2ba19897f1bb87e"
+    },
+    {
+      "path": "README.md",
+      "sha256": "4c08415466b26b893b8895b6dcd71dee22d93ae343b5e800a6717d660e8c7d1a"
+    },
+    {
+      "path": "retained-producer-index.json",
+      "sha256": "1df03b11d473c13dda10271347ed0a740411fdd042ea6d5ada6ef8e50dc8a8b8"
+    },
+    {
+      "path": "source-identities.json",
+      "sha256": "0f15b5ecc502e7dd63c8c6ad1ebcbe2976f2bbc4883aa87486a387cc4c51ddb5"
+    },
+    {
+      "path": "windows-profile-v2.json",
+      "sha256": "070f6975321c0876530d78f90b62b58d5c592eec4bc0ca2d425a331dbf534402"
+    }
+  ],
+  "self_excluded": true,
+  "raw_source_and_private_indices_qualified": true
+}

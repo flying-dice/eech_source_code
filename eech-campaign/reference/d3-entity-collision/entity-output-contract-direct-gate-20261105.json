@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T09:38:46.993Z",
+  "scope": "Direct-exit focused Linux gate for the corrected entity narrow-phase output contract (review finding ENV-ENTITY-CALLER-BUFFER-1 of c510c55c7). Every step is a direct child whose exit was read on the next line, output went to one combined log, excerpts were taken after the status was recorded. Not a native, Windows or retail run.",
+  "review_report": {
+    "file": "independent-entity-narrowphase-source-c510c55c7-20261105.json",
+    "sha256": "18dba44b15530097e3a04e37ac7e7d062dcd39569f86e659511ff50679111251",
+    "verdict": "CHANGES_REQUIRED",
+    "native_launch_clearance": false
+  },
+  "base_head": "c510c55c770f4bd2c74cee69e0de9be67a95cae7",
+  "environment": "WSL daemon EECH-D2-Build, image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51, cache volume eech-linux-d3-collision-driver-5416adb3b-20261029 (no container existed before; runner refuses if one does), --network none",
+  "steps": [
+    {
+      "step": "fmt",
+      "child_exit": 0
+    },
+    {
+      "step": "tests-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "test-model-walk",
+      "child_exit": 0
+    },
+    {
+      "step": "test-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "test-entity-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "build-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-host-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-and-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon-and-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-entity-dialogue",
+      "child_exit": 0
+    }
+  ],
+  "failed_steps": 0,
+  "cargo_test_result_rows_ok": 63,
+  "cargo_failed_or_panicked_or_error_lines": 0,
+  "gate_log": {
+    "bytes": 269211,
+    "sha256": "61a1f4d5a5f0441078b43bf9edbbb2f7daf0b76a8f16d9ff2199f8fafa753726"
+  },
+  "code_inputs": {
+    "scope": "aphavoc eech-campaign/crates eech-campaign/Cargo.toml eech-campaign/Cargo.lock eech-campaign/tools; tracked and untracked-not-ignored files, taken on the Windows checkout where Git resolves, new inputs included",
+    "rows": 2911,
+    "filtered_column_sha256_before": "2cb346d6ab5708a12600717bcbae1bfb851e8742d0c103eb86a8f3af2b4e82ee",
+    "filtered_column_sha256_after": "2cb346d6ab5708a12600717bcbae1bfb851e8742d0c103eb86a8f3af2b4e82ee",
+    "raw_column_sha256_before": "b2f1dc3d4b54488f8c8f37aae68f2067e75a4244e1ccc8e973d4d5b6b39ac485",
+    "raw_column_sha256_after": "b2f1dc3d4b54488f8c8f37aae68f2067e75a4244e1ccc8e973d4d5b6b39ac485",
+    "equal_before_after": true,
+    "meaning": "The filtered column is the Git blob id of each working file as Git's clean filter would store it; the raw column is the SHA-256 of the working file's raw bytes. They are different identities: for three pre-existing CRLF files (aphavoc/laa.c, aphavoc/source/entity/special/effect/explosn/xp_types.h, aphavoc/source/entity/special/effect/smokelst/sl_types.h) the filtered id is the LF-normalised form (core.autocrlf=input) and is NOT their committed blob, while their raw working bytes equal their committed bytes (CR counts 64, 66, 119 in both; filter-qualification.txt). The raw column is the byte identity. No accepted C file was normalised or rewritten."
+  },
+  "red_controls_not_counted_as_green": {
+    "note": "The isolated C control was run against three deliberately mutated adapters (the mutation was applied to mb_hostentity.h on the working tree and reverted; the header's blob id was verified equal to its pre-mutation id afterwards). Each must fail, and each did.",
+    "runs": [
+      {
+        "run": "entity-collision-20261105-c-redA",
+        "child_exit": 101,
+        "log_sha256": "3bd136eaaa1fb65d9c337e656500ac4278d27cf9509ea2681ad278ed3c0153cb"
+      },
+      {
+        "run": "entity-collision-20261105-c-redB",
+        "child_exit": 101,
+        "log_sha256": "3bd136eaaa1fb65d9c337e656500ac4278d27cf9509ea2681ad278ed3c0153cb"
+      },
+      {
+        "run": "entity-collision-20261105-c-redC",
+        "child_exit": 101,
+        "log_sha256": "11b38ccec347abe23cf5022dea0575d09fcdff7e104d9ecc856c4eff72716705"
+      }
+    ],
+    "mutants": [
+      "reads the caller's point buffer before the exchange (SIGSEGV on the unreadable page)",
+      "writes the normal before the reply is checked (SIGSEGV on the unwritable page)",
+      "commits the assigned normal before checking the reply (FAIL lines: refused answers changed the caller's normal)"
+    ]
+  },
+  "superseded": "The first-batch (entity-collision-20261103-a) and correction-batch (entity-collision-20261105-b) logs are retained at their own identities. The -b gate was green for the c510c55c7 source and is superseded for the corrected source by this gate; it is not invalid, but it does not cover the output contract."
+}

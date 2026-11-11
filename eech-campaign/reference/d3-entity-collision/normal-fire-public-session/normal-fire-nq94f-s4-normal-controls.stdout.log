@@ -1,0 +1,53 @@
+
+running 1 test
+detach case=0 ammo=1000->999 origin_fallback=0 position=500,100,501
+detach case=1 ammo=1000->999 origin_fallback=1 position=500,100,500
+detach case=2 ammo=1000->999 origin_fallback=1 position=500,100,500
+detach case=3 ammo=1000->999 origin_fallback=0 position=500,100,502
+detach case=4 ammo=1000->999 origin_fallback=0 position=500,100,501
+collaborator_checks=5 terrain_queries=5 failures=0
+normal-ev seq=1 tick=0 kind=normal_detach fire=0 detach=1 launcher=none weapon=3 config=703 package=1 devices=15 burst=1 ammo_before=1000 ammo_after=999 visible_before=1 visible_after=0 flash_present=1 flash_before=0x00000000 flash_after=0xbe800000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fa8000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=2 tick=0 kind=normal_detach fire=0 detach=2 launcher=none weapon=3 config=703 package=1 devices=0 burst=1 ammo_before=1000 ammo_after=999 visible_before=-1 visible_after=-1 flash_present=0 flash_before=0x00000000 flash_after=0x00000000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fa0000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=3 tick=0 kind=normal_detach fire=0 detach=3 launcher=none weapon=3 config=703 package=1 devices=1 burst=1 ammo_before=1000 ammo_after=999 visible_before=-1 visible_after=-1 flash_present=0 flash_before=0x00000000 flash_after=0x00000000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fa0000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=4 tick=0 kind=normal_detach fire=0 detach=4 launcher=none weapon=3 config=703 package=1 devices=11 burst=1 ammo_before=1000 ammo_after=999 visible_before=-1 visible_after=-1 flash_present=1 flash_before=0x00000000 flash_after=0xbe800000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fb0000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=5 tick=0 kind=normal_detach fire=0 detach=5 launcher=none weapon=3 config=703 package=1 devices=7 burst=1 ammo_before=1000 ammo_after=999 visible_before=1 visible_after=0 flash_present=0 flash_before=0x00000000 flash_after=0x00000000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fa8000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000
+normal source=eech-world:1 target=eech-world:2 package=1 ammo=2->1 ready=1 vectors=1 birth=1
+wpn-ev seq=1 kind=birth w=1 type=BGM-71D_TOW-2 launcher=ENTITY_TYPE_ROUTED_VEHICLE target=ENTITY_TYPE_ROUTED_VEHICLE submunition=0 velocity=50 lifetime=3 decoy_timer=0 pos=500,100,501 att=1,0,0,0,1,0,0,0,1 burst=1 loal=0 phase=0 fuze=0 fuze_solved=0 fuze_timer=0 fuze_draws=0 dispersion=0 disp=0,0 draws=0 cruise_time=9.52700043 cruise_error=0 survive_ground=0
+wpn-ev seq=2 kind=launch outcome=created launcher=ENTITY_TYPE_ROUTED_VEHICLE type=BGM-71D_TOW-2 burst=1 has_target=1 fired_at=0 ammo_before=2 ammo_after=1 decoy_cargo_debris=0
+normal-ev seq=6 tick=0 kind=normal_fire fire=1 launcher=eech-world:1 target=eech-world:2 weapon=70 ready=1 actual=0x00000000,0x00000000,0x3f800000 intercept=0x00000000,0x00000000,0x3f800000 angle=0x00000000 maximum=0x3f060a92
+normal-ev seq=7 tick=0 kind=normal_detach fire=1 detach=6 launcher=eech-world:1 weapon=70 config=705 package=1 devices=15 burst=1 ammo_before=2 ammo_after=1 visible_before=1 visible_after=0 flash_present=0 flash_before=0x00000000 flash_after=0x00000000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fa8000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=8 tick=0 kind=normal_birth fire=1 detach=6 w=1 launcher=eech-world:1 target=eech-world:2 weapon=70 matched=1 pose=0x43fa0000,0x42c80000,0x43fa8000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=9 tick=0 kind=normal_end fire=1 births=1
+normal-ev seq=10 tick=0 kind=normal_step step=1 w=1 launcher=eech-world:1 target=eech-world:2 weapon=70 pose=0x43fa0000,0x42c80000,0x43fa8000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000 motion=0x00000000,0x00000000,0x00000000 velocity=0x42480000 lifetime=0x40400000 code=0
+normal-ev seq=11 tick=0 kind=normal_step_end step=1 w=1 launcher=eech-world:1 target=eech-world:2 weapon=70 pose=0x43fa0000,0x42c80000,0x43fd0042,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000 motion=0x00000000,0x00000000,0x4248147b velocity=0x4248147b lifetime=0x4039999a code=0
+normal-ev seq=12 tick=0 kind=normal_step step=2 w=1 launcher=eech-world:1 target=eech-world:2 weapon=70 pose=0x43fa0000,0x42c80000,0x43fd0042,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000 motion=0x00000000,0x00000000,0x4248147b velocity=0x4248147b lifetime=0x4039999a code=0
+normal-ev seq=13 tick=0 kind=normal_query step=2 query=1 w=1 which=0 before=0 segment=0x43fa0000,0x42c80000,0x43fd0042,0x43fa0000,0x42c80000,0x43ff80c5
+normal-ev seq=14 tick=0 kind=normal_query_end step=2 query=1 w=1 after=0 hit=0 hit_id=none
+normal-ev seq=15 tick=0 kind=normal_step_end step=2 w=1 launcher=eech-world:1 target=eech-world:2 weapon=70 pose=0x43fa0000,0x42c80000,0x43ff80c5,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000 motion=0x00000000,0x00000000,0x424828f6 velocity=0x424828f6 lifetime=0x40333334 code=0
+
+actual D2 requests={"birth": 2, "command": 3, "figures": 82, "flight": 22, "forecast": 12, "ready": 3, "release": 1, "required": 2, "step": 2, "vectors": 3}
+observer_checks=4 rounding_modes old_and_new_hooks nonzero_x87_mxcsr_flags errno shared_rng no_aim_provider_no_terrain_traffic_and_drain delivered_context_negatives=8200 failures=0
+
+portable_lua_controls=9 actual_positive_first single_field_faults=5 no_eligible failure_precedence frame_relation; observer_modes=4
+test real_normal_fire_uses_model_devices_and_real_d2_before_correlated_birth ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s
+
+
+running 1 test
+detach case=0 ammo=1000->999 origin_fallback=0 position=500,100,501
+detach case=1 ammo=1000->999 origin_fallback=1 position=500,100,500
+detach case=2 ammo=1000->999 origin_fallback=1 position=500,100,500
+detach case=3 ammo=1000->999 origin_fallback=0 position=500,100,502
+detach case=4 ammo=1000->999 origin_fallback=0 position=500,100,501
+collaborator_checks=5 terrain_queries=5 failures=0
+normal-ev seq=1 tick=0 kind=normal_detach fire=0 detach=1 launcher=none weapon=3 config=703 package=1 devices=15 burst=1 ammo_before=1000 ammo_after=999 visible_before=1 visible_after=0 flash_present=1 flash_before=0x00000000 flash_after=0xbe800000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fa8000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=2 tick=0 kind=normal_detach fire=0 detach=2 launcher=none weapon=3 config=703 package=1 devices=0 burst=1 ammo_before=1000 ammo_after=999 visible_before=-1 visible_after=-1 flash_present=0 flash_before=0x00000000 flash_after=0x00000000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fa0000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=3 tick=0 kind=normal_detach fire=0 detach=3 launcher=none weapon=3 config=703 package=1 devices=1 burst=1 ammo_before=1000 ammo_after=999 visible_before=-1 visible_after=-1 flash_present=0 flash_before=0x00000000 flash_after=0x00000000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fa0000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000,0x80000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=4 tick=0 kind=normal_detach fire=0 detach=4 launcher=none weapon=3 config=703 package=1 devices=11 burst=1 ammo_before=1000 ammo_after=999 visible_before=-1 visible_after=-1 flash_present=1 flash_before=0x00000000 flash_after=0xbe800000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fb0000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000
+normal-ev seq=5 tick=0 kind=normal_detach fire=0 detach=5 launcher=none weapon=3 config=703 package=1 devices=7 burst=1 ammo_before=1000 ammo_after=999 visible_before=1 visible_after=0 flash_present=0 flash_before=0x00000000 flash_after=0x00000000 volume=0 ground=0 pose=0x43fa0000,0x42c80000,0x43fa8000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000
+
+test real_model_detachment_preserves_device_absence_fallbacks_and_observes_effects ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+

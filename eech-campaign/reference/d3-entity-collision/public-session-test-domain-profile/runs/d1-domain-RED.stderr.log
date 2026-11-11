@@ -1,0 +1,41 @@
+FFFF
+======================================================================
+FAIL: test_actual_TEST_domain_before_any_child_effect (__main__.Controls.test_actual_TEST_domain_before_any_child_effect) (index=20, reason='UPDATED')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "R:\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 88, in test_actual_TEST_domain_before_any_child_effect
+    with self.assertRaisesRegex(ValueError,reason):R.validate(emit(bad),f['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_actual_TEST_domain_before_any_child_effect (__main__.Controls.test_actual_TEST_domain_before_any_child_effect) (index=6, reason='nonmobile')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "R:\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 88, in test_actual_TEST_domain_before_any_child_effect
+    with self.assertRaisesRegex(ValueError,reason):R.validate(emit(bad),f['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_actual_TEST_domain_before_any_child_effect (__main__.Controls.test_actual_TEST_domain_before_any_child_effect) (index=8, reason='nonzero scene')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "R:\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 88, in test_actual_TEST_domain_before_any_child_effect
+    with self.assertRaisesRegex(ValueError,reason):R.validate(emit(bad),f['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_actual_TEST_domain_before_any_child_effect (__main__.Controls.test_actual_TEST_domain_before_any_child_effect) (index=8, reason='incompatible city roles')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "R:\d3-evidence\collision-characterization-20261029\eech-campaign\tools\test_normal_fire_capture.py", line 88, in test_actual_TEST_domain_before_any_child_effect
+    with self.assertRaisesRegex(ValueError,reason):R.validate(emit(bad),f['identity'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.035s
+
+FAILED (failures=4)

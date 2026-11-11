@@ -1,0 +1,346 @@
+{
+  "kind": "Author code/metadata publication checkpoint; NOT agent CLI completion",
+  "utc": "2026-11-08T08:51:25.522830+00:00",
+  "CODE": "b2a3806a0baf51b498b54a150e5d7aa71c32c62e",
+  "META": "a3845271de0ce04e39c3c3535592d9a3fd4efa33",
+  "remote_HEAD": "a3845271de0ce04e39c3c3535592d9a3fd4efa33",
+  "full_status": "",
+  "source_map_rows": 4020,
+  "source_fingerprint": "b18998dee3a1a266b2b485b634b30ab9b58b2aa7c2046cb8dcfca0695a49afa2",
+  "source_Git_raw_equal": 4017,
+  "inherited_uncompiled_Lua_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "packet": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\reference\\d3-entity-collision\\normal-fire-public-session",
+  "latest_manifest": "publication-manifest.json",
+  "latest_manifest_entries": 67,
+  "older_retained_manifest": "manifest.json",
+  "older_manifest_entries": 65,
+  "literal_Git_packet_files": 68,
+  "external_literal_comparisons": [
+    {
+      "packet": "codex-d3-native-normal-fire-capture-20261108-process.json",
+      "external": "R:\\d3-evidence\\codex-d3-native-normal-fire-capture-20261108-process.json",
+      "sha256": "648dfe16ab1f638b1be199f4c68abfbe7fa8b08f85f4467c92ffb22d791af32e"
+    },
+    {
+      "packet": "codex-d3-normal-fire-correlation-20261108-completion.json",
+      "external": "R:\\d3-evidence\\codex-d3-normal-fire-correlation-20261108-completion.json",
+      "sha256": "36868864c1075818aeafb0de1236e73e8d1f0800f93b8469209c82c248e8ae67"
+    },
+    {
+      "packet": "D3-NORMAL-FIRE-PUBLIC-SESSION-FROZEN-20261108.json",
+      "external": "R:\\d3-evidence\\D3-NORMAL-FIRE-PUBLIC-SESSION-FROZEN-20261108.json",
+      "sha256": "4189262c37961a1a80c08e41521814b9bf33108ff9503fed42b060c13d95f13a"
+    },
+    {
+      "packet": "D3-REQUIREMENTS.json",
+      "external": "R:\\d3-evidence\\D3-REQUIREMENTS.json",
+      "sha256": "3165482fd5994e66db90e30c75b633de2d8c24380ce2948b694df66f0b14433c"
+    },
+    {
+      "packet": "independent-normal-fire-995ee-source-20261108.json",
+      "external": "R:\\d3-evidence\\independent-normal-fire-995ee-source-20261108.json",
+      "sha256": "6726e42e03699b77a104a8ad99625f595a37eb4ba67af0f0d67f18910b2f9d51"
+    },
+    {
+      "packet": "normal-fire-94fe-all9-CI-readback-20261108.json",
+      "external": "R:\\d3-evidence\\normal-fire-94fe-all9-CI-readback-20261108.json",
+      "sha256": "d28a481e9366b9d5e58c5c505671e23cb220c1d4a9488b4fe75221ad787b746a"
+    },
+    {
+      "packet": "normal-fire-995ee-94fe-Root-binding-20261108.json",
+      "external": "R:\\d3-evidence\\normal-fire-995ee-94fe-Root-binding-20261108.json",
+      "sha256": "6356d373e5adcad7bb548b1767f646cc636da5ac32fbfebd0af910074e215173"
+    },
+    {
+      "packet": "normal-fire-nq94f-s4-normal-controls.json",
+      "external": "R:\\d3-evidence\\normal-fire-nq94f-s4-normal-controls.json",
+      "sha256": "793bd9fa8c494a0c91daa023b4c23c4dcf3ee1ccf5129593a2b3caad61b8232e"
+    },
+    {
+      "packet": "normal-fire-nq94f-s4-normal-controls.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nq94f-s4-normal-controls.stderr.log",
+      "sha256": "f03df6aa16e10cb153238cbbdfbdfaeaacc5da7b1fc0eff41803bbd14befc695"
+    },
+    {
+      "packet": "normal-fire-nq94f-s4-normal-controls.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nq94f-s4-normal-controls.stdout.log",
+      "sha256": "4fead9e166fc2e64c45098827c7b8d1dbd74f34c727d4e66f56922c9038e2a3d"
+    },
+    {
+      "packet": "normal-fire-nq94f-s7-profile-census.json",
+      "external": "R:\\d3-evidence\\normal-fire-nq94f-s7-profile-census.json",
+      "sha256": "851fc159d34aefd78bc8bf865cab2b3cc145710bcf65c7390457de2877b56aff"
+    },
+    {
+      "packet": "normal-fire-nq94f-s7-profile-census.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nq94f-s7-profile-census.stderr.log",
+      "sha256": "f43a4abe00b763912e66e395c5dc4010f0b92984ce1b0b857e48f8d516c54561"
+    },
+    {
+      "packet": "normal-fire-nq94f-s7-profile-census.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nq94f-s7-profile-census.stdout.log",
+      "sha256": "2892f410b91065bee492258b54d95934bd4fe42f7d38567faa863843c14d9048"
+    },
+    {
+      "packet": "nq94f-d9-synthetic-fixture-before-name-field.txt",
+      "external": "R:\\d3-evidence\\nq94f-d9-synthetic-fixture-before-name-field.txt",
+      "sha256": "9dd1ea687ba9ee52dbb269bc5c96220e7b7257ee63b07a8ec7c965d9ea6c305a"
+    },
+    {
+      "packet": "nq94f-final-completion-20261108.json",
+      "external": "R:\\d3-evidence\\nq94f-final-completion-20261108.json",
+      "sha256": "c0b26c6d10bc49f874494b2525a53dc2e8a1d3549adafd4e5595b3dda420def3"
+    },
+    {
+      "packet": "nq94f-POST-utc-20261108.json",
+      "external": "R:\\d3-evidence\\nq94f-POST-utc-20261108.json",
+      "sha256": "b2e6fc68a240b8605cc4a027a35f5962e6f847c7a33adfcbdee848618e0f497c"
+    },
+    {
+      "packet": "nq94f-PRE-utc-20261108.json",
+      "external": "R:\\d3-evidence\\nq94f-PRE-utc-20261108.json",
+      "sha256": "25c9444f4d234f79226d5bef14e439bc31ee65165fdb6537111c965de6cc31ff"
+    },
+    {
+      "packet": "nq94f-readers-sealed-20261108.json",
+      "external": "R:\\d3-evidence\\nq94f-readers-sealed-20261108.json",
+      "sha256": "c1955dcb161a9f6f91a5e6af4c3396876cef4e4b594b2f19327f6c595286b3b2"
+    },
+    {
+      "packet": "nqt2-expected-changes-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-expected-changes-20261108.json",
+      "sha256": "c633faeb9f1af89fd61aabb6376bc43cdc4952bd9eab81fc35b629b6fc234b09"
+    },
+    {
+      "packet": "nqt2-extra-POST-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-extra-POST-20261108.json",
+      "sha256": "e6024144782512eb9e88af13dcdba1c5c6a387f71b3b70f0b1553d26c0ca0f27"
+    },
+    {
+      "packet": "nqt2-extra-PRE-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-extra-PRE-20261108.json",
+      "sha256": "e6024144782512eb9e88af13dcdba1c5c6a387f71b3b70f0b1553d26c0ca0f27"
+    },
+    {
+      "packet": "nqt2-family-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-family-20261108.json",
+      "sha256": "2343e70f6bcae1b2f14e2cb3b357b43af1e4258064245b6eebc49b4a3ebb787a"
+    },
+    {
+      "packet": "nqt2-final-completion-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-final-completion-20261108.json",
+      "sha256": "a211db6f353207a649339e3345aa44382e44dab4169d2e099f7f6acf55b6387f"
+    },
+    {
+      "packet": "nqt2-final-process-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-final-process-20261108.json",
+      "sha256": "418dce3ca424b552f7ead8e20a767adec857dd8aab0e07653679d4b2b778d1c9"
+    },
+    {
+      "packet": "nqt2-POST-utc-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-POST-utc-20261108.json",
+      "sha256": "f002ef44c70b025f73825002d45b5f66493dc6e4e37a550c0533b443d45bc657"
+    },
+    {
+      "packet": "nqt2-PRE-utc-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-PRE-utc-20261108.json",
+      "sha256": "58d448d73815cbc044bdf278ea58b995dd6a1464fb5a0a9ff17d24ff6dd0146f"
+    },
+    {
+      "packet": "nqt2-readers-sealed-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-readers-sealed-20261108.json",
+      "sha256": "0fa86ebc7fe767da034fefd6dd24478b045e0592c98ecf3f27800c66105493b2"
+    },
+    {
+      "packet": "nqt2-source-audit-20261108.json",
+      "external": "R:\\d3-evidence\\nqt2-source-audit-20261108.json",
+      "sha256": "2085633f1fa3110cb8dddae9a5cab5ca66514bb2f0fcb3d3b38d3e34ea35b57f"
+    },
+    {
+      "packet": "readers/check-normal-fire-nqt2-linux-20261108.sh",
+      "external": "R:\\d3-evidence\\check-normal-fire-nqt2-linux-20261108.sh",
+      "sha256": "e39988aeb0a8acc98a11ca6acc6c122afb1736187fdb94d3a96404e9ec4e3d98"
+    },
+    {
+      "packet": "readers/nqt2-proof-20261108.py",
+      "external": "R:\\d3-evidence\\nqt2-proof-20261108.py",
+      "sha256": "051b687ef4b419cc0543421c473e1e234406f0c37a0767a959641db817917e92"
+    },
+    {
+      "packet": "readers/run-normal-fire-nqt2-direct-20261108.py",
+      "external": "R:\\d3-evidence\\run-normal-fire-nqt2-direct-20261108.py",
+      "sha256": "14eca743275643743f9473b7abb0db4e1164b53202ab5510acc6f6df7e0e3172"
+    },
+    {
+      "packet": "readers/run-nqt2-final-20261108.py",
+      "external": "R:\\d3-evidence\\run-nqt2-final-20261108.py",
+      "sha256": "4a62b203107b477ef0771baf810074ed7af5ca724946e6dbe85941f17d0a9472"
+    },
+    {
+      "packet": "readers/sector-roster-inputmap-batched-20261106.py",
+      "external": "R:\\d3-evidence\\sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "packet": "runs/s1-fmt.json",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s1-fmt.json",
+      "sha256": "81792e0d96f82e3aa4c2962b5b365a7dc1ba11a082b757da46fac64613fe8176"
+    },
+    {
+      "packet": "runs/s1-fmt.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s1-fmt.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "packet": "runs/s1-fmt.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s1-fmt.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "packet": "runs/s2-original-clippy.json",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s2-original-clippy.json",
+      "sha256": "23d9188fa538432fb6ab8c9b0c2ef85c6812bd1d68468437d1965a5c1e739c62"
+    },
+    {
+      "packet": "runs/s2-original-clippy.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s2-original-clippy.stderr.log",
+      "sha256": "0b0ea569d27701a8c462bf3430fe8aaffe6aed9604423c93cecc9ae1c7f50822"
+    },
+    {
+      "packet": "runs/s2-original-clippy.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s2-original-clippy.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "packet": "runs/s3-hosted-clippy.json",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s3-hosted-clippy.json",
+      "sha256": "28c1278c7cd69943ae1076e4212321584516a8ac9f1c181aa08df27b0b129c78"
+    },
+    {
+      "packet": "runs/s3-hosted-clippy.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s3-hosted-clippy.stderr.log",
+      "sha256": "a5cff4dbeb6710269a42e901d5ff672e3f29b6c2cc59637ad55e25c5c4a07cbd"
+    },
+    {
+      "packet": "runs/s3-hosted-clippy.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s3-hosted-clippy.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "packet": "runs/s4-normal-controls.json",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s4-normal-controls.json",
+      "sha256": "878caa7267b63b5edfa809cb6c7ee9259d1dae6d205eaf055c06512c58ebdce6"
+    },
+    {
+      "packet": "runs/s4-normal-controls.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s4-normal-controls.stderr.log",
+      "sha256": "1ac8ae5bfa349b837ce251fd57af5697a145c6ac25d1e5bff7e9635e9f25bac2"
+    },
+    {
+      "packet": "runs/s4-normal-controls.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s4-normal-controls.stdout.log",
+      "sha256": "3432df736f2987cacd72abc41cc00b17f1874e5f8ef8a2f6c29554154fa1e1c9"
+    },
+    {
+      "packet": "runs/s5-hosted-join.json",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s5-hosted-join.json",
+      "sha256": "f5a95c9f15cf3b9cd715e764a9862b673e83e147f5c8d458be3fcf3937a5bfa9"
+    },
+    {
+      "packet": "runs/s5-hosted-join.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s5-hosted-join.stderr.log",
+      "sha256": "bbd8f6fbb19be15226010a3079dcd5d2fa13f888188bd3075b0a76464a8a335c"
+    },
+    {
+      "packet": "runs/s5-hosted-join.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s5-hosted-join.stdout.log",
+      "sha256": "845ef92ac7c0a048ac558503ee8e70888ab20b2299aeb52e69389673a35a2f01"
+    },
+    {
+      "packet": "runs/s6-session-lua.json",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s6-session-lua.json",
+      "sha256": "f33223e0acfbfdce17670e162a7cddb926731cf16d3f52365191191d79d27245"
+    },
+    {
+      "packet": "runs/s6-session-lua.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s6-session-lua.stderr.log",
+      "sha256": "0e89fd3fd22e803f1544a4fa5519c1d96398bf4ef95de931ce9fca77b3884338"
+    },
+    {
+      "packet": "runs/s6-session-lua.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s6-session-lua.stdout.log",
+      "sha256": "217f3ae9fcc63051082a2919b17a45a3573852db194a06e1d9384c82dbf29c50"
+    },
+    {
+      "packet": "runs/s7-profile-census.json",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s7-profile-census.json",
+      "sha256": "6b8b64eba2989e56cac1433a27c0066481d88102cce5a0539a9c0c3d81326c1f"
+    },
+    {
+      "packet": "runs/s7-profile-census.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s7-profile-census.stderr.log",
+      "sha256": "732c2c8b36b969b88456b72205f8a0785f3077320836c7042804a14166d4a457"
+    },
+    {
+      "packet": "runs/s7-profile-census.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s7-profile-census.stdout.log",
+      "sha256": "3599260d82fc29974ea7d2c8811d72f91e230c68978f94487ceecfeeaaab6787"
+    },
+    {
+      "packet": "runs/s8-python.json",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s8-python.json",
+      "sha256": "8ca130e4be9c6754201012c0925e33ef737dc7da2a3047d50d8773a0f504d74a"
+    },
+    {
+      "packet": "runs/s8-python.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s8-python.stderr.log",
+      "sha256": "1fc113e42dd509e3a08c41acb3724d96dda4450c0a64843c4c76ee5062582f56"
+    },
+    {
+      "packet": "runs/s8-python.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s8-python.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "packet": "runs/s9-shipping-compile.json",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s9-shipping-compile.json",
+      "sha256": "db8ef1e495932e4dfa9ea36e59ad54c391ffe9273b9f13a2949acb1ef755f05c"
+    },
+    {
+      "packet": "runs/s9-shipping-compile.stderr.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s9-shipping-compile.stderr.log",
+      "sha256": "943ff408fa239615c714f781fa9caf815713cc75f8d7e554473eb6d1c2a53c34"
+    },
+    {
+      "packet": "runs/s9-shipping-compile.stdout.log",
+      "external": "R:\\d3-evidence\\normal-fire-nqt2-s9-shipping-compile.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "freeze": {
+    "path": "R:\\d3-evidence\\D3-NORMAL-FIRE-PUBLIC-SESSION-FROZEN-20261108.json",
+    "sha256": "4189262c37961a1a80c08e41521814b9bf33108ff9503fed42b060c13d95f13a"
+  },
+  "artifacts": {
+    "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "e9b98225a4990b93c597711d00e2885e253488782cd628599d0beeaa86807dd1",
+    "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "3d223ab0572601cf57eac0a89f12615cc78cfaff2f30395e112588ede1a8a192",
+    "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "e70ef15ba7528154632904c4be4fdc1843178ed06d272e8ccccc1468bed6a996",
+    "eech-campaign/tools/normal_fire_capture_controller.py": "ea6a361e2a27b8c0ec43ce10221cc5b9324a220c7961d51c508a2c71fbf21129",
+    "eech-campaign/tools/normal_fire_capture.py": "14ae587ae11929b9f80c9e5b623e7913cd83a0189d18a1a5fda34aec2b71ce9c",
+    "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "eech-campaign/tools/input-manifest.py": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13"
+  },
+  "final_test_outer": {
+    "session": 13592,
+    "controller_pid": 20492,
+    "actual_exit": 0,
+    "receipt": "nqt2-final-completion-20261108.json"
+  },
+  "scope": "UNREVIEWED source/controller. No Windows/native/root creation, cutover, merge or all10 closure. Root writes actual typed agent completion separately. Source review must consider shared physical_flags_collision test-process global ordinal limitation; actual final ran the new query alone."
+}

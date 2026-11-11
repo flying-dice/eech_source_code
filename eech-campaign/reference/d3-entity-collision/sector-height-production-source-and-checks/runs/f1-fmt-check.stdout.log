@@ -1,0 +1,388 @@
+Diff in /src/eech-campaign/crates/eech-dc/src/module.rs:4675:
+         (ModelQuery::EntityScan { .. }, "height" | "restored") => {
+             let words = bridged_words::<3>(&a.ok_or_else(missing)?, "p", operation)?;
+             Ok(ModelAnswer::EntityScan {
+-                decision: if tag == "height" { ScanDecision::Height(words) } else { ScanDecision::Restored(words) },
++                decision: if tag == "height" {
++                    ScanDecision::Height(words)
++                } else {
++                    ScanDecision::Restored(words)
++                },
+                 key: g.unwrap_or_default(),
+             })
+         }
+Diff in /src/eech-campaign/crates/eech-dc/src/module.rs:6374:
+         };
+         // a quiet NaN with a payload, a negative infinity and a negative zero keep every bit
+         assert_eq!(words_of(ask_pick(1)?), [0x40a0_0000, 0x4110_0000, 0x7fc0_f00d]);
+-        assert!(matches!(ask_pick(1)?, ModelAnswer::EntityScan { decision: ScanDecision::Height(_), .. }));
++        assert!(matches!(
++            ask_pick(1)?,
++            ModelAnswer::EntityScan {
++                decision: ScanDecision::Height(_),
++                ..
++            }
++        ));
+         assert_eq!(words_of(ask_pick(2)?), [0x40a0_0000, 0x4110_0000, 0xff80_0000]);
+-        assert!(matches!(ask_pick(2)?, ModelAnswer::EntityScan { decision: ScanDecision::Restored(_), .. }));
++        assert!(matches!(
++            ask_pick(2)?,
++            ModelAnswer::EntityScan {
++                decision: ScanDecision::Restored(_),
++                ..
++            }
++        ));
+         assert_eq!(words_of(ask_pick(7)?), [0x40a0_0000, 0x4110_0000, 0x8000_0000]);
+         for pick in [3, 4, 5, 6, 8] {
+             let Err(error) = ask_pick(pick) else {
+Diff in /src/eech-campaign/crates/eech-engine/src/lib.rs:11761:
+         // a sector's high-water height (phases 17 and 18): the question states the sector in the cursor facts and, for a restore, the saved word RAW in fact 0; the answer carries the sector as asked and the word the host holds.
+         // Every word the original could have saved is valid history: zero and negative zero, the subnormal and normal edges, both extremes, both infinities, a negative word and quiet NaNs with payloads
+         let words: [u32; 17] = [
+-            0x0000_0000, 0x8000_0000, 0x0000_0001, 0x007f_ffff, 0x0080_0000, 0x3f80_0000, 0x42dc_0000, 0x461c_4000, 0x7f7f_ffff, 0xff7f_ffff, 0x7f80_0000, 0xff80_0000, 0x7fc0_0000, 0xbf80_0000, 0xc2dc_0000, 0x7fc0_f00d,
++            0x0000_0000,
++            0x8000_0000,
++            0x0000_0001,
++            0x007f_ffff,
++            0x0080_0000,
++            0x3f80_0000,
++            0x42dc_0000,
++            0x461c_4000,
++            0x7f7f_ffff,
++            0xff7f_ffff,
++            0x7f80_0000,
++            0xff80_0000,
++            0x7fc0_0000,
++            0xbf80_0000,
++            0xc2dc_0000,
++            0x7fc0_f00d,
+             0xffc0_0001,
+         ];
+         for (index, word) in words.iter().enumerate() {
+Diff in /src/eech-campaign/crates/eech-engine/src/lib.rs:11768:
+             for (phase_bits, decision, state) in [
+-                (0x4188_0000u32, ScanDecision::Height([5.0, 9.0, f32::from_bits(*word)]), sys::EECH_MODEL_SCAN_HEIGHT),
+-                (0x4190_0000u32, ScanDecision::Restored([5.0, 9.0, f32::from_bits(*word)]), sys::EECH_MODEL_SCAN_RESTORED),
++                (
++                    0x4188_0000u32,
++                    ScanDecision::Height([5.0, 9.0, f32::from_bits(*word)]),
++                    sys::EECH_MODEL_SCAN_HEIGHT,
++                ),
++                (
++                    0x4190_0000u32,
++                    ScanDecision::Restored([5.0, 9.0, f32::from_bits(*word)]),
++                    sys::EECH_MODEL_SCAN_RESTORED,
++                ),
+             ] {
+                 let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+                 request.pose_count = 16;
+Diff in /src/eech-campaign/crates/eech-engine/src/lib.rs:11782:
+                         ModelQuery::EntityScan { facts, identity } => {
+                             assert_eq!(identity, "");
+                             *record.borrow_mut() = Some(facts);
+-                            Ok(ModelAnswer::EntityScan {
+-                                decision,
+-                                key: String::new(),
+-                            })
++                            Ok(ModelAnswer::EntityScan { decision, key: String::new() })
+                         }
+                         other => Err(format!("unexpected {other:?}")),
+                     })),
+Diff in /src/eech-campaign/crates/eech-engine/src/lib.rs:11794:
+                 assert_eq!(code, 0, "word {index} {word:#010x}: {error}");
+                 // the question arrived as the campaign sent it: the phase, the sector and the word, as bit patterns
+                 let facts = seen.borrow().clone().expect("the question was asked");
+-                assert_eq!((facts[SCAN_PHASE_FACT], facts[12], facts[13], facts[0]), (phase_bits, 5.0f32.to_bits(), 9.0f32.to_bits(), *word), "{word:#010x}");
++                assert_eq!(
++                    (facts[SCAN_PHASE_FACT], facts[12], facts[13], facts[0]),
++                    (phase_bits, 5.0f32.to_bits(), 9.0f32.to_bits(), *word),
++                    "{word:#010x}"
++                );
+                 assert_eq!(reply.candidate_state, state, "{word:#010x}");
+                 assert_eq!(reply.candidate_count, 3, "{word:#010x}");
+                 assert_eq!(
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height.rs:27:
+     // the two profiles of the control (see the header of csrc/eech_sector_height_check.c): the original-solver profile (feature `collision-fixture`) runs the accepted 179 expectations of the original response, getter and pack
+     // unchanged and 42 more (the host's raise expression run beside the original response over every domain case and both rounding modes); the hosted profile (the default) runs the 150 expectations of the host-owned word
+     let wanted = if cfg!(feature = "collision-fixture") { 179 + 42 } else { 150 };
+-    assert_eq!(checks, wanted, "the control made {checks} expectations, not the {wanted} of its profile: a group of cases did not run");
++    assert_eq!(
++        checks, wanted,
++        "the control made {checks} expectations, not the {wanted} of its profile: a group of cases did not run"
++    );
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs:175:
+     let float = squeeze(&source("aphavoc/source/entity/special/sector/sc_float.c"));
+     // Task49 (the host-owned sector height): in a hosted build the getter is the ONE read of the host's word, and the stored member is read only by the original body (the build that keeps the original entity solver)
+     let getter = source("aphavoc/source/entity/special/sector/sc_float.c");
+-    let host_read = line_of(&getter, "campaign_model_sector_height ((int) raw->x_sector, (int) raw->z_sector, &value);", "sc_float.c");
+-    assert_eq!(enclosing(&getter, host_read).last().map(String::as_str), Some("defined EECH_CAMPAIGN_HOST_ENTITY"));
++    let host_read = line_of(
++        &getter,
++        "campaign_model_sector_height ((int) raw->x_sector, (int) raw->z_sector, &value);",
++        "sc_float.c",
++    );
++    assert_eq!(
++        enclosing(&getter, host_read).last().map(String::as_str),
++        Some("defined EECH_CAMPAIGN_HOST_ENTITY")
++    );
+     let legacy_read = line_of(&getter, "value = raw->tallest_structure_height;", "sc_float.c");
+-    assert_eq!(enclosing(&getter, legacy_read).last().map(String::as_str), Some("else of defined EECH_CAMPAIGN_HOST_ENTITY"));
++    assert_eq!(
++        enclosing(&getter, legacy_read).last().map(String::as_str),
++        Some("else of defined EECH_CAMPAIGN_HOST_ENTITY")
++    );
+     assert!(float.contains("case FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT: { #ifdef EECH_CAMPAIGN_HOST_ENTITY"));
+     assert!(float.contains("#endif break; }"));
+     assert!(float.contains("fn_get_local_entity_float_value [ENTITY_TYPE_SECTOR][FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT] = get_local_float_value;"));
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs:196:
+             if line.contains("->tallest_structure_height") {
+                 let conditions = enclosing(text, index);
+                 assert!(
+-                    conditions.iter().any(|condition| condition == "!defined EECH_CAMPAIGN_HOST_ENTITY" || condition == "else of defined EECH_CAMPAIGN_HOST_ENTITY"),
++                    conditions
++                        .iter()
++                        .any(|condition| condition == "!defined EECH_CAMPAIGN_HOST_ENTITY" || condition == "else of defined EECH_CAMPAIGN_HOST_ENTITY"),
+                     "{file}:{}: a hosted build would touch the legacy field: {conditions:?}",
+                     index + 1
+                 );
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/sector_height_observer.rs:44:
+     assert_eq!(failures, 0, "the hooks changed the control's results:\n{}", text_of(&text));
+     // the observer hooks the ORIGINAL body of the response, the getter and the pack, which a hosted build compiles out (Task49, the host-owned sector height): this control runs in the original-solver profile (feature
+     // `collision-fixture`), where the accepted 179 expectations hold unchanged and the host's raise expression is run beside the original response over every domain case (42 more)
+-    assert_eq!(checks, 179 + 42, "the control made {checks} expectations, not the 179 of the unhooked run and the 42 of the differential");
++    assert_eq!(
++        checks,
++        179 + 42,
++        "the control made {checks} expectations, not the 179 of the unhooked run and the 42 of the differential"
++    );
+ 
+     let mut summary = vec![0 as c_char; 16384];
+     assert_eq!(unsafe { eech_sho_summary_run(summary.as_mut_ptr(), summary.len() as c_int) }, 0);
+Diff in /src/eech-campaign/crates/eech-world/src/model_host.rs:1035:
+     let store = store()?;
+     Ok(match store.sector_height_raise(i64::from(shape), position_y, held) {
+         Ok(SectorRaise::Held(word)) => Arrival::Taken((word != held).then_some(word)),
+-        Ok(SectorRaise::Refused(why)) => Arrival::Refused(format!("[roster.sector_height.{why}] the host cannot raise the sector's height for the arriving structure")),
++        Ok(SectorRaise::Refused(why)) => Arrival::Refused(format!(
++            "[roster.sector_height.{why}] the host cannot raise the sector's height for the arriving structure"
++        )),
+         Err(why) => Arrival::Refused(format!("[roster.sector_height.shape] the arriving structure's shape has no bounds: {why}")),
+     })
+ }
+Diff in /src/eech-campaign/crates/eech-world/src/model_host.rs:1068:
+     for (at, word) in words.iter().enumerate() {
+         let stated = matches!(at, 11..=13) || (restore && at == 0);
+         if !stated && *word != 0 {
+-            return refuse(&table, format!("[roster.sector_height.request] fact {at} of a sector height {kind} is not zero: it states nothing there"));
++            return refuse(
++                &table,
++                format!("[roster.sector_height.request] fact {at} of a sector height {kind} is not zero: it states nothing there"),
++            );
+         }
+     }
+     if !identity.is_empty() {
+Diff in /src/eech-campaign/crates/eech-world/src/roster.rs:396:
+             return Err(Refusal::new(self.unknown(key)));
+         };
+         if entry.arrived {
+-            return Err(Refusal::new(format!("the placement {key} has already arrived in its sector: only the arrival raises its height")));
++            return Err(Refusal::new(format!(
++                "the placement {key} has already arrived in its sector: only the arrival raises its height"
++            )));
+         }
+         entry.arrived = true;
+         let sector = entry.sector;
+Diff in /src/eech-campaign/crates/eech-world/src/roster.rs:1695:
+     #[test]
+     fn a_sectors_height_is_the_zero_word_until_an_arrival_or_a_restore_writes_it_and_a_clear_ends_every_word() {
+         let mut roster = SectorRoster::default();
+-        assert_eq!(roster.sector_height((3, 4)), 0, "a sector the roster holds no word for is the zero fill of a new sector");
++        assert_eq!(
++            roster.sector_height((3, 4)),
++            0,
++            "a sector the roster holds no word for is the zero fill of a new sector"
++        );
+         let key = roster.insert((3, 4), 17, None);
+         assert_eq!(roster.awaiting_arrival(key), Some((3, 4)), "the arrival is still to come at the insertion");
+         roster.raise_sector_height(key, Some(0x42ca_0000)).expect("the arrival");
+Diff in /src/eech-campaign/crates/eech-world/src/roster.rs:1729:
+         let mut roster = SectorRoster::default();
+         let city = roster.insert((0, 0), ENTITY_CITY, None);
+         let child = roster.child_insert(city, None, ENTITY_CITY_BUILDING).expect("listed");
+-        assert_eq!(roster.awaiting_arrival(child), None, "a building's place in its city's list is not an arrival in a sector");
++        assert_eq!(
++            roster.awaiting_arrival(child),
++            None,
++            "a building's place in its city's list is not an arrival in a sector"
++        );
+         assert!(roster.raise_sector_height(child, Some(1)).is_err());
+         assert_eq!(roster.awaiting_arrival(99), None, "a key never issued");
+     }
+Diff in /src/eech-campaign/crates/eech-world/tests/model_target_point.rs:2562:
+     }
+     // the city's shape (fact 9) is a whole scene index, classified by integer operations before the roster is looked at: a fraction, a negative, a signaling NaN, an infinity and an index beyond the domain are
+     // refused by name and record nothing
+-    for bad in [1.5f32.to_bits(), (-1.0f32).to_bits(), 0x7fa0_0001, f32::INFINITY.to_bits(), 33_554_432.0f32.to_bits()] {
++    for bad in [
++        1.5f32.to_bits(),
++        (-1.0f32).to_bits(),
++        0x7fa0_0001,
++        f32::INFINITY.to_bits(),
++        33_554_432.0f32.to_bits(),
++    ] {
+         let mut words = city_standing();
+         words[9] = bad;
+         refuse(words, &key, "[roster.shape]", &format!("shape word {bad:#x}"));
+Diff in /src/eech-campaign/crates/eech-world/tests/model_target_point.rs:3150:
+     ];
+     for (scene, y, held, wanted) in cases {
+         let answer = store.sector_height_raise(scene, y.to_bits(), held).expect("an argument");
+-        assert_eq!(answer, SectorRaise::Held(wanted), "scene {scene}, y {y} ({:#010x}), held {held:#010x}", y.to_bits());
++        assert_eq!(
++            answer,
++            SectorRaise::Held(wanted),
++            "scene {scene}, y {y} ({:#010x}), held {held:#010x}",
++            y.to_bits()
++        );
+     }
+     // a non-finite position word is classified by its bits and refused before any arithmetic, whatever the held word is; the held word itself is ANY word
+     for bad in [0x7f80_0000u32, 0xff80_0000, 0x7fc0_0000, 0x7f80_0001, 0xffa0_0000] {
+Diff in /src/eech-campaign/crates/eech-world/tests/model_target_point.rs:3157:
+-        assert_eq!(store.sector_height_raise(5, bad, 0).expect("an argument"), SectorRaise::Refused("non_finite_input"), "{bad:#x}");
++        assert_eq!(
++            store.sector_height_raise(5, bad, 0).expect("an argument"),
++            SectorRaise::Refused("non_finite_input"),
++            "{bad:#x}"
++        );
+     }
+     // the invalid scene and a scene outside the catalogue are argument errors, as for every other question
+     assert!(matches!(store.sector_height_raise(0, 0, 0), Err(QueryError::BadScene(0))));
+Diff in /src/eech-campaign/crates/eech-world/tests/model_target_point.rs:3161:
+-    assert!(matches!(store.sector_height_raise(i64::from(scene_last() as i32), 0, 0), Err(QueryError::BadScene(_))));
++    assert!(matches!(
++        store.sector_height_raise(i64::from(scene_last() as i32), 0, 0),
++        Err(QueryError::BadScene(_))
++    ));
+ }
+ 
+ // ---- the host owns the physical fixed rules (EEDCS-49, D3, Task49: the collision-fixed and align flags a fixed sub type derives) ----
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_host.rs:126:
+     let answer = ask(world, question(SECTOR_HEIGHT, x, z, None), "");
+     assert_eq!(answer.result, "height", "{}", answer.reason);
+     assert_eq!(answer.words.len(), 3);
+-    assert_eq!((answer.words[0], answer.words[1]), (x.to_bits(), z.to_bits()), "the answer names the sector asked about");
++    assert_eq!(
++        (answer.words[0], answer.words[1]),
++        (x.to_bits(), z.to_bits()),
++        "the answer names the sector asked about"
++    );
+     answer.words[2]
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_host.rs:166:
+     let key = arrive(&w, OBJECT_TYPE, [10.0, 900.0, 20.0], 1.0);
+     assert_eq!(read(&w, 0.0, 0.0), 901.0f32.to_bits());
+     w.roster.borrow_mut().remove(key.parse().expect("a key")).expect("removed");
+-    assert_eq!(read(&w, 0.0, 0.0), 901.0f32.to_bits(), "a destroyed or moved tall structure keeps its clearance");
++    assert_eq!(
++        read(&w, 0.0, 0.0),
++        901.0f32.to_bits(),
++        "a destroyed or moved tall structure keeps its clearance"
++    );
+ }
+ 
+ #[test]
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_host.rs:230:
+     w.roster.borrow_mut().link(sector_key, child).expect("linked");
+     let arrived = ask(&w, fixed([10.0, 800.0, 20.0], CITY_BUILDING_TYPE, 1.0), &sector_key.to_string());
+     assert_eq!(arrived.result, "placed", "{}", arrived.reason);
+-    assert_eq!(read(&w, 0.0, 0.0), 801.0f32.to_bits(), "the building's sector placement is an arrival even though its record already held a state");
++    assert_eq!(
++        read(&w, 0.0, 0.0),
++        801.0f32.to_bits(),
++        "the building's sector placement is an arrival even though its record already held a state"
++    );
+ }
+ 
+ #[test]
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_host.rs:237:
+ fn a_restore_stores_any_raw_word_and_a_later_arrival_compares_against_exactly_that_word() {
+     let w = world();
+     let words: [u32; 17] = [
+-        0x0000_0000, 0x8000_0000, 0x0000_0001, 0x007f_ffff, 0x0080_0000, 0x3f80_0000, 0x42dc_0000, 0x461c_4000, 0x7f7f_ffff, 0xff7f_ffff, 0x7f80_0000, 0xff80_0000, 0x7fc0_0000, 0xbf80_0000, 0xc2dc_0000, 0x7fc0_f00d,
++        0x0000_0000,
++        0x8000_0000,
++        0x0000_0001,
++        0x007f_ffff,
++        0x0080_0000,
++        0x3f80_0000,
++        0x42dc_0000,
++        0x461c_4000,
++        0x7f7f_ffff,
++        0xff7f_ffff,
++        0x7f80_0000,
++        0xff80_0000,
++        0x7fc0_0000,
++        0xbf80_0000,
++        0xc2dc_0000,
++        0x7fc0_f00d,
+         0xffc0_0001,
+     ];
+     for word in words {
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_host.rs:251:
+     arrive(&w, OBJECT_TYPE, [10.0, -300.0, 20.0], 1.0);
+     assert_eq!(read(&w, 0.0, 0.0), negative, "-299 is not greater than -200");
+     arrive(&w, OBJECT_TYPE, [10.0, -151.0, 20.0], 1.0);
+-    assert_eq!(read(&w, 0.0, 0.0), (-150.0f32).to_bits(), "a larger negative sum raises a restored negative word");
++    assert_eq!(
++        read(&w, 0.0, 0.0),
++        (-150.0f32).to_bits(),
++        "a larger negative sum raises a restored negative word"
++    );
+     // a restored NaN is never exceeded, and neither is a restored infinity
+     for word in [0x7fc0_0000u32, 0x7fc0_f00d, 0xffc0_0001, 0x7f80_0000] {
+         restore(&w, 0.0, 0.0, word);
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_host.rs:329:
+         refused(words, "", "[roster.sector_height.request]", &format!("a restore stating fact {at}"));
+     }
+     // a placement named, a fractional, negative, signaling, infinite or out-of-domain sector
+-    refused(question(SECTOR_HEIGHT, 1.0, 1.0, None), "1", "[roster.sector_height.key]", "a read that names a placement");
+-    refused(question(SECTOR_RESTORE, 1.0, 1.0, Some(0)), "1", "[roster.sector_height.key]", "a restore that names a placement");
+-    for bad in [1.5f32.to_bits(), (-1.0f32).to_bits(), 0x7fa0_0001, 0x7fc0_0000, f32::INFINITY.to_bits(), 33_554_432.0f32.to_bits()] {
++    refused(
++        question(SECTOR_HEIGHT, 1.0, 1.0, None),
++        "1",
++        "[roster.sector_height.key]",
++        "a read that names a placement",
++    );
++    refused(
++        question(SECTOR_RESTORE, 1.0, 1.0, Some(0)),
++        "1",
++        "[roster.sector_height.key]",
++        "a restore that names a placement",
++    );
++    for bad in [
++        1.5f32.to_bits(),
++        (-1.0f32).to_bits(),
++        0x7fa0_0001,
++        0x7fc0_0000,
++        f32::INFINITY.to_bits(),
++        33_554_432.0f32.to_bits(),
++    ] {
+         let mut words = question(SECTOR_HEIGHT, 1.0, 1.0, None);
+         words[12] = bad;
+         refused(words, "", "[roster.sector_height.sector]", &format!("x word {bad:#x}"));
+Diff in /src/eech-campaign/crates/eech-world/tests/sector_height_host.rs:373:
+         facts[12] = wrong;
+         let (result, reason) = candidate(&w, 0, &facts, &key);
+         assert_eq!(result, "refused", "{wrong}");
+-        assert!(reason.contains("[candidate.sector_height]") && reason.contains("0x42ca0000"), "{wrong}: {reason}");
++        assert!(
++            reason.contains("[candidate.sector_height]") && reason.contains("0x42ca0000"),
++            "{wrong}: {reason}"
++        );
+     }
+     // the comparison is of bits: the other zero is not the zero word the host holds, and a NaN word the host holds matches only its own bits
+     restore(&w, 0.0, 0.0, 0x0000_0000);

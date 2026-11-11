@@ -1,0 +1,8 @@
+{
+  "subject": "Exact prior reviewed checkpoint CI completed",
+  "receipt": "tacview-332955-all9-CI-readback-20261108.json",
+  "commit": "33295557b72406f90127f7bed5626d0adab4cc07",
+  "actual": "All3 exactcommit PR workflow runs completedSUCCESS, all9jobsexecutedsuccess. Read-only readback, no rerun. Prior supported-headless source disposition publication only; your new motionfeature/seam/compiled gate source delta needs its own actualchecks/review and appropriate later runtime qualification, not relabeling those oldWindowsbins.",
+  "publication_action": "Include this literal CIreceipt in boundedpacket alongside the prior namedRootservice/pubreceipts, derive exactactualmanifest. No extra test/native/build for publication prose. No need to chase cancelled/intermediate historicalCI.",
+  "jobs": "Firstnewhostedmotiontestreceipt state running/compile aschecked; no actualresultyet, Rootdidnotrestart. Both fullpacks remain immutable/original9each, COMPLETEacceptancepending. Rootreadonly W/cache; soleimplementation yours."
+}

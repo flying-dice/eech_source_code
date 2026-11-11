@@ -1,0 +1,5 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `release` profile [optimized] target(s) in 4.45s
+     Running tests/model_target_point.rs (/target/release/deps/model_target_point-bb700f1a1b3ba503)
+error: test failed, to rerun pass `-p eech-world --test model_target_point`

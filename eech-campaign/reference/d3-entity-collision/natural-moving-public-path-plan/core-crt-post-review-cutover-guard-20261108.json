@@ -1,0 +1,19 @@
+{
+  "observed_utc": "2026-11-08T06:03:18.894173+00:00",
+  "review_sha256": "965d2da8a0f485f4f284f66a5e366f82e952aef39106a925eb037c0cf7171af6",
+  "argv": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "eech-campaign/tools/migration-progress.py",
+    "--action",
+    "production-cutover"
+  ],
+  "cwd": "R:\\d3-evidence\\collision-characterization-20261029",
+  "actual_exit": 1,
+  "stdout": "",
+  "stderr": "STOP: Resolve required findings before this action; the preparation limit never permits unsafe work\r\n",
+  "scope": "Read-only actual next-action guard; no cutover/source mutation/build/native action. Gate refusal is not product regression or permission question."
+}

@@ -1,0 +1,32 @@
+{
+  "controller_pid": 5640,
+  "started_utc": "2026-11-08T12:40:04.755241+00:00",
+  "state": "running",
+  "commands": [
+    [
+      "s1-profile-census",
+      "cargo test --locked -p eech-world --test host_callbacks every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not -- --nocapture"
+    ],
+    [
+      "s2-python",
+      null
+    ],
+    [
+      "s3-fmt",
+      "rustup component add rustfmt && cargo fmt --version && cargo fmt --all -- --check"
+    ],
+    [
+      "s4-world-clippy",
+      "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-dc -p eech-world --all-targets --features eech-dc/weapon-fixture -- -D warnings"
+    ],
+    [
+      "s5-actual-facade",
+      "cargo test --locked -p eech-dc --lib --features weapon-fixture public_normal_session_driver_consumes_only_registered_userdata_methods -- --nocapture"
+    ],
+    [
+      "s6-session-lua",
+      "cargo test --locked -p eech-world --test normal_fire_session -- --nocapture"
+    ]
+  ],
+  "actual_exits": {}
+}

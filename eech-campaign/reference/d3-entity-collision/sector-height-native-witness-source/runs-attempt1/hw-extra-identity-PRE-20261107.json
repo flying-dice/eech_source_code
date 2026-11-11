@@ -1,0 +1,115 @@
+{
+  "kind": "files and tool identity read by the final witness checks (outside the batched input map)",
+  "files": [
+    {
+      "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+      "bytes": 35296,
+      "sha256": "6b88b851c3c082169ce14b2840a4cea3e6c6f78cc03ad951d3a2a66a4d64a7f5",
+      "git_hash_object": "d44db864723bf409bcf09b4c1fd096e5a109d922"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows-sector-height-witness.sh",
+      "bytes": 2660,
+      "sha256": "7534adaa89d8698a14bf24784beadb92fb5b3e353a922ca694d13cf53822d218",
+      "git_hash_object": "1cbcea69760565b812dae3e10d162b0a35bde386"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows-collision-fixture.sh",
+      "bytes": 2177,
+      "sha256": "cd8ba9d5220606a2f9627a83ad6de45f70a27a567c26cb3d42e1fbe8331af91c",
+      "git_hash_object": "021d3326659f3cce6e29298ce3f1a40b144a9615"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows.sh",
+      "bytes": 2898,
+      "sha256": "a8ed706aa8127617a3c32810a28be9330b744f22b3b4ed17d5c66229e8ff4cf7",
+      "git_hash_object": "9dbf3250ac324b9c8a7507192d8c5d17951b6b42"
+    },
+    {
+      "path": "eech-campaign/rustfmt.toml",
+      "bytes": 16,
+      "sha256": "478e818c64a27dc341fffc827ee4b00c5aeef237ab8745efc9690f87ad245de9",
+      "git_hash_object": "b28d8cf772bba8f334032f2ba85902be31be9454"
+    },
+    {
+      "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "bytes": 9093,
+      "sha256": "e0591f3fe097df3662d9faa44d85b2cc9882d2ad3d0c8b150abaf5a6b674a827",
+      "git_hash_object": "eff26d2eb3d4aadb55b0c991ce1d5855592ae772"
+    },
+    {
+      "path": "R:/d3-evidence/run-height-witness-direct-20261107.py",
+      "bytes": 2068,
+      "sha256": "396a3f84623524b2227b83b1350e2efae49a8262b1c2a61d23aaef4602f2bb2e",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/check-height-witness-linux-20261107.sh",
+      "bytes": 1117,
+      "sha256": "33b3dfb28c7f2711675fc31eab6dffc177e0bbd6f654c72fcaee2370b84f6ef3",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/run-hw-final-set-20261107.sh",
+      "bytes": 2858,
+      "sha256": "970802b09743201d02fd219d9c0c1b0f593fda2c3236c6c41c6d199e30a0c9b6",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/hw-join-20261107.py",
+      "bytes": 11856,
+      "sha256": "bec8a665447dddb6789e2546b9378e0605b061b72d2baa3c1217d1984df65ba8",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/hw-extra-identity-20261107.py",
+      "bytes": 2891,
+      "sha256": "fd9af70cb4e24fffc1e110ccaf66ebce6c0940102deb2ef4f09eb130d642edce",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/freeze-hw-witnesses-20261107.py",
+      "bytes": 19990,
+      "sha256": "585a785bedd67902973d9620cf2cfe4665ad63d3d85ce79d034cd69661e9154d",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py",
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/independent-sector-height-finite-native-1b89-ci-lua-635-20261107.json",
+      "bytes": 20359,
+      "sha256": "8edddd934b091ea58567d43e3a71f4eaab378431de7b0b378990ae2703e77c32",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/Root-feedback-height-native-CI-20261107.json",
+      "bytes": 2222,
+      "sha256": "452b10c8a4d129bc647cab737c01d637e8b7ff9b7e7dfefdff1aa5b7de12670a",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-native-Root-binding-1b89-20261107.json",
+      "bytes": 13442,
+      "sha256": "fa02f29a90c38a1cbb08d78b7b5dcf8d753916f51f3ba392a41a3bfec6d15698",
+      "git_hash_object": null
+    }
+  ],
+  "tools": {
+    "image_id": "sha256:810e0121c7081fc7f4b51d8973beec085759e659be46e241e0bb8864245b13c2",
+    "docker": "Docker version 29.9.2, build a82e528901260c8df6073311379eac65f92db204",
+    "python": "Python 3.12.14",
+    "git": "git version 2.51.2.windows.1",
+    "volume": "eech-linux-d3-height-witnesses-20261107"
+  },
+  "aggregate_sha256": "0197cd90d9031a83805c4a768e583f10db311c2ceae9bd334e8499bf49a57cc4"
+}

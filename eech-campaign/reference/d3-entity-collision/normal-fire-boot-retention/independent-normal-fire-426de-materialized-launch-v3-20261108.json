@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T10:07:56.649651+00:00",
+  "reviewer": "SAME independent Task49 reviewer /root/d3_environment_review",
+  "scope": "ONE changed-material closure of exactly the two outer-controller P2s in e8875df. Earlier source3c9b/supplement24a9 and materialized capture bindings reused unchanged; no source re-review or experiment replay.",
+  "outer_plan_sha256": "5d22c0a78479c27d39af0ec4403944854405498c9eb2d08b2eaf1fee10c18381",
+  "outer_controller_sha256": "a99fb3ec57def91c42f5a904dc1653dcd96b3993a53792fcee6b56b84364e33c",
+  "plan_sha256": "517278b22be4fdb87c72155aab15f76ffa859af156e3c6c606452c04efd800c0",
+  "controller_sha256": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+  "artifact_hashes": {
+    "driver": "6dfd68dff527a271ee1adb5f4c74ff653cf1534fc85f6260394e33d5a2f2b4f4",
+    "collector": "a3704cc9018a771a0222d05beb9948cde43b6de2fd4fee1f64629f6b73a5998e",
+    "transaction": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "contract": "5ad3f92d9bffb1335c8ca8d127cc6f4ff241995fa83e30c026b4f84d7ef66811",
+    "controller": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e",
+    "validator": "f9919158c045e17d6e0f2871bfad8c2feecc25e14c813165c1d7d235dc918e62",
+    "common": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "common_validator": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "input_tool": "c07edd41bc268a4398cda055463b1156c6736dd34c5f861f27ecf72de0792b13",
+    "input_reference": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4"
+  },
+  "evidence": [
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-fire-426de-20261108-materialized/native-sequence-plan-v3.json",
+      "bytes": 6040,
+      "sha256": "5d22c0a78479c27d39af0ec4403944854405498c9eb2d08b2eaf1fee10c18381"
+    },
+    {
+      "path": "R:/d3-evidence/run-normal-fire-reviewed-native-20261108.py",
+      "bytes": 6186,
+      "sha256": "a99fb3ec57def91c42f5a904dc1653dcd96b3993a53792fcee6b56b84364e33c"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-fire-426de-20261108-materialized/capture-plan.json",
+      "bytes": 2744,
+      "sha256": "517278b22be4fdb87c72155aab15f76ffa859af156e3c6c606452c04efd800c0"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/normal-fire-426de-20261108-materialized/tools/normal_fire_capture_controller.py",
+      "bytes": 11061,
+      "sha256": "69aeaf442d3305106e9dc9b7db47249389a2af6deb637908a5cf777819e7908e"
+    },
+    {
+      "path": "R:/d3-evidence/run-normal-fire-reviewed-native-20261108-reviewed-v2.py",
+      "bytes": 5920,
+      "sha256": "86247ded1d70057bbbfdcdc1443d7db0bde8b844f63b9c5ce274c8d0fbdb2cb1"
+    },
+    {
+      "path": "R:/d3-evidence/independent-normal-fire-426de-materialized-launch-20261108.json",
+      "bytes": 10253,
+      "sha256": "e8875dfaad09f8aa17db2b0144cd635b9a186d5d4d59f68f7dfba60dbccddf09"
+    }
+  ],
+  "findings": [],
+  "prior_finding_dispositions": [
+    {
+      "id": "ENV-NORMAL-FIRE-DEFAULT-POST-INPUTS-1",
+      "disposition": "CLOSED_CONTROLLER_SOURCE",
+      "reason": "The actual completed default native exit is retained, then post-input auditing runs before the nonzero exit is rejected. Both actual native and post-input child statuses remain in stage receipts; comparison/capture cannot follow a failure."
+    },
+    {
+      "id": "ENV-NORMAL-FIRE-DEFAULT-BASELINE-PIN-1",
+      "disposition": "CLOSED_CONTROLLER_SOURCE",
+      "reason": "After default completion, every candidate, retained3ab and accepted80fd complete-file stream must match its predeclared size/SHA before direct byte equality is accepted. Immutable bindings/artifacts/payloads are also rechecked before capture."
+    }
+  ],
+  "changed_material_assessment": {
+    "actual_delta": "Only the two reviewed outer corrections changed executable statements. Planv3 updates the outer SHA and adds prior-review/finding labels; capture plan/controller, roots, literal artifacts, payload identities and bound receipts remain unchanged.",
+    "correctness": "Default pre/native/post statuses and three COMPLETE pinned comparisons gate capture. A completed failed native remains failed, with post-input evidence retained. Baseline drift cannot silently become the accepted comparator identity.",
+    "clean_code_boundary": "The changes are localized reader/orchestration checks and add no campaign/source/config/baseline change or native retry. Existing child PID/birth/argv/cwd/exit/log receipts, exclusive outputs and no-restart guards remain.",
+    "validation": "Root reported AST parse0 and full read-only combined preflight0 for this exact corrected outer. Reviewer inspected the actual old/new diff, plan delta and current binding hashes without executing either controller or any test/native.",
+    "state_observed": "Default output, capture output, B root parent and outer process/completion receipts remain absent; no native launched by this review."
+  },
+  "decision": {
+    "status": "CONDITIONAL_EXACT_FINITE_SEQUENCE_LAUNCH_CLEARANCE",
+    "bounded_prerequisite_source_accepted_at_prior_scope": true,
+    "native_launch_clearance": true,
+    "native_controller_launch_clearance": true,
+    "native_acceptance": false,
+    "natural_moving_accepted": false,
+    "physical_cutover_clearance": false,
+    "loader_removal_clearance": false,
+    "GenericNativeAcceptance1_closed": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "authorized_exact_sequence": [
+    "Only this outerv3 plan/controller may launch. Preserve compiled runtime2fcf69 and unchanged full97-payload bundle, corrected426de four external literals and exact artifact_hashes above; no binary relabel or bundled-Lua overlay.",
+    "Run the declared fresh-root unchanged35-frame Lebanon campaign default first (hours0.001, frame100, seed1, record1/every10/observe1/supply1). Require pre/post1179 inputs and five engine-written identities, actual native0, all three COMPLETE pinned3ab/80fd literal comparisons and unchanged artifact/payload bindings before capture.",
+    "Then only the fixed1500-frame healthy capture at30s warmup plus120s settle. A complete semantically valid healthy positive alone permits B root/copy/output/boot/provider. If healthy is UNREACHED, retain nonzero native result and no B launch; an outer terminal0 labelled UNREACHED is not authority acceptance.",
+    "B may perform only the reviewed one500m eligible terrain-input lift for the first locked cohort's later eligible query, with same canonical registration and already-observed exact common fire/detach/birth prefix before effect. Preserve finite base+lift<=ceiling, same cohort and actual moving-pose/host-position effect checks; no actor/window/seed/cohort fallback or policy/view/flag/launch forcing."
+  ],
+  "limits": [
+    "This is permission for the exact finite sequence, not evidence that any native case passed, that a natural encounter is reachable, or that flags/physical movement authority is accepted. All actual results require SAME independent evidence review.",
+    "Both original immutable fullpacks and original processes remain untouched. No partial prefix equality may become completed shipping acceptance. No source/test/build/native/cache/Git mutation or nested agents performed here; only this new report is written.",
+    "All ten D3 requirements, GenericNative1/blocks_cutover, D3G-08 physical hierarchy/device responsibility, other consumers/lifetimes/FPU/DCS, whole height, final current40/all8/four inputs/census/current CI/formal review/normal merge/Task49/D3/delivery remain open as applicable. No D4/D5/TypeScript/formal GitHub approval or merge."
+  ]
+}

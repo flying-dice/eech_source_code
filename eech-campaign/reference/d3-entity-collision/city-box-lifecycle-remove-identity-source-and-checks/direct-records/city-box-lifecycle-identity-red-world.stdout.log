@@ -1,0 +1,18 @@
+
+running 1 test
+test a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_and_no_credit ... FAILED
+
+failures:
+
+---- a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_and_no_credit stdout ----
+
+thread 'a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_and_no_credit' (152) panicked at crates/eech-world/tests/entity_authority.rs:6117:9:
+wrong_record_on_remove: {"altered_request":0,"box_max":"0x40000000,0x40000000,0x40c00000","box_min":"0xc0800000,0xc1200000,0xc0000000","buildings":1,"city_stage_lookups_in_window":2,"completed":true,"consumed_after_selected":1,"consumed_before_selected":1,"continuation_links":2,"empty_key_changed":1,"empty_keyed":1,"event":"city_lifecycle_authority","expansions_selected":1,"expansions_selected_answered":1,"failure_line":"","failure_marker":"","first_fault":"","frames":1,"host_keyed":1,"intervened":0,"intervention":"host_retention_release","list_order_restored":1,"mirror_box_equal":1,"mode":"city_box_lifecycle_missing","natural_weapon_engagement":"not_claimed_terminal_witness","profile":"hosted","query_after_hit":1,"query_after_kind":"ENTITY_TYPE_CITY_BUILDING","query_before_hit":1,"query_before_kind":"ENTITY_TYPE_CITY_BUILDING","query_equal":1,"releases_in_window":0,"reply_faults":0,"report_bound":1,"request_faults":0,"restored_key_changed":1,"restored_keyed":1,"retained_answers":0,"row_phase":"after_boot_warmup_standalone_fixture","selected_record":"1","unreached":""}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_and_no_credit
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.01s
+

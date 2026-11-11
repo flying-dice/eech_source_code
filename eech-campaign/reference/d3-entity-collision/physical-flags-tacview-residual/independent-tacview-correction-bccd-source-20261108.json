@@ -1,0 +1,127 @@
+{
+  "schema": "independent-changed-material-source-review/v1",
+  "reviewed_utc": "2026-11-08T00:20:20.031570+00:00",
+  "scope": "Only corrections of the two9ab Tacview disposition findings and new check/provenance material; no production/native/build/source replay or mutation, cache operations or agents.",
+  "source": {
+    "commit": "bccd85d32b2b02731da7a3051f6bda628fa67e4f",
+    "parent": "4596534a5d8c40e4e1cefc233a569488f7f16bda",
+    "metadata_commit": "69c0c8a46d48125aa05761692b10d9948515d46c",
+    "observed_HEAD_exact_full_clean": true,
+    "product_change": false
+  },
+  "evidence": {
+    "prior_review": {
+      "path": "R:/d3-evidence/independent-tacview-disposition-8ffd-source-20261108.json",
+      "bytes": 11810,
+      "sha256": "9ab3482df6d7164e47255f77d21c22646b79d14c3a72680b944f4a86a5933413"
+    },
+    "freeze": {
+      "path": "R:/d3-evidence/D3-TACVIEW-DISPOSITION-CORRECTION-FROZEN-20261107.json",
+      "bytes": 13035,
+      "sha256": "f8f92b6c8c05e9abb2270142cd0a464bf2292f2635e2d2cbe4092e0d86eff5de"
+    },
+    "source_binding": {
+      "path": "R:/d3-evidence/tacview-correction-bccd-Root-binding-20261108.json",
+      "bytes": 2662,
+      "sha256": "25f89450ca54044aefed8a97af3d24a40ecf653f6a3b432f2ca319185b5a5153"
+    },
+    "publication_binding": {
+      "path": "R:/d3-evidence/tacview-correction-69c0-Root-publication-20261108.json",
+      "bytes": 12875,
+      "sha256": "28f6647c11c1341e8539fcf4699c3aaebf3067b783e97a1541c0814aeb331ea7"
+    },
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-tacview-correction-20261108-completion.json",
+      "bytes": 1658,
+      "sha256": "2905697fa9a9cd2539df455683016e29ac3284a332a0fc30b12fed17d2d5548a"
+    },
+    "identity_join": {
+      "path": "R:/d3-evidence/tvr459-identity-join-20261107.json",
+      "bytes": 6301,
+      "sha256": "a82c9815b4be31de32f5f980cd90117dbaf738a9bc6e40a591e611c75b288e79"
+    }
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED_ONE_SAME_ID_RESIDUAL",
+    "closed_ids": [
+      "ENV-TACVIEW-DISPOSITION-IDENTITY-SCOPE-1"
+    ],
+    "open_ids": [
+      "ENV-TACVIEW-DORMANCY-GUARD-ENCLOSURE-1"
+    ],
+    "current_supported_headless_dormancy_source_conclusion_retained": true,
+    "native_launch_clearance": false,
+    "production_build_or_native_rerun_required_for_this_guard_fix": false,
+    "generic_flag_native_acceptance_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-TACVIEW-DORMANCY-GUARD-ENCLOSURE-1",
+      "severity": "P2",
+      "status": "PARTIALLY_FIXED_RESIDUAL",
+      "evidence": {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+        "function": "inside_logging_block",
+        "line": 532
+      },
+      "fixed_parts": "Actual header macro is pinned; brace matching rejects the original read-after-closing-brace case, including hosted/original reset membership. Matched nested-positive and outside/read/reset/macro controls are meaningful.",
+      "residual": "A condition is selected merely because its line starts with if ( and contains tacview_is_logging(). It does not require that open-log predicate positively gate the branch. The same new predicate accepts if (!tacview_is_logging() && raw->alive) { READ; } and if (other || tacview_is_logging()) { READ; }, which can execute while the file is closed. These are source-derived counterexamples, not reviewer-run mutations. Actual production guards remain correct and unchanged.",
+      "minimum_correction": "Whitelist only the three existing positive conjunctive full guard shapes below before brace matching; fail closed on any other shape. Whitespace handling can be explicit and bounded. No generalized boolean parser/framework is needed. Add the two inverted/OR-bypass single-fault negatives through the SAME predicate while retaining positives and existing enclosure controls.",
+      "current_supported_guard_shapes": [
+        "if (tacview_is_logging() && raw->ac.mob.alive)",
+        "if (tacview_is_logging() && raw->vh.mob.alive)",
+        "if (tacview_is_logging() && tacview_reset_frame())"
+      ],
+      "affected_validation": "Guard controls, format/strict lint and final input identity maps only; no product C build, matrix, default or native war."
+    }
+  ],
+  "closed_finding_assessment": {
+    "id": "ENV-TACVIEW-DISPOSITION-IDENTITY-SCOPE-1",
+    "result": "CLOSED_SOURCE",
+    "basis": "Contract replaces the false blanket empty-range claim, dates the retained extraction23:54:15Z at parentb1b9, distinguishes commit comparison from working test edits, explicitly excludes the changed guard, and retains true3abf compiled identities. Identity join plus Root source binding show3994 other mapped Git inputs unchanged. It discloses current narrative edits rather than falsely claiming all text untouched; original packet/raw extraction/freeze remain literal. Comms-route and custom-host limitations are explicit."
+  },
+  "checks": {
+    "final_commands": [
+      {
+        "label": "s1-fmt-check",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "result_rows": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s2-clippy-engine-sys",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "result_rows": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s3-flags-guard",
+        "actual_exit": 0,
+        "selected_test_instances": 8,
+        "result_rows": 1,
+        "selected_targets": {
+          "physical_flags_guard": 8
+        }
+      }
+    ],
+    "final_selected_instances": 8,
+    "PRE_utc": "2026-11-08T00:15:02Z",
+    "POST_utc": "2026-11-08T00:16:35Z",
+    "source_rows": 3995,
+    "extras": 34,
+    "PRE_readers": 12,
+    "identity_qualifications": "Three inherited uncompiled Lua rawCRLF/GitLF qualifications explicit; no normalization.",
+    "red": "r1 actual101 with7pass/1fail at the intended read-after-closing-brace assertion under the old lexical predicate. New macro pin was already present; this is a guard regression RED, not product/natural-consumer RED. GREEN and final8guards actual0 preserved.",
+    "publication": "54 exact committed/current entries and52 external literal copies; metadata only STATUS/card; actual producer terminal0/resultfalse00:18:05.296746Z, clean/upstream69c0."
+  },
+  "limits": [
+    "Current supported headless source/build dormancy is retained from prior reviewed facts; no new native measurement of log-file NULL, configured/custom-host/network/device/DCS behavior or all-consumer conclusion.",
+    "No product C/Rust/ABI/build change or rerun needed for the residual. GenericNativeAcceptance1/read/otherconsumers/lifetimes/FPU/DCS/all10/wholeheight/current final40/all8/fourinputs/currentCI/review/census/normalmerge/Task49/D3 remain open as applicable.",
+    "Both immutable shipping fullpacks and prior finite source/default/correction scopes are unchanged and not re-reviewed. No process/cache/source mutation or partial-prefix acceptance.",
+    "Root owns canonical dispositions/publication; only this new external report was written."
+  ]
+}

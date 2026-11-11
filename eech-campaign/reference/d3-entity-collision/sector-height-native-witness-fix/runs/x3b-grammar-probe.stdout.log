@@ -1,0 +1,6 @@
+
+running 1 test
+test the_expected_clearance_subtraction_uses_the_accepted_round_toward_zero_profile_not_round_to_nearest ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.03s
+

@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "ci-lua-635-all9-CI-readback-20261107.json",
+      "bytes": 15872,
+      "sha256": "8c241395cb9e9dd99770cf6f6c551b52ec8dfe30eddc3982f45a47d14c0f13da"
+    },
+    {
+      "path": "independent-sector-height-finite-native-1b89-ci-lua-635-20261107.json",
+      "bytes": 20359,
+      "sha256": "8edddd934b091ea58567d43e3a71f4eaab378431de7b0b378990ae2703e77c32"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "bytes": 1045,
+      "sha256": "881faeaf92a4336783aebf83d841b55dd89b52d240cb6b2d48f13a6cbef969b2"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2984,
+      "sha256": "3aa9aec66be3f695f0cf47ec309e7208789068deede9e06e8dc6db2429b98ad0"
+    },
+    {
+      "path": "Root-feedback-height-native-CI-20261107.json",
+      "bytes": 2222,
+      "sha256": "452b10c8a4d129bc647cab737c01d637e8b7ff9b7e7dfefdff1aa5b7de12670a"
+    },
+    {
+      "path": "sector-height-native-Root-binding-1b89-20261107.json",
+      "bytes": 13442,
+      "sha256": "fa02f29a90c38a1cbb08d78b7b5dcf8d753916f51f3ba392a41a3bfec6d15698"
+    }
+  ],
+  "scope": "Literal copies of the SAME combined review, Root's feedback, the exact 635 CI read-back and the finite native 1b89 binding; not a current native result, acceptance or clearance of any later work."
+}

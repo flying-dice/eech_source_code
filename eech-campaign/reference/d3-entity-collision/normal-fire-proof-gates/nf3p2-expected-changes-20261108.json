@@ -1,0 +1,15 @@
+[
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json",
+  "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+  "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua",
+  "eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+  "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-positive.txt",
+  "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-same-frame.txt",
+  "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua",
+  "eech-campaign/crates/eech-world/tests/normal_fire_session.rs",
+  "eech-campaign/docs/d3-normal-fire-proof-gates.md",
+  "eech-campaign/tools/normal_fire_capture.py",
+  "eech-campaign/tools/normal_fire_capture_controller.py",
+  "eech-campaign/tools/test_normal_fire_capture.py"
+]

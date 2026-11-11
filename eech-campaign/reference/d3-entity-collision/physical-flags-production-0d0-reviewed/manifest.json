@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "independent-physical-flags-production-0d0-source-20261107-v2.json",
+      "bytes": 14688,
+      "sha256": "0269234c4559916934dba5b2bfbc4661696bf4f517c6abe6e7a607b3eb1c6587"
+    },
+    {
+      "path": "independent-physical-flags-production-0d0-source-20261107.json",
+      "bytes": 14277,
+      "sha256": "829f196e5d2ec89afc311d312af938914b06702a1a10f770ff945c53f0b619d5"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "bytes": 1106,
+      "sha256": "3f003c4e4fb3cde755cbc710b419094e41b1e59e2715a1944143a1ad395bc352"
+    },
+    {
+      "path": "physical-flags-production-0d0-Root-binding-20261107.json",
+      "bytes": 23815,
+      "sha256": "5e85f0baf0c64ec0f3aa5588e0363a4f890f4c6e70f8b557fc9239121757091a"
+    },
+    {
+      "path": "physical-flags-production-c126-publication-Root-20261107.json",
+      "bytes": 720,
+      "sha256": "8f580428d3ebd355b2d4c05c5331b4f858fe04d7e2202fe64b6282720568c00a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2132,
+      "sha256": "2631edb5e7af988511b61648f2de9eb8984ca4fa5ea1a6c79d07d6e2db36b7af"
+    }
+  ],
+  "scope": "Exact sealed review (V2, V1 retained) and Root bindings (aggregate records); not an acceptance."
+}

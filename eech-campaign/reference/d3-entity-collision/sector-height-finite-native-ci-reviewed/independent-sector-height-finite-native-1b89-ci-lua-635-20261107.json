@@ -1,0 +1,425 @@
+{
+  "kind": "independent_combined_CI_source_and_finite_native_review",
+  "sealed_utc": "2026-11-07T10:29:19.818246+00:00",
+  "identities": {
+    "CI_source_commit": "bad50e4db880761f4ddb4bbbb869302c2ec9d4bc",
+    "CI_metadata_commit": "635d4542c1a092febf3cd0269fefbff8aea637f4",
+    "native_snapshot_commit": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982",
+    "reviewed_diagnostic_code": "e326a35724feb0566491c51d84d587995e2f9de8",
+    "production_sector_height_code": "0be1dd8465d9bf38da69cd3b303206cf5a64574d",
+    "native_snapshot": "D:/EECH-Migration-Evidence/sector-height-native-1b89-20261107-source",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "identity_rule": "CI-only changes have no compiled C/Rust/Lua/Cargo/build delta against 1b89. Native binaries and actuals remain 1b89, never relabelled as 635. Later in-flight M5/M6 source is outside this review."
+  },
+  "decision": {
+    "status": "FINITE_NATIVE_VERIFIED_AND_CI_REPAIR_CLOSED",
+    "findings": [],
+    "closed_ids": [
+      "ENV-CI-LUA-ARCHIVE-AVAILABILITY-1"
+    ],
+    "CI_repair_source_correct": true,
+    "exact_635_all_nine_CI_success_verified": true,
+    "ordinary_and_observer_short_verified": true,
+    "M4_scoped_scan_comparison_verified": true,
+    "finite_sector_height_public_read_consumption_and_refusals_verified": true,
+    "whole_sector_height_extraction_accepted": false,
+    "M5_guarded_fixed_wing_accepted": false,
+    "M6_native_Core_save_load_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false,
+    "new_unreviewed_source_native_clearance": false
+  },
+  "review_scope": "Same reviewer, one combined pass over only new CI downloader/workflow/selftest and newly completed frozen 1b89 native orchestration/evidence. Correctness, clean code, evidence truth and boundary safety assessed together. Closed source/math/FP/kernel and prior completed controls were not replayed or re-reviewed; no builds, tests, native runs, cache/source mutations or nested agents by reviewer.",
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-CI-LUA-PINNED-DOWNLOAD-CODE-FROZEN-20261107.json",
+      "bytes": 20766,
+      "sha256": "380fcaa3e336e5bfd8008bab600faa4c09643d1d16586b78fe19699dc8370a5f"
+    },
+    {
+      "path": "R:/d3-evidence/ci-lua-Root-binding-635-20261107.json",
+      "bytes": 1464,
+      "sha256": "e7d91c5d3e41f73ab266e992e4d52eb082fc97f6d80bb7b01527d313eae97e6a"
+    },
+    {
+      "path": "R:/d3-evidence/ci-lua-635-all9-CI-readback-20261107.json",
+      "bytes": 15872,
+      "sha256": "8c241395cb9e9dd99770cf6f6c551b52ec8dfe30eddc3982f45a47d14c0f13da"
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-native-Root-binding-1b89-20261107.json",
+      "bytes": 13442,
+      "sha256": "fa02f29a90c38a1cbb08d78b7b5dcf8d753916f51f3ba392a41a3bfec6d15698"
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-native-1b89-plan-20261107.json",
+      "bytes": 9091,
+      "sha256": "9dd4b3f3f9081db29d8435a7f865ebd3fb7a3f254aa2fcfbe1d82d43afafec7b"
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-native-windows-1b89-20261107-completion.json",
+      "bytes": 56089,
+      "sha256": "ef258aa015307509fb110286a43ff6756aacd7cc76bb2ac3c4f8fb8e46ed43c5"
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-native-1b89-profile-v2-20261107-completion.json",
+      "bytes": 6030,
+      "sha256": "299276a4ced20a9415332aa04a08b002fcb9a15f4f3fa8e0d8cab4a4ec66da6f"
+    },
+    {
+      "path": "R:/d3-evidence/independent-sector-height-proofguards-e326-source-20261107.json",
+      "bytes": 12273,
+      "sha256": "cbbd27d713adc2d7505ac4931e7fa91c5a22bb46fe43ebdf888d6ac2d319dd94"
+    }
+  ],
+  "CI_source_assessment": {
+    "paths": [
+      ".github/workflows/eech-campaign.yml",
+      "eech-campaign/tools/fetch-pinned-archive.sh",
+      "eech-campaign/tools/fetch-pinned-archive-selftest.sh",
+      "docs/governance/D3-FIVE-WHYS-20261102.md"
+    ],
+    "archive_version": "Lua 5.1.5",
+    "archive_sha256": "2640fc56a795f29d28ef15e13c34a47e223960b0240e8cb0a82d9b0738695333",
+    "archive_bytes": 221213,
+    "assessment": [
+      "The workflow keeps the exact version, digest and subsequent compiler/link/test flags. Official HTTPS origin is tried first, then HTTPS MacPorts for identical pinned bytes. HTTPS-only redirects, normal certificate verification, per-source connect15s/max120s and no retries bound failure; this is availability repair, not dependency substitution.",
+      "The helper validates arguments, reuses only an already-correct destination, removes an invalid destination, truncates its private temporary file before each transfer, rejects curl failure or wrong digest, and renames only verified bytes. Temporary cleanup is trapped. Workflow extraction follows successful helper and the retained independent sha256sum check. Failure cannot approve a partial or mismatched download.",
+      "The selftest exercises the actual helper with process-local fake transport, coherent primary success, each bounded fallback/failure class, wrong/partial/empty/stale bytes, cleanup and destination/usage behavior. Three retained variants each passed81 checks; the disabled-digest mutant was genuinely rejected (child1/24 FAIL lines, not 24 production defects). Closed-loopback real-curl evidence checks option acceptance/failure cleanup, not an online fallback success.",
+      "The actual exact635 Windows CI supplies the missing online case: lua.org curl28 after15001ms, helper records primary failure, then MacPorts succeeds with the SAME pin before extraction. Lua build and Test under Wine finish success. No manual rerun was used. All9 jobs across all3 workflows finish success, so the named availability finding is closed at this identity."
+    ],
+    "source_binding": {
+      "PRE_POST_rows": 3971,
+      "PRE_POST_literal_current_equal": true,
+      "map_sha256": "d5ed8e852c8e0abcf4bb93589eb860c96f63c5bd5e3f31ec7c17b9ec1815f02a",
+      "extra_files_PRE_POST_current_equal": 20,
+      "changed_CI_learning_paths_Git_literal": 4,
+      "manifest_entries_Git_literal": 40,
+      "final_retained_children_exit_zero": 9,
+      "PRE_utc": "2026-11-07T10:17:42Z",
+      "POST_utc": "2026-11-07T10:18:28Z",
+      "producer_actual_exit": 0,
+      "producer_result_is_error": false,
+      "producer_terminal_utc": "2026-11-07T10:19:34Z",
+      "qualification": "Three inherited test Lua raw-CRLF/Git-LF differences and four Core filter-only identities remain separately qualified. Archived attempt1/raw-log-safe packet correction is preserved; the final freeze is the 10:18:47 version. No compiled input drift."
+    },
+    "CI_runs": [
+      {
+        "id": 42363442220,
+        "name": "eech-loss-structural",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 42363442296,
+        "name": "eech-core-ts",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 42363442222,
+        "name": "eech-campaign",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "native_actuals": [
+    {
+      "case": "ordinary_short",
+      "receipt": {
+        "file": "sector-height-native-1b89-ordinary_short-20261107-completion.json",
+        "bytes": 5918,
+        "sha256": "8a98d236872d5b768c4936a4fe39360ce807bfe9d7f25ead3b3db0d21febe44e"
+      },
+      "native_exit": 0,
+      "controller_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 89,
+      "all_three_complete_literal_80fd_equal": true
+    },
+    {
+      "case": "observer_short",
+      "receipt": {
+        "file": "sector-height-native-1b89-observer_short-20261107-completion.json",
+        "bytes": 5916,
+        "sha256": "532c8f369011b02b355e5e722759cf2fa35d281bbfe2ebdc5941887283633aa6"
+      },
+      "native_exit": 0,
+      "controller_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 89,
+      "all_three_complete_literal_80fd_equal": true
+    },
+    {
+      "case": "scan_baseline",
+      "receipt": {
+        "file": "sector-height-native-1b89-scan_baseline-20261107-completion.json",
+        "bytes": 5198,
+        "sha256": "1cac93e94535ac895c333db3958fce9f9c1815dd8146f340e7a40705f1c92922"
+      },
+      "native_exit": 0,
+      "controller_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 89,
+      "scoped_verdict": "sho-verdict scope=hosted-scan scan_whole=1 status=EQUAL_AT_SCOPE clearances=0 sectors=2 original_link_pack_hooks=not_compared",
+      "report_sha256": "118a60fd74392dd97b7644a5a6c49686ad38340e5e1d7932d9bd71c152683d56"
+    },
+    {
+      "case": "sector_height_control",
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_control-20261107-completion.json",
+        "bytes": 11227,
+        "sha256": "5c4e027b019688d4b0d047c3832ffedbd51065ad8f8a321e93976f7e4a9f2867"
+      },
+      "native_exit": 0,
+      "controller_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 89,
+      "authority": {
+        "height_eligible": 45,
+        "height_scan_joined": 45,
+        "height_consumed": 90,
+        "height_consumed_altered": 0,
+        "height_altered": 0,
+        "height_mismatch": 0,
+        "completed": true,
+        "incomplete": false,
+        "failure_marker": "",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "first_fault": "",
+        "case_weapons_pending": 0,
+        "case_weapons_ended": 1,
+        "duplicate_terminals": 0,
+        "foreign_terminals": 0,
+        "view_applied": 3,
+        "sector_restore_total": 0,
+        "sector_restore_answered": 0
+      },
+      "authority_sha256": "3a0fc173a645e5b1527561588e4a607f5dde4b3c4f4d8367d91bb8b754e82788",
+      "actual_row_matches_receipt": true
+    },
+    {
+      "case": "sector_height_wrong_word",
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_wrong_word-20261107-completion.json",
+        "bytes": 11401,
+        "sha256": "af6d0e044fe5b38a720aaff3e7dfc0ecc1c7380d7db301b9bb155e0356945ffc"
+      },
+      "native_exit": 0,
+      "controller_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 89,
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 1,
+        "height_consumed_altered": 1,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_candidate.refused",
+        "request_faults": 0,
+        "reply_faults": 1,
+        "first_fault": "candidate reply: result refused",
+        "case_weapons_pending": -1,
+        "case_weapons_ended": 0,
+        "duplicate_terminals": 0,
+        "foreign_terminals": 0,
+        "view_applied": 1,
+        "sector_restore_total": 0,
+        "sector_restore_answered": 0
+      },
+      "authority_sha256": "df1e6630d58404ee6f4c887649b9cfc3c5d4e3fff3c13e80b03573cf9bf88b5b",
+      "actual_row_matches_receipt": true,
+      "real_candidate_sector_height_cause_verified": true
+    },
+    {
+      "case": "sector_height_withheld",
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_withheld-20261107-completion.json",
+        "bytes": 11170,
+        "sha256": "90f057f5147c49370c90a99befe15e4c862ec6ae5c7f481991068d162391a534"
+      },
+      "native_exit": 0,
+      "controller_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 89,
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 0,
+        "height_consumed_altered": 0,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_scan.callback",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "first_fault": "",
+        "case_weapons_pending": -1,
+        "case_weapons_ended": 0,
+        "duplicate_terminals": 0,
+        "foreign_terminals": 0,
+        "view_applied": 1,
+        "sector_restore_total": 0,
+        "sector_restore_answered": 0
+      },
+      "authority_sha256": "b5a8a31e03978b643719b1171a8ae109985178df81b5d5fd44687801bdb8470c",
+      "actual_row_matches_receipt": true
+    },
+    {
+      "case": "sector_height_malformed",
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_malformed-20261107-completion.json",
+        "bytes": 11174,
+        "sha256": "233e97a8df579b27c21ad6f103eb322bb3613e1259d9d7aec779649acf7b5b3b"
+      },
+      "native_exit": 0,
+      "controller_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 89,
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 0,
+        "height_consumed_altered": 0,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_scan.answer",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "first_fault": "",
+        "case_weapons_pending": -1,
+        "case_weapons_ended": 0,
+        "duplicate_terminals": 0,
+        "foreign_terminals": 0,
+        "view_applied": 1,
+        "sector_restore_total": 0,
+        "sector_restore_answered": 0
+      },
+      "authority_sha256": "6d2c808e30a28eb3a37df72b29fc6dada9856fa47773ecbab0127d3046bc959f",
+      "actual_row_matches_receipt": true
+    },
+    {
+      "case": "sector_height_wrong_state",
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_wrong_state-20261107-completion.json",
+        "bytes": 11217,
+        "sha256": "b30d00d29129c9dc9d1a9f0a9b3e3a69c8e9b0e526df5e41fb75b3772e7a6333"
+      },
+      "native_exit": 0,
+      "controller_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 89,
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 0,
+        "height_consumed_altered": 0,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_scan.state",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "first_fault": "",
+        "case_weapons_pending": -1,
+        "case_weapons_ended": 0,
+        "duplicate_terminals": 0,
+        "foreign_terminals": 0,
+        "view_applied": 1,
+        "sector_restore_total": 0,
+        "sector_restore_answered": 0
+      },
+      "authority_sha256": "d35ac89dbb3db102f76a54112881f8b5f889475b7ff1c13fc3db3ab6771373db",
+      "actual_row_matches_receipt": true
+    },
+    {
+      "case": "sector_height_wrong_sector",
+      "receipt": {
+        "file": "sector-height-native-1b89-sector_height_wrong_sector-20261107-completion.json",
+        "bytes": 11252,
+        "sha256": "ee31e3f80a4c28b002e736f561b8342dcc07ee91d422c248b3143d9061c809d1"
+      },
+      "native_exit": 0,
+      "controller_exit": 0,
+      "input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 89,
+      "authority": {
+        "height_eligible": 1,
+        "height_scan_joined": 1,
+        "height_consumed": 0,
+        "height_consumed_altered": 0,
+        "height_altered": 1,
+        "height_mismatch": 0,
+        "completed": false,
+        "incomplete": false,
+        "failure_marker": "entity_scan.sector_height",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "first_fault": "",
+        "case_weapons_pending": -1,
+        "case_weapons_ended": 0,
+        "duplicate_terminals": 0,
+        "foreign_terminals": 0,
+        "view_applied": 1,
+        "sector_restore_total": 0,
+        "sector_restore_answered": 0
+      },
+      "authority_sha256": "cb7a00547a063980c3269f94b1b096352cbcd55ee540c51f5da2375d3008932e",
+      "actual_row_matches_receipt": true
+    }
+  ],
+  "native_assessment": [
+    "The three newly built Windows profiles are ordinary, observer and weapon, each actual build0 and sealed89 payloads. They are not an inferred explicit Original Windows build. Profile audit v2 passes all3 with33 actual bound COFF objects/features/private exports. Reader image810e is separate from the recorded producer images; the earlier unavailable-producer/125 failure remains preserved and is not promoted to a successful producer execution.",
+    "Both ordinary and observer shorts have actual native/controller0, pre/post0,89 sealed payloads and all three COMPLETE recording/observation/metrics files literally equal accepted80fd. These are finite shorts, not a current full40/all8 or performance/visual claim.",
+    "The hosted observer report uses unchanged lebanon_retail/hours0.001/frame100/seed1 and actual35 frames/3.5s. Validated EQUAL_AT_SCOPE compares63 FIRST reads/2 sectors/27615 fact12 offers (all equal FIRST, no missing-FIRST/differing fact) to the retained accepted original report. Original link/raise/pack hooks are explicitly not compared. This establishes M4 at that read/fact scope, not all77531 arrival calculations or native save/load.",
+    "The successful configured control precedes and gates all five matched negatives:45 eligible/sector-joined reads,90 same-entry consumptions,0 mismatch/intervention/request/reply faults; one finite cohort completed, pending0/no foreign or duplicate terminals. The narrowphase secondary hit and VIEW input are explicitly configured and globally attributed, not natural engagement or unique-weapon authority.",
+    "Each negative reaches exactly one eligible height intervention. Wrong-word is carried into candidate fact12 and refused for the real named candidate.sector_height cause, with precisely request0/reply1 and the expected first fault. Four malformed/withheld/state/sector cases stop at their exact bridge/adapter markers with request0/reply0; those do not claim downstream consumption. All recorded actual native/controller exits are0 because the diagnostic catches the expected fatal and validates it; the campaign is not claimed to continue after it.",
+    "Negative pending=-1 is deliberately unknown after fatal, not a physical measurement. No postfatal engine/counter/metrics/close access is added by these reviewed drivers. Atomic no-late-write/FP properties remain source/control evidence at their closed identities, not newly measured via a poisoned engine.",
+    "All18 full1179-file pre/post manifests have actual checks0 and the accepted literal manifest identity (209622B SHA25662249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1); each case retains payload89 and its actual process/stage receipt. Root rehashes all267 profile payloads and binds clean snapshot/source, report hashes and complete short comparisons. Actual authority JSON rows match their original completion receipts.",
+    "The field height_other_callers is wrapper telemetry for unmatched reads; it is not evidence that guarded clearance or save/load ran. In particular pre-arm FIRST reads need not be tracked as eligible pending entries. Actual clearance records are0 and sector restore totals are0; M5/M6 remain UNREACHED and required."
+  ],
+  "limits_and_next_required_scope": [
+    "M5 real task-leader terrain-following fixed-wing guarded clearance and M6 actual native Core server-session save/load remain required OPEN inside this extraction. Their next source/fixture changes need their own immutable changed-material review and actual evidence. This report provides no clearance for in-flight M5/M6 work.",
+    "No whole-height, natural moving/engagement, all-family/sector/arrival, underlying shape/data/hierarchy/API/RNG final census or full Task49/D3 ownership acceptance is inferred from this finite scan and configured refusal set.",
+    "The closed Person long-run finding and parent f734 fullpack remain closed only at their accepted identities. Final CURRENT full40/all8/four-input shipping, current delivery CI/review/normal merge and all ten D3 requirements remain required. Prep2 stays STOP; no D4/D5/historical TypeScript work.",
+    "Earlier failed download attempts and failed/partial native/source experiments remain their original outcomes. No baseline, input, seed, frame, duration, tolerance, raw log or physical signature was normalized or changed."
+  ]
+}

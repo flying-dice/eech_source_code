@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "decode-result-20261107.json",
+      "bytes": 1100,
+      "sha256": "2a8bbcbdac17576b23ade0a048eed48d7e93552c4ba9b3742c0505b39b2b047d"
+    },
+    {
+      "path": "decode-saved-sector-section-20261107.py",
+      "bytes": 4005,
+      "sha256": "4bc5d14b8577c01a063acbea9ccc11e66a4c1fb5a6837632f3d3b457940e9e7b"
+    },
+    {
+      "path": "diagnosis.json",
+      "bytes": 6725,
+      "sha256": "3bac17b8715cf516eb4fd0075ef1297f63823606fd19a1b36eddb7344e6cfa08"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1333,
+      "sha256": "33c3404c2f9735ab4b662c8784583c76be2fb5ec023d956ede5fc81880014769"
+    }
+  ],
+  "scope": "Safe aggregate-only diagnosis of the fresh Core boot failure of the real generated saved script; no retail data; not a native result, fix claim or acceptance."
+}

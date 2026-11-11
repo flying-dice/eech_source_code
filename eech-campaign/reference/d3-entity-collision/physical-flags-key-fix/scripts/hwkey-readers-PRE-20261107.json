@@ -1,0 +1,15 @@
+{
+  "kind": "SHA-256 of every audit reader of the key-fix batch at the PRE capture (the freeze refuses a reader that differs)",
+  "readers": {
+    "run-physical-flags-keyfix-direct-20261107.py": "b41837e6568d80a876680900e1b553d7bda6ae18103c542d49c95579752c06fa",
+    "check-physical-flags-keyfix-linux-20261107.sh": "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65",
+    "run-hwkey-final-set-20261107.sh": "7a841f165cc16eb7d66469b0e859a5a0c03347bc52d6d2a33e4ef438f5849005",
+    "hwkey-join-20261107.py": "30487bce345e182a401f1ac277c4c91c2969dfac5572843cfb957baf79199ffa",
+    "make-hwkey-join-20261107.py": "b04d8e597f41d6c4046c757a245d169bb80caa97cfa94b587f5acf7e30392f73",
+    "hwkey-extra-identity-20261107.py": "a6ba3f742ca22be6b723b2ccec38983b700902a6ad7bc18f0c1285213e376a5c",
+    "freeze-hwkey-20261107.py": "993c840a3570c6af6c9d1d74693f53e598b653ff2e717c8e669dcec47c99f2fa",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+    "sho-compare-maps-20261107.py": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+    "preflight-receipts-20261107.py": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+  }
+}

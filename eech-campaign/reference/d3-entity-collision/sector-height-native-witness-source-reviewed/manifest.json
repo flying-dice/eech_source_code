@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "erratum-audit-reader-chronology.json",
+      "bytes": 2045,
+      "sha256": "4f5e73b56a92b73591cf942668d9aeb05c2941975ede4ccc2c6676f2f0c76654"
+    },
+    {
+      "path": "height-witness-579-all9-CI-readback-20261107.json",
+      "bytes": 14791,
+      "sha256": "f8d741fd5e8c46685a4c8133d8a0f40362ecd3aee9d01bfdb072b7783727aef8"
+    },
+    {
+      "path": "height-witness-Root-binding-579-v3-20261107.json",
+      "bytes": 2472,
+      "sha256": "4ef8c75045809c6baa2e7cc16330011407848112cb2130bf8da5897047a50203"
+    },
+    {
+      "path": "independent-sector-height-native-witness-source-6e4139-20261107.json",
+      "bytes": 19464,
+      "sha256": "96b2f4140e47ef17b0e672691e39173b3d920ea75282ec0cee60d56cdab8730f"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "bytes": 826,
+      "sha256": "83b22768f3e32293225a1d2ada4c7fb853ac40be64ba4b9fe86e0ec748d48d9d"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3326,
+      "sha256": "5c64e7d899b6e8de14369692aed6c49d2c59e97814c8e3767b61c4a4aaef82b7"
+    }
+  ],
+  "scope": "Literal copies of the SAME review of the M5/M6 witness source, Root's qualified binding v3 and the exact 579 CI read-back (it arrived after the review's seal) and a chronology erratum; not a native result or clearance."
+}

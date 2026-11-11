@@ -1,0 +1,124 @@
+{
+  "schema": "d3-sector-height-clarification-proofs.v1",
+  "commits": {
+    "base": "8a525b145c8c54f2b22863c20d908ee3389759e5",
+    "characterized_code": "a8ef0ce662df0528dcae414287ffe45b2847cd8f",
+    "historical_metadata": "12a2235567c9c30a13b0813dface15822ad9aab5",
+    "clarification_code": "3fac41f0448bfc3f1330e0fd4c8ff72f1ee3fdce"
+  },
+  "code_paths_changed_a8ef_to_3fac": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+    "eech-campaign/docs/d3-sector-height-contract.md"
+  ],
+  "production_paths_changed": "none",
+  "c_header_and_body": {
+    "file": "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+    "old_commit": "a8ef0ce662df0528dcae414287ffe45b2847cd8f",
+    "new_commit": "3fac41f0448bfc3f1330e0fd4c8ff72f1ee3fdce",
+    "old_raw_sha256": "7b80c8e323dca3ef7cd797d6e8c192163db18bc4087bc8c2eb45e9a8b4e3e20f",
+    "new_raw_sha256": "84f4c9e6039fb5f95ad6007719b5f41b7c83b5bd750fb16460affcfbc4f0f89c",
+    "old_bytes": 28381,
+    "new_bytes": 28962,
+    "ifdef_line_old": 41,
+    "ifdef_line_new": 41,
+    "line_count_old": 859,
+    "line_count_new": 859,
+    "changed_lines": [
+      22,
+      27,
+      29,
+      30
+    ],
+    "all_changed_lines_before_ifdef": true,
+    "suffix_from_ifdef_bytes": 23689,
+    "suffix_old_sha256": "df20a3b07de0c7af8396023c85c522aa706f5250fe6e24b0754438014bb47f4f",
+    "suffix_new_sha256": "df20a3b07de0c7af8396023c85c522aa706f5250fe6e24b0754438014bb47f4f",
+    "suffix_byte_identical": true,
+    "line_constants_unchanged": true
+  },
+  "contract_document": {
+    "old_sha256": "3f1fdea570d3234abc0688edd1c3f952e29ed8e3869195e5fdd25d60237cc80c",
+    "new_sha256": "678d36afb6c995a5527418fa00bf4afb6f336dd2bc28ebf3cc70ceef66bdf7af",
+    "in_cargo_input_map": false
+  },
+  "historical_packet_literal": {
+    "directory": "eech-campaign/reference/d3-entity-collision/sector-height-characterization",
+    "files_on_disk": 82,
+    "manifest_listed": 81,
+    "literal_working_equals_Git_12a223556_equals_Git_HEAD": true,
+    "mismatches": [],
+    "git_diff_12a223556_to_HEAD_over_directory": "empty",
+    "manifest_sha256": "bd06f6d07ca11ad245fe66d7087e080c725c93baa8f7175b227cdce7eb3695bf",
+    "historical_freeze_sha256": "88e2b06df5188a4d4ce99ad8b6db09bcb5e7fae9d406711bb4d69f908d36fa4b"
+  },
+  "reviewer_literals": {
+    "independent-sector-height-characterization-source-a8ef-20261107.json": {
+      "sha256": "7471e653366196803eb7a66dbc9b12287aacc140c1b19388a3b805c27a3904b9",
+      "bytes": 12664
+    },
+    "sector-height-Root-source-binding-a8ef-12a-20261107.json": {
+      "sha256": "ee4b981c6820360526b2859e2458dfe92bbd3e8797f8f1752f3aecc523fb40fa",
+      "bytes": 2436
+    },
+    "sector-height-Root-inherited-Lua-CRLF-qualification-20261107.json": {
+      "sha256": "0b74e4b84f3f7ff81eced9c1124b43d533d8d59ce0e593f3a0d0a5830c7356ee",
+      "bytes": 2115
+    },
+    "inputmap-construction.js": {
+      "sha256": "deb82b3721665a9048e883f719cf4c19ca2ad84653eac20c2047b0cdf883ad78",
+      "bytes": 2240
+    }
+  },
+  "input_provenance": {
+    "final_rows": 4080,
+    "raw_git_literal": 4077,
+    "inherited_test_lua_crlf_only": 3,
+    "pre2_post_rows_equal": true,
+    "rows_tsv_sha256": "622b349f1dc2c302ee24c35b16788bb619b1b87168f15d00def8bbe4529c492c",
+    "pre1": "RECONSTRUCTED (aggregate b41eb0e9 reproduced from the final rows plus the recorded old guard digest); not an original full-row capture; the constructor sha256 deb82b37 is not an attestation of the original script identity",
+    "durable_folder": "D:/EECH-Migration-Evidence/sector-height-source-binding-a8ef0ce66-20261107/",
+    "retained_not_copied": [
+      "pre1-RECONSTRUCTED.rows.tsv sha256 1d168f6345113f755f6b4d011978ca49b0285dca0ac11d34df35651193dfa5c0",
+      "pre2-original.rows.tsv and post-original.rows.tsv sha256 622b349f…",
+      "inherited-lua-raw/ (3 raw CRLF specimens)"
+    ],
+    "no_normalisation": true
+  },
+  "identification_map_new_inputs": {
+    "aggregate_sha256": "1d2a42e2e2e1ab7afc2eb119def77ab5279b676366f85128098d7b061c9cdc46",
+    "files": 4080,
+    "taken_utc": "2026-11-07T00:44:47.710Z",
+    "note": "describes the inputs as they now are; the C control file differs from the maps of a8ef0ce66 by exactly the comment lines above; NOT a pre/post check map, no check ran on it"
+  },
+  "results_attribution": "the 179-expectation x86-64 and i686 controls, 6 guard tests, existing guards, fmt and clippy are results of the ORIGINAL source a8ef0ce66 under maps b41eb0e9 (PRE1, reconstructed) and c365ecb7 (PRE2/POST); they were NOT rerun on the new raw bytes; equivalence offered is the byte-identical body from the #ifdef and the same start line",
+  "commands": [
+    {
+      "cmd": "migration-progress.py --action fix-blocker --blocker ENV-SECTOR-HEIGHT-SAVED-WORD-PLAN-1",
+      "exit": 0
+    },
+    {
+      "cmd": "migration-progress.py --action fix-blocker --blocker ENV-SECTOR-HEIGHT-MEASURED-DOMAIN-PRECISION-1",
+      "exit": 0
+    },
+    {
+      "cmd": "migration-progress.py --action fix-blocker --blocker ENV-SECTOR-HEIGHT-RAW-BINDING-PRECISION-1",
+      "exit": 0
+    },
+    {
+      "cmd": "node patch_header.js (aborts unless suffix, start line and line count identical)",
+      "exit": 0
+    },
+    {
+      "cmd": "node patch_doc.js (each replacement must match exactly once)",
+      "exit": 0
+    },
+    {
+      "cmd": "git commit and normal git push of 3fac41f04",
+      "exit": 0
+    }
+  ],
+  "root_feedback_reread_before_freeze": {
+    "unchanged_equal_to_historical_packet_copy": true,
+    "bytes": 4754
+  }
+}

@@ -1,0 +1,455 @@
+{
+  "schema": "d3-independent-city-lifecycle-finite-actual-review.v1",
+  "created_utc": "2026-11-06T23:41:01.148179+00:00",
+  "reviewer": "SAME sole independent Codex reviewer",
+  "scope": "One combined correctness, evidence-truth, clean-orchestration and boundary-safety pass over the new three finite real-Core selected CITY lifecycle actuals plus their retained source/profile/default joins. Retained-only read operations; no source re-review, new test/build/native launch, agents, cache/process or shared-state mutation.",
+  "source": {
+    "measured_runtime_source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "diagnostic_literal_source": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+    "initial_same_Lua_source": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+    "diagnostic_metadata_commit": "90dbf29e034f09b66ae2b8ba070cd1aacbd6ce79",
+    "source_clearance_publication_commit": "e9e6a1f136c8fb8a228291599e341c880a7ee6be",
+    "literal_git_blob": "3591429759763d9ed3a2216790402c2d5e9e0c09",
+    "literal_sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db",
+    "runtime_and_literal_not_relabelled": true,
+    "source_review": {
+      "path": "R:/d3-evidence/independent-city-lifecycle-relist-ack-source-e4895-20261106.json",
+      "bytes": 22623,
+      "sha256": "5b5cbc95ddf9e64cc5f9545578e854aed362741269d664c966ae83507a3de628"
+    },
+    "runtime_equivalence": {
+      "path": "R:/d3-evidence/city-relist-runtime-equivalence-e4895-on-354ab-20261106.json",
+      "bytes": 2220,
+      "sha256": "1a6ff7af841e352ae3a033bdd3ef1b719745fbade514d8dea5885bd89c980ae8"
+    },
+    "final_source_binding": {
+      "path": "R:/d3-evidence/city-relist-Root-final-binding-e4895-90db-20261106.json",
+      "bytes": 1961,
+      "sha256": "edae716dd6a1313d6dfa28f59d378b7442201ee09eccbb2d2e1babc738923040"
+    }
+  },
+  "plan_and_orchestration": {
+    "plan": {
+      "path": "R:/d3-evidence/city-relist-native-plan-runtime354ab-literal-e4895-20261106.json",
+      "bytes": 5762,
+      "sha256": "18c234a0b89a729f3087f5b9bb099688f11f7aabdd860f23cc0f65a7d572a3eb"
+    },
+    "controller": {
+      "path": "R:/d3-evidence/run-city-lifecycle-native-from-plan-v2-20261106.py",
+      "bytes": 6817,
+      "sha256": "f74da35a9e0fa57ce08ba8f5f520eb1228e6ca097718d8e5845c42f1b153bd53"
+    },
+    "helper_sha256": "3da2855f8b8b67c73d4ac0e157b40c81acdf633bdf21560daa3e588f024b0582",
+    "row_checker_sha256": "e18f2609ea317514e1d9866b0d04616b9ff9191bb1e5ac25ae0ad616e4124c2b",
+    "all_plan_artifact_hashes_rechecked": true,
+    "same_private_selected_record_across_all_three_verified": true,
+    "control_completed_before_missing_started_and_missing_completed_before_changed_started": true,
+    "fixed_boot_config": {
+      "event": "boot",
+      "frame_budget": 6200,
+      "frame_ms": 100,
+      "profile": "hosted",
+      "seed": 1,
+      "settle": 120,
+      "warmup": 30
+    },
+    "boot_warmup_fields_identical_except_declared_mode": true,
+    "case_events": [
+      "boot",
+      "warmed_up",
+      "city_lifecycle_authority"
+    ],
+    "phase": "Standalone after BOOT and fixed warmup; no weapon launch, cohort or additional simulation frame for these lifecycle controls. frames301 is last known warmed-up frame, not a new moving/engagement witness."
+  },
+  "cases": [
+    {
+      "role": "control",
+      "receipt": {
+        "path": "R:/d3-evidence/city-relist-control-runtime354ab-literal-e4895-20261106-completion.json",
+        "bytes": 4903,
+        "sha256": "441669db0d9cbca120d8a9c7fcd4d5c7123b673fc1e3749529029e8b458be670"
+      },
+      "helper_controller": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-control-runtime354ab-literal-e4895-20261106/controller.json",
+        "bytes": 4288,
+        "sha256": "d2569b4df9c15dd447323452dd5a93ff7af6b835f7db35da82113a362e6b64f2"
+      },
+      "rows": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-control-runtime354ab-literal-e4895-20261106/model.jsonl",
+        "bytes": 1228,
+        "sha256": "ae32086cb1bf17cc722f5608647f44461cd7b0d1bfbc0bdec8264917150a3789"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-control-runtime354ab-literal-e4895-20261106/native.log",
+        "bytes": 40822,
+        "sha256": "2a9f068afdb2ef6654bfb651ee0b329fc954ca3a18ce2d18c270e4bf4dc4a49e"
+      },
+      "row_checker_result": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-control-runtime354ab-literal-e4895-20261106/row-check.json",
+        "bytes": 1186,
+        "sha256": "981d0aa019f5661d581d4dc58529aaded3facb329c1c20f7db3e9a760c38e3a4"
+      },
+      "output": "D:/EECH-Migration-Evidence/city-relist-control-runtime354ab-literal-e4895-20261106",
+      "actual_native_helper_checker_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "inner_pre_native_post_exits": [
+        0,
+        0,
+        0
+      ],
+      "facts": {
+        "mode": "city_box_lifecycle",
+        "profile": "hosted",
+        "row_phase": "after_boot_warmup_standalone_fixture",
+        "frames": 301,
+        "completed": true,
+        "unreached": "",
+        "report_bound": 1,
+        "consumed_before_selected": 1,
+        "consumed_after_selected": 1,
+        "retained_answers": 2,
+        "continuation_links": 2,
+        "expansions_selected": 6,
+        "expansions_selected_answered": 6,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "intervention": "none",
+        "intervened": 0,
+        "altered_request": 0,
+        "releases_in_window": 0,
+        "city_stage_lookups_in_window": 2,
+        "buildings": 6,
+        "host_keyed": 1,
+        "query_before_hit": 0,
+        "query_before_kind": "none",
+        "query_after_hit": 0,
+        "query_after_kind": "none",
+        "query_equal": 1,
+        "list_order_restored": 1,
+        "mirror_box_equal": 1,
+        "empty_keyed": 1,
+        "empty_key_changed": 1,
+        "restored_keyed": 1,
+        "restored_key_changed": 1,
+        "cause": "none"
+      }
+    },
+    {
+      "role": "missing",
+      "receipt": {
+        "path": "R:/d3-evidence/city-relist-missing-runtime354ab-literal-e4895-20261106-completion.json",
+        "bytes": 5204,
+        "sha256": "d32af7c03235ac1793b0ed4ce4ea2e434ac14dd49c52d797a407da9d439646a2"
+      },
+      "helper_controller": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-missing-runtime354ab-literal-e4895-20261106/controller.json",
+        "bytes": 4426,
+        "sha256": "8a98349dbda740b8ddf5475243f512f66d2e1a495e6d8751aa65b08284b02912"
+      },
+      "rows": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-missing-runtime354ab-literal-e4895-20261106/model.jsonl",
+        "bytes": 1455,
+        "sha256": "69462a179bf2cbb303b0dc213b2d225562e6283b116ce1c910f7e45948af9101"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-missing-runtime354ab-literal-e4895-20261106/native.log",
+        "bytes": 48732,
+        "sha256": "e0a2b59d1172f514bbcec4e764c1bb0c246a39babd94da6fd205afd7464e07f2"
+      },
+      "row_checker_result": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-missing-runtime354ab-literal-e4895-20261106/row-check.json",
+        "bytes": 1232,
+        "sha256": "ac61edfce61f5a31f866d00161469e24e792d9fa4dcfee5300cfb1989fc04a62"
+      },
+      "output": "D:/EECH-Migration-Evidence/city-relist-missing-runtime354ab-literal-e4895-20261106",
+      "actual_native_helper_checker_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "inner_pre_native_post_exits": [
+        0,
+        0,
+        0
+      ],
+      "facts": {
+        "mode": "city_box_lifecycle_missing",
+        "profile": "hosted",
+        "row_phase": "after_boot_warmup_standalone_fixture",
+        "frames": 301,
+        "completed": false,
+        "unreached": "",
+        "report_bound": 0,
+        "consumed_before_selected": 1,
+        "consumed_after_selected": 0,
+        "retained_answers": 1,
+        "continuation_links": 0,
+        "expansions_selected": 0,
+        "expansions_selected_answered": 0,
+        "request_faults": 0,
+        "reply_faults": 1,
+        "intervention": "host_retention_release",
+        "intervened": 1,
+        "altered_request": 0,
+        "releases_in_window": 0,
+        "city_stage_lookups_in_window": 1,
+        "failure_marker": "entity_scan.refused",
+        "first_fault_class": "scan reply: result refused",
+        "report_numeric_fields_unknown_minus_one": true,
+        "cause": "retained_record_released_then_link_key_ended"
+      }
+    },
+    {
+      "role": "changed",
+      "receipt": {
+        "path": "R:/d3-evidence/city-relist-changed-runtime354ab-literal-e4895-20261106-completion.json",
+        "bytes": 5288,
+        "sha256": "10e7fc04bbd6d3eaf8a5140d3077403d5e1a37985f3119361eb784b2b742a833"
+      },
+      "helper_controller": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-changed-runtime354ab-literal-e4895-20261106/controller.json",
+        "bytes": 4427,
+        "sha256": "44ff9d5842f63acc0559c89f5222cdf635eb9a903f325fa65e899e7ac8000815"
+      },
+      "rows": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-changed-runtime354ab-literal-e4895-20261106/model.jsonl",
+        "bytes": 1538,
+        "sha256": "3a4bb3b03f3bb61ae100243739535f5d96f465dfd6b0a813999221b6efc58a34"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-changed-runtime354ab-literal-e4895-20261106/native.log",
+        "bytes": 48810,
+        "sha256": "1e06340958bd19b626e6951a6b7b851717084fdcb2c16a8c57d550dd02623d07"
+      },
+      "row_checker_result": {
+        "path": "D:/EECH-Migration-Evidence/city-relist-changed-runtime354ab-literal-e4895-20261106/row-check.json",
+        "bytes": 1237,
+        "sha256": "e777b091790af4d2d5860ebb35fbfe759faa3c340f616f22679ed00c0ad49843"
+      },
+      "output": "D:/EECH-Migration-Evidence/city-relist-changed-runtime354ab-literal-e4895-20261106",
+      "actual_native_helper_checker_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "inner_pre_native_post_exits": [
+        0,
+        0,
+        0
+      ],
+      "facts": {
+        "mode": "city_box_lifecycle_changed",
+        "profile": "hosted",
+        "row_phase": "after_boot_warmup_standalone_fixture",
+        "frames": 301,
+        "completed": false,
+        "unreached": "",
+        "report_bound": 0,
+        "consumed_before_selected": 1,
+        "consumed_after_selected": 0,
+        "retained_answers": 1,
+        "continuation_links": 1,
+        "expansions_selected": 0,
+        "expansions_selected_answered": 0,
+        "request_faults": 0,
+        "reply_faults": 1,
+        "intervention": "mirror_conformance_negative",
+        "intervened": 1,
+        "altered_request": 1,
+        "releases_in_window": 0,
+        "city_stage_lookups_in_window": 1,
+        "failure_marker": "entity_scan.refused",
+        "first_fault_class": "scan reply: result refused",
+        "report_numeric_fields_unknown_minus_one": true,
+        "cause": "city_box_mirror_differs_from_held_state"
+      }
+    }
+  ],
+  "actual_interpretation": {
+    "control": "The real Core path drains the six buildings, performs two actual empty CITY sector relinks, restores the list and runs the unchanged production entity query before and after. The selected canonical CITY record is consumed once in each query, retained twice and continued twice; all six rebuilding expansions are answered with zero faults. Complete report/key/list/mirror/query consistency succeeds.",
+    "physical_result_limit": "Both query results are MISS. The observed consuming CITY-state stage and retained-box dependency are verified; no actual hit, hit-point/normal comparison, changed physical output or natural weapon integration is inferred from these MISS results.",
+    "missing": "The same selected record was consumed before intervention. The reviewed driver acknowledges the SAME real provider CITY_RELEASE action before handing the unchanged removal reply onward. The actual continuation then reaches the selected ended-record [roster.link] refusal. This is a real Host-retention dependency, not a generic withheld callback, modified Core list or substituted reply.",
+    "changed": "The same selected record was consumed first. One forwarded CITY_STATE mirror word is changed while Core remains unchanged. The SAME real provider refuses the mismatch against its held box under [roster.city]. This is a mirror-conformance negative; it does not claim changed Host geometry or a second successful physical query.",
+    "negative_unknowns": "Both expected fatal paths retain report_bound0, completed=false, report numeric fields-1/text empty and no physical AFTER result. consumed_after_selected0 and other retained callback counts are not postfatal Core measurements. Normal releases_in_window0 is separate from the acknowledged private missing-mode intervention1.",
+    "fault_channel": "Both negative rows have exactly request0/reply1, first fault scan reply: result refused and entity_scan.refused. No unrelated fatal, malformed ACK, clean UNREACHED or output equality was credited as success.",
+    "boundary_and_orchestration": "Actual native/helper/checker/outer and inner pre/native/post exits are separately zero for all three cases. Same runtime, literal, scenario, fixed seed/timing, selected record and full input reference are bound. Original consumed roots and failed products were not rerun or rewritten.",
+    "thin_checker_limit": "The checker validates aggregate standalone rows only; their raw query tuples are not emitted. Full report grammar and tuple/ACK/selection consistency depend on the previously reviewed driver and real C fixture. This review does not claim independent reconstruction of omitted raw reports or new postfatal getters.",
+    "clean_code_scope": "No new executable source changes were introduced during this actual pass. Previously sealed source closures, integer/raw-word validators, constructor math and physical table/FPU proofs retain their own identities; this review does not extend or replay them."
+  },
+  "input_payload_identity": {
+    "input_reference_files": 1179,
+    "input_reference_total_bytes": 102239559,
+    "six_lifecycle_full_manifests_literal_reference": true,
+    "manifest_bytes": 209622,
+    "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "all_six_whole_entry_arrays_literal_equal": true,
+    "full_manifest_tool_actual_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "three_actual_roots_fresh_distinct_and_consumed_once": true,
+    "profile_payloads_readonly_rehashed_now": {
+      "ordinary": 88,
+      "hosted": 88,
+      "original": 88
+    },
+    "each_case_hosted_payloads_reported_resealed": 88,
+    "literal_after_all_cases_still_raw_Git_bound": true,
+    "build_receipt": {
+      "path": "R:/d3-evidence/city-lifecycle-witness-354abd9c0-windows-20261106-completion.json",
+      "bytes": 47152,
+      "sha256": "5545eaac75e35f16d7c617022b058987eef4e1b9024360c7a8642ea9ec8a78c8"
+    },
+    "profile_proof": {
+      "path": "R:/d3-evidence/city-lifecycle-windows-profile-isolation-354abd9c0-20261106.json",
+      "bytes": 7224,
+      "sha256": "be65923b0da42a76d4ba320723f9606a2009e6048afcaca811d34b8cf29df12e"
+    },
+    "World_object_proof": {
+      "path": "R:/d3-evidence/city-lifecycle-world-objects-354abd9c0-20261106.json",
+      "bytes": 1932,
+      "sha256": "481117188596479c3a2eeb7351f7434848d44e55a7b77724927fec62dc722722"
+    },
+    "input_preparation": {
+      "path": "R:/d3-evidence/city-relist-literal-inputs-20261106/preparation.json",
+      "bytes": 2363,
+      "sha256": "6a5eb0540702d12cf7081683ccbfeccab19725113f7d3f7d05f7f8b8a68dc552"
+    },
+    "Root_actual_join": {
+      "path": "R:/d3-evidence/city-lifecycle-Root-actual-join-runtime354ab-literal-e4895-20261106.json",
+      "bytes": 13773,
+      "sha256": "07160a624300d81e8f8d3937d2c166d8bfda14d0470d558e160eac81347cd319"
+    },
+    "qualification": "The new Lua is an explicit diagnostic override. Existing354ab executable/DLL/bundled Lua remain sealed and retain their original source identity. Changed test-C raw bytes are excluded by the proved feature guard; no all-watched-raw-inputs-identical claim."
+  },
+  "retained_default_comparisons": {
+    "ordinary_short_receipt": {
+      "path": "R:/d3-evidence/city-lifecycle-ordinary-short-354abd9c0-20261106-completion.json",
+      "bytes": 2170,
+      "sha256": "8201bc17ec6e726cfeba04b25082e7b982b961553a02083932f8e3d1ee9d7e8c"
+    },
+    "ordinary_short_comparison": {
+      "path": "R:/d3-evidence/city-lifecycle-ordinary-short-comparison-354abd9c0-20261106.json",
+      "bytes": 1569,
+      "sha256": "803028da58eb2d0b831219bdfaf2f90b46a6f31ed06360959ffe088770194f85"
+    },
+    "ordinary_short_native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "ordinary_short_files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "COMPLETE_literal_equal": true
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "COMPLETE_literal_equal": true
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "COMPLETE_literal_equal": true
+      }
+    ],
+    "ordinary_short_scope": "Three COMPLETE ordinary3.6simsec files at unchanged retained arguments, literal80fd comparison; no full-pack, visual or performance claim.",
+    "healthy_receipt": {
+      "path": "R:/d3-evidence/city-lifecycle-healthy-354abd9c0-20261106-completion.json",
+      "bytes": 2055,
+      "sha256": "ff83a1b464dcb2c9ca1a5e5f030a92621bd5ab70aa10b63287535aefc084f3de"
+    },
+    "healthy_native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "healthy_parent_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "healthy_all_authority_fields_exact": 194,
+    "healthy_added_removed_fields": [],
+    "healthy_whole_model_jsonl_literal_equal": true,
+    "healthy_model_jsonl_bytes": 5649,
+    "healthy_model_jsonl_sha256": "b2259b6bdaac07757538d4954e37ee9cf57bc72254aa836984e50af42aa8a389",
+    "healthy_complete_terminal_JSONL_line_bytes": 180,
+    "healthy_complete_terminal_JSONL_line_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+    "healthy_no_terminal_or_signature_normalization": true,
+    "healthy_scope": "Retained default finite cohort at runtime354ab and its bundled driver, not the standalone lifecycle row or natural moving integration.",
+    "all_ten_full_manifest_bytes_including_short_and_healthy_literal_reference": true,
+    "new_Windows_build_or_default_replay_for_diagnostic_only_change": false
+  },
+  "failure_history_preserved": [
+    {
+      "source": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+      "actual_native_helper_outer_exits": [
+        1,
+        1,
+        1
+      ],
+      "proof": {
+        "path": "R:/d3-evidence/Root-city-lifecycle-native-215a-boundary-failure-20261106.json",
+        "bytes": 2979,
+        "sha256": "9c998f8850f71ddbd8d37c3d61e6f5c2ed81471f8b501b43295d1ecf25771134"
+      },
+      "cause": "Public converter rejected the legitimate named Removed before continuation. Failed actual remains failed."
+    },
+    {
+      "source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+      "actual_native_helper_outer_exits": [
+        1,
+        1,
+        1
+      ],
+      "proof": {
+        "path": "R:/d3-evidence/Root-city-lifecycle-354ab-relist-ack-failure-20261106.json",
+        "bytes": 3205,
+        "sha256": "0b29b0c3b6b1ab7cb976d9c998d24739f896051709be78d2476c70ab8700e56c"
+      },
+      "cause": "Lifecycle completed but six diagnostic ACK-identity request faults made the run fail. Not relabelled as a pass or a checker recovery.",
+      "driver_identity": "Bundled runtime354ab entity-authority.lua, byte-identical to the earlier215a driver; not an explicit separately sourced215a runtime override."
+    }
+  ],
+  "decision": {
+    "status": "FINITE_SELECTED_CITY_BOX_LIFECYCLE_RETENTION_VERIFIED",
+    "findings": [],
+    "finite_city_box_lifecycle_retention_closed": true,
+    "finite_selected_city_lifecycle_authority_closed": true,
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION_finite_gate_closed": true,
+    "additional_native_cases_required_for_this_finite_gate": false,
+    "next_sector_height_characterization_may_start": true,
+    "next_physical_cutover_authorized_by_this_report": false,
+    "whole_CITY_physics_accepted": false,
+    "natural_weapon_integration_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "remaining_requirements": [
+    "ENV-ENTITY-POSE-LONG-RUN-MOTION-1 remains OPEN and blocks further physical cutover while the existing corrected f734 long-run pack is incomplete. This finite CITY result, ordinary short and healthy cohort do not close that actual regression gate.",
+    "Only the next bounded sector-height characterization may proceed under the current lead constraint; no permission to bypass the open long-run correctness blocker or begin another physical cutover follows from this report.",
+    "This finite selected CITY retention gate does not claim every city, every writer/unpack/restore/lifetime combination, all CITY physics, a natural moving-weapon engagement, complete physical backing/caller/data-service migration, or whole D3.",
+    "All ten D3 requirements remain. Needed remaining sector height/hints, effectful UPDATED/shared terrain, physical-property/default-shape/clutter/draw-alignment/provenance census, raw TREE/FOREST/CLOUD RNG, hierarchy/devices/services/DCS mappings and natural moving integration still require honest disposition.",
+    "Current final40/all8, final full inputs/payload census, current CI, normal merge/delivery and final census remain open. The protected parent f734 partial-prefix capture is only partial at its own source identity; it is not full or current-candidate acceptance. No D4/D5 or historical TypeScript work is authorized."
+  ],
+  "publication_safety": "Only aggregate counts, booleans, causes, hashes and source/private-path identifiers are included. No raw selected/actor/host-ID values, physical tuples, geometry words, cohort signature, fatal lines, retail assets or recordings are copied.",
+  "report_identity_qualification": {
+    "supersedes_unpublished_report": "R:/d3-evidence/independent-city-lifecycle-finite-actual-runtime354ab-literal-e4895-20261106.json",
+    "superseded_sha256": "b362d1959371e06899b1977b2ae6ec623bee0bf3fdbeae506f1414fca5a38eaa",
+    "reason": "Clarified the historical354ab failed run used its own bundled driver. The earlier wording identified its unchanged215a byte origin as old_literal_source, which could imply a separately bound runtime override. No source, run, outcome or acceptance changed."
+  }
+}

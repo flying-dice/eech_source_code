@@ -1,0 +1,38 @@
+{
+  "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "captured_utc": "2026-11-05T23:56:07.371654+00:00",
+  "partial_prefix_only": true,
+  "complete_pack_or_all8_acceptance": false,
+  "results": [
+    {
+      "path": "reference/run1/recording.acmi",
+      "captured_bytes": 7935500,
+      "sha256": "5e6e4e6ded58c797ba654b95d33f7f82590488193c78b9340e31ae5266efdd9e",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": "611.90"
+    },
+    {
+      "path": "reference/run1/observations.jsonl",
+      "captured_bytes": 5070848,
+      "sha256": "c51cfe26a6c9d62b1afbad73c8bf7e4679d18e6e2927346915cc647b9df6129a",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": null
+    },
+    {
+      "path": "reference/run2/recording.acmi",
+      "captured_bytes": 7943692,
+      "sha256": "fee4e1136c396f68b6bda763db48f810f138a0175e5c2c88d0e754d2e6307d46",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": "612.90"
+    },
+    {
+      "path": "reference/run2/observations.jsonl",
+      "captured_bytes": 5074944,
+      "sha256": "77e45217fb3945bae108094f26ed068055c602783fa69a54546e0e32e44d6a93",
+      "literal_captured_prefix_equal": true,
+      "last_complete_acmi_marker": null
+    }
+  ],
+  "all_captured_prefixes_equal": true,
+  "scope": "Only generated candidate reference/run1+run2 prefixes, copied retained input excluded. No complete40/all8/Personwholecontract claim."
+}

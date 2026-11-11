@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_normalfirefx.h"
 #include "entity/mobile/mb_aimfx.h"
 #include "../../../ai/taskgen/engage.h" // for CIWS
 
@@ -405,7 +406,9 @@ while(TRUE)
 		debug_log ("VH_WPN: Firing weapon");
 	}
 
+	NF_FIRE (en, target, raw->selected_weapon, raw->selected_weapon_system_ready, weapon_vector, weapon_to_intercept_point_vector, &launch_angle_error, &weapon_database[raw->selected_weapon].max_launch_angle_error)
 	launch_client_server_weapon (en, raw->selected_weapon, FALSE);
+	NF_FIRE_END (en)
 
 	break;
 }

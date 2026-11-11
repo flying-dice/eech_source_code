@@ -1,0 +1,20 @@
+{
+  "observed_utc": "2026-11-08T03:01:57.553546+00:00",
+  "code": "48570fdeec26bd8332334741586e89afbff2ab21",
+  "metadata": "602f243d9b7911942868ddec792c39715d053614",
+  "main_manifest_entries": 61,
+  "main_tracked_files": 62,
+  "main_external_byte_comparisons": 58,
+  "metadata_changed_files_literal": [
+    "eech-campaign/reference/d3-entity-collision/native-flag-read-implementation-publication/.gitattributes",
+    "eech-campaign/reference/d3-entity-collision/native-flag-read-implementation-publication/README.md",
+    "eech-campaign/reference/d3-entity-collision/native-flag-read-implementation-publication/committed-bytes-and-checkpoint.json",
+    "eech-campaign/reference/d3-entity-collision/native-flag-read-implementation-publication/manifest.json",
+    "eech-campaign/reference/d3-entity-collision/native-flag-read-implementation-publication/publisher.py"
+  ],
+  "clean_exact_upstream": true,
+  "Root_source_binding_sha256": "d3f735a16e9e26e934911ab0b6b4cf76438d5284abc62ec844a46830bbd37d05",
+  "materialized_plan_sha256": "eecd985c9f25ce08221b75c9aa724ffa7334ebdb4ce6d01492a6230517e8c3e4",
+  "tests_native_replayed": false,
+  "scope": "Literal publication only, no native launch/acceptance"
+}

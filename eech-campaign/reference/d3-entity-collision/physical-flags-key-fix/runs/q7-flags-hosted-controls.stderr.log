@@ -1,0 +1,19 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 13s
+     Running tests/entity_dialogue.rs (/target/t/debug/deps/entity_dialogue-b214dfd5e1065b1e)
+     Running tests/physical_flags.rs (/target/t/debug/deps/physical_flags-a720c184b13b6650)
+     Running tests/physical_flags_collision.rs (/target/t/debug/deps/physical_flags_collision-89d59386b443f9ca)
+eech: debug_fatal: host model: [test-bridge:entity_candidate.refused] candidate record: the host holds no physical record for this mobile candidate (no host identity: the campaign has none for this mobile candidate)
+     Running tests/physical_flags_consumer.rs (/target/t/debug/deps/physical_flags_consumer-1a8431190900844f)
+     Running tests/physical_flags_guard.rs (/target/t/debug/deps/physical_flags_guard-0be8f02f7f3c9b00)
+     Running tests/physical_flags_hosted_faults.rs (/target/t/debug/deps/physical_flags_hosted_faults-f7618371e55db5b9)
+     Running tests/physical_flags_identity.rs (/target/t/debug/deps/physical_flags_identity-106d2a9424fa9aca)
+eech: debug_fatal: host model: [model-provider:flag.key] the key "f11111111111111111111" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "f111111111111111111111111111111111111111" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "f01" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "f0" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "F1" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "12" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the host issued the key "f1" for a new flag group, which is already bound to another flag group
+eech: debug_fatal: host model: [model-provider:flag.key] the host issued the key "f2" for a new flag group, which is already bound to another flag group
+eech: debug_fatal: host model: [model-provider:flag.key] the host issued the key "f1" for a new flag group, which is already bound to another flag group

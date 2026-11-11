@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "codex-d3-flag-lifetime-20261108-completion.json",
+      "bytes": 1940,
+      "sha256": "23d25cf0295fa20d1bb4bb6ba91d840a11daace620b5d226ecaf643f013941e1"
+    },
+    {
+      "path": "flag-lifetime-0c7b-Root-binding-20261108.json",
+      "bytes": 2928,
+      "sha256": "d6622bd028887eb10d65fb25995ca573161751ebf3cf02332d7f8d1a6ef1b54f"
+    },
+    {
+      "path": "flag-lifetime-26f0-Root-publication-20261108.json",
+      "bytes": 16689,
+      "sha256": "fd8b5bdb91ff943261f6c58487e827fc26f105a52ddedbd9b8ca1514a019616b"
+    },
+    {
+      "path": "independent-flag-lifetime-0c7b-source-20261108.json",
+      "bytes": 10473,
+      "sha256": "7d458d4a2430b17cd4d09ffdcaa46f8ad21af6c56526264cca2324fe1f8234a7"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2043,
+      "sha256": "67c072b899513e64d27befb421b11970d8860472a32fa2c0076e2155b507d25a"
+    }
+  ]
+}

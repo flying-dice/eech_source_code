@@ -1,0 +1,81 @@
+{
+  "prefix": "flags-consumer-",
+  "label_regex": "^[ck][0-9]+-",
+  "declared_helper": "check-physical-flags-consumer-linux-20261107.sh",
+  "records": 9,
+  "rows": [
+    {
+      "record": "flags-consumer-c1-consumer-check.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-consumer-c2-all-flags-tests.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-consumer-c3-fmt-apply.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-consumer-c4-clippy-features.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-consumer-k1-fmt-check.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-consumer-k2-clippy-engine-sys-default.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-consumer-k3-clippy-engine-sys-both-features.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-consumer-k4-engine-sys-default.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    },
+    {
+      "record": "flags-consumer-k5-flags-controls-and-census.json",
+      "state": "terminal",
+      "actual_exit": 0,
+      "stdout_exists": true,
+      "stderr_exists": true,
+      "uses_declared_helper": true
+    }
+  ],
+  "problems": []
+}

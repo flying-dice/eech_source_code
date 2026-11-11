@@ -1,0 +1,11 @@
+/work/pose-control.sh: 17: cannot open pose_x64_O1_original.out: No such file
+/work/pose-control.sh: 17: cannot open pose_i686_O1_original.out: No such file
+/work/pose-control.sh: 17: cannot open pose_i686_O0_original.out: No such file
+/work/pose-control.sh: 17: cannot open pose_i686_O2_original.out: No such file
+/work/pose-control.sh: 17: cannot open pose_i686_O1_standard_original.out: No such file
+/work/pose-control.sh: 17: cannot open pose_i686_O0_standard_original.out: No such file
+/work/pose-control.sh: 17: cannot open pose_x64_O1_production.out: No such file
+/work/pose-control.sh: 17: cannot open pose_i686_O1_production.out: No such file
+/work/pose-control.sh: 17: cannot open pose_i686_O1_standard_production.out: No such file
+diff: pose_x64_O1_original.out: No such file or directory
+diff: pose_*.out: No such file or directory

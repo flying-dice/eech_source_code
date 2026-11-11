@@ -1,0 +1,267 @@
+{
+  "utc": "2026-11-08T03:30:54.076Z",
+  "commit": "1ab12d0efc6e088b483ba30e0f12ec74c9ffa2ca",
+  "runs": [
+    {
+      "id": 42442256264,
+      "name": "eech-loss-structural",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 456,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42442256264/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42442256264/logs",
+      "workflow_id": 391769320,
+      "jobs": [
+        {
+          "id": 128613769041,
+          "name": "Slice 1a historical equivalence",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42442256264,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    },
+    {
+      "id": 42442256282,
+      "name": "eech-core-ts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 665,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42442256282/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42442256282/logs",
+      "workflow_id": 364678585,
+      "jobs": [
+        {
+          "id": 128613769628,
+          "name": "verify",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42442256282,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    },
+    {
+      "id": 42442256266,
+      "name": "eech-campaign",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 811,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42442256266/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/42442256266/logs",
+      "workflow_id": 367324141,
+      "jobs": [
+        {
+          "id": 128613769232,
+          "name": "test (i686-unknown-linux-gnu)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42442256266,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 128613769361,
+          "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42442256266,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Test",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Lints",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 5
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            }
+          ]
+        },
+        {
+          "id": 128613769375,
+          "name": "test (x86_64-unknown-linux-gnu)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42442256266,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 128613769425,
+          "name": "evidence-selftest",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42442256266,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Evidence comparison selftest",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Pinned-archive downloader",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Host-identity retained hashes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Supply-arrival retained hashes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 128613769441,
+          "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42442256266,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 128613769463,
+          "name": "windows-cross",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42442256266,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 128613769468,
+          "name": "dcs-probe-tools",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42442256266,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Lua 5.1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Syntax",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Self-test",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "SUPPLY arrival runner inputs",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "all_nine_jobs_success": true,
+  "rerun_requested": false,
+  "scope": "Exact corrected1ab source CI only; not fullpack or wholeD3 acceptance"
+}

@@ -1,0 +1,19 @@
+{
+  "controller_pid": 20520,
+  "state": "terminal",
+  "started_utc": "2026-11-11T10:46:33.367920+00:00",
+  "label": "r1-old-validator-RED",
+  "command": "python-tests",
+  "args": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "eech-campaign/tools/test_normal_fire_capture.py"
+  ],
+  "cwd": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d3-evidence\\collision-characterization-20261029",
+  "pid": 3200,
+  "actual_exit": 1,
+  "completed_utc": "2026-11-11T10:46:34.168277+00:00"
+}

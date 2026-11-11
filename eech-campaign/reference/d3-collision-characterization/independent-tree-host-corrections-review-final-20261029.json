@@ -1,0 +1,193 @@
+{
+  "review_kind": "Focused combined correction/evidence closure of the existing five-P2/two-P3 host-tree review; no repeated unchanged physical/capture pass",
+  "reviewed_utc": "2026-10-29T21:03:39.323297+00:00",
+  "base": "d72610f85bc71ecf554c074025e699115e8eb0a1",
+  "final_reviewed_and_measured_head": "8c452f197449d3a08b8f7bfbad5c34ae652c22c1",
+  "frozen_final_snapshot": "R:\\d3-evidence\\tree-host-clean-source-20261029",
+  "snapshot_clean_before_and_after": true,
+  "preserved_initial_review": {
+    "path": "R:\\d3-evidence\\independent-tree-host-preparation-review-d72610f85.json",
+    "sha256": "c5f921039fb6b6deb154a96d8c15d049fbd829996bb426a34775530ae2df2a0b",
+    "unchanged": true
+  },
+  "intermediate_identities": {
+    "first_corrected_runtime": "684fb69817fb8e075415e817594c52e2bcac808c",
+    "getter_corrected_runtime": "f81eb31bc454492c57d64dbd8cf0c0105041b1e5",
+    "final_source_and_runtime": "8c452f197449d3a08b8f7bfbad5c34ae652c22c1"
+  },
+  "verdict": "CLOSED: all five P2 findings and both P3 corrections resolved, including the same pending-query item's getter-reentry seam. No remaining actionable finding in this correction delta. Bounded host-component preparation only; no production/task49/whole-D3/shipping acceptance.",
+  "open_findings": [],
+  "finding_dispositions": [
+    {
+      "id": "P2-map-invariant",
+      "status": "resolved",
+      "path": "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\src\\trees.rs",
+      "line": 152,
+      "resolution": "TreeMap::validate is called by new and every public scene constructor, before storing/reading files/FFI, including absent-file/no-tree paths. Scene metadata remains immutable thereafter.",
+      "verification": "Real unit coverage supplies forged public literals for overflowing extents, invalid ranges/counts and nonfinite heights through without_trees/from_bytes/load with present and absent files; healthy map remains accepted. No invalid map is sent to C."
+    },
+    {
+      "id": "P2-fp-restoration",
+      "status": "resolved",
+      "path": "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\csrc\\tree_step.c",
+      "line": 1039,
+      "resolution": "C explicitly saves whole MXCSR plus x87 fenv, sets both units to toward-zero, restores fenv then MXCSR and reads MXCSR back; failure withholds answer/closes query. Mask63/63 refusal remains.",
+      "verification": "Final Linux and Windows focused contracts pass. Native Windows library replays default plus Up/Down/Zero all match original bits; raw x87 control/MXCSR and raised status before/after sequences agree with nonzero caller flags. Per-call rounding checks cover request and done returns. Old d726 Windows restoration RED remains retained; no unsupported mask/fenv-error runtime proof is claimed."
+    },
+    {
+      "id": "P2-rounding-thread-affinity",
+      "status": "resolved",
+      "path": "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\src\\trees.rs",
+      "line": 592,
+      "resolution": "ScopedRounding carries PhantomData<*const ()>, preventing Send and Sync. It restores on its originating thread.",
+      "verification": "Actual compiled test module includes ambiguity-based negative Send/Sync type contracts; it would not compile if either auto-trait returned. This is type-level evidence, not a cross-thread native experiment."
+    },
+    {
+      "id": "P2-sparse-geometry",
+      "status": "resolved",
+      "path": "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\src\\main.rs",
+      "line": 268,
+      "resolution": "Dense list validation checks the complete key set and indexed triangle order; each triangle is exactly nine numeric entries. Empty lists are refused with an explicit KnownAbsent alternative.",
+      "verification": "Same actual six-case script fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de: dense remains accepted; sparse[2]/hole[1,3] changed from accepted on d726 to specific refusal on final host. No mesh tail is silently discarded."
+    },
+    {
+      "id": "P2-pending-lua-refusal",
+      "status": "resolved including reentrant getter completion",
+      "path": "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\src\\main.rs",
+      "line": 1607,
+      "resolution": "Begin abandons prior query, then wraps fallible field reads and application in a Result scope and abandons the current pending query on every Err after that scope. No RefCell borrow spans Lua getter execution. Terrain parse failures and nonfinite Rust terrain answers also abandon.",
+      "verification": "Ordinary pending->malformed begin/terrain cases refuse later continuation. Same reentrant script2bb59f7553686b0edc9a3d253d6c7b05866effc04e8b1055aff46a193b058244: error/malformed getter each runs once, outer refuses and nested continuation is closed; healthy getter/reentry still continues. Retained684 actual diagnostic demonstrates old ghost continuation; final real host shows specific no-query-open refusal."
+    },
+    {
+      "id": "P3-negative-zero-test",
+      "status": "resolved",
+      "path": "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\tests\\tree_collision_host.rs",
+      "line": 169,
+      "resolution": "Uses dynamic -1/math.huge and asserts reciprocal is negative infinity, retaining80000000 and tiny/subnormal expectations. Numeric reader was not altered.",
+      "verification": "Prior unchanged d726 diagnostic isolated Lua constant-folded positive zero. Final real-host Lua transport passes1/1 on Linux and Windows."
+    },
+    {
+      "id": "P3-allocation-claim",
+      "status": "resolved",
+      "path": "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\src\\trees.rs",
+      "line": 29,
+      "resolution": "Wording distinguishes whole-file allocations, pre-read fixed file ceilings, sector-table byte checks before sector allocation, and per-sector record spans before tree decoding/indexing. It no longer claims all spans precede all allocations.",
+      "verification": "Source correspondence checked. Limits are preflight checks for the stable files used here, not a race-proof exclusive/bounded stream-reader claim."
+    }
+  ],
+  "new_delta_assessment": [
+    "Metadata validation is now enforced where safe Rust constructs the scene; it cannot be bypassed by public TreeMap fields reaching C.",
+    "FPU changes are confined to entry environment handling and test/report support; copied physical formulas/order remain unchanged. Saves/restores are local to each call, not held over callbacks.",
+    "Dense Lua mesh parsing and post-error query cleanup preserve generic inputs and healthy reentry while refusing actual malformed states. No physical answer is re-derived in the boundary checks.",
+    "684-to-f81 loader as_chunks replaces chunks_exact/array conversion with the same whole8-byte records in the same order; remainder handling/census unchanged. Other lint changes are test assertion style/type alias.",
+    "f81-to8c452 changes only the conformance test paragraph separator and an identical usize odd-length predicate, plus status/docs. Host/library/main/C/Lua/build inputs are byte-identical; current8c452 nevertheless has its own actual Windows build and complete checker evidence.",
+    "Historical d726,684 and f81 failures are retained, not relabelled as success. Final results below are measured8c452; earlier successful684/f81 measurements remain separately labelled."
+  ],
+  "independently_verified_final_evidence": {
+    "reviewer_actions": "Read-only Git/files/hash and own Python analysis only. No source edits, supplied test/audit execution, builds, Lua/native runs, process/cache/auth/Git mutations, delegation or external publication.",
+    "linux": {
+      "actual_exit": 0,
+      "completion": "tree-host-clean-linux-8c452f197-20261029-completion.json",
+      "checks": "set-e guarded fmt--all--check; release eech-world tree library17/17; real-host Lua1/1; eech-world all-target Clippy--keep-going -Dwarnings0. No skips counted as conformance."
+    },
+    "windows_build": {
+      "actual_exit": 0,
+      "file_manifest_entries_rehashed": 8,
+      "build_info_sha256": "a7a007641cdc690924ea20e803303314519b6f20037834f3abd95f92ed4950c3",
+      "scope": "Test-only host/tests; no campaign DLL built. Eight manifest entries includes logs, not eight DLL exports."
+    },
+    "windows_native": {
+      "actual_controller_exit": 0,
+      "units": "17/17 actual0",
+      "real_host_lua_contract": "1/1 actual0",
+      "all14_recorded_command_exits": 0,
+      "all14_native_logs_rehashed": true,
+      "three_pre_and_three_post_input_checks": 0,
+      "eight_payloads_unchanged": true
+    },
+    "real_map_replays": [
+      {
+        "map": "georgia",
+        "queries": 554,
+        "lookups": 1102,
+        "hits": 98,
+        "misses": 456,
+        "misses_that_wrote": 126,
+        "library_actual_exit": 0,
+        "lua_actual_exit": 0,
+        "default_Up_Down_Zero_mismatches": 0,
+        "original_transcript_sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc"
+      },
+      {
+        "map": "lebanon",
+        "queries": 600,
+        "lookups": 1120,
+        "hits": 146,
+        "misses": 454,
+        "misses_that_wrote": 166,
+        "library_actual_exit": 0,
+        "lua_actual_exit": 0,
+        "default_Up_Down_Zero_mismatches": 0,
+        "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00"
+      },
+      {
+        "map": "separate lebanon repeat",
+        "queries": 600,
+        "lookups": 1120,
+        "hits": 146,
+        "misses": 454,
+        "misses_that_wrote": 166,
+        "library_actual_exit": 0,
+        "lua_actual_exit": 0,
+        "default_Up_Down_Zero_mismatches": 0,
+        "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00"
+      }
+    ],
+    "comparison_scope": "Every captured query compares ordered lookup count/XZ bits, hit and final point/normal bits including miss partial writes. Nonzero caller status and raw x87 control/MXCSR are asserted before/after sequences, with per-call rounding checks in units. All original transcripts remain unchanged; no tolerance/formula/oracle rewrite.",
+    "same_six_protocol_cases": "Actual final controller0 with same fa773 script hash; dense and healthy pending controls unchanged; sparse/holey geometry specifically refused; malformed begin/terrain cannot ghost-continue. Every case log rehashed.",
+    "same_three_getter_cases": "Actual final controller0 with same2bb59 script hash; error/malformed getters invoked exactlyonce, outer refusal closes nested query; healthy getter succeeds and continues. Every case log rehashed.",
+    "retained_intermediate_failures": "Initial d726 CHANGES_REQUIRED report immutable.684 normal native contracts/replays green but reentry diagnostic RED and Linux Clippy101 retained. f81 runtime controls/replays green but Linux integration-test doc/odd-length lint101 retained. Final8c452 completes the guarded checks0; none of those earlier outer exits changed.",
+    "safe_aggregate": {
+      "path": "R:\\d3-evidence\\tree-host-clean-8c452f197-validation.json",
+      "sha256": "4687c6a8297188b58c17e72acac3797cc92b4f45a7bd759a73adf238a7c50243",
+      "verification": "Source/exits/counts/mode/replay/protocol/getter/limits match the independently examined actual records; every listed evidence file size/SHA rechecked. No raw retail samples in this aggregate."
+    }
+  },
+  "limits_and_remaining_D3_gates": [
+    "No production DLL dispatch/collision authority moved. No host extraction delivery, task49 acceptance, final shipping or whole-D3 completion follows from this preparation.",
+    "Retail forest geometry remains absent. Hand-derived synthetic triangle tests are not an original native forest-model geometry witness; actual model decoding/loading, entity collision and required spatial services remain D3 work.",
+    "Terrain/map metadata and elevation integration with G1, actual production handoff, DCS mapping or documented workaround, live DCS M6 and required loader removal remain open. No unsupported-miss substitute is approved.",
+    "Unmasked exception rejection and environment-operation failure paths are source guards, not exercised native failure cases. No32-bit or arbitrary FPU configuration proof is claimed.",
+    "The read-only conformance tests consume the previously validated immutable private captures; they do not constitute a standalone adversarial JSON/schema auditor or a complete campaign all-state witness.",
+    "Task47 shipping115 and unrelated live processes/caches were untouched. Current PR CI/delivery gates remain outside this closure; no formal GitHub APPROVED or external write."
+  ],
+  "next_bounded_action": "No further correction required for this reviewed host-component preparation. Root may proceed to the next named D3 source/evidence stage with remaining production/geometry/integration gates explicit.",
+  "source_sha256": {
+    "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\csrc\\tree_step.c": "b3551388b40512fa02d2fdb541cf4802db138cf00e16a9cc6aedd645264178db",
+    "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\src\\trees.rs": "832a3105c2b60c53f1f8ea01d5302a49ce318b5cb326c90666b80100be23f33b",
+    "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\src\\main.rs": "264405fc4ed2d94316fd507c268c242a0581a8b3b029e2f1cd712e4f99815454",
+    "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\build.rs": "ec2401b3676d3e896f65a0dd2cdc7a4e0d50d1ad457e472ba17c3fd3b9813264",
+    "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\src\\lib.rs": "ede5a57581a4c2c1f454a11bfccc50db78f829446ac18b65e902abcd87256eeb",
+    "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\tests\\tree_conformance.rs": "faefcdbb92c261261735f842c7945144a115dc6ddd1b9f7c831765f83a8a4ecf",
+    "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\tests\\tree_collision_host.rs": "83b6e2ed243cbaa7a184bbba6903c4cf87bae034c392f59557a8e48cce717188",
+    "R:\\d3-evidence\\tree-host-clean-source-20261029\\eech-campaign\\crates\\eech-world\\lua\\tree-collision-replay.lua": "9e34c201b0d5ece771f4dd4f324a3654aa72f384bca65c97519ed5896289e523"
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\tree-host-boundary-684fb6981-native-20261029\\controller.json": "d3170b69285f581699af7fb0d3e51954a64b01831bf9fc65aaf007a95d326376",
+    "R:\\d3-evidence\\tree-host-boundary-green-684fb6981-20261029\\controller.json": "769b466d8b7e9c4c518ccbee9e05a5872b7c96ee0333014ac664d6220b2daf75",
+    "R:\\d3-evidence\\tree-host-reentrant-red-684fb6981-20261029\\controller.json": "aacdbf021ea38f7adab55a2c35139ea78172b7a27026bd2b1c2bb53648167eea",
+    "R:\\d3-evidence\\tree-host-final-f81eb31bc-native-20261029\\controller.json": "092246e2871115dda4eba88dcdb493dc27950dd824ad94117c106d3b4b94b4b4",
+    "R:\\d3-evidence\\tree-host-protocol-final-f81eb31bc-20261029\\controller.json": "aa8e2d03e3b6e40e756b2302a8e196df02f2c5819e05164c43cb3c13e9496c30",
+    "R:\\d3-evidence\\tree-host-reentrant-green-f81eb31bc-20261029\\controller.json": "844671098be705606f3dc3324baa1b02d8e17902acb347e2bd2a997f0de8bd39",
+    "R:\\d3-evidence\\tree-host-final-linux-f81eb31bc-20261029-completion.json": "e74b945b69e0d2c64af96127c10c724e864cd9d1ee9e59a303dba0e0a9b5e0b0",
+    "R:\\d3-evidence\\tree-host-clean-linux-8c452f197-20261029-completion.json": "d3b4ed978e43a5ad828d866d36cf0f13332357b99d50f69f37b23c27753911a4",
+    "R:\\d3-evidence\\tree-host-clean-linux-8c452f197-20261029.log": "782b3f7fa411e664bfd4b55ccf2a27ee3a2dd1ebbfde39271340bf372df872f3",
+    "R:\\d3-evidence\\tree-host-clean-windows-8c452f197-20261029-completion.json": "4f565a92d43a27e032081f93a71fa3ea57d3dffa78e890622497afe2904ab85a",
+    "R:\\d3-evidence\\tree-host-clean-8c452f197-native-20261029\\controller.json": "4486c7b383bdf1590d10d73d6625c3e8449ef2910dd5d7797eb1337b65118f57",
+    "R:\\d3-evidence\\tree-host-protocol-clean-8c452f197-20261029\\controller.json": "ab8398f80381d5e27d7f3420c9094414ab5813900b309cea7288dab88dbd673b",
+    "R:\\d3-evidence\\tree-host-reentrant-green-8c452f197-20261029\\controller.json": "b608bab3b8376d0434180a655d5d793e12979bc8761c8640063704529806c60f",
+    "R:\\d3-evidence\\tree-host-boundary-controls-20261029.lua": "fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de",
+    "R:\\d3-evidence\\tree-host-reentrant-begin-control-20261029.lua": "2bb59f7553686b0edc9a3d253d6c7b05866effc04e8b1055aff46a193b058244",
+    "R:\\d3-evidence\\tree-host-clean-8c452f197-validation.json": "4687c6a8297188b58c17e72acac3797cc92b4f45a7bd759a73adf238a7c50243"
+  }
+}

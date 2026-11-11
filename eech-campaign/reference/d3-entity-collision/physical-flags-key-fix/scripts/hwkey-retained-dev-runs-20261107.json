@@ -1,0 +1,90 @@
+{
+  "d2-red-0d0-source": {
+    "actual_exit": 101,
+    "why": "the RED of the key-fix findings, deliberately run against the 0d0 sources of mb_hostentity.h and mb_hostmodel.c (restored from Git for this run only, the corrected copies kept in the packet): the dialogue control fails and the identity control ABORTS the process (SIGABRT: the 21-byte key was accepted and written with its NUL past the 21-byte slot, the host refused the key later); it is the capability red of the two findings, not a setup accident"
+  },
+  "d5-collision-orig": {
+    "actual_exit": 101,
+    "why": "author compile errors in the new collision control (missing include of the hosted-model header, a function named like a type, the world map type name)"
+  },
+  "d6-collision-orig": {
+    "actual_exit": 101,
+    "why": "fixture defect: SIGSEGV in the first sector-list insertion; the fixture had not initialised the engine's message responses, so the insertion's LINK_CHILD notification called a null response"
+  },
+  "d7-collision-orig": {
+    "actual_exit": 101,
+    "why": "author error in a temporary diagnostic (a broken C string literal made by a shell escape); nothing ran"
+  },
+  "d8-collision-orig": {
+    "actual_exit": 101,
+    "why": "the same broken diagnostic literal, repeated; nothing ran"
+  },
+  "d9-collision-orig": {
+    "actual_exit": 101,
+    "why": "fixture defect (the missing message-response initialisation again): SIGSEGV in the insertion; the stage prints located it"
+  },
+  "d10-collision-orig": {
+    "actual_exit": 101,
+    "why": "fixture defect: the list functions of the aircraft and fixed-wing types were added, the message responses still were not: SIGSEGV"
+  },
+  "d11-collision-orig": {
+    "actual_exit": 101,
+    "why": "fixture defect: same SIGSEGV, narrowed to the insertion by the stage prints"
+  },
+  "d12-collision-orig": {
+    "actual_exit": 101,
+    "why": "the control's first scripted model refused the first question outside the catalogue and scenes (the narrow phase's triangle question); a fixture answer was missing, not a production defect"
+  },
+  "d13-collision-orig": {
+    "actual_exit": 101,
+    "why": "the same refusal with the operation named (3, the triangle question)"
+  },
+  "d14-collision-orig": {
+    "actual_exit": 137,
+    "why": "a HUNG development run, preserved: the fixture re-used a pool slot without emptying the sector's list, so the engine's tail walk of the sector list looped (a fixture topology defect, Root's feedback 18:48, NOT a production loop). The container was MY OWN; I inspected it first (the test binary had used 8:50 of CPU time) and killed it with docker kill; actual exit 137. The control now carries an alarm of two minutes and empties the list per scenario"
+  },
+  "d15-collision-orig": {
+    "actual_exit": 101,
+    "why": "eight expectations failed: my own geometry was wrong (the test is made with the body at the old, middle and new position, so the segment must meet one of those boxes)"
+  },
+  "d16-collision-orig": {
+    "actual_exit": 101,
+    "why": "the same eight failures after a first offset change: a vertical segment through a box centre lies on a face diagonal, which the original's face test does not report"
+  },
+  "d17-collision-diag": {
+    "actual_exit": 101,
+    "why": "a deliberate DIAGNOSTIC grid of segments (the failures are the expected ones of the old geometry): it measured the boxes at X, X + 10 and X + 20 and the diagonal miss at the centre"
+  },
+  "d19-collision-orig-real": {
+    "actual_exit": 101,
+    "why": "author compile error in the test bridge (an unsafe call outside an unsafe block); nothing ran"
+  },
+  "d20-collision-orig-real": {
+    "actual_exit": 101,
+    "why": "link error: the test binary needs the host's Lua 5.1 as eech-world's own tests do; a link argument for the feature's tests was added to the build script"
+  },
+  "d21-collision-orig-real": {
+    "actual_exit": 101,
+    "why": "the real provider refused the triangle question of the minimal installation's scene 1 (its collision object is a line object with no faces): data, not a production defect; the scene's collision object was set to the original's -1 in the file the store reads"
+  },
+  "d23-collision-hosted": {
+    "actual_exit": 101,
+    "why": "link error: the hosted build needs the test hooks of mb_hostmodel.c for this feature too (a gate was missing)"
+  },
+  "d24-collision-hosted": {
+    "actual_exit": 101,
+    "why": "the hosted profile aborted at the real host's named refusal of a mobile that has no host identity: the OBSERVED BLOCK of the hosted collision control (not yet trapped by the control, so the process aborted); the control now traps the engine's fatal, reports the refusal and runs nothing after it; the observation was later superseded by the real hosted control (d30)"
+  },
+  "d25-collision-hosted": {
+    "actual_exit": 101,
+    "why": "author compile error (an unterminated diagnostic string in a scripted edit); nothing ran"
+  },
+  "d27-guard": {
+    "actual_exit": 101,
+    "why": "author error in the new census test (it looked for the narrow phase's name from the start of the file, where its definition is)"
+  },
+  "d26-collision-hosted": {
+    "actual_exit": 0,
+    "why": "exit 0 is a NAMED REFUSAL observed with ZERO collision expectations (a mobile with no host identity), NOT the required hosted moving-mobile control (Root's feedback 19:16): superseded by d30, which links each mobile to the campaign's roster and runs the same scenarios"
+  }
+}

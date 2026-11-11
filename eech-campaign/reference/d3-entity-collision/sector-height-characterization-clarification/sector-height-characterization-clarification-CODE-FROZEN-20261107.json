@@ -1,0 +1,101 @@
+{
+  "schema": "d3-sector-height-clarification-code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN (clarification)",
+  "task": "EEDCS-49 (D3)",
+  "scope": "ONE minimal contract/header/evidence correction within the completed characterization batch 1 of 2; comment and prose only; not a new preparation batch; ENV-ENTITY-POSE-LONG-RUN-MOTION-1 untouched and blocks_cutover=true",
+  "review": {
+    "report": "R:/d3-evidence/independent-sector-height-characterization-source-a8ef-20261107.json",
+    "sha256": "7471e653366196803eb7a66dbc9b12287aacc140c1b19388a3b805c27a3904b9",
+    "decision": "CHARACTERIZATION_CONTROLS_VERIFIED_CONTRACT_CHANGES_REQUIRED",
+    "findings": [
+      "ENV-SECTOR-HEIGHT-SAVED-WORD-PLAN-1",
+      "ENV-SECTOR-HEIGHT-MEASURED-DOMAIN-PRECISION-1",
+      "ENV-SECTOR-HEIGHT-RAW-BINDING-PRECISION-1"
+    ],
+    "closure": "pending the SAME reviewer; the card keeps them OPEN"
+  },
+  "root_binding": {
+    "source_binding_sha256": "ee4b981c6820360526b2859e2458dfe92bbd3e8797f8f1752f3aecc523fb40fa",
+    "inherited_lua_crlf_qualification_sha256": "0b74e4b84f3f7ff81eced9c1124b43d533d8d59ce0e593f3a0d0a5830c7356ee"
+  },
+  "commits": {
+    "base": "8a525b145c8c54f2b22863c20d908ee3389759e5",
+    "characterized_code": "a8ef0ce662df0528dcae414287ffe45b2847cd8f",
+    "historical_metadata": "12a2235567c9c30a13b0813dface15822ad9aab5",
+    "clarification_code": "3fac41f0448bfc3f1330e0fd4c8ff72f1ee3fdce"
+  },
+  "code_hashes": {
+    "c_old_raw_sha256": "7b80c8e323dca3ef7cd797d6e8c192163db18bc4087bc8c2eb45e9a8b4e3e20f",
+    "c_new_raw_sha256": "84f4c9e6039fb5f95ad6007719b5f41b7c83b5bd750fb16460affcfbc4f0f89c",
+    "raw_c_hash_changed": true,
+    "suffix_from_ifdef_sha256_old_and_new": "df20a3b07de0c7af8396023c85c522aa706f5250fe6e24b0754438014bb47f4f",
+    "suffix_byte_identical": true,
+    "ifdef_line_old_and_new": 41,
+    "line_count_old_and_new": 859,
+    "changed_header_comment_lines": [
+      22,
+      27,
+      29,
+      30
+    ],
+    "doc_old_sha256": "3f1fdea570d3234abc0688edd1c3f952e29ed8e3869195e5fdd25d60237cc80c",
+    "doc_new_sha256": "678d36afb6c995a5527418fa00bf4afb6f336dd2bc28ebf3cc70ceef66bdf7af"
+  },
+  "production_paths_changed": "none",
+  "historical_packet": {
+    "directory": "eech-campaign/reference/d3-entity-collision/sector-height-characterization",
+    "files": 82,
+    "literal_Git_proof": true,
+    "git_diff_to_HEAD": "empty",
+    "historical_freeze_sha256": "88e2b06df5188a4d4ce99ad8b6db09bcb5e7fae9d406711bb4d69f908d36fa4b",
+    "not_edited": true
+  },
+  "corrections": {
+    "saved_word": "contract: zero floor only for zero-initialised histories; comparison against the actual held word; host plan must not clamp or fmax-away a NaN; malformed or mismatched replies distinguished from valid raw saved words",
+    "measured_domain": "header and contract: 13 representative save patterns measured; wider 32-bit domain source-derived; signalling-NaN, -O2, actual-profile and FP-state limits explicit",
+    "provenance": "contract and sibling packet: 4077 raw rows literal Git plus 3 inherited test-Lua CRLF cases; PRE2/POST literal equal; PRE1 reconstructed; constructor retained but not an attestation"
+  },
+  "commands_and_exits": [
+    {
+      "cmd": "migration-progress.py --action fix-blocker --blocker ENV-SECTOR-HEIGHT-SAVED-WORD-PLAN-1",
+      "exit": 0
+    },
+    {
+      "cmd": "migration-progress.py --action fix-blocker --blocker ENV-SECTOR-HEIGHT-MEASURED-DOMAIN-PRECISION-1",
+      "exit": 0
+    },
+    {
+      "cmd": "migration-progress.py --action fix-blocker --blocker ENV-SECTOR-HEIGHT-RAW-BINDING-PRECISION-1",
+      "exit": 0
+    },
+    {
+      "cmd": "node patch_header.js (aborts unless suffix, start line and line count identical)",
+      "exit": 0
+    },
+    {
+      "cmd": "node patch_doc.js (each replacement must match exactly once)",
+      "exit": 0
+    },
+    {
+      "cmd": "git commit and normal git push of 3fac41f04",
+      "exit": 0
+    }
+  ],
+  "limits": [
+    "no Cargo, build, test, mutation, runner, cache, native or Windows command ran",
+    "the 179/179/6/lint results are those of the original a8ef0ce66 under maps b41eb0e9/c365ecb7 and are not claimed for the new raw C bytes",
+    "no source or binary identity relabelled; no input, source or baseline byte normalised",
+    "the message-table gap, the unknown city shape, the O1/debug/Linux profile limits and the open DCS/needed-consumer decisions stand"
+  ],
+  "not_claimed": [
+    "new tests",
+    "native or Windows evidence",
+    "source clearance",
+    "physical cutover",
+    "whole Task49 or whole D3 acceptance",
+    "closure of any reviewer finding or of ENV-ENTITY-POSE-LONG-RUN-MOTION-1"
+  ],
+  "next": "Root hands the changed delta to the SAME reviewer; no next batch is started automatically",
+  "exit": "EXIT",
+  "frozen_utc": "2026-11-07T00:44:47.790Z"
+}

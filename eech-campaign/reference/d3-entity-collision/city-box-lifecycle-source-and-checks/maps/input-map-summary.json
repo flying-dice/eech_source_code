@@ -1,0 +1,42 @@
+{
+ "after_final_checks": {
+  "bytes": 2030260,
+  "sha256": "56148069b7a57b8d9d68dde05344f169809835844bd9dc3b1a6cd02aad0e87c2"
+ },
+ "before_and_after_byte_identical": true,
+ "before_final_checks": {
+  "bytes": 2030260,
+  "sha256": "56148069b7a57b8d9d68dde05344f169809835844bd9dc3b1a6cd02aad0e87c2"
+ },
+ "captured_over_head": "071f8dd524cf38a3de0e9da74733650a3a45a2d5",
+ "changed_from_head": [
+  "aphavoc/source/entity/mobile/mb_hostentity.h",
+  "aphavoc/source/entity/mobile/mb_hostmodel.c",
+  "aphavoc/source/entity/mobile/mb_hostmodel.h",
+  "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+  "eech-campaign/crates/eech-world/src/model_host.rs",
+  "eech-campaign/crates/eech-world/src/roster.rs",
+  "eech-campaign/crates/eech-world/tests/city_box_lifecycle.rs",
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+ ],
+ "changed_from_head_count": 14,
+ "file_count": 3954,
+ "fingerprint_of_raw_sha256_map": "4e93c43929ad45084be6479f98b9af97dfa231b6d2f137e64162ca74dc23208d",
+ "note": "The full maps (about 2 MB each) stay external with these hashes. The 14 changed paths are the 11 of this cut plus three tree-geometry test controls whose raw bytes and Git-filtered identity already disagreed at the parent (never normalised).",
+ "raw_vs_git_filtered_disagreement_qualification": [
+  "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+  "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+  "modules/system/malloc.c.h",
+  "modules/system/nedmalloc.c"
+ ],
+ "scope": "every tracked or untracked non-ignored file under aphavoc/source, modules, eech-campaign Cargo.toml/Cargo.lock/rust-toolchain.toml and the eech-engine-sys, eech-engine, eech-dc and eech-world crates (tools/sector-roster-inputmap-batched-20261106.py)"
+}

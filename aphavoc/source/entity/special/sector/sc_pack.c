@@ -66,6 +66,10 @@
 
 #include "project.h"
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+#include "entity/mobile/mb_hostmodel.h"
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -284,7 +288,16 @@ void pack_local_sector_data (pack_modes mode)
 
 				pack_int_value (en, INT_TYPE_CAMPAIGN_CRITERIA_COUNT, raw->keysite_count);
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+				// the sector's height is the HOST's word, packed as the same raw 32 bits (the one read behind the sector's float getter)
+				pack_float_value (en, FLOAT_TYPE_PROTOTYPE_1, get_local_entity_float_value (en, FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT));
+
+#else
+
 				pack_float_value (en, FLOAT_TYPE_PROTOTYPE_1, raw->tallest_structure_height);
+
+#endif
 			}
 		}
 	}
@@ -404,7 +417,24 @@ void unpack_local_sector_data (pack_modes mode)
 
 				raw->keysite_count = unpack_int_value (en, INT_TYPE_CAMPAIGN_CRITERIA_COUNT);
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+				// the saved word is stated to the HOST, which holds exactly these bits afterwards (the acknowledgement is checked there, before the load goes on); sectors are unpacked before entities, so the
+				// insertions of the load can only raise it. The legacy field is not written
+				{
+					float
+						saved_word;
+
+					saved_word = unpack_float_value (en, FLOAT_TYPE_PROTOTYPE_1);
+
+					campaign_model_sector_height_restore ((int) raw->x_sector, (int) raw->z_sector, &saved_word);
+				}
+
+#else
+
 				raw->tallest_structure_height = unpack_float_value (en, FLOAT_TYPE_PROTOTYPE_1);
+
+#endif
 			}
 		}
 	}

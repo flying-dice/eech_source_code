@@ -1,0 +1,16 @@
+{
+  "kind": "Root removed ONLY two closed3abf Windows BUILD caches after SAMEfiniteactualreview and retained-evidence rehash",
+  "utc": "2026-11-07T23:20:08.474219+00:00",
+  "actual_exit": 0,
+  "review_sha256": "43feb909d9c81f99f36aba17f4db6ad0aa9e76afb6e8ba807c7057b33295c263",
+  "retained_COFF_rehashed": 32,
+  "retained_staged_sources_rehashed": 28,
+  "retained_payloads_rehashed": 182,
+  "retained_raw_audits_rehashed": 60,
+  "removed_volumes": [
+    "eech-win-supply-boolean-3abf-ordinary-20261107",
+    "eech-win-supply-boolean-3abf-original-20261107"
+  ],
+  "actual_removed_output": "eech-win-supply-boolean-3abf-ordinary-20261107\neech-win-supply-boolean-3abf-original-20261107\n",
+  "scope": "Immutable3abf snapshot/tested91payloadprofilebins/bothproducerimages+tags/COFF/staged/raw/defaultrecordings/allretailroots/Linux9d247warmcache/drive mappings and original764livejobs preserved. No genericnative/fullpack/wholeD3 acceptance; no source/build/native replay."
+}

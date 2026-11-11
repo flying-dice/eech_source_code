@@ -1,0 +1,23 @@
+{
+  "observed_utc": "2026-11-07T00:47:25.694261+00:00",
+  "base": "12a2235567c9c30a13b0813dface15822ad9aab5",
+  "code": "3fac41f0448bfc3f1330e0fd4c8ff72f1ee3fdce",
+  "metadata": "75596753a4131b8f498abd6d80417fd08d7d40c0",
+  "only_code_paths": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+    "eech-campaign/docs/d3-sector-height-contract.md"
+  ],
+  "old_raw_C_sha256": "7b80c8e323dca3ef7cd797d6e8c192163db18bc4087bc8c2eb45e9a8b4e3e20f",
+  "new_raw_C_sha256": "84f4c9e6039fb5f95ad6007719b5f41b7c83b5bd750fb16460affcfbc4f0f89c",
+  "body_from_feature_guard_literal": true,
+  "body_sha256": "df20a3b07de0c7af8396023c85c522aa706f5250fe6e24b0754438014bb47f4f",
+  "feature_guard_line_unchanged": 41,
+  "both_prefixes_single_comments_only": true,
+  "all_82_historical_packet_files_unchanged": true,
+  "new_literal_Git_pack_files": 9,
+  "metadata_only_paths": 11,
+  "producer_actual_exit": 0,
+  "producer_result_is_error": false,
+  "producer_completion_sha256": "4af000ebdc17727a174361e44cf70c5682f0f8f72a78511826dc7da25094203f",
+  "scope": "Root read-only delta/provenance join, not a new check run or source/binary relabel. SourceC raw hash changed only comment; executable suffix and guard line literal, allotherCODEinputs unchanged. Original tests remain attributable to a8ef source/maps; SAME review decides contract closure. No native/physicalcutover/wholeD3 acceptance."
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "Root-diagnostic-literal-runtime-equivalence.v1",
+  "created_utc": "2026-11-06T23:21:57.912353+00:00",
+  "runtime_source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+  "literal_source": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+  "initial_lua_commit": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+  "only_diagnostic_and_test_changes": true,
+  "changed_nonmetadata_paths": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "diagnostic_literal": {
+    "path": "R:\\d3-evidence\\city-relist-ack-e4895c121-literal.lua",
+    "source": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+    "git_path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "git_blob": "3591429759763d9ed3a2216790402c2d5e9e0c09",
+    "sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db",
+    "bytes": 255678
+  },
+  "production_rust_and_c_outside_test_canary_unchanged": true,
+  "test_canary": {
+    "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "guard": "EECH_ENTITY_DIALOGUE_CHECK",
+    "enable": "CARGO_FEATURE_ENTITY_DIALOGUE_CHECK / entity-dialogue-check",
+    "all_three_runtime_profiles_feature_absent": true,
+    "qualification": "C test bytes change; do NOT call all raw watched inputs unchanged. New canary additions are inside test-only guard; Cargo feature manifests plus unchanged build mapping prove production-profile exclusion, subject to independent review."
+  },
+  "profile_proof": "R:\\d3-evidence\\city-lifecycle-windows-profile-isolation-354abd9c0-20261106.json",
+  "profile_proof_sha256": "be65923b0da42a76d4ba320723f9606a2009e6048afcaca811d34b8cf29df12e",
+  "payloads_unchanged": {
+    "ordinary": 88,
+    "hosted": 88,
+    "original": 88
+  },
+  "scope": "Separate diagnostic entry-point Lua, not a relabelled binary. Existing354abDLL/exe/bundledLua remain literal and retain all88 hashes. No new SourceClear/native/CITY/Task49/D3 acceptance. Await SAME final source review before using literal.",
+  "native_launch_clearance": false
+}

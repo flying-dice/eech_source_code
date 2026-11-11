@@ -67,7 +67,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends gcc gcc-multilib gcc-12 gcc-12-multilib $lua
           rustup target add ${{ matrix.target }}
       - name: Test
-        run: env ${{ matrix.env }} cargo test --locked --target ${{ matrix.target }}
+        run: env ${{ matrix.env }} cargo test --locked --no-fail-fast --target ${{ matrix.target }}
       - name: Lints
         if: matrix.target == 'x86_64-unknown-linux-gnu' && matrix.env == ''
         run: |
@@ -86,6 +86,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Evidence comparison selftest
         run: python3 -I reference/pr59-candidate-identity/compare-selftest.py --strict
+      - name: Pinned-archive downloader
+        # the Lua archive downloader of windows-cross, against a fake transport (no network)
+        run: sh tools/fetch-pinned-archive-selftest.sh
       - name: Host-identity retained hashes
         run: |
           python3 -I reference/m5-host-identities/verify-hashes.py
@@ -150,8 +153,13 @@ jobs:
         # the repository, so build the same lua.dll as tools/Dockerfile does
         working-directory: ${{ runner.temp }}
         run: |
-          curl -fsSL -o lua.tar.gz https://www.lua.org/ftp/lua-5.1.5.tar.gz
-          echo "2640fc56a795f29d28ef15e13c34a47e223960b0240e8cb0a82d9b0738695333  lua.tar.gz" | sha256sum -c -
+          # one pinned archive, two sources for the same bytes: lua.org (bounded), then the MacPorts project
+          # distfiles. Only the exact SHA-256 is ever extracted; the digest, not the host, is the identity
+          lua_sha256=2640fc56a795f29d28ef15e13c34a47e223960b0240e8cb0a82d9b0738695333
+          sh "$GITHUB_WORKSPACE/eech-campaign/tools/fetch-pinned-archive.sh" lua.tar.gz "$lua_sha256" \
+            https://www.lua.org/ftp/lua-5.1.5.tar.gz \
+            https://distfiles.macports.org/lua/lua-5.1.5.tar.gz
+          echo "$lua_sha256  lua.tar.gz" | sha256sum -c -
           mkdir -p lua-mingw/include && tar xzf lua.tar.gz && cd lua-5.1.5/src
           x86_64-w64-mingw32-gcc -O2 -DLUA_BUILD_AS_DLL -c $(ls *.c | grep -v -E '^(lua|luac|print)\.c$')
           x86_64-w64-mingw32-gcc -shared -o ../../lua-mingw/lua.dll *.o -Wl,--out-implib,../../lua-mingw/liblua.dll.a
@@ -162,4 +170,4 @@ jobs:
           CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUNNER: wine
           LUA_LIB: ${{ runner.temp }}/lua-mingw
           WINEPATH: ${{ runner.temp }}/lua-mingw
-        run: cargo test --locked --target x86_64-pc-windows-gnu
+        run: cargo test --locked --no-fail-fast --target x86_64-pc-windows-gnu

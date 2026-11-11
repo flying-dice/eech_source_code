@@ -1,0 +1,22 @@
+{
+  "kind": "actual_exec_tool_sessions",
+  "failed_first_final": {
+    "session": 84308,
+    "actual_outer_exit": 1,
+    "direct_exits": {
+      "s1-fmt": 0,
+      "s2-clippy": 101
+    }
+  },
+  "passing_final_b": {
+    "session": 99482,
+    "actual_outer_exit": 0,
+    "direct_exits": {
+      "s1b-fmt": 0,
+      "s2b-clippy": 0,
+      "s3b-driver": 0
+    }
+  },
+  "no_invented_OS_PID_or_agent_CLI_exit": true,
+  "metadata_after_POST": true
+}

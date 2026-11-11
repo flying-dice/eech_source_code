@@ -1,0 +1,7 @@
+
+running 2 tests
+test the_real_c_refuses_a_bad_name_and_a_missing_session_by_reason_and_creates_no_file ... ok
+test the_shared_path_check_accepts_the_longest_fitting_writer_paths_and_refuses_the_first_that_does_not_fit_before_any_effect ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

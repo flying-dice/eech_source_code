@@ -1,0 +1,512 @@
+{
+  "kind": "explicit source-effect join of the four-P2 correction against the frozen native 1b89 source, the CI batch's final POST map and the reviewed witness source 6e4139043 with its final POST map",
+  "reviewed_source": "6e41390439fc59f4fe091cf65ae13ab43aafba90",
+  "since_reviewed_source": {
+    "paths": [
+      {
+        "path": "STATUS.md",
+        "class": "records"
+      },
+      {
+        "path": "docs/handover/ACTIVE-EXTRACTION.json",
+        "class": "records"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_hw_witness.c",
+        "class": "the gated fixture: the shared writer-path helper (ENV-SECTOR-HEIGHT-M6-SAVE-PATH-BOUND-1)"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness.rs",
+        "class": "real-C tests of the shared path helper"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs",
+        "class": "source guards of the helper and the original writer's 256-byte buffers"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+        "class": "the host driver: RTZ oracle, pack retry reconciliation, same-caller join, whole-report validation, grammar, fault precedence"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs",
+        "class": "its scripted tests (real reference profile selection, positive-first and single-fault controls)"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+        "class": "contract section 12 prose"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/.gitattributes",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/README.md",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/hwfix-final-set-20261107.progress",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/hwfix-final-set-lease-after-20261107.txt",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/hwfix-final-set-lease-before-20261107.txt",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x1-witness-driver-tests.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x1-witness-driver-tests.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x1-witness-driver-tests.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x10-clippy-witness.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x10-clippy-witness.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x10-clippy-witness.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x11-world-driver-tests.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x11-world-driver-tests.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x11-world-driver-tests.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x12-world-driver-tests.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x12-world-driver-tests.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x12-world-driver-tests.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x2-witness-driver-tests.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x2-witness-driver-tests.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x2-witness-driver-tests.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x3-red-old-driver.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x3-red-old-driver.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x3-red-old-driver.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x3b-grammar-probe.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x3b-grammar-probe.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x3b-grammar-probe.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x4-red-old-driver-rtz.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x4-red-old-driver-rtz.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x4-red-old-driver-rtz.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x5-red-old-driver-retry.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x5-red-old-driver-retry.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x5-red-old-driver-retry.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x6-c-path-check.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x6-c-path-check.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x6-c-path-check.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x7-c-guard.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x7-c-guard.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x7-c-guard.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x8-fmt-apply.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x8-fmt-apply.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x8-fmt-apply.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x9-clippy-ws.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x9-clippy-ws.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/x9-clippy-ws.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y1-fmt-check.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y1-fmt-check.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y1-fmt-check.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y10-engine-dc-witness.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y10-engine-dc-witness.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y10-engine-dc-witness.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y2-clippy-workspace.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y2-clippy-workspace.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y2-clippy-workspace.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y3-clippy-witness-features.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y3-clippy-witness-features.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y3-clippy-witness-features.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y4-world-driver-tests.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y4-world-driver-tests.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y4-world-driver-tests.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y5-engine-sys-default.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y5-engine-sys-default.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y5-engine-sys-default.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y6-control-hosted.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y6-control-hosted.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y6-control-hosted.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y7-control-original-solver.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y7-control-original-solver.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y7-control-original-solver.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y8-witness-c-path-check-and-guard.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y8-witness-c-path-check-and-guard.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y8-witness-c-path-check-and-guard.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y9-engine-dc-default.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y9-engine-dc-default.stderr.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-fix/runs/y9-engine-dc-default.stdout.log",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed/.gitattributes",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed/README.md",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed/erratum-audit-reader-chronology.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed/height-witness-579-all9-CI-readback-20261107.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed/height-witness-Root-binding-579-v3-20261107.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed/independent-sector-height-native-witness-source-6e4139-20261107.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed/literal-bytes-check.json",
+        "class": "retained evidence packet (not an input of any check)"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-witness-source-reviewed/manifest.json",
+        "class": "retained evidence packet (not an input of any check)"
+      }
+    ],
+    "map_rows_changed": [
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_hw_witness.c",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs",
+      "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+      "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs"
+    ],
+    "map_rows_added": [],
+    "map_rows_removed": [],
+    "problems": []
+  },
+  "native_identity": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982",
+  "map_rows_changed": [
+    "eech-campaign/crates/eech-dc/Cargo.toml",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+    "eech-campaign/crates/eech-engine/Cargo.toml",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs"
+  ],
+  "map_rows_added": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_hw_witness.c",
+    "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs",
+    "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+    "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs"
+  ],
+  "map_rows_removed": [],
+  "map_rows_identical": 3961,
+  "changed_paths_against_1b89": [
+    {
+      "path": ".github/workflows/eech-campaign.yml",
+      "class": "records, prose or the CI repair already reviewed (not compiled into the DLL)"
+    },
+    {
+      "path": "STATUS.md",
+      "class": "records, prose or the CI repair already reviewed (not compiled into the DLL)"
+    },
+    {
+      "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "class": "records, prose or the CI repair already reviewed (not compiled into the DLL)"
+    },
+    {
+      "path": "docs/handover/ACTIVE-EXTRACTION.json",
+      "class": "records, prose or the CI repair already reviewed (not compiled into the DLL)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/Cargo.toml",
+      "class": "manifest: ONLY added lines (the feature entry, and for eech-engine-sys its [[test]] target); no dependency, version or default-feature change",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "class": "Lua binding: ONE added cfg-gated method (6 lines); nothing removed",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "class": "manifest: ONLY added lines (the feature entry, and for eech-engine-sys its [[test]] target); no dependency, version or default-feature change",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "class": "build script: ONE added `if CARGO_FEATURE_SECTOR_HEIGHT_WITNESS` block defining the macro; nothing removed",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "class": "shipping source file: ONLY added lines, all inside the EECH_SECTOR_HEIGHT_WITNESS block (lines 2254-2276); none removed",
+      "added_lines": 24,
+      "removed_lines": 0,
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "class": "shipping source file: ONLY added lines, all inside the EECH_SECTOR_HEIGHT_WITNESS block (lines 583-591); none removed",
+      "added_lines": 10,
+      "removed_lines": 0,
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_hw_witness.c",
+      "class": "new translation unit that preprocesses to nothing without EECH_SECTOR_HEIGHT_WITNESS (one outer #ifdef...#endif pair)",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "class": "sys crate: ONE added cfg-gated extern block; nothing removed",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness.rs",
+      "class": "test source (the first needs the feature; the second reads text in every profile)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/sector_height_witness_guard.rs",
+      "class": "test source (the first needs the feature; the second reads text in every profile)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/Cargo.toml",
+      "class": "manifest: ONLY added lines (the feature entry, and for eech-engine-sys its [[test]] target); no dependency, version or default-feature change",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "class": "engine crate: the three `cfg(any(feature ...))` lists of the case-report helpers gain `sector-height-witness` (identical with the feature off), plus cfg-gated additions and one gated unit test",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+      "class": "host Lua driver run by eech-world and its scripted tests (not compiled into the campaign DLL)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "class": "test source: the census of host scripts that select the reference profile, 63 -> 64 (the new witness driver is the 64th): exactly the count and its comment",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs",
+      "class": "host Lua driver run by eech-world and its scripted tests (not compiled into the campaign DLL)"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+      "class": "documentation (not compiled)"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows-sector-height-witness.sh",
+      "class": "a Windows build wrapper (a copy of the observer wrapper with one cargo argument; not an input of the shipping build)"
+    },
+    {
+      "path": "eech-campaign/tools/fetch-pinned-archive-selftest.sh",
+      "class": "records, prose or the CI repair already reviewed (not compiled into the DLL)"
+    },
+    {
+      "path": "eech-campaign/tools/fetch-pinned-archive.sh",
+      "class": "records, prose or the CI repair already reviewed (not compiled into the DLL)"
+    }
+  ],
+  "evidence_packet_files": 282,
+  "conclusion": "no C source of the original campaign (aphavoc/, modules/) changed; the shipping build's compiled inputs differ from 1b89 only by feature-gated additions that preprocess and compile to nothing with the feature off (verified from the Git diff): the 1b89 native evidence keeps its identity and is NOT claimed for this source, which is not built natively here",
+  "problems": []
+}

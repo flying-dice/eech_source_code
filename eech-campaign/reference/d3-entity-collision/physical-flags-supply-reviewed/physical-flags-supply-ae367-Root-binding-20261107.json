@@ -1,0 +1,150 @@
+{
+  "kind": "Root read-only supply-descriptor source/direct-check binding; not native or semantic repair acceptance",
+  "utc": "2026-11-07T22:34:09.028747+00:00",
+  "code": "ae367ca3ab45f6453bdb39d085c508b9a1c3a015",
+  "whole_source_rows": 3995,
+  "all_raw_PRE_POST_current_equal": true,
+  "all_actual_Git_blobs_joined": true,
+  "raw_vs_Git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "Git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "Git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "Git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+    }
+  ],
+  "extras_PRE_POST_current_equal": true,
+  "extras_count": 41,
+  "all_PRE_readers_current": true,
+  "final_commands": [
+    {
+      "label": "s1-fmt-check",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s2-clippy-engine-hosted",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s3-clippy-engine-original",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s4-clippy-defaults",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "s5-supply-hosted",
+      "actual_exit": 0,
+      "selected_test_instances": 1,
+      "result_rows": 1,
+      "selected_targets": {
+        "physical_flags_supply": 1
+      },
+      "descriptors_delivered": 9,
+      "actual_host_traffic_diagnostic": [
+        12,
+        13,
+        19,
+        6,
+        12
+      ]
+    },
+    {
+      "label": "s6-supply-original",
+      "actual_exit": 0,
+      "selected_test_instances": 1,
+      "result_rows": 1,
+      "selected_targets": {
+        "physical_flags_supply": 1
+      },
+      "descriptors_delivered": 9
+    },
+    {
+      "label": "s7-flags-guard",
+      "actual_exit": 0,
+      "selected_test_instances": 7,
+      "result_rows": 1,
+      "selected_targets": {
+        "physical_flags_guard": 7
+      }
+    },
+    {
+      "label": "s8-flags-controls-hosted",
+      "actual_exit": 0,
+      "selected_test_instances": 3,
+      "result_rows": 3,
+      "selected_targets": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      }
+    },
+    {
+      "label": "s9-flags-controls-original",
+      "actual_exit": 0,
+      "selected_test_instances": 3,
+      "result_rows": 3,
+      "selected_targets": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      }
+    },
+    {
+      "label": "s10-engine-default",
+      "actual_exit": 0,
+      "selected_test_instances": 123,
+      "result_rows": 2,
+      "selected_targets": {
+        "unittests src/lib": 123
+      }
+    },
+    {
+      "label": "s11-build-dc",
+      "actual_exit": 0,
+      "selected_test_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    }
+  ],
+  "selected_test_instances": 138,
+  "consumer_original_hosted_delivery_equal_nonzero": true,
+  "actual_producer_unchanged_from_parent": true,
+  "mb_hostmodel_changed_raw_source_only_qualified_test_gate_comment": true,
+  "changed_source_files": [
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "eech-campaign/Cargo.lock",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_supply_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/crates/eech-engine/Cargo.toml",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-engine/tests/physical_flags_supply.rs"
+  ],
+  "freeze_sha256": "231a392029a5931cbd4bd3efd2e05050f5d464d552c51df845290effd25eccf0",
+  "author_completion_sha256": "249bc286c845c50346eba02d01d929e44cdb51047d5f47e028ec351d910a0dfa",
+  "scope": "ActualCproducer->actualRustboundary/private gated seam with realhoststore, hand-made declared fixture collaborators. Both profiles preserve 0/1accept and othermask refusal, no normalization/defectrepair. Dedicatedprocess only, not shippedEngineboot/publicnative/Windows/O2/allconsumer/lifetime/FPU. RAW product/test/build sources changed and are NOT claimed allidentical020 or tested in oldbins. Prior020+Lua5d2c native17/6/defaults remain own accepted identities. SAME newsource review required/all10/Task49/D3OPEN."
+}

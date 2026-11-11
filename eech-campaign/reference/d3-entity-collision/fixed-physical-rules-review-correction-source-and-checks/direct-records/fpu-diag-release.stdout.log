@@ -1,0 +1,12 @@
+
+running 1 test
+DIAG from_bits+black_box only: flags=0
+DIAG integer exponent test: flags=0
+DIAG f32::is_finite: flags=0
+DIAG f32::is_nan: flags=1
+DIAG abs < INFINITY: flags=0
+DIAG summary bits_only=0 integer=0 is_finite=0 is_nan=1 abs_lt_inf=0
+test where_the_flag_rises ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

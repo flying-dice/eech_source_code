@@ -1,0 +1,51 @@
+
+running 1 test
+test the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+
+running 5 tests
+test the_build_defines_the_hosted_narrow_phase_only_where_the_host_model_operations_exist ... ok
+test the_face_wrappers_are_compiled_only_for_a_build_that_keeps_an_original_solver ... ok
+test the_ordinary_entity_narrow_phase_has_no_physical_solver_and_the_original_profile_keeps_its_own ... ok
+test the_candidate_dialogue_names_its_own_identity_label_and_the_narrow_phase_keeps_its_own ... ok
+test the_ordinary_entity_scan_asks_the_host_to_decide_each_candidate_and_the_original_profile_keeps_its_own_decisions ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 18 tests
+test an_expanded_boxs_axis_order_is_checked_from_the_raw_words_before_any_word_of_the_callers_box_is_written ... ok
+test the_funnel_reports_an_insertion_after_the_list_is_written_and_a_removal_while_the_entity_is_in_it ... ok
+test the_shipping_cities_box_expansion_is_the_hosts_and_the_original_physical_body_stays_only_in_the_original_fixture_build ... ok
+test a_non_mobile_candidate_names_the_placement_the_host_served_it_by_and_a_mobile_still_names_its_identity ... ok
+test a_hosted_mobiles_record_is_made_current_before_the_insertion_of_a_sector_change_and_it_is_placed_exactly_once ... ok
+test the_hosted_scan_takes_its_entry_from_the_hosts_key_and_the_campaigns_list_is_only_the_mirror ... ok
+test a_released_slot_ends_its_placement_before_the_roster_and_a_boot_ends_the_keys_before_the_entities ... ok
+test every_writer_of_a_placed_citys_position_or_box_states_them_through_the_one_funnel_after_the_write ... ok
+test the_reporter_states_the_sub_type_the_host_derives_its_rules_from_and_never_the_flags_the_campaign_derived ... ok
+test a_citys_sector_placement_is_relinked_by_the_shared_fixed_setter_while_its_buildings_stay_listed_and_the_wire_domains_are_derived ... FAILED
+test the_no_host_extractions_of_the_list_funnel_carry_the_hook_header_that_compiles_every_report_away ... ok
+test every_writer_of_a_field_of_a_fixed_entitys_collision_state_states_it_to_the_hosts_record ... ok
+test a_fixed_entitys_sub_type_has_these_writers_each_before_the_insertion_or_stated_by_the_setter ... ok
+test a_session_unpack_writes_the_record_before_the_insertion_and_every_creator_completes_the_state_before_it_inserts ... ok
+test the_fixed_family_is_the_types_that_carry_the_fixed_record_the_funnel_is_the_last_step_of_both_insertions_and_raw_setters_are_the_creators_alone ... ok
+test every_write_to_a_sector_list_goes_through_the_funnel_and_every_insertion_is_at_the_head ... ok
+test every_write_to_the_city_building_list_goes_through_the_funnel_and_a_scan_reads_the_hosts_list ... ok
+test the_cities_position_and_box_have_exactly_these_writers ... ok
+
+failures:
+
+---- a_citys_sector_placement_is_relinked_by_the_shared_fixed_setter_while_its_buildings_stay_listed_and_the_wire_domains_are_derived stdout ----
+
+thread 'a_citys_sector_placement_is_relinked_by_the_shared_fixed_setter_while_its_buildings_stay_listed_and_the_wire_domains_are_derived' (4148) panicked at crates/eech-engine-sys/tests/entity_roster_guard.rs:33:48:
+mb_hostplacemap.h place_child_remove: `if (!place_key_of_slot [city][0])` is not there
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_citys_sector_placement_is_relinked_by_the_shared_fixed_setter_while_its_buildings_stay_listed_and_the_wire_domains_are_derived
+
+test result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.33s
+

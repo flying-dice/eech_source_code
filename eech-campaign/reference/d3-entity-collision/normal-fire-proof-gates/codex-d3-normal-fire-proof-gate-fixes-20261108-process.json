@@ -1,0 +1,11 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T09:13:43.470803+00:00",
+  "started_time_qualification": "Root dispatch checkpoint observation, not OS birth",
+  "source_before": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "scope": "ONE batch fixes three sealed5fa P2s: full healthy semantic/modelsequence gate; alreadyobserved earlier common preeffect birth/launch; exact eligible/highword/count resetoracle. Lua/validators/tests/docs only, no C/Rust product/build/Cargo edits. Runtime2fc buildonly clearance separate; corrected literals hash-bound, no binary relabel. HoldALLDocker untilRootrelease; no native/roots/cutover/all10 closure."
+}

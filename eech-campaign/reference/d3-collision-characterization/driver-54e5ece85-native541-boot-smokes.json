@@ -1,0 +1,667 @@
+{
+  "status": "completed",
+  "controller_pid": 21736,
+  "source": "5416adb3b0ede34d8592ffed317e6dab5048b796",
+  "driver_source": "54e5ece8571d824afac35bbb37bc91b5abbef063",
+  "driver_sha256": "2e5967aecfd9aad96d734e3b8d9cf09ef5eac5b3700fdb91c0f34b560c123c5a",
+  "started_utc": "2026-10-29T18:54:20.573934+00:00",
+  "scope": "Explicit test-only source54e driver with unchanged source541 native fixture; seconds0/random200/two reports; no native rebuild, moving rerun, extraction or shipping claim",
+  "commands": [
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\collision-driver-roots-54e5ece85-20261029\\lebanon",
+        "--compare",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 23096,
+      "started_utc": "2026-10-29T18:54:20.649923+00:00",
+      "log": "R:\\d3-evidence\\collision-driver-54e5ece85-with-c541-smokes-20261029\\lebanon\\pre-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T18:54:22.123732+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\collision-driver-roots-54e5ece85-20261029\\georgia",
+        "--compare",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json"
+      ],
+      "pid": 22772,
+      "started_utc": "2026-10-29T18:54:20.657015+00:00",
+      "log": "R:\\d3-evidence\\collision-driver-54e5ece85-with-c541-smokes-20261029\\georgia\\pre-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T18:54:22.231278+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\collision-driver-roots-54e5ece85-20261029\\lebanon-repeat",
+        "--compare",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 17600,
+      "started_utc": "2026-10-29T18:54:20.657015+00:00",
+      "log": "R:\\d3-evidence\\collision-driver-54e5ece85-with-c541-smokes-20261029\\lebanon-repeat\\pre-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T18:54:22.107104+00:00"
+    },
+    {
+      "argv": [
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\target\\collision-fixture\\observer-5416adb3b\\eech-world.exe",
+        "R:\\d3-evidence\\collision-guard-source-54e5ece85\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+        "root=R:/d3-evidence/collision-driver-roots-54e5ece85-20261029/lebanon-repeat",
+        "out=R:/d3-evidence/collision-driver-54e5ece85-with-c541-smokes-20261029/lebanon-repeat/collision.jsonl",
+        "scenario=lebanon_retail",
+        "seed=20261029",
+        "entity_cases=200",
+        "tree_cases=200",
+        "repeats=2",
+        "seconds=0",
+        "after=0",
+        "frame_ms=100",
+        "probe=yes",
+        "require_coverage=no"
+      ],
+      "pid": 12064,
+      "started_utc": "2026-10-29T18:54:22.119649+00:00",
+      "log": "R:\\d3-evidence\\collision-driver-54e5ece85-with-c541-smokes-20261029\\lebanon-repeat\\native.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T18:54:25.553940+00:00"
+    },
+    {
+      "argv": [
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\target\\collision-fixture\\observer-5416adb3b\\eech-world.exe",
+        "R:\\d3-evidence\\collision-guard-source-54e5ece85\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+        "root=R:/d3-evidence/collision-driver-roots-54e5ece85-20261029/lebanon",
+        "out=R:/d3-evidence/collision-driver-54e5ece85-with-c541-smokes-20261029/lebanon/collision.jsonl",
+        "scenario=lebanon_retail",
+        "seed=20261029",
+        "entity_cases=200",
+        "tree_cases=200",
+        "repeats=2",
+        "seconds=0",
+        "after=0",
+        "frame_ms=100",
+        "probe=yes",
+        "require_coverage=no"
+      ],
+      "pid": 17508,
+      "started_utc": "2026-10-29T18:54:22.139667+00:00",
+      "log": "R:\\d3-evidence\\collision-driver-54e5ece85-with-c541-smokes-20261029\\lebanon\\native.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T18:54:25.496786+00:00"
+    },
+    {
+      "argv": [
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\target\\collision-fixture\\observer-5416adb3b\\eech-world.exe",
+        "R:\\d3-evidence\\collision-guard-source-54e5ece85\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+        "root=R:/d3-evidence/collision-driver-roots-54e5ece85-20261029/georgia",
+        "out=R:/d3-evidence/collision-driver-54e5ece85-with-c541-smokes-20261029/georgia/collision.jsonl",
+        "scenario=georgia_retail",
+        "seed=20261029",
+        "entity_cases=200",
+        "tree_cases=200",
+        "repeats=2",
+        "seconds=0",
+        "after=0",
+        "frame_ms=100",
+        "probe=yes",
+        "require_coverage=no"
+      ],
+      "pid": 23072,
+      "started_utc": "2026-10-29T18:54:22.241357+00:00",
+      "log": "R:\\d3-evidence\\collision-driver-54e5ece85-with-c541-smokes-20261029\\georgia\\native.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T18:54:25.367081+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\collision-driver-roots-54e5ece85-20261029\\georgia",
+        "--compare",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json"
+      ],
+      "pid": 22276,
+      "started_utc": "2026-10-29T18:54:25.375253+00:00",
+      "log": "R:\\d3-evidence\\collision-driver-54e5ece85-with-c541-smokes-20261029\\georgia\\post-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T18:54:26.790306+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\collision-driver-roots-54e5ece85-20261029\\lebanon",
+        "--compare",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 22104,
+      "started_utc": "2026-10-29T18:54:25.506533+00:00",
+      "log": "R:\\d3-evidence\\collision-driver-54e5ece85-with-c541-smokes-20261029\\lebanon\\post-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T18:54:26.854211+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\collision-driver-roots-54e5ece85-20261029\\lebanon-repeat",
+        "--compare",
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 25520,
+      "started_utc": "2026-10-29T18:54:25.559036+00:00",
+      "log": "R:\\d3-evidence\\collision-driver-54e5ece85-with-c541-smokes-20261029\\lebanon-repeat\\post-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T18:54:26.833864+00:00"
+    }
+  ],
+  "results": [
+    {
+      "scenario": "georgia",
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "argv": [
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\target\\collision-fixture\\observer-5416adb3b\\eech-world.exe",
+        "R:\\d3-evidence\\collision-guard-source-54e5ece85\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+        "root=R:/d3-evidence/collision-driver-roots-54e5ece85-20261029/georgia",
+        "out=R:/d3-evidence/collision-driver-54e5ece85-with-c541-smokes-20261029/georgia/collision.jsonl",
+        "scenario=georgia_retail",
+        "seed=20261029",
+        "entity_cases=200",
+        "tree_cases=200",
+        "repeats=2",
+        "seconds=0",
+        "after=0",
+        "frame_ms=100",
+        "probe=yes",
+        "require_coverage=no"
+      ],
+      "strict_rows": 205,
+      "raw_sha256": "8fdc6e71b25b4c3d9a6cab649e6c208f15060420babb2b4960513cb72114bbc3",
+      "physical_folds": [
+        {
+          "entity_random": "01496aa63538d93a",
+          "entity_struct": "01f36798b749adcf",
+          "event": "col-physical",
+          "repeat_index": 1,
+          "tree_random": "5063e2abd132b861",
+          "tree_struct": "4a69a8adbab47ab1"
+        },
+        {
+          "entity_random": "01496aa63538d93a",
+          "entity_struct": "01f36798b749adcf",
+          "event": "col-physical",
+          "repeat_index": 2,
+          "tree_random": "5063e2abd132b861",
+          "tree_struct": "4a69a8adbab47ab1"
+        }
+      ],
+      "guards": [
+        {
+          "event": "col-guard",
+          "record_restored": 1,
+          "record_words_after": "e7cc00aebc6f92f3",
+          "record_words_before": "e7cc00aebc6f92f3",
+          "repeat_index": 1,
+          "rng_unchanged": 1,
+          "world_after": "dc19edeeb112a6a8",
+          "world_before": "dc19edeeb112a6a8",
+          "world_unchanged": 1
+        },
+        {
+          "event": "col-guard",
+          "record_restored": 1,
+          "record_words_after": "e7cc00aebc6f92f3",
+          "record_words_before": "e7cc00aebc6f92f3",
+          "repeat_index": 2,
+          "rng_unchanged": 1,
+          "world_after": "dc19edeeb112a6a8",
+          "world_before": "dc19edeeb112a6a8",
+          "world_unchanged": 1
+        }
+      ],
+      "flags": [
+        {
+          "added_bits": 0,
+          "after_queries": "1a0564b2e8de2325",
+          "after_restore": "1a0564b2e8de2325",
+          "before": "1a0564b2e8de2325",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 1,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 0,
+          "updated_cleared_bits": 0,
+          "words": 16384
+        },
+        {
+          "added_bits": 0,
+          "after_queries": "1a0564b2e8de2325",
+          "after_restore": "1a0564b2e8de2325",
+          "before": "1a0564b2e8de2325",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 2,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 0,
+          "updated_cleared_bits": 0,
+          "words": 16384
+        }
+      ],
+      "fp": [
+        {
+          "arch": "x86_64",
+          "event": "col-fp",
+          "repeat_index": 1,
+          "sse_masks": 63,
+          "x87_masks": 63
+        },
+        {
+          "arch": "x86_64",
+          "event": "col-fp",
+          "repeat_index": 2,
+          "sse_masks": 63,
+          "x87_masks": 63
+        }
+      ],
+      "coverage": [
+        {
+          "derived_axis_rays": 0,
+          "event": "coverage",
+          "fp_arch": "x86_64",
+          "fp_sse_masks": 63,
+          "fp_x87_masks": 63,
+          "gap_count": 5,
+          "gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,no_two_object_ray_for_scan_order,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 0,
+          "random_entity_hits": 94,
+          "random_tree_hits": 30,
+          "skipped_axis_rays": 0,
+          "structured_entity_hits": 14,
+          "structured_tree_hits": 6
+        }
+      ],
+      "repeats": [
+        {
+          "event": "repeat_identical",
+          "ok": true,
+          "repeat_index": 2
+        }
+      ],
+      "digest": [
+        {
+          "alive": 1211,
+          "digest": "22ebb4c1",
+          "event": "state_digest",
+          "objects": 1211,
+          "probed": true
+        }
+      ],
+      "done": [
+        {
+          "coverage_gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,no_two_object_ray_for_scan_order,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "event": "done",
+          "probed": true
+        }
+      ],
+      "refusals": [],
+      "done_marker": true,
+      "native_log_sha256": "bfd5c0b7159f488ce6fa376618d21bd3aa40fdb6b143157d25a0984aeb83926b"
+    },
+    {
+      "scenario": "lebanon-repeat",
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "argv": [
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\target\\collision-fixture\\observer-5416adb3b\\eech-world.exe",
+        "R:\\d3-evidence\\collision-guard-source-54e5ece85\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+        "root=R:/d3-evidence/collision-driver-roots-54e5ece85-20261029/lebanon-repeat",
+        "out=R:/d3-evidence/collision-driver-54e5ece85-with-c541-smokes-20261029/lebanon-repeat/collision.jsonl",
+        "scenario=lebanon_retail",
+        "seed=20261029",
+        "entity_cases=200",
+        "tree_cases=200",
+        "repeats=2",
+        "seconds=0",
+        "after=0",
+        "frame_ms=100",
+        "probe=yes",
+        "require_coverage=no"
+      ],
+      "strict_rows": 205,
+      "raw_sha256": "3c1b7f522a4e22a8405d84fe5a36d64032569809bfa3d5ee597f3287dc1fd252",
+      "physical_folds": [
+        {
+          "entity_random": "591f91b14e200f7e",
+          "entity_struct": "2c348a2f2876d081",
+          "event": "col-physical",
+          "repeat_index": 1,
+          "tree_random": "dc007f0a0c53ad77",
+          "tree_struct": "920225059f996e6b"
+        },
+        {
+          "entity_random": "591f91b14e200f7e",
+          "entity_struct": "2c348a2f2876d081",
+          "event": "col-physical",
+          "repeat_index": 2,
+          "tree_random": "dc007f0a0c53ad77",
+          "tree_struct": "920225059f996e6b"
+        }
+      ],
+      "guards": [
+        {
+          "event": "col-guard",
+          "record_restored": 1,
+          "record_words_after": "0e2de7291e9e2f6f",
+          "record_words_before": "0e2de7291e9e2f6f",
+          "repeat_index": 1,
+          "rng_unchanged": 1,
+          "world_after": "aacc4b64f94d87fd",
+          "world_before": "aacc4b64f94d87fd",
+          "world_unchanged": 1
+        },
+        {
+          "event": "col-guard",
+          "record_restored": 1,
+          "record_words_after": "0e2de7291e9e2f6f",
+          "record_words_before": "0e2de7291e9e2f6f",
+          "repeat_index": 2,
+          "rng_unchanged": 1,
+          "world_after": "aacc4b64f94d87fd",
+          "world_before": "aacc4b64f94d87fd",
+          "world_unchanged": 1
+        }
+      ],
+      "flags": [
+        {
+          "added_bits": 0,
+          "after_queries": "1a0564b2e8de2325",
+          "after_restore": "1a0564b2e8de2325",
+          "before": "1a0564b2e8de2325",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 1,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 0,
+          "updated_cleared_bits": 0,
+          "words": 16384
+        },
+        {
+          "added_bits": 0,
+          "after_queries": "1a0564b2e8de2325",
+          "after_restore": "1a0564b2e8de2325",
+          "before": "1a0564b2e8de2325",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 2,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 0,
+          "updated_cleared_bits": 0,
+          "words": 16384
+        }
+      ],
+      "fp": [
+        {
+          "arch": "x86_64",
+          "event": "col-fp",
+          "repeat_index": 1,
+          "sse_masks": 63,
+          "x87_masks": 63
+        },
+        {
+          "arch": "x86_64",
+          "event": "col-fp",
+          "repeat_index": 2,
+          "sse_masks": 63,
+          "x87_masks": 63
+        }
+      ],
+      "coverage": [
+        {
+          "derived_axis_rays": 0,
+          "event": "coverage",
+          "fp_arch": "x86_64",
+          "fp_sse_masks": 63,
+          "fp_x87_masks": 63,
+          "gap_count": 4,
+          "gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 0,
+          "random_entity_hits": 84,
+          "random_tree_hits": 53,
+          "skipped_axis_rays": 0,
+          "structured_entity_hits": 14,
+          "structured_tree_hits": 6
+        }
+      ],
+      "repeats": [
+        {
+          "event": "repeat_identical",
+          "ok": true,
+          "repeat_index": 2
+        }
+      ],
+      "digest": [
+        {
+          "alive": 1577,
+          "digest": "08b68c8f",
+          "event": "state_digest",
+          "objects": 1577,
+          "probed": true
+        }
+      ],
+      "done": [
+        {
+          "coverage_gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "event": "done",
+          "probed": true
+        }
+      ],
+      "refusals": [],
+      "done_marker": true,
+      "native_log_sha256": "8020422c47fd1f06efbd6114af8a2df3775e896b616f5858b0346f301035a61b"
+    },
+    {
+      "scenario": "lebanon",
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "argv": [
+        "R:\\d3-evidence\\collision-observer-source-5416adb3b\\eech-campaign\\target\\collision-fixture\\observer-5416adb3b\\eech-world.exe",
+        "R:\\d3-evidence\\collision-guard-source-54e5ece85\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+        "root=R:/d3-evidence/collision-driver-roots-54e5ece85-20261029/lebanon",
+        "out=R:/d3-evidence/collision-driver-54e5ece85-with-c541-smokes-20261029/lebanon/collision.jsonl",
+        "scenario=lebanon_retail",
+        "seed=20261029",
+        "entity_cases=200",
+        "tree_cases=200",
+        "repeats=2",
+        "seconds=0",
+        "after=0",
+        "frame_ms=100",
+        "probe=yes",
+        "require_coverage=no"
+      ],
+      "strict_rows": 205,
+      "raw_sha256": "3c1b7f522a4e22a8405d84fe5a36d64032569809bfa3d5ee597f3287dc1fd252",
+      "physical_folds": [
+        {
+          "entity_random": "591f91b14e200f7e",
+          "entity_struct": "2c348a2f2876d081",
+          "event": "col-physical",
+          "repeat_index": 1,
+          "tree_random": "dc007f0a0c53ad77",
+          "tree_struct": "920225059f996e6b"
+        },
+        {
+          "entity_random": "591f91b14e200f7e",
+          "entity_struct": "2c348a2f2876d081",
+          "event": "col-physical",
+          "repeat_index": 2,
+          "tree_random": "dc007f0a0c53ad77",
+          "tree_struct": "920225059f996e6b"
+        }
+      ],
+      "guards": [
+        {
+          "event": "col-guard",
+          "record_restored": 1,
+          "record_words_after": "0e2de7291e9e2f6f",
+          "record_words_before": "0e2de7291e9e2f6f",
+          "repeat_index": 1,
+          "rng_unchanged": 1,
+          "world_after": "aacc4b64f94d87fd",
+          "world_before": "aacc4b64f94d87fd",
+          "world_unchanged": 1
+        },
+        {
+          "event": "col-guard",
+          "record_restored": 1,
+          "record_words_after": "0e2de7291e9e2f6f",
+          "record_words_before": "0e2de7291e9e2f6f",
+          "repeat_index": 2,
+          "rng_unchanged": 1,
+          "world_after": "aacc4b64f94d87fd",
+          "world_before": "aacc4b64f94d87fd",
+          "world_unchanged": 1
+        }
+      ],
+      "flags": [
+        {
+          "added_bits": 0,
+          "after_queries": "1a0564b2e8de2325",
+          "after_restore": "1a0564b2e8de2325",
+          "before": "1a0564b2e8de2325",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 1,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 0,
+          "updated_cleared_bits": 0,
+          "words": 16384
+        },
+        {
+          "added_bits": 0,
+          "after_queries": "1a0564b2e8de2325",
+          "after_restore": "1a0564b2e8de2325",
+          "before": "1a0564b2e8de2325",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 2,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 0,
+          "updated_cleared_bits": 0,
+          "words": 16384
+        }
+      ],
+      "fp": [
+        {
+          "arch": "x86_64",
+          "event": "col-fp",
+          "repeat_index": 1,
+          "sse_masks": 63,
+          "x87_masks": 63
+        },
+        {
+          "arch": "x86_64",
+          "event": "col-fp",
+          "repeat_index": 2,
+          "sse_masks": 63,
+          "x87_masks": 63
+        }
+      ],
+      "coverage": [
+        {
+          "derived_axis_rays": 0,
+          "event": "coverage",
+          "fp_arch": "x86_64",
+          "fp_sse_masks": 63,
+          "fp_x87_masks": 63,
+          "gap_count": 4,
+          "gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 0,
+          "random_entity_hits": 84,
+          "random_tree_hits": 53,
+          "skipped_axis_rays": 0,
+          "structured_entity_hits": 14,
+          "structured_tree_hits": 6
+        }
+      ],
+      "repeats": [
+        {
+          "event": "repeat_identical",
+          "ok": true,
+          "repeat_index": 2
+        }
+      ],
+      "digest": [
+        {
+          "alive": 1577,
+          "digest": "08b68c8f",
+          "event": "state_digest",
+          "objects": 1577,
+          "probed": true
+        }
+      ],
+      "done": [
+        {
+          "coverage_gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "event": "done",
+          "probed": true
+        }
+      ],
+      "refusals": [],
+      "done_marker": true,
+      "native_log_sha256": "cd00bf5b5673c9353bf4908c60092016867e3205c1f4a8904faf33082d56c1b6"
+    }
+  ],
+  "verified_export_count": 43,
+  "build_info_sha256": "7f2a604d91c2c09647e876164c4f17d9fe85fe4a7a96730a198c255d18ef8dbe",
+  "exports_unchanged": true,
+  "separate_lebanon_raw_equal": true,
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T18:54:26.917554+00:00"
+}

@@ -1,0 +1,550 @@
+{
+  "kind": "FROZEN receipt of the MOTION-RESPONSE flag group (helicopter, vehicle, ship and weapon-vector) of ENV-PHYSICAL-FLAGS-HOST-STORE-NATIVE-ACCEPTANCE-1: the roles from source (no motion response reads a word; six set sites, two live, two dead, two behind the Tacview logging bit; ship and weapon-vector name no word), and the one live join characterised in both profiles (the real AI helicopter guided begin/end bodies setting MOVED/ROTATED through the real setter into the host's store); a feature-gated fixture, its test, the guard, the contract's section 14; no policy, normalisation or algorithm change; UNREVIEWED; native, Windows and default recordings UNRUN",
+  "frozen_utc": "2026-11-08T01:10:46.746444+00:00",
+  "dry": false,
+  "source_before": "33295557b72406f90127f7bed5626d0adab4cc07",
+  "checkpoint": "33295557b",
+  "pre_utc": "2026-11-08T01:03:22.5973908Z",
+  "post_utc": "2026-11-08T01:10:40.5423003Z",
+  "lease": {
+    "volume": "eech-linux-d3-physical-flags-9d247-20261107",
+    "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+    "root_leased_names_asserted": {
+      "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+      "volume": "eech-linux-d3-physical-flags-9d247-20261107"
+    }
+  },
+  "changed_files": [
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "bytes": 96677,
+      "sha256": "7cab38d5fbb8a9a2d99ed83befdef6f624950fedfb69935a5a216e64cfa925ff",
+      "git_blob_of_raw_bytes": "ea22086060530a873000814445c6db57030219b1",
+      "head_blob": "00a7567672805a71e27d35c8ab2d093ba64d77f1"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "bytes": 9941,
+      "sha256": "9242ff02e4e1bd143688a2552aaa2c01376d0b6dff44207a474cc6c6cda3b318",
+      "git_blob_of_raw_bytes": "f878f1b2fb29cb6c5b39dacbce6101648a6eacf2",
+      "head_blob": "9c72859a9285a1f08d5c7c591c1cd12cddd33619"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "bytes": 27540,
+      "sha256": "5219e9145b0f4776296bfff11eb1085bb6cdde6004df94baef36af8bec320597",
+      "git_blob_of_raw_bytes": "d12621a9e894a4676a10dc8963b5e0e086c89f3f",
+      "head_blob": "c3650df34d3c893fe82844bda8b5e280bca3cdeb"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_motion_check.c",
+      "bytes": 17748,
+      "sha256": "6402a66312f020a36b27ba5d0d2138a60b230220846c89ede4779a9edb8d2b13",
+      "git_blob_of_raw_bytes": "11b2b3da2539dc00d4a118d52a329d403b715b19",
+      "head_blob": null
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+      "bytes": 54056,
+      "sha256": "525598d74f586ba392367620c9b1952a45ff87568ce70d1ca34e71d8788865a7",
+      "git_blob_of_raw_bytes": "64f2c569bcec111a02d8c7c12cfab1c71f9fc215",
+      "head_blob": "c88e675cde1388f502aa09b96eabf82d3a4afe4e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_motion.rs",
+      "bytes": 15051,
+      "sha256": "08e2d0082e2f724d209fb60a1edd2125abb0728288abfb238263bc22ff201ada",
+      "git_blob_of_raw_bytes": "759fed27d1298da88b3b42f32b95883d7fa6259c",
+      "head_blob": null
+    }
+  ],
+  "expected_changed_files": [
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_motion_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_motion.rs"
+  ],
+  "inherited_raw_versus_git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "git_blob_of_raw_bytes": "41780e08e6f192c4f90d27052f61beadf5a8ae40",
+      "head_blob": "41780e08e6f192c4f90d27052f61beadf5a8ae40"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "git_blob_of_raw_bytes": "ec7dd360f70821a2213efe82db9f93ad46f20ee0",
+      "head_blob": "ec7dd360f70821a2213efe82db9f93ad46f20ee0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "git_blob_of_raw_bytes": "fb767e110002096f637c48c4e65d48ff5c6168fc",
+      "head_blob": "fb767e110002096f637c48c4e65d48ff5c6168fc"
+    }
+  ],
+  "final_runs": {
+    "s1-fmt-check": {
+      "label": "s1-fmt-check",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:03:28.975377+00:00",
+      "completed_utc": "2026-11-08T01:03:36.625333+00:00",
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "record_sha256": "e9dde7a2ca6173ab2a6875873fb15e43fce685d783931df8e834e0bf99ef204a",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s2-clippy-default": {
+      "label": "s2-clippy-default",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:03:36.768353+00:00",
+      "completed_utc": "2026-11-08T01:05:10.973818+00:00",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --all-targets -- -D warnings",
+      "record_sha256": "264c4d44b8f2bd2ffbdfc7af284b7b3c56fac774949602a4d3a53b77cca15ca5",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "ad70f409b7d54fe93f225648f085fecaca669770f35b42ab0b260e0493a64625",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s3-clippy-motion-hosted": {
+      "label": "s3-clippy-motion-hosted",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:05:11.130555+00:00",
+      "completed_utc": "2026-11-08T01:05:17.048836+00:00",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --features physical-flags-motion-check --all-targets -- -D warnings",
+      "record_sha256": "0a137c24d8f7d649b896f925d98f798f698d1c88eea420a2c7cee876f98ba8e0",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "3ed078a05be6870c49883fe83417a8f568a9b23d1b95cdb1b5bde171978cf679",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s4-clippy-motion-original": {
+      "label": "s4-clippy-motion-original",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:05:17.214414+00:00",
+      "completed_utc": "2026-11-08T01:05:22.975861+00:00",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --features physical-flags-motion-check,collision-fixture --all-targets -- -D warnings",
+      "record_sha256": "ef392f1444e8be1276c83b42c87cbb25f3fb6ce7d45e533b5433462807a7897a",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "ba94fc406ecc54592bb2f6f6e953901e15aa700c7590a92948a1665abf3fa569",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s5-motion-hosted": {
+      "label": "s5-motion-hosted",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:05:23.122362+00:00",
+      "completed_utc": "2026-11-08T01:05:29.382728+00:00",
+      "command": "cargo --version && cargo test --locked -p eech-engine-sys --features physical-flags-motion-check --test physical_flags_motion -- --nocapture",
+      "record_sha256": "c540adf4e11bd825e9db79c47cffcb65ad5d3368ded477660b8de65b9405fe7b",
+      "stdout_sha256": "ce7b3b67f3427b53af70da5bc423ce7a2c49af8eb23657c2b9cef0652f3099c1",
+      "stderr_sha256": "3723a0e345ffdf011ed2702d9d8afe13636285da8377021b30c7e99c6c7dc410",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_motion": 1
+      },
+      "hosted_traffic_groups_sets_reads_resets_fresh": [
+        6,
+        10,
+        4,
+        0,
+        11
+      ]
+    },
+    "s6-motion-original": {
+      "label": "s6-motion-original",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:05:29.535784+00:00",
+      "completed_utc": "2026-11-08T01:05:35.266510+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-motion-check,collision-fixture --test physical_flags_motion -- --nocapture",
+      "record_sha256": "839a24f365344f9db8e6a84fa519e3e5aca03f8e7d5731a0320c3d2deea84a60",
+      "stdout_sha256": "f9247b22beae37422ec41d14bfc6241d5c809c1d18b4ed91b254c258b0010759",
+      "stderr_sha256": "dd1bac339d1478f48d3de7d0ca018bd87152e8da61ed186485ba569840bf7d35",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_motion": 1
+      }
+    },
+    "s7-flags-guard": {
+      "label": "s7-flags-guard",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:05:35.420513+00:00",
+      "completed_utc": "2026-11-08T01:06:40.859698+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast --test physical_flags_guard",
+      "record_sha256": "e1710a669931b6235763d21b28b8688eec954c7e1d98ca9ef1afd2a46037f9b4",
+      "stdout_sha256": "cf01f053f75935b37f1f9a1e8f67c62c9333912d8a496e45d8cb77c4661778b8",
+      "stderr_sha256": "a42ecb78d9468eae97aa95bebd5f485e1803be978324c7cba983c82b57857aad",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 10,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_guard": 10
+      }
+    },
+    "s8-flags-controls-hosted": {
+      "label": "s8-flags-controls-hosted",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:06:41.015618+00:00",
+      "completed_utc": "2026-11-08T01:08:17.340954+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check,physical-flags-collision-check --no-fail-fast --test physical_flags --test physical_flags_consumer --test physical_flags_collision -- --nocapture",
+      "record_sha256": "7053248fd75ba3adf8112d35640e7d49d60e75d0562f627703a9dcc65f329d4d",
+      "stdout_sha256": "4d79ca3873c9f3684dd3f5c0b7e57fb250a8fd47ab3d84c690820566b98c1d40",
+      "stderr_sha256": "f5b2ff02840a301d42e67e849dfb35999ee0cf529c0c287c3ac7141ee9a34798",
+      "uses_declared_helper": true,
+      "test_binaries": 3,
+      "tests_passed": 3,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      },
+      "hosted_traffic_groups_sets_reads_resets_fresh": [
+        14,
+        18,
+        37,
+        4,
+        14
+      ],
+      "expectations_made": [
+        199,
+        16,
+        56
+      ]
+    },
+    "s9-flags-controls-original": {
+      "label": "s9-flags-controls-original",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:08:17.513916+00:00",
+      "completed_utc": "2026-11-08T01:09:52.327232+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check,physical-flags-collision-check,collision-fixture --no-fail-fast --test physical_flags --test physical_flags_consumer --test physical_flags_collision -- --nocapture",
+      "record_sha256": "c197c87510a767bf227c841d47554174b393a254a34b1f71f9ad19591b872ef6",
+      "stdout_sha256": "02f50dd3fb741ba063e24d7f88a32b3844c5250e9fa63f28ac0b3f1db2056fca",
+      "stderr_sha256": "41839fd7071f48c0c2af0ffccec42c44de5aae9241e7fc08b2412f99e4659fc9",
+      "uses_declared_helper": true,
+      "test_binaries": 3,
+      "tests_passed": 3,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags": 1,
+        "physical_flags_consumer": 1,
+        "physical_flags_collision": 1
+      },
+      "expectations_made": [
+        199,
+        15,
+        56
+      ]
+    },
+    "s10-build-dc": {
+      "label": "s10-build-dc",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:09:52.510362+00:00",
+      "completed_utc": "2026-11-08T01:09:58.598083+00:00",
+      "command": "cargo build --locked -p eech-dc",
+      "record_sha256": "101d6f5b8fafb4d91121bd0ce9703b094606254f0a20467253732d74b7010045",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "dacf83a5f3a747ad38a235ac91a789a6212545366873912b8ad582418cd96287",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    }
+  },
+  "retained_development_runs": [
+    {
+      "label": "d1-motion-hosted-first",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-08T00:42:54.824931+00:00",
+      "completed_utc": "2026-11-08T00:44:08.007123+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-motion-check --test physical_flags_motion -- --nocapture",
+      "record_sha256": "f8de4842611738241d59646c8338b4bd677aaf7e55a24ffdb01c2b6421a97b87",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "5e8ad2d87727b5938aa027f857af9a3eb3ba85aa18af579955ca95f2d7a1b8b9",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {},
+      "why": "Developer compile failure: scripted result attitude is a flat nine-float array; fixture initially used matrix indexing. Retained setup failure, not product RED."
+    },
+    {
+      "label": "d2-motion-hosted-attitude-fixed",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T00:44:20.420579+00:00",
+      "completed_utc": "2026-11-08T00:45:52.506163+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-motion-check --test physical_flags_motion -- --nocapture",
+      "record_sha256": "40aeb1ca764f7de0b9d15af7e4b5019a35e29d78d30ea990619c7af768798bac",
+      "stdout_sha256": "53498f9574872d050a8096707329a058d3ab931bce74588b4aa8e5efb7137141",
+      "stderr_sha256": "2786881c7a10e56d4f4cf256648c08a33470e242a0fa25cfb1629f9b29d4c291",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_motion": 1
+      },
+      "hosted_traffic_groups_sets_reads_resets_fresh": [
+        6,
+        10,
+        4,
+        0,
+        11
+      ],
+      "why": "Hosted real C guided response/setter/store characterization after flat-array fixture correction; one test, positive actual store traffic. Developer working-tree evidence only, no timed PRE/POST or retroactive frozen-source claim."
+    },
+    {
+      "label": "d3-motion-original-first",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T00:45:57.590264+00:00",
+      "completed_utc": "2026-11-08T00:47:29.501556+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --features physical-flags-motion-check,collision-fixture --test physical_flags_motion -- --nocapture",
+      "record_sha256": "28dd0c7e82a4fd3e78a27404aeeaaebf8eb9310cef8ef4a74cd751e6f4c28b6a",
+      "stdout_sha256": "f9247b22beae37422ec41d14bfc6241d5c809c1d18b4ed91b254c258b0010759",
+      "stderr_sha256": "f73dc27ef91fdb070e4f85bd02a5d2f7390fce498dec963f3726ccc8a2d0d660",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_motion": 1
+      },
+      "why": "Same characterization cases in Original profile; one test. Developer working-tree evidence only, not final frozen checks."
+    },
+    {
+      "label": "d4-guard-first",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T00:48:33.750199+00:00",
+      "completed_utc": "2026-11-08T00:51:39.786975+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast --test physical_flags_guard",
+      "record_sha256": "e6ebe3b3fbd3c6b087f31079e8078a82776535d9e122127380f40a4039500f1a",
+      "stdout_sha256": "bb5db356e592b0d0704071fa8472be5c1e528a97939286302e28e165ca2b85f3",
+      "stderr_sha256": "902f973f892798fe6758196b957559a423036062583e7b7a067ac0cdcfb500b3",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 10,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_guard": 10
+      },
+      "why": "Developer guard before the bounded seven-query single-source-census refactor requested by Root0052. Retained, not relabelled as final source."
+    },
+    {
+      "label": "d5-fmt-apply",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T00:51:57.479762+00:00",
+      "completed_utc": "2026-11-08T00:52:00.781339+00:00",
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt -p eech-engine-sys",
+      "record_sha256": "238bcc56e19e77babe1a6c8ba8d837082af09453029c891b71237d4984992499",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {},
+      "why": "Original author formatting application before the guard single-census refactor."
+    },
+    {
+      "label": "d6-clippy-motion",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T00:52:00.939883+00:00",
+      "completed_utc": "2026-11-08T00:55:03.343152+00:00",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --features physical-flags-motion-check --all-targets -- -D warnings && cargo clippy --locked -p eech-engine-sys --features physical-flags-motion-check,collision-fixture --all-targets -- -D warnings",
+      "record_sha256": "43e550cb96cbb1009aae7d17bd2e587561e517af915f25af5b65cb553b3abb83",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "736e702f7ca454e760073dfddffd16d27ecbf465d5cfbbaad522b9636befb1e3",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {},
+      "why": "Original author strict feature Hosted and Original lint, before the final guard single-census refactor."
+    },
+    {
+      "label": "d7-fmt-apply-scan-once",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-08T01:01:18.146140+00:00",
+      "completed_utc": "2026-11-08T01:01:25.765999+00:00",
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt",
+      "record_sha256": "e1a45e5cfd5ed6e0522b196704e175173ca4e8270fa52547fd2548505efec6de",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {},
+      "why": "Fallback formatting after only the requested guard single-census refactor. Dedicated final checks follow the real PRE."
+    }
+  ],
+  "run_file_short_names": {
+    "flags-mfr332-s1-fmt-check.json": "runs/s1-fmt-check.json",
+    "flags-mfr332-s1-fmt-check.stdout.log": "runs/s1-fmt-check.stdout.log",
+    "flags-mfr332-s1-fmt-check.stderr.log": "runs/s1-fmt-check.stderr.log",
+    "flags-mfr332-s2-clippy-default.json": "runs/s2-clippy-default.json",
+    "flags-mfr332-s2-clippy-default.stdout.log": "runs/s2-clippy-default.stdout.log",
+    "flags-mfr332-s2-clippy-default.stderr.log": "runs/s2-clippy-default.stderr.log",
+    "flags-mfr332-s3-clippy-motion-hosted.json": "runs/s3-clippy-motion-hosted.json",
+    "flags-mfr332-s3-clippy-motion-hosted.stdout.log": "runs/s3-clippy-motion-hosted.stdout.log",
+    "flags-mfr332-s3-clippy-motion-hosted.stderr.log": "runs/s3-clippy-motion-hosted.stderr.log",
+    "flags-mfr332-s4-clippy-motion-original.json": "runs/s4-clippy-motion-original.json",
+    "flags-mfr332-s4-clippy-motion-original.stdout.log": "runs/s4-clippy-motion-original.stdout.log",
+    "flags-mfr332-s4-clippy-motion-original.stderr.log": "runs/s4-clippy-motion-original.stderr.log",
+    "flags-mfr332-s5-motion-hosted.json": "runs/s5-motion-hosted.json",
+    "flags-mfr332-s5-motion-hosted.stdout.log": "runs/s5-motion-hosted.stdout.log",
+    "flags-mfr332-s5-motion-hosted.stderr.log": "runs/s5-motion-hosted.stderr.log",
+    "flags-mfr332-s6-motion-original.json": "runs/s6-motion-original.json",
+    "flags-mfr332-s6-motion-original.stdout.log": "runs/s6-motion-original.stdout.log",
+    "flags-mfr332-s6-motion-original.stderr.log": "runs/s6-motion-original.stderr.log",
+    "flags-mfr332-s7-flags-guard.json": "runs/s7-flags-guard.json",
+    "flags-mfr332-s7-flags-guard.stdout.log": "runs/s7-flags-guard.stdout.log",
+    "flags-mfr332-s7-flags-guard.stderr.log": "runs/s7-flags-guard.stderr.log",
+    "flags-mfr332-s8-flags-controls-hosted.json": "runs/s8-flags-controls-hosted.json",
+    "flags-mfr332-s8-flags-controls-hosted.stdout.log": "runs/s8-flags-controls-hosted.stdout.log",
+    "flags-mfr332-s8-flags-controls-hosted.stderr.log": "runs/s8-flags-controls-hosted.stderr.log",
+    "flags-mfr332-s9-flags-controls-original.json": "runs/s9-flags-controls-original.json",
+    "flags-mfr332-s9-flags-controls-original.stdout.log": "runs/s9-flags-controls-original.stdout.log",
+    "flags-mfr332-s9-flags-controls-original.stderr.log": "runs/s9-flags-controls-original.stderr.log",
+    "flags-mfr332-s10-build-dc.json": "runs/s10-build-dc.json",
+    "flags-mfr332-s10-build-dc.stdout.log": "runs/s10-build-dc.stdout.log",
+    "flags-mfr332-s10-build-dc.stderr.log": "runs/s10-build-dc.stderr.log",
+    "flags-mfr332-d1-motion-hosted-first.json": "runs/d1-motion-hosted-first.json",
+    "flags-mfr332-d1-motion-hosted-first.stdout.log": "runs/d1-motion-hosted-first.stdout.log",
+    "flags-mfr332-d1-motion-hosted-first.stderr.log": "runs/d1-motion-hosted-first.stderr.log",
+    "flags-mfr332-d2-motion-hosted-attitude-fixed.json": "runs/d2-motion-hosted-attitude-fixed.json",
+    "flags-mfr332-d2-motion-hosted-attitude-fixed.stdout.log": "runs/d2-motion-hosted-attitude-fixed.stdout.log",
+    "flags-mfr332-d2-motion-hosted-attitude-fixed.stderr.log": "runs/d2-motion-hosted-attitude-fixed.stderr.log",
+    "flags-mfr332-d3-motion-original-first.json": "runs/d3-motion-original-first.json",
+    "flags-mfr332-d3-motion-original-first.stdout.log": "runs/d3-motion-original-first.stdout.log",
+    "flags-mfr332-d3-motion-original-first.stderr.log": "runs/d3-motion-original-first.stderr.log",
+    "flags-mfr332-d4-guard-first.json": "runs/d4-guard-first.json",
+    "flags-mfr332-d4-guard-first.stdout.log": "runs/d4-guard-first.stdout.log",
+    "flags-mfr332-d4-guard-first.stderr.log": "runs/d4-guard-first.stderr.log",
+    "flags-mfr332-d5-fmt-apply.json": "runs/d5-fmt-apply.json",
+    "flags-mfr332-d5-fmt-apply.stdout.log": "runs/d5-fmt-apply.stdout.log",
+    "flags-mfr332-d5-fmt-apply.stderr.log": "runs/d5-fmt-apply.stderr.log",
+    "flags-mfr332-d6-clippy-motion.json": "runs/d6-clippy-motion.json",
+    "flags-mfr332-d6-clippy-motion.stdout.log": "runs/d6-clippy-motion.stdout.log",
+    "flags-mfr332-d6-clippy-motion.stderr.log": "runs/d6-clippy-motion.stderr.log",
+    "flags-mfr332-d7-fmt-apply-scan-once.json": "runs/d7-fmt-apply-scan-once.json",
+    "flags-mfr332-d7-fmt-apply-scan-once.stdout.log": "runs/d7-fmt-apply-scan-once.stdout.log",
+    "flags-mfr332-d7-fmt-apply-scan-once.stderr.log": "runs/d7-fmt-apply-scan-once.stderr.log"
+  },
+  "inputmaps_compare": {
+    "pre_fingerprint": "88b08e83ea525112bc58513ada343340dca5df67b02d713ee7e48db7d88418e2",
+    "post_fingerprint": "88b08e83ea525112bc58513ada343340dca5df67b02d713ee7e48db7d88418e2",
+    "file_count_pre": 3997,
+    "file_count_post": 3997,
+    "rows_only_in_pre": [],
+    "rows_only_in_post": [],
+    "rows_that_differ": [],
+    "all_rows_equal": true,
+    "head_sha": "33295557b72406f90127f7bed5626d0adab4cc07",
+    "changed_from_head_count": [
+      9,
+      9
+    ],
+    "deleted_from_head": [
+      [],
+      []
+    ],
+    "raw_vs_git_filtered_disagreements": {
+      "pre": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ],
+      "post": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ]
+    },
+    "extra_identity_equal": true,
+    "extra_identity_aggregate": [
+      "d11eea349d034930e5b0cd6eef65d50e700879b823c95e28aa5a92aa87c57921",
+      "d11eea349d034930e5b0cd6eef65d50e700879b823c95e28aa5a92aa87c57921"
+    ]
+  },
+  "feedback_files_present_at_freeze": [
+    "Root-motion-flags-feedback-20261108-0038.json",
+    "Root-motion-flags-feedback-20261108-0044.json",
+    "Root-motion-flags-feedback-20261108-0052.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2148.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2150.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2154.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2201.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2205.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2215.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2222.json",
+    "Root-physical-flags-witness-feedback-20261107-2012.json",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json",
+    "Root-supply-boolean-fix-feedback-20261107-2242.json",
+    "Root-supply-boolean-fix-feedback-20261107-2243.json",
+    "Root-tacview-consumer-feedback-20261107-2349.json",
+    "Root-tacview-consumer-feedback-20261107-2350.json",
+    "Root-tacview-correction-feedback-20261108-0008.json",
+    "Root-tacview-correction-feedback-20261108-0012.json"
+  ],
+  "readers_PRE_identity_equal": true,
+  "hygiene_problems_at_freeze": [],
+  "not_run": [
+    "any native, Windows, i686 or O2 run",
+    "any Windows/native build of this source; Linux default module build is recorded above (raw mb_hostmodel.c changed only its test-helper gate)",
+    "any replay of the accepted default, the finite witness, the supply correction or the first Tacview packet's checks",
+    "the other consumers of the flag store",
+    "the shipped Engine::boot bridge",
+    "any Root-owned gate"
+  ]
+}

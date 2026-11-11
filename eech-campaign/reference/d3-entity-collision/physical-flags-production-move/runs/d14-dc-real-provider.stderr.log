@@ -1,0 +1,14 @@
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+error: mismatched closing delimiter: `}`
+    --> crates/eech-dc/src/module.rs:6527:19
+     |
+6487 |     fn the_real_host_providers_flag_store_answers_through_this_bridge_what_the_campaign_asks_and_refuses_what_it_must() -> Test {
+     |                                                                                                                                 - closing delimiter possibly meant for this
+...
+6527 |         assert_eq!(words(flag(21.0, 0.0, 31.0, 0.0, "f1")?), Some(("read", [0, 0x41f8_0000, 0], String::new()));
+     |                   ^ unclosed delimiter
+...
+6550 |     }
+     |     ^ mismatched closing delimiter
+
+error: could not compile `eech-dc` (lib test) due to 1 previous error

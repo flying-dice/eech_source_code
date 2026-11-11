@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-07T03:57:33.241426+00:00",
+  "review_kind": "Independent retained-only completed parent-fullpack actual/evidence review; no execution replay",
+  "source": {
+    "commit": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+    "snapshot": "D:/EECH-Migration-Evidence/fixed-static-corrected-f734-20261106-source",
+    "output": "D:/EECH-Migration-Evidence/fixed-static-shipping-f734fdfc0-20261106",
+    "current_task49_head_observed": "59b85183a5fb2b2d78e8550d2b12fcab39475223",
+    "current_head_is_this_measured_source": false
+  },
+  "decision": {
+    "status": "PARENT_FULLPACK_VERIFIED_LONG_RUN_MOTION_FINDING_CLOSED",
+    "findings": [],
+    "closed_ids": [
+      "ENV-ENTITY-POSE-LONG-RUN-MOTION-1"
+    ],
+    "production_regression_runtime_conformance_closed_for_this_finding": true,
+    "f734_established_fullpack_verified": true,
+    "remaining_requirements_waived": false,
+    "new_native_launch_clearance": false,
+    "final_current_Task49_full_shipping_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "inherited_correction": {
+    "corrected_source_review": {
+      "path": "R:/d3-evidence/independent-person-motion-query-corrected-source-3475-20261105.json",
+      "bytes": 14486,
+      "sha256": "62f5641e61c2c470cb9cca17aed90d0d0e69f20c800d942c4b2974e212e24be1"
+    },
+    "f734_source_clearance": {
+      "path": "R:/d3-evidence/independent-fixed-static-corrected-source-f734-20261106.json",
+      "bytes": 14079,
+      "sha256": "beb986d8d66fc89218b0e10a5340066109dc9b9f6a35bb27c1016121c78162e6"
+    },
+    "corrected_person_commit": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "ancestor_of_f734_verified": true,
+    "path": "eech-campaign/crates/eech-world/src/movement.rs",
+    "3475_and_f734_literal_blob_bytes_equal": true,
+    "bytes": 366996,
+    "sha256": "33560723cd2aaab531a9c180da5cd048dd59e2f4b9febb62a8446f1cace369cd",
+    "disposition": "The reviewed completed Person-vector retention and pending-step semantics are inherited unchanged. This evidence join does not reopen or expand the prior source reviews."
+  },
+  "actuals": {
+    "original_completed_utc": "2026-11-07T03:52:30.310846Z",
+    "actual_exit_codes": {
+      "original_runner": 0,
+      "launcher": 0,
+      "outer_controller": 0,
+      "complete_comparison": 0,
+      "fourth_input": 0
+    },
+    "exact_accepted_check_names_verified": 40,
+    "accepted_checks_pass": 40,
+    "complete_artifacts": [
+      {
+        "file": "reference/run1/recording.acmi",
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+        "complete_literal_byte_stream_equal": true
+      },
+      {
+        "file": "reference/run1/observations.jsonl",
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+        "complete_literal_byte_stream_equal": true
+      },
+      {
+        "file": "reference/run1/metrics.json",
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+        "complete_literal_byte_stream_equal": true
+      },
+      {
+        "file": "reference/run2/recording.acmi",
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+        "complete_literal_byte_stream_equal": true
+      },
+      {
+        "file": "reference/run2/observations.jsonl",
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+        "complete_literal_byte_stream_equal": true
+      },
+      {
+        "file": "reference/run2/metrics.json",
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+        "complete_literal_byte_stream_equal": true
+      },
+      {
+        "file": "regress/georgia_retail.json",
+        "bytes": 22427,
+        "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d",
+        "complete_literal_byte_stream_equal": true
+      },
+      {
+        "file": "regress/lebanon_retail.json",
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+        "complete_literal_byte_stream_equal": true
+      }
+    ],
+    "comparison_method": "Root retained-only direct byte-stream equality for all eight complete files, bound to the original completed comparison digests; no normalization or prefix substitution.",
+    "payloads_rehashed_against_original_preflight": 88,
+    "source_build_runner_accepted_report_identity_unchanged": true,
+    "frozen_source_clean": true,
+    "final_input_checks": {
+      "total": 4,
+      "actual_exits_all_zero": true,
+      "georgia_files": 1174,
+      "georgia_bytes": 142522166,
+      "lebanon_files_each": 1179,
+      "lebanon_bytes_each": 102239559,
+      "lebanon_copies": 3,
+      "roots_include_internal_lebanon_regress": true,
+      "result": "Each final tool log confirms inputs IDENTICAL to its accepted input manifest. These are retained successful manifest comparisons, not a claim that four newly serialized full manifest arrays were captured."
+    },
+    "original_processes_ended_without_restart": true,
+    "existing_report_claim_counts": {
+      "PASS - directly protected": 17,
+      "PASS - baseline-sensitive": 12,
+      "NOT COVERED": 8,
+      "EVIDENCE ONLY - not automatically checked": 8
+    }
+  },
+  "exit_and_orchestration_review": {
+    "retained_source": "D:/EECH-Migration-Evidence/fixed-static-corrected-f734-20261106-source/eech-campaign/tools",
+    "reference_guard": "reference-windows.ps1:68-81 holds each process handle, waits, reads ExitCode and exits before observation/reference PASS checks if either native is nonzero.",
+    "regress_guard": "regress-windows.ps1:58-68 holds handles, waits, records failure and exits before exact comparison/PASS output on nonzero native status.",
+    "pack_controlflow": "regression-pack.py:354-360 waits both submitted script calls; their numeric return values are not separately retained or enforced there. Lines363-389 consume failure/PASS log evidence. Retained logs contain both exact scenario PASS results and REFERENCE PASS after the native guards; original full runner exit0 and all40 PASS are actually recorded.",
+    "qualification": "Per-native and per-PowerShell numeric exit codes were not separately persisted. Their successful guarded paths are supported by the original scripts and retained logs; this report does not invent individual numeric receipts or rewrite earlier unknown exits.",
+    "boundary_assessment": "The retained controller checks original completion, exact accepted names/statuses, source/build/accepted identities, final inputs and complete comparison. No campaign, checker, input-tool or native process was rerun for this review."
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/fixed-static-shipping-fullpack-Root-binding-f734-20261107.json",
+      "bytes": 26028,
+      "sha256": "5b49ee9e18011980512c3d3419e3ed07593fe5530d166276279033b37185b533"
+    },
+    {
+      "path": "R:/d3-evidence/fixed-static-shipping-f734-20261106-completion.json",
+      "bytes": 2864,
+      "sha256": "042285acacc1ca9455cdb5bb9815d01a56a84a490be8752d63f08a4602eb6553"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/fixed-static-shipping-f734fdfc0-20261106/run.json",
+      "bytes": 934,
+      "sha256": "6dd919e7fcf0b383634bec272b716f9a2b97dd9f38a8d16570cc72af57f06efc"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/fixed-static-shipping-f734fdfc0-20261106/completion.json",
+      "bytes": 817,
+      "sha256": "c8e856461a27ac86e5243286f24165b1ad4071d86b53ad551aee2c994877acde"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/fixed-static-shipping-f734fdfc0-20261106/preflight.json",
+      "bytes": 16839,
+      "sha256": "055b79f0accf605007f84d6a0fafa7a113ec4f555b62c10e175a9bc3d2897546"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/fixed-static-shipping-f734fdfc0-20261106/report.json",
+      "bytes": 39506,
+      "sha256": "9a262b888abdeafc31bbb51e885926aff63534570a574ffc5e98a39ad765e77d"
+    },
+    {
+      "path": "R:/d3-evidence/fixed-static-shipping-complete-comparison-f734-20261106.json",
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    {
+      "path": "R:/d3-evidence/run-fixed-static-shipping-f734-20261106.py",
+      "bytes": 6087,
+      "sha256": "3cf2d43de3323f6332dbdaed667e2de973c70604d24318d3d993aade769e91b6"
+    }
+  ],
+  "limits_and_next_required_scope": [
+    "Closes the specific actual long-run Person-motion mirror regression through the completed unchanged established four-run, three-hour parent pack. No universal lifetime, actor-class, natural moving-engagement or physical-authority coverage is inferred.",
+    "Earlier ea2b fullpack24PASS/16FAIL and actual mask20 failure remain FAILED. Interrupted3475 and original interrupted focused runs retain unknown exits/partial status; their prefixes are not promoted to complete results.",
+    "Launch-time completion scope text saying focused finite gates were unmet is historical. Their later independent closures remain at their own identities and are not reopened here.",
+    "The report still declares eight NOT COVERED and eight EVIDENCE ONLY claims. Passing40 checks does not discharge these or any whole-D3 requirement.",
+    "This f734 parent pack does not measure the current59b Task49 tree. Final CURRENT-source40/all8, final four input checks, current CI, review, normal merge/delivery and final compiled-consumer census remain required.",
+    "All ten D3 requirements and remaining physical services, API/DCS disposition, hierarchy/devices, RNG, natural moving integration and needed-consumer work remain open. D4/D5 and the historical TypeScript port remain outside the active work.",
+    "Preparation2of2 is complete: no optional preparation batch is authorized by this review. With this specific blocks_cutover finding closed, the next required production work is physical sector-height cutover under its own source and actual gates."
+  ]
+}

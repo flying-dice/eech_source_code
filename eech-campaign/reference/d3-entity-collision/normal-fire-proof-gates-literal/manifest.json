@@ -1,0 +1,173 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "codex-d3-native-normal-fire-capture-20261108-completion.json",
+      "sha256": "8ea8a6522bad958035a9b6d554cfa7fdfa856913753990a2a75a41a5a9423f3e"
+    },
+    {
+      "path": "codex-d3-normal-fire-proof-gate-fixes-20261108-process.json",
+      "sha256": "65f2fd833e907216f06cc8b3376c3a33f8b8158da80e665f5d5bb87e975d985c"
+    },
+    {
+      "path": "D3-NORMAL-FIRE-PROOF-GATES-FROZEN-20261108.json",
+      "sha256": "3b40f0e68cb8de82a1f4c8609c9d1204385aea4b24dcea97528115150173399a"
+    },
+    {
+      "path": "D3-NORMAL-FIRE-PROOF-GATES-LITERAL-FROZEN-20261108.json",
+      "sha256": "06fb13a9485b679c3cabade5c6414320c1ef28fd6ebaba9a7791443d2aa65be9"
+    },
+    {
+      "path": "D3-REQUIREMENTS.json",
+      "sha256": "3165482fd5994e66db90e30c75b633de2d8c24380ce2948b694df66f0b14433c"
+    },
+    {
+      "path": "independent-normal-fire-f88d6-combined-source-20261108.json",
+      "sha256": "5fa215bd0adb16528b0d809d32b67d6445daa1fe8d856a376adefcbe8113afcf"
+    },
+    {
+      "path": "nf3lf-expected-changes-20261108.json",
+      "sha256": "aef9e104f23c087f5226af2dfa7e205106d7628c57efccb7f11637806e65727a"
+    },
+    {
+      "path": "nf3lf-extra-POST-20261108.json",
+      "sha256": "142e1182735371227008d6ec1c7312db0001b6a7d5ef845ab20a7f1b48f66c9d"
+    },
+    {
+      "path": "nf3lf-extra-PRE-20261108.json",
+      "sha256": "142e1182735371227008d6ec1c7312db0001b6a7d5ef845ab20a7f1b48f66c9d"
+    },
+    {
+      "path": "nf3lf-family-20261108.json",
+      "sha256": "6f5094828091e054caf529b5b4df63d70ab20ec4b34727ebdac289e1948da641"
+    },
+    {
+      "path": "nf3lf-final-completion-20261108.json",
+      "sha256": "46e8741a8e2299c3ffe8443de4549ab17652b5c908a37f84b99d81a7e6d31a74"
+    },
+    {
+      "path": "nf3lf-final-process-20261108.json",
+      "sha256": "4b34a0283f28921a373f860d5becf93c8d0719fe42edbc1a1e83ef2cc9693f13"
+    },
+    {
+      "path": "nf3lf-POST-utc-20261108.json",
+      "sha256": "233657d228cc83179fe735a0b46502c11a236121c99a8b93ef21c940bbdbdbaf"
+    },
+    {
+      "path": "nf3lf-PRE-utc-20261108.json",
+      "sha256": "f6e73915864b8fa154c17bda533b852de049dd4bf0e8db40f07ff347b5b0de17"
+    },
+    {
+      "path": "nf3lf-readers-sealed-20261108.json",
+      "sha256": "65e46ed057344bac807cd12b404b09e3dcf74df64c31e9ff31b3e9e40b006a57"
+    },
+    {
+      "path": "nf3lf-source-audit-20261108.json",
+      "sha256": "0bd5fb1ed0e5b9bb2dc99949d1401d4035e93563716fa824b4754c146d6a8c0a"
+    },
+    {
+      "path": "nf3p2-publication-join-failure-20261108.json",
+      "sha256": "8e7a48a8861fa73d591fb369a774c971756c8a042b9c9ca472583e50ec040747"
+    },
+    {
+      "path": "normal-fire-2fcf69-all9-CI-readback-20261108.json",
+      "sha256": "941e988146a64f062cb3ddbed844abe97143bf1d06e1b26a83174d40ad63bf42"
+    },
+    {
+      "path": "normal-fire-f88d6-2fcf69-Root-binding-20261108.json",
+      "sha256": "c26972b275ede5f6df121eda8e8ad285b48bc4fd2c5c464505befb5b0123b8b3"
+    },
+    {
+      "path": "normal-fire-observer-2fcf69-build-Root-binding-20261108.json",
+      "sha256": "0de38f5621dd75176f688c96b3572af6942113ca1c2dc1f05a4fbc2e080ea057"
+    },
+    {
+      "path": "readers/check-normal-fire-nf3lf-linux-20261108.sh",
+      "sha256": "4a7a162df6870e9aa1f53c3a24f25e07be46f8f83ee15308128eadb0047bfa4e"
+    },
+    {
+      "path": "readers/nf3lf-proof-20261108.py",
+      "sha256": "bf0b073e11e0f0d3a0e385121a7ddfb1ccfda90621b77752f46585b15dce8c22"
+    },
+    {
+      "path": "readers/run-nf3lf-final-20261108.py",
+      "sha256": "2c8aab031400a9a57d4b644048611ffa75b9ae66cf7a23dd653de7b72fedbc6b"
+    },
+    {
+      "path": "readers/run-normal-fire-nf3lf-direct-20261108.py",
+      "sha256": "3c4382abde9f8445f8062b429ee58c4cc6e010d5fae41d9b89d76d810e035f2b"
+    },
+    {
+      "path": "readers/sector-roster-inputmap-batched-20261106.py",
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "README.md",
+      "sha256": "31b9de69096a4cc53d6652538f7263bacaa49c771216a0580ecc874403c9c7e1"
+    },
+    {
+      "path": "runs/s1-fmt.json",
+      "sha256": "3cf9c44c400e2153288a6fa6978dc6193c7a93402d08a31d69737b812e938e5a"
+    },
+    {
+      "path": "runs/s1-fmt.stderr.log",
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/s1-fmt.stdout.log",
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/s2-world-clippy.json",
+      "sha256": "72a6b6e3610391d9dff16cf518d86f4a9d4c98b212ab404d3c19eb5bc8e7b104"
+    },
+    {
+      "path": "runs/s2-world-clippy.stderr.log",
+      "sha256": "c2182cdb951f601cd36b9e5ce05a4a98c188322cd80ab7edf1d1474ec1832908"
+    },
+    {
+      "path": "runs/s2-world-clippy.stdout.log",
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/s3-session-lua.json",
+      "sha256": "f2742452f47218b6cd32913cf514769961aa95dc049ef655b45a1f4a531b04ed"
+    },
+    {
+      "path": "runs/s3-session-lua.stderr.log",
+      "sha256": "07f1b6edd25121af4a5bf830c7e520d48c9a1be4df0b2c8a1a4e4202fdff88d4"
+    },
+    {
+      "path": "runs/s3-session-lua.stdout.log",
+      "sha256": "169c26f27667c16e5cc6ab98e5de7a7e0c3758b6f8024af29e70fc666c2b50ba"
+    },
+    {
+      "path": "runs/s4-profile-census.json",
+      "sha256": "d1d5395d064e7ad9f65b34440e12ef87bcc9d2fbdd7dc71d41fe98a753cc0804"
+    },
+    {
+      "path": "runs/s4-profile-census.stderr.log",
+      "sha256": "8a5f0a45beb14b9e9614eb84e82ef0e3d5087ac0b5113eddafc5daa8be419aaa"
+    },
+    {
+      "path": "runs/s4-profile-census.stdout.log",
+      "sha256": "c4b4172c4a087abf2f20f9faf0ff49fb9f025ae80379fb342a9d557f0d57e39a"
+    },
+    {
+      "path": "runs/s5-python.json",
+      "sha256": "ab777fbe02f11dd57302b649affcf732426bffa0d9245f468483ec7b1ed409bb"
+    },
+    {
+      "path": "runs/s5-python.stderr.log",
+      "sha256": "b039a68e1e5c6ed1fefd066d2260767966d873bd2afc502faa71eb593d7d2aa5"
+    },
+    {
+      "path": "runs/s5-python.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "self_excluded": true
+}

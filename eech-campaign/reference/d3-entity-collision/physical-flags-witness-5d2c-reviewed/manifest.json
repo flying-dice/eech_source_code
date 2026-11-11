@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": "independent-physical-flags-public-witness-5d2c-source-20261107.json",
+      "bytes": 13524,
+      "sha256": "73bec4cfd41a0ebb7f6546c0e3b8252e27667cdb19581b6e2fad4731b2e9925d"
+    },
+    {
+      "path": "physical-flags-pw3dcb-5d2c-Root-binding-20261107.json",
+      "bytes": 11763,
+      "sha256": "eb3d0cb63510b7ccabe813e56b4c2948a2925feb3bf80ce2aa67db3796783174"
+    },
+    {
+      "path": "physical-flags-pw3dcb-e62c-publication-Root-20261107.json",
+      "bytes": 3931,
+      "sha256": "14e540c8096c544909819f3d85a99d915fb9e89729bdcf2265bd9d79f5d4b7a5"
+    },
+    {
+      "path": "physical-flags-witness-5d2c-native-plan-20261107.json",
+      "bytes": 56624,
+      "sha256": "10ee98ee954c9c92427846be00e0b6e200fce39cf19e01356984db48956df346"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1230,
+      "sha256": "d20665cd19a6a608068d9130dab7e4796998b713c41ac359cfc994de6bf28038"
+    },
+    {
+      "path": "run-physical-flags-witness-5d2c-native-20261107.py",
+      "bytes": 8169,
+      "sha256": "508b02e7c1fab4f48dcb5bae979d0cfa84353e345ce5f00fcd068cd14a86ebf8"
+    }
+  ]
+}

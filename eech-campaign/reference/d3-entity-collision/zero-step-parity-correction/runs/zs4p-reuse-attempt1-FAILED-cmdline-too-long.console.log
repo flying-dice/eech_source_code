@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "R:\d3-evidence\zs4p-20261111\zs4p-proof-20261111.py", line 58, in <module>
+    out = E / 'zs4p-reuse-20261111.json'; assert not out.exists(); dump(out, reuse()); print(out.read_text()); sys.exit()
+                                                                             ^^^^^^^
+  File "R:\d3-evidence\zs4p-20261111\zs4p-proof-20261111.py", line 40, in reuse
+    assert tree(BASE) == tree(CODE), 'census blobs differ between receipt commit and base'
+           ^^^^^^^^^^
+  File "R:\d3-evidence\zs4p-20261111\zs4p-proof-20261111.py", line 39, in <lambda>
+    tree = lambda rev: dict((l.split('\t', 1)[1], l.split()[2]) for l in git('ls-tree', '-r', rev, '--', *sorted(post['files'])).decode().splitlines())
+                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "R:\d3-evidence\zs4p-20261111\zs4p-proof-20261111.py", line 21, in git
+    def git(*a): return subprocess.check_output(['git', '-C', str(W), *a])
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\starscream\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 466, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\starscream\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\starscream\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\starscream\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [WinError 206] The filename or extension is too long

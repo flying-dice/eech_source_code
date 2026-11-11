@@ -1,0 +1,29 @@
+
+running 2 tests
+test trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold ... FAILED
+test tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words ... FAILED
+
+failures:
+
+---- trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold stdout ----
+
+thread 'trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold' (312) panicked at crates/eech-world/src/trees.rs:1156:17:
+assertion `left == right` failed: old [1000.0, 50.0, 1024.0] new [1048.0, 50.0, 1024.0]
+  left: ([2145386497, 2147483648, 1], [4290773283, 1, 2147483649])
+ right: ([2141192193, 2147483648, 1], [4290773283, 1, 2147483649])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words stdout ----
+
+thread 'tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words' (311) panicked at crates/eech-world/src/tree_host.rs:342:9:
+assertion `left == right` failed
+  left: Done { hit: false, point: [2145386497, 2147483648, 1], normal: [4290773283, 1, 2147483649] }
+ right: Done { hit: false, point: [2141192193, 2147483648, 1], normal: [4290773283, 1, 2147483649] }
+
+
+failures:
+    tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words
+    trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 367 filtered out; finished in 0.00s
+

@@ -1,0 +1,20 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 08s
+     Running tests/physical_flags.rs (/target/t/debug/deps/physical_flags-68588f195e742221)
+
+thread 'the_per_entity_updated_moved_rotated_word_is_a_mask_the_getter_destroys_neighbours_of_and_the_reset_only_reaches_a_quarter_of' (3916) panicked at crates/eech-engine-sys/tests/physical_flags.rs:18:5:
+assertion `left == right` failed: the original flag code disagreed with its expectations:
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c:196 the setter ORs exactly this entity's bit: got 2147483648, wanted -2147483648
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c:204 reading does not change the entity's own bit: got 2147483648, wanted -2147483648
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c:196 the setter ORs exactly this entity's bit: got 2147483648, wanted -2147483648
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c:204 reading does not change the entity's own bit: got 2147483648, wanted -2147483648
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c:196 the setter ORs exactly this entity's bit: got 2147483648, wanted -2147483648
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c:204 reading does not change the entity's own bit: got 2147483648, wanted -2147483648
+physical-flags-check: words=16384 array_bytes=65536 reset_bytes=16384 reset_indices=131072
+
+  left: 6
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-engine-sys --test physical_flags`
+error: 1 target failed:
+    `-p eech-engine-sys --test physical_flags`

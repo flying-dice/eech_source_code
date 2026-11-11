@@ -1,0 +1,10 @@
+{
+  "source_before": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "utc": "2026-11-08T09:11:42.357932+00:00",
+  "findings": [
+    "ENV-NORMAL-FIRE-HEALTHY-REFERENCE-COMPLETE-1",
+    "ENV-NORMAL-FIRE-PRE-EFFECT-COHORT-1",
+    "ENV-NORMAL-FIRE-FLAG-RESET-ORACLE-1"
+  ],
+  "scope": "One consolidated Lua/validator/test/doc correction; no C/product/build change. Root sole build-cache owner; no author Docker/Linux calls until explicit release."
+}

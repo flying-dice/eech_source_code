@@ -1,0 +1,289 @@
+{
+  "schema": "d3.independent.changed-source-review.v1",
+  "written_utc": "2026-11-06T06:05:08.270255+00:00",
+  "scope": "One combined correctness, clean-code, boundary-safety and provenance pass of the NEW fixed/static NON-CITY collision backing cut. Exact95 immutable Git source was reviewed while the author finished metadata, under explicit Root authorization; final source/terminal binding is joined below. Closed city, sector, movement, numerical and earlier authority reviews are reused at their own identities.",
+  "source": {
+    "commit": "95a10f8820349a9a0243035975d616b1d8447b0a",
+    "direct_parent": "87e9a45482c51292c7dd7d3b25157d085457b56e",
+    "metadata_commit": "fe46ab3ce84d3a427b8f99493ca9d87796adb310",
+    "metadata_delta_only": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "changed_path_count": 33,
+    "changed_paths": [
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/fixed/cbuild/cb_dstry.c",
+      "aphavoc/source/entity/fixed/cbuild/cb_pack.c",
+      "aphavoc/source/entity/fixed/fx_float.c",
+      "aphavoc/source/entity/fixed/fx_int.c",
+      "aphavoc/source/entity/fixed/fx_vec3d.c",
+      "aphavoc/source/entity/fixed/object/ob_dstry.c",
+      "aphavoc/source/entity/fixed/pylon/py_dstry.c",
+      "aphavoc/source/entity/fixed/pylon/py_pack.c",
+      "aphavoc/source/entity/fixed/scenic/sn_dstry.c",
+      "aphavoc/source/entity/fixed/scenic/sn_pack.c",
+      "aphavoc/source/entity/fixed/segment/segment.c",
+      "aphavoc/source/entity/fixed/segment/sg_pack.c",
+      "aphavoc/source/entity/fixed/segment/sg_updt.c",
+      "aphavoc/source/entity/fixed/site/st_dstry.c",
+      "aphavoc/source/entity/fixed/site/st_pack.c",
+      "aphavoc/source/entity/fixed/siteupdt/su_dstry.c",
+      "aphavoc/source/entity/fixed/siteupdt/su_pack.c",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "aphavoc/source/entity/mobile/mb_hostplace.c",
+      "aphavoc/source/entity/mobile/mb_hostplace.h",
+      "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/roster.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs"
+    ],
+    "checkpoint": {
+      "path": "R:/d3-evidence/fixed-static-backing-CODE-FROZEN-20261106.json",
+      "bytes": 61295,
+      "sha256": "243580ecfb6cb6579bffce5ef362a3c1f6ea424e06993c0312cd8eac08c8d839"
+    },
+    "actual_author_terminal": {
+      "path": "R:/d3-evidence/claude-d3-fixed-static-backing-20261106-completion.json",
+      "bytes": 1324,
+      "sha256": "fd2b86be8e9061625aac53dff4a167e42aa51ca37c9870dbf552627179f4a619"
+    },
+    "author_actual_exit": 0,
+    "author_result_is_error": false,
+    "author_completed_utc": "2026-11-06T05:56:29.438840+00:00",
+    "no_fixed_static_Windows_or_native_run_claimed": true
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "source_clear": false,
+    "native_launch_clearance": false,
+    "findings": [
+      {
+        "id": "ENV-FIXED-CANONICAL-FAMILY-AUTHORITY-1",
+        "severity": "P1",
+        "summary": "The requirement for canonical fixed state is selected from Core collision/classification words rather than the actual placement type the host already holds.",
+        "evidence": "fixed_join discards entity_type from placement_fixed. It returns immediately if the Core city flag is set, and on FixedHold::Never it returns Ok when Core says not-fixed and not-of-city. Thus a real fixed-family record with no held state can be skipped using the Core collision-fixed flag instead of refusing the missing canonical state; a false CITY discriminator can bypass state for a non-CITY record. Conversely phase13 set_fixed accepts any matching placement type, rather than establishing the declared fixed-family/Movers ownership boundary. The default C reporter normally supplies state, but that does not establish missing-state or discriminator correctness at this new boundary.",
+        "minimum_correction": "Use actual bound placement/record family metadata to decide which properties and state the reached stage requires. At the original fixed-facts stage, an actual fixed-family placement must require canonical collision-fixed state even when its Core mirror saysfalse; only genuine CITY and non-fixed families may take their declared follow-on/no-state paths. Validate incompatible discriminators or report families by named refusal. Preserve early tallest/sector skips before fixed facts were read, direct-building/model-lookup ordering, and legitimate weapon/effect records with no fixed state. Do not add a guessed default, second pose store or query-time initialization. Extend existing real-provider tests with actual fixed-family missing state/Corefalse and non-CITY/CoreCITY cases, alongside genuine CITY/non-fixed positives."
+      },
+      {
+        "id": "ENV-FIXED-WITHDRAW-CURRENT-JOIN-1",
+        "severity": "P2",
+        "summary": "The new fixed-state withdrawal is not gated by its current served-placement join, and actual failures can be mislabeled as absent coverage.",
+        "evidence": "candidate_question increments faults.request on a parsed non-mobile key that differs from the actually served entry, but the new fixed eligible/withdraw block checks no retained joined flag. With a live held state and a valid real need_placement reply, it can remove state for that current invalid request. The final request0 condition prevents a passing verdict, but the action itself is outside the admitted-lookup contract. Separately, the new plan.withdraw_fixed/withdrawn==0 UNREACHED return runs before checking request/reply faults or an unrelated primary failure.",
+        "minimum_correction": "Retain current per-question join validity and gate eligible lookup credit and real withdrawal on it before mutation. A later valid question may still be handled under the existing explicit whole-trace qualification; do not credit or mutate the invalid current one. In this new mode, report actual request/reply/unrelated-fatal failure distinctly from genuinely absent eligible lookups. Use existing positive-first driver tests for a wrong served key that real provider could otherwise answer, and failure-before-prerequisite versus honest no-prerequisite. No generic tracing framework or native bad-input run is requested."
+      }
+    ],
+    "finite_fixed_backing_dependency_closed": false,
+    "whole_physical_backing_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "early_consolidated_batch": {
+    "path": "R:/d3-evidence/independent-fixed-static-backing-findings-95a10-20261106.json",
+    "bytes": 7145,
+    "sha256": "d2ccbb0526fef2c43c773d470523a841631be559179ffb920b2c28dee0e1dc93"
+  },
+  "exact_finding_locations": {
+    "eech-campaign/crates/eech-world/src/model_host.rs": [
+      [
+        968,
+        "fn fixed_join(lua: &Lua, words: &mut [u32], scene: i64, key_text: &str, of_city: bool) -> Result<i64, String> {"
+      ],
+      [
+        991,
+        "let (_, _, hold) = roster.placement_fixed(key, of_city).map_err(|why| format!(\"[candidate.key] {}\", why.0))?;"
+      ],
+      [
+        1003,
+        "} else if !fixed_given || city {"
+      ],
+      [
+        1011,
+        "FixedHold::Never => {"
+      ]
+    ],
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua": [
+      [
+        1282,
+        "local served = parsed.words [11] ~= ZERO and (scan.city.last ~= nil and scan.city.last.child or nil) or last_served"
+      ],
+      [
+        1283,
+        "if parsed.host_id ~= served then"
+      ],
+      [
+        1331,
+        "if parsed and not parsed.mobile and not problem and parsed.named and scan.fixed.held [parsed.host_id] and not roster_ended [parsed.host_id] then"
+      ],
+      [
+        1943,
+        "if plan.withdraw_fixed and scan.fixed.withdrawn == 0 then return \"UNREACHED: \" .. mode .. \": no staged candidate question of a fixed placement whose state the provider held was answered need_placement (\" .. scan.fixed.stated .. \" fixed states acknowledged, \" .. scan.fixed.joined .. \" eligible lookups served, \" .. cand.keyed .. \" keyed non-mobile questions), so there was no state to withdraw before a continuation: the case holds no such candidate\" end"
+      ]
+    ],
+    "eech-campaign/crates/eech-world/src/roster.rs": [
+      [
+        474,
+        "pub fn placement_fixed(&self, key: u64, child: bool) -> Result<(u64, i32, FixedHold), Refusal> {"
+      ],
+      [
+        492,
+        "pub fn set_fixed(&mut self, key: u64, entity_type: i32, state: FixedState) -> Result<(), Refusal> {"
+      ]
+    ]
+  },
+  "inspected_dataflow_and_dispositions": [
+    "The new FixedState lives on the same SectorRoster record shared by sector and city-child placements; LINK/rejoin merge a state with an unstated record, retain an equal state and refuse conflicting states. Hosted mobile pose decisions continue to use the one SharedMovers handle. No second persistent fixed property owner was identified in the reviewed D2 bridge/damage function adapters, which take inputs and return decisions rather than retaining another fixed-pose cache.",
+    "C copies the placement key for the duration of each nonmobile offer and names every staged question by the actual sector or child placement kind. The real C map remains private; no heap pointer or allocation index crosses the new wire. Host placement_fixed validates live key/kind, but its returned entity type is discarded by fixed_join; the resulting missing-state/discriminator authority gap is the P1 finding.",
+    "For a held state, fixed_join compares reached collision-fixed, position, shape, heading and align mirrors before using record words; the broadphase/narrowphase kernel files and original physics math are unchanged. However, the fixed-family state requirement cannot be selected from those Core mirrors: a missing state for an actual fixed-family record must not turn into a successful Core-driven skip.",
+    "The ordinary fixed constructors initialize their raw fields and attributes before insertion; phase13 is sent at the real insertion, including child-before-sector creation. Normal heading/subtype/shape and same-sector position setters have new notifications; cross-sector insertion restates the written position. Changed raw kill/unpack and bridge repair/fall/rest sites notify after the actual shape/position write. The host record follows placement LINK/lifetime rather than being repaired by a candidate question.",
+    "CITY inherits the fixed setters but is explicitly excluded by the C fixed-family reporter; its own position and box remain a declared follow-on. Fixed ALIVE was not introduced as a collision-state property. Dead structures retain collision with their actual destroyed shape. No claim of dormant unsupported readers is made.",
+    "The registered raw position setter is reached through the existing attribute constructor funnel; no current postplacement use was established in this bounded source search. Unpack_fixed_data writes raw fields before the relevant constructor/unpack insertion. This source disposition is not a blanket future-writer or loader/hierarchy exclusion.",
+    "The new fixed_event validates phase13 fields by integer bit classification before looking up/borrowing the roster. It preserves position/heading words and validates whole shape/type and boolean fields; reply state, echoed key and zero cursor are checked in the C dialogue. Mutable roster access uses try_borrow_mut and does not invoke reentrant callbacks under the borrow. Existing identity capacity remains sufficient because phase13 names one bounded key, not a new joined payload.",
+    "The new withdrawal calls the same real provider to remove only fixed state, leaving placement and Core backing intact. NEED_PLACEMENT is a concrete C continuation, unlike the earlier post-FIRST city assumption. Nevertheless, the CURRENT served-key join must gate mutation and eligible credit; request-fault counting alone is insufficient. The new UNREACHED path must also distinguish actual faults/fatals from absent coverage, as the P2 group specifies.",
+    "World raw-word refusal/caller-state tests and shared C dialogue are focused evidence. They do not newly measure retail getter behavior or native unmasked-FP paths. No additional concrete current-platform FP/RNG, C output overwrite, buffer overrun or original-math defect was established in this pass; no extra FP or portability experiment is requested."
+  ],
+  "final_actual_checks": {
+    "author_status": "terminal actual0/result_is_errorfalse; no producer assumed stopped before receipt",
+    "accepted_final_chain": "qfixedstatic2 ONLY",
+    "five_direct_records": [
+      {
+        "label": "fixedstatic2-final-fmt-check",
+        "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-fixedstatic2-final-fmt-check.json",
+          "bytes": 927,
+          "sha256": "333bef95461cf2a66ced5e9fa508bfb8073844447257ff29ff50a74caad2bb8f"
+        },
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "fixedstatic2-final-check",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-fixedstatic2-final-check.json",
+          "bytes": 970,
+          "sha256": "98ecdbfe16600acb15905c2c6586c7f4461d3c9c9aa443e553b33613797aef1b"
+        },
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "9e47d54f296ef3800625d987f51b0bdfc4397e80267a8341f5fa41e2235e104e"
+      },
+      {
+        "label": "fixedstatic2-final-c-dialogue-guards",
+        "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-fixedstatic2-final-c-dialogue-guards.json",
+          "bytes": 1234,
+          "sha256": "a57eefe40d958a65111bb37fa065883f265a0445510736c6a811fc543c5748f6"
+        },
+        "stdout_sha256": "5faae71532b63cb08ace3746e62da5d6b73b66565b8199f97f254dd3489a2fe8",
+        "stderr_sha256": "5e2c23b6eb99d4f4a9adfa9d53ad8c016b549de994872f0066ebf1bc1c26cb64"
+      },
+      {
+        "label": "fixedstatic2-final-world",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-fixedstatic2-final-world.json",
+          "bytes": 1179,
+          "sha256": "a96e7133eb7fe4493dcb065c9a6ba1199c4dc856c38a8fd7d7ff1f312f707636"
+        },
+        "stdout_sha256": "9419050b9f6dce10eff25369e174abe786780aecac2c67c6a827970505f206d8",
+        "stderr_sha256": "21992a20592c808c3a0b99d576a2c1887b5341f4748e71b5d2b4bb12629ff349"
+      },
+      {
+        "label": "fixedstatic2-final-engine-callback",
+        "command": "cargo test --release --locked -p eech-engine --lib the_model_callback --no-fail-fast",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-fixedstatic2-final-engine-callback.json",
+          "bytes": 960,
+          "sha256": "5eada3c8deebb51170019498e5eaed8291a1fc370be6fcf0ddfa0fa49fd80bca"
+        },
+        "stdout_sha256": "79647e4f03ce9c6c90be44cc9564e2160becc6dd3efc2c6e4fc8c0ce05eef19a",
+        "stderr_sha256": "767b09631e2ccfd7c297435ba298ee467424628e9e49c8f692fe8dc3d12218f5"
+      }
+    ],
+    "all_actual_direct_exits_and_separate_stream_hashes_independently_verified": true,
+    "final_command_exits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "test_result_rows_mechanically_derived": 11,
+    "tests_passed": 539,
+    "tests_failed": 0,
+    "breakdown": {
+      "Sys_dialogue": 1,
+      "Sys_entity_host_guard": 5,
+      "Sys_pose_lifecycle_guard": 4,
+      "Sys_roster_guard": 11,
+      "World_library": 361,
+      "World_authority": 68,
+      "World_candidate_host": 13,
+      "World_pose_host": 5,
+      "World_roster_host": 17,
+      "World_model_target_point": 41,
+      "Engine_callback_filter": 13
+    },
+    "C_dialogue_scope": "Checkpoint reports597 shared-C expectations. The isolated C control uses the real exchange/map/offer code with scripted heap/host; it is not an actual legacy engine-loop oracle or retail campaign execution.",
+    "scope": "Selected package formatting/four-package compile, affected C dialogue/guards, affected World/library targets and Engine callback filter. Not a new full feature/strict matrix, Windows build or native authority run.",
+    "historical_first_chain": "The earlier qfixedstatic final/d9247e map chain predates final fixed_event classification ordering and the driver served-key join. It is explicitly superseded and is not final source95 proof, regardless of its zero exits or prior526-count summary.",
+    "genuine_preproduction_RED": {
+      "old_C_with_new_control": {
+        "actual_exit": 101,
+        "Rust_target_failed": 1,
+        "C_expectations_failed": 7,
+        "behavioral_not_compiler_RED": true
+      },
+      "old_production_World_with_new_tests": {
+        "actual_exit": 101,
+        "passed": 33,
+        "failed": 6
+      }
+    },
+    "failed_intermediates_preserved": "Earlier failing development, formatting and test attempts remain in the frozen checkpoint; no historical failed status is relabelled green. Passing final tests do not override the two source findings."
+  },
+  "source_binding": {
+    "latest_before_after_maps_literal_equal_independently_verified": true,
+    "files": 3952,
+    "map_bytes_each": 2030565,
+    "map_sha256": "f81e5716af99bc49cde1b06f6b7b4bd0edf1b8b6334b8d2d5cd6bd1b3e76c8d9",
+    "captured_HEAD": "87e9a45482c51292c7dd7d3b25157d085457b56e",
+    "raw_differences_against_capture_HEAD": 36,
+    "qualification": "These final stable maps captured the edited tree at parent HEAD;33 changes belong to this source and3 are untouched test-Lua line-ending differences. They are not an all-working-raw-equals-parent-Git claim.",
+    "filtered_identity_mislabel": "The original mapper git_blob_of_raw_bytes was produced using hash-object --stdin-paths and is a FILTERED identity. Consequently the checkpoint join_to_git/raw_equals_committed_blob fields are not accepted as literal raw-byte evidence; the frozen historical report remains unchanged.",
+    "independent_direct_raw_binding": {
+      "path": "R:/d3-evidence/fixed-static-final-raw-source-binding-95a10-20261106.json",
+      "bytes": 17274,
+      "sha256": "42777e9985935edbf9a200fbc66383aa8190d5dbebeeefd546ac4e5e29b549cb"
+    },
+    "all33changed_files_direct_raw_SHA256_and_size_compared_to_exact95_Git_bytes_by_reviewer": true,
+    "total_author_inputs_raw_equal95_Git": 3949,
+    "untouched_test_Lua_raw_CRLF_vs_Git_LF_exceptions": 3,
+    "separate_legacy_filter_qualifications": "Four inherited header/allocator filter-only qualifications retain actual raw Git bytes. They are separate from the three inherited Lua raw differences. No source/output normalization or rerun was performed to hide either qualification.",
+    "clean_Root_snapshot": "Root prepared a detached no-hardlinks/no-alternates exact95 snapshot with3952raw-Git-equal inputs. Preparation is not a build or native clearance. Metadata changes onlySTATUS/card; later executable changes require their own changed-material join."
+  },
+  "required_correction_and_validation_next": "Use one bounded correction batch for canonical actual-family state requirements and current per-question witness admission/failure classification. Reuse unaffected writer/C/kernel/FP evidence where direct raw-source equality supports it; run only affected existing real-provider/driver controls and necessary binding checks. No known-bad native, repeated old full matrix, separate baseline war or generic tracing framework is requested. New source clearance must precede Root profile-bound Windows/ordinary short/healthy canonical-lookup and exact fixed-state-withdrawal actuals.",
+  "remaining_scope": [
+    "The fixed record must become the authoritative source for every property moved here. A canonical state copied at lifecycle writers is not permission to use unknown Core words, infer fixed-family membership from a mirror or seed state at query time.",
+    "CITY position/bounds, shared UPDATED and terrain effects, tallest-structure and still-coupled other readers/writers, raw tree/forest/cloud data/RNG, heap/roster/identity/live-pose synchronization, hierarchy and remaining required consumers, DCS mapping and natural moving-weapon integration remain required.",
+    "All ten D3 requirements, Task49 delivery, dependent final CI/source review, full40/all8 and wholeD3 remain open. No existing finite city/sector/moving/FP/numeric/Task50/52 closure is reopened or relabelled.",
+    "The separately running ordinary3475 pack is untouched. Its last reported literal prefixes are PARTIAL evidence only, not completion or acceptance."
+  ],
+  "review_operations": "Read-only pinned source/diffs, bounded dependent-writer inspection and retained direct receipt/log/map/raw-hash joins. Only safe independent JSON artifacts were written; no candidate edits, tests/builds/native/process/cache/VM/auth/external operations or agents."
+}

@@ -1,0 +1,9 @@
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.79s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_engine-c2c493919761858d)
+eech: debug_fatal: host model: [model-provider:flag.array] a flag question names the array 3, which is not 0 to 2
+
+thread 'flag_lifetime_check::retained_flag_provider_survives_entry_contexts_and_refuses_a_second_boot_and_post_fatal_entry' (187) panicked at crates/eech-engine/src/flag_lifetime_check.rs:110:5:
+Err(Fatal("host model: [model-provider:flag.array] a flag question names the array 3, which is not 0 to 2"))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-engine --lib`

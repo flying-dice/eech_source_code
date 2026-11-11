@@ -1,0 +1,2 @@
+counts identity/totals/tables/verdicts/rows: 1 1 1 1 2
+VALID by the same rules: sectors 2 reads 63 fact_offers 27615 identity window {'scenario': 'lebanon_retail', 'seed': '1', 'frame_ms': '100', 'hours': '0.001', 'frames': '35'}

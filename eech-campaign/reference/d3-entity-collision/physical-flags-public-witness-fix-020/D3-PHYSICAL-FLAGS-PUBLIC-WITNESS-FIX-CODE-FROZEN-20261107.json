@@ -1,0 +1,353 @@
+{
+  "kind": "CODE_FROZEN receipt of the public flag-store witness batch (Lua driver, scripted-engine tests, exact pattern helpers, finite native plan; candidate; UNREVIEWED; native UNRUN)",
+  "frozen_utc": "2026-11-07T21:01:48.528297+00:00",
+  "dry": false,
+  "source_before": "4d373c8f7a8074c91a6fc78d68424a035acc8524",
+  "checkpoint": "4d373c8f7",
+  "code_commit_of_the_binaries": "020fb3cfa5450acd91f136e678974160c12c8275",
+  "pre_utc": "2026-11-07T20:59:55Z",
+  "post_utc": "2026-11-07T21:01:37Z",
+  "lease": {
+    "volume": "eech-linux-d3-physical-flags-9d247-20261107",
+    "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+    "root_leased_names_asserted": {
+      "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+      "volume": "eech-linux-d3-physical-flags-9d247-20261107"
+    }
+  },
+  "changed_files": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+      "bytes": 59393,
+      "sha256": "dc58dcc421b1b91d3c582bdbfc6920e6cd164a09ac75b4207a88192a2ae6c460",
+      "git_blob_of_raw_bytes": "442463ffb0227360fc6a03871515a68121c670b7",
+      "head_blob": "146de178b6949177bff1103d7e96ace59a341c39"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs",
+      "bytes": 60538,
+      "sha256": "616fe1d63a78b37b0ac8c3edec0abd35eb54422e99c312dd19987f2e8677b270",
+      "git_blob_of_raw_bytes": "b74f6ba1cb519daa9147efedbae4368fc84017cd",
+      "head_blob": "36f384bd9b41ed834ebdc12399bbad92a4ef4f7c"
+    }
+  ],
+  "inherited_raw_versus_git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "git_blob_of_raw_bytes": "41780e08e6f192c4f90d27052f61beadf5a8ae40",
+      "head_blob": "41780e08e6f192c4f90d27052f61beadf5a8ae40"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "git_blob_of_raw_bytes": "ec7dd360f70821a2213efe82db9f93ad46f20ee0",
+      "head_blob": "ec7dd360f70821a2213efe82db9f93ad46f20ee0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "git_blob_of_raw_bytes": "fb767e110002096f637c48c4e65d48ff5c6168fc",
+      "head_blob": "fb767e110002096f637c48c4e65d48ff5c6168fc"
+    }
+  ],
+  "final_runs": {
+    "f1-fmt-check": {
+      "label": "f1-fmt-check",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T21:00:05.568711+00:00",
+      "completed_utc": "2026-11-07T21:00:11.777018+00:00",
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "record_sha256": "88633cd5bed3f7848872f26bd8175dc84b2d5b5cb9680c8f4af4ebb99fb58312",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "f2-clippy-world-engine-dc": {
+      "label": "f2-clippy-world-engine-dc",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T21:00:11.900977+00:00",
+      "completed_utc": "2026-11-07T21:00:17.125928+00:00",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world -p eech-engine -p eech-dc --all-targets -- -D warnings",
+      "record_sha256": "f17b1f5aa411b6529d7e043b4d7367bb0f17ad0c1814268c159282833abf796d",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "8c43b19a169a56e883566d0f644c8c9ac0b5f13e0c6dfd54f7176f079c0d0762",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "f3-witness-driver": {
+      "label": "f3-witness-driver",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T21:00:17.253188+00:00",
+      "completed_utc": "2026-11-07T21:00:19.163288+00:00",
+      "command": "cargo --version && cargo test --locked -p eech-world --no-fail-fast --test physical_flags_witness_driver",
+      "record_sha256": "bcfbdf6111efc70d477d5d097e5c0bce37e17a6a2c4ec4b2761ca23bf92f13fa",
+      "stdout_sha256": "a122efae2222e913c817630b674a0854f22007f56619b60e55a898dbb47c9eda",
+      "stderr_sha256": "50a1832cb781859e7a1c069b3db7dd2470f4f2ffb8a95d9bc4412e3dcd452d4a",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 25,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_witness_driver": 25
+      }
+    },
+    "f4-world-all": {
+      "label": "f4-world-all",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T21:00:19.285914+00:00",
+      "completed_utc": "2026-11-07T21:01:03.864343+00:00",
+      "command": "cargo test --locked -p eech-world --no-fail-fast",
+      "record_sha256": "85ad8623a31b78447825b7dc3d32b85ecff5c952766a6c708a25811cfbcc1b96",
+      "stdout_sha256": "92e1f1e1709a3eefe1b14f7fc108dab276fb154c448a3c95b4b65910942a141d",
+      "stderr_sha256": "f3874e62b045b63a75d15d24393d1047f8626c9bb90ef844b6269a38b2705681",
+      "uses_declared_helper": true,
+      "test_binaries": 61,
+      "tests_passed": 1307,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_witness_driver": 25,
+        "host_callbacks": 82,
+        "entity_authority": 120,
+        "physical_flags_host": 7,
+        "sector_height_witness_driver": 27
+      }
+    },
+    "f5-engine-sys-lua-guards": {
+      "label": "f5-engine-sys-lua-guards",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T21:01:03.984322+00:00",
+      "completed_utc": "2026-11-07T21:01:26.938945+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast --test entity_roster_guard --test physical_flags_guard",
+      "record_sha256": "3ab762791cf5108aa8d2bbce05db640147f68dc319784e9501561aea2670bd4e",
+      "stdout_sha256": "70652e5025f68d41869b8fa3d7e32ca825a95f11231ffa555797ba87fe92ff6a",
+      "stderr_sha256": "4382678c9f1de16457c0690de799c3ed91f1859b62f74892353ddebae3e6a8f2",
+      "uses_declared_helper": true,
+      "test_binaries": 2,
+      "tests_passed": 26,
+      "tests_failed": 0,
+      "selected_counts": {
+        "entity_roster_guard": 20,
+        "physical_flags_guard": 6
+      }
+    }
+  },
+  "retained_development_runs": [
+    {
+      "label": "d1-red-parent-f4d-new-tests",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T20:47:10.713603+00:00",
+      "completed_utc": "2026-11-07T20:47:14.105469+00:00",
+      "command": "cargo test -p eech-world --test physical_flags_witness_driver",
+      "record_sha256": "e176b8bcdac7dab54aa2a981357b852acf4481f929d612c75f2dc4de8a008baa",
+      "stdout_sha256": "8584886910dd17da14151c245073bbe2665a0633f163bdfc07c1e03f4c5b1d92",
+      "stderr_sha256": "15c3d546c85fac5fbebbaad973610fbb8d503299017c1d08f5dcb55842208e3d",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 20,
+      "tests_failed": 5,
+      "selected_counts": {},
+      "why": "GENUINE RED against the unchanged f4d62c9b4 driver: 5 of 25 tests failed (the damaged Original and control references were accepted and the report created; an engine ignoring the injected fault and raising the same marker later was credited PASS; a refusal during boot was not captured at the boot entry: the witness stopped); the preserved group/set/reset-only control test passed before and after"
+    },
+    {
+      "label": "d2-green-attempt1",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T20:50:35.696585+00:00",
+      "completed_utc": "2026-11-07T20:50:37.920769+00:00",
+      "command": "cargo test -p eech-world --test physical_flags_witness_driver",
+      "record_sha256": "1443fdf76cbabe69f81a405732e5e576af5fb72ddacea23244c3a44ae771e293",
+      "stdout_sha256": "94e8c73f960869b8d25da40317cedf02ab3ed633c56a69e1fcaebc1ab583e3df",
+      "stderr_sha256": "a45c82d1ff0ee91f411a6361d44a607f2b73936209849962e57c017774014028",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 22,
+      "tests_failed": 3,
+      "selected_counts": {},
+      "why": "first run of the corrected driver: 22 of 25 passed; the 3 failures were test expectations only (two older tests named the old messages, and my duplicate first-event row case was inserted after the consume record, so the order check fired before the duplicate check): the expectations were updated, the driver unchanged"
+    },
+    {
+      "label": "d3-green-attempt2",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T20:51:24.645917+00:00",
+      "completed_utc": "2026-11-07T20:51:26.911030+00:00",
+      "command": "cargo test -p eech-world --test physical_flags_witness_driver",
+      "record_sha256": "75197f5b8cb0ca6e71451c5675352def96c15819bfb229482fa42d668aaf1784",
+      "stdout_sha256": "09617bad3f54cacede641d9ba87545baad0756551c19fed56d4658175fe2b5e3",
+      "stderr_sha256": "8eb0ddc7753c227011ab7f773f5a751a393c408fd08abae2d75290819f213d26",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 24,
+      "tests_failed": 1,
+      "selected_counts": {},
+      "why": "24 of 25 passed; one older test looked for the words 'backing difference' while the refusal says 'the backing check found a difference': expectation updated, driver unchanged"
+    },
+    {
+      "label": "d4-green-attempt3",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T20:51:32.192092+00:00",
+      "completed_utc": "2026-11-07T20:51:34.467421+00:00",
+      "command": "cargo test -p eech-world --test physical_flags_witness_driver",
+      "record_sha256": "6f04d2e84b47b0eae67963a4043bbb5325b9a1e8fbf9d381174948e82df3b824",
+      "stdout_sha256": "4e6f80a02b35b39d4ace668a8ab827cb29cacd212f004587486d11270f3e6273",
+      "stderr_sha256": "46f2fe7223b32f4633415d91caf1d1701503fa85becf9985e03101817b3abfad",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 24,
+      "tests_failed": 1,
+      "selected_counts": {},
+      "why": "24 of 25 passed; one older damage case appended an unknown token and expected the old count refusal, the complete validation names the unknown key first: expectation updated, driver unchanged"
+    },
+    {
+      "label": "d5-green-attempt4",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T20:51:59.859202+00:00",
+      "completed_utc": "2026-11-07T20:52:02.123606+00:00",
+      "command": "cargo test -p eech-world --test physical_flags_witness_driver",
+      "record_sha256": "50f44b5a1f5df76e9f25b05ab40389031a6a96f1ec16e86f3cabe90e2a2b1151",
+      "stdout_sha256": "9dd1084b938a46f2f8d0efa7fffe273b9af4c242d7e0412742225997e3c744bc",
+      "stderr_sha256": "a2517eb2b5dcbb085b920fac3b065223aa4821db0e1a586c4cdcf647d268a1c3",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 25,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_witness_driver": 25
+      },
+      "why": "GREEN: the 25 driver tests pass (the 19 of the parent candidate and the 6 new ones)"
+    },
+    {
+      "label": "d6-fmt-apply-world",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T20:52:24.363384+00:00",
+      "completed_utc": "2026-11-07T20:52:29.334894+00:00",
+      "command": "rustup component add rustfmt && cargo fmt -p eech-world",
+      "record_sha256": "11ef1820510d4b29d1c2cebf1cbad01566d3690e398eb9bbcb7f43a77e579d89",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {},
+      "why": "cargo fmt -p eech-world applied to the test file (git status showed no other file changed)"
+    },
+    {
+      "label": "d7-clippy-world-engine-dc",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T20:52:29.539809+00:00",
+      "completed_utc": "2026-11-07T20:52:35.479201+00:00",
+      "command": "rustup component add clippy && cargo clippy --locked -p eech-world -p eech-engine -p eech-dc --all-targets -- -D warnings",
+      "record_sha256": "da5ca87cb68c99b3fd16f3cb091651d0f666a05eff2d80907a393347355b3f55",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "8dd6f20fd71876149982e7c94e93b6cf4c03ed4c2b0ad87123424104dbd5c1c3",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {},
+      "why": "clippy -D warnings over eech-world, eech-engine and eech-dc all targets after formatting"
+    },
+    {
+      "label": "d8-world-all",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T20:52:39.407115+00:00",
+      "completed_utc": "2026-11-07T20:53:24.945125+00:00",
+      "command": "cargo test --locked -p eech-world --no-fail-fast",
+      "record_sha256": "bb69cd2625ba9c511ad3dba11173b4c285195f00bcf373e2959acbba0f5f8fbb",
+      "stdout_sha256": "5b008ad2f5498c597e76c6e1bc0b402411edb3c0ec0650f4a76bca0e69ae5be1",
+      "stderr_sha256": "491543cc51bbc07d77a841fc817407f7a1dd54f99ae9e3ece76ffeb18b7155c0",
+      "uses_declared_helper": true,
+      "test_binaries": 61,
+      "tests_passed": 1307,
+      "tests_failed": 0,
+      "selected_counts": {},
+      "why": "the whole eech-world suite passes after the corrections"
+    }
+  ],
+  "inputmaps_compare": {
+    "pre_fingerprint": "a28d309e1709322e7ea675f42cb7216ba55adf0049df05996b5a261e9c9e4b02",
+    "post_fingerprint": "a28d309e1709322e7ea675f42cb7216ba55adf0049df05996b5a261e9c9e4b02",
+    "file_count_pre": 3993,
+    "file_count_post": 3993,
+    "rows_only_in_pre": [],
+    "rows_only_in_post": [],
+    "rows_that_differ": [],
+    "all_rows_equal": true,
+    "head_sha": "4d373c8f7a8074c91a6fc78d68424a035acc8524",
+    "changed_from_head_count": [
+      5,
+      5
+    ],
+    "deleted_from_head": [
+      [],
+      []
+    ],
+    "raw_vs_git_filtered_disagreements": {
+      "pre": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ],
+      "post": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ]
+    },
+    "extra_identity_equal": true,
+    "extra_identity_aggregate": [
+      "b1bcddc22661bb1edc044ddff7057be7dfd44467f4e200e2764a48f461819521",
+      "b1bcddc22661bb1edc044ddff7057be7dfd44467f4e200e2764a48f461819521"
+    ]
+  },
+  "feedback_files_present_at_freeze": [
+    "Root-physical-flags-witness-feedback-20261107-2012.json",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json"
+  ],
+  "readers_PRE_identity_equal": true,
+  "driver_literal": {
+    "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+    "sha256": "dc58dcc421b1b91d3c582bdbfc6920e6cd164a09ac75b4207a88192a2ae6c460",
+    "git_blob_of_raw_bytes": "442463ffb0227360fc6a03871515a68121c670b7",
+    "bytes": 59393,
+    "parent_candidate": "f4d62c9b4e7573a149973d5eb9357c77f08c609f",
+    "parent_driver_sha256": "2cd536d77470049f4912dd9098132adbe56a0bbff37e1fa9f2fd7de1953902ab",
+    "payload_entity_authority_sha256_in_020": "856f680ae2fc9a3b93ac1c56451bfdde2f209eb9f1e9e7eb42c2956320fb4e3e (the corrected entity-authority.lua of the parent candidate is not used by this plan)"
+  },
+  "hygiene_problems_at_freeze": [],
+  "not_run": [
+    "any native, Windows, i686 or O2 run",
+    "any C or Rust control (nothing they compile changed)",
+    "the matrix, characterisation replay or full pack",
+    "the other consumers of the flag store",
+    "any Root-owned gate"
+  ]
+}

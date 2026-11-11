@@ -1,0 +1,21 @@
+{
+  "controller_pid": 22960,
+  "state": "terminal",
+  "started_utc": "2026-11-07T00:21:50.924528+00:00",
+  "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --target i686-unknown-linux-gnu --test sector_height -- --nocapture",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/tree-i686-raw-pass-through-20261106-env/check-tree-i686-linux.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked -p eech-engine-sys --features sector-height-check --target i686-unknown-linux-gnu --test sector_height -- --nocapture"
+  ],
+  "image": "eech-d3-tree-i686-20261106:2",
+  "scope": "One Cargo command on the task-local i686 image. Separate stdout/stderr files, one Windows writer each. Return is the actual Cargo/docker exit. Working-tree check only unless separately frozen.",
+  "pid": 10404,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T00:23:00.966357+00:00"
+}

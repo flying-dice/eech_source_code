@@ -1,0 +1,154 @@
+{
+  "kind": "Root actual immutable test-only public-proof-plan correction source/check/packet binding; no tests or native replay",
+  "utc": "2026-11-07T09:24:12.112485+00:00",
+  "code": "e326a35724feb0566491c51d84d587995e2f9de8",
+  "head": "c4c9d0f1771860cda60dcd418245a7e5f21e2079",
+  "clean": true,
+  "freeze_sha256": "57e4524410fa26d92aacc7d4b96c8ae72315277af6699359e5cf8bb191330317",
+  "source_rows": 3971,
+  "full_pre_post_json_literal": true,
+  "pre_post_map_sha256": "49527770cab8a597e06733c42c4d7f38049b636ede061412f4c31025253d4b56",
+  "raw_current_rows_equal": true,
+  "raw_vs_committed_qualified_unchanged": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "filter_only_disagreements_raw_bytes_literal": [
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+  ],
+  "direct_git_raw_byte_comparisons": 3971,
+  "inherited_initial_reader_error": {
+    "proof": "sector-height-production-Root-binding-0be-20261107.json",
+    "sha256": "7b5cc4a7986967707d30b2dd9db8bd6155dd26d4c6bae0c3b049b18d866636a3",
+    "cause": "Compared row-labelled git_blob_of_raw_bytes (actually affected by filters) instead of actual immutable Git bytes. Original proof/script preserved; corrected reader only, no source or test change."
+  },
+  "changed_paths_bound": 6,
+  "extra_rows": 14,
+  "extra_pre_post_literal": true,
+  "packet_entries": 63,
+  "packet_git_literal": false,
+  "runs": [
+    {
+      "label": "g1-red-old-baseline",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-g1-red-old-baseline.json",
+      "receipt_sha256": "8ac1f794308114b9426877fef9837edb63603deafffb5b05f4674e7735785db4"
+    },
+    {
+      "label": "g2-baseline",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-g2-baseline.json",
+      "receipt_sha256": "c2486aa2dfd6fcdaa4b3efec8d572f6b8e7272e6501bb1fde6a1b8b45a949316"
+    },
+    {
+      "label": "g3-red-old-driver",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-g3-red-old-driver.json",
+      "receipt_sha256": "98d4dc85920c99236ead58169ce55e72569a488d05d0d130c2ffb57730c5e693"
+    },
+    {
+      "label": "g4-red-old-driver",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-g4-red-old-driver.json",
+      "receipt_sha256": "8d46b6df11cbbc42d77bba0e8af6fec670eb6f9a04f09f49f0bc32d285f499b4"
+    },
+    {
+      "label": "g5-driver",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-g5-driver.json",
+      "receipt_sha256": "bef67a76c3078cbdf0da60a447e02fcb221401cf0819f86fa61229de8dd9ddef"
+    },
+    {
+      "label": "g6-driver",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-g6-driver.json",
+      "receipt_sha256": "de8d958f47b263e47ac6a764686748a138e1ef7a521c73c337e3e0a908b6c681"
+    },
+    {
+      "label": "g7-red-previous-verdict",
+      "final": false,
+      "actual_exit": 101,
+      "receipt": "sector-height-production-g7-red-previous-verdict.json",
+      "receipt_sha256": "bcfb75035e8a279a54b9f5c67a051a366456d3d96df2faaabd73540421798d4c"
+    },
+    {
+      "label": "g8-fmt-apply",
+      "final": false,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-g8-fmt-apply.json",
+      "receipt_sha256": "08a9a549f8cb01fe5af3b45deb56ccc222568283f155376bd5c1c99b71e9b3ee"
+    },
+    {
+      "label": "v1-fmt-check",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-v1-fmt-check.json",
+      "receipt_sha256": "54e2fbdb2c1712eb46b6f4f99730bf196ad5ee726f33e579d335791b0af020a8"
+    },
+    {
+      "label": "v2-clippy-world",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-v2-clippy-world.json",
+      "receipt_sha256": "efcaca1988c5628ef215c065a475a5084e6f7bbca4af468f01c9835b08d3b953"
+    },
+    {
+      "label": "v3-driver-tests",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-v3-driver-tests.json",
+      "receipt_sha256": "020a7c2d9d97bf32629ae085e36b61c38a8bc47753df7befb85de4596a4f834b"
+    },
+    {
+      "label": "v4-host-callbacks",
+      "final": true,
+      "actual_exit": 0,
+      "receipt": "sector-height-production-v4-host-callbacks.json",
+      "receipt_sha256": "c68a4bcfb30289263ae986e4b76e95ac660a00b0eed2a850f4830f705aa3aacb"
+    }
+  ],
+  "final_runs": 4,
+  "final_all_zero": true,
+  "metadata_only_delta": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json"
+  ],
+  "author_completion_sha256": "595ed6961fa26dd22d057464a3ecf8d4bc9c9b41b5048bf25739e816293caea7",
+  "limits": [
+    "Source/check identity only; not independent review/native clearance/authority/fullpack/Task49/D3 acceptance.",
+    "Three inherited Lua raw/Git CRLF differences are unchanged. Four Core filter-only identities have literal raw/Git bytes. No source normalization or new build equivalence.",
+    "M5 guarded-clearance and M6 native save/restore remain OPEN."
+  ],
+  "extra_current_mismatches_qualified_postprocessing": [],
+  "extra_current_literal_rows": 14,
+  "packet_publication_qualifications": [
+    {
+      "path": "runs/shp3-real-accepted-shape-20261107.txt",
+      "manifest_bytes": 232,
+      "manifest_sha256": "2e8256cc148483f0bcd6d7da3d9c6d5ada0cde57263f76d8e074baa4e866b299",
+      "actual_git_bytes": 230,
+      "actual_git_sha256": "b5c8bd944c6b91a919b0f86b4fd38b15eece8abe1419635d0834335cc0097bde",
+      "qualification": "Stored Git output is CRLF-to-LF of the original Windows Python audit stdout. Manifest row retains original CRLF identity and does NOT hash literal Git bytes for this one entry. No content/test/source change. Original raw output retained externally; both identities explicitly qualified."
+    }
+  ],
+  "additional_read_only_shape_audit": {
+    "actual_exit_from_immediate_progress_capture": 0,
+    "script": "check-real-accepted-shape-20261107.py",
+    "progress_sha256": "6665f747466fc049a93ac1970a1b5b543190e895a7acbdbff7ef1ea54e4d0ac3",
+    "stdout_sha256": "2e8256cc148483f0bcd6d7da3d9c6d5ada0cde57263f76d8e074baa4e866b299",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "accepted_report_sha256": "ffa21b5120b8dd9b1b096cb899e5bd63ece3664033ddc1bb92ef81def7a7284a",
+    "scope": "Independent Python shape validation of retained private original report; NOT an actual Lua/native/engine execution or new baseline. Separate from four final Cargo receipts."
+  },
+  "total_final_checks_including_read_only_audit": 5
+}

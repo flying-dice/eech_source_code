@@ -68,6 +68,7 @@
 #include "entity/mobile/mb_aimfx.h"
 #include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_wpnfx.h"
+#include "entity/mobile/mb_normalfirefx.h"
 
 #include "entity/tacview/tacview.h"
 
@@ -463,7 +464,9 @@ static void answer_weapon_step_lookup (const campaign_aim_event *lookup, campaig
 			// the first object the segment meets, other than the weapon's launcher: a geometry query of the world's objects
 			memset (&intercept, 0, sizeof (intercept));
 
+			NF_QUERY_BEGIN (context->en, lookup->a, &p, &q)
 			hit = get_line_of_sight_collision_entity (get_local_entity_parent (context->en, LIST_TYPE_LAUNCHED_WEAPON), NULL, &p, &q, &intercept, &face_normal);
+			NF_QUERY_END (context->en, hit)
 
 			campaign_step_hits_add (&context->hits, lookup->a, lookup->f, hit);
 
@@ -834,8 +837,10 @@ void weapon_movement (entity *en)
 void weapon_movement (entity *en)
 {
 	eech_wpn_move_begin (en);
+	NF_STEP_BEGIN (en)
 
 	weapon_movement_original (en);
+	NF_STEP_END (en)
 
 	eech_wpn_move_end (en);
 }

@@ -1,0 +1,492 @@
+{
+  "schema": 1,
+  "review_kind": "Single combined independent correctness, clean-code and boundary-safety SOURCE pass of NEW CITY physical box constructor plus source-only mapping material",
+  "reviewer": "/root/d3_environment_review",
+  "captured_utc": "2026-11-06T12:09:49.772836+00:00",
+  "source": {
+    "commit": "f06db8570063e49d1c0d47e913d0c440a7d0927f",
+    "parent": "e49b8aa54b27f08021c304b7f15fdd61130594ef",
+    "metadata_commit": "deb50f28107273d97b5d9427e34339a131ddba94",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "snapshot": "D:/EECH-Migration-Evidence/city-box-construction-f06db8570-20261106-source",
+    "review_used_exact_immutable_Git_blobs": true,
+    "changed_files": [
+      {
+        "path": "aphavoc/source/entity/fixed/city/ct_msgs.c",
+        "bytes": 12215,
+        "raw_sha256": "97b981ec74a0e71f2d1a609e387cf7668a1434018930d1d191a11dcf6bfd63ec",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+        "bytes": 46921,
+        "raw_sha256": "ef4929ddcd3c8494b0001c258602f985525d008cd631ab67b499a45f1079d2db",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+        "bytes": 88956,
+        "raw_sha256": "3ceb7ef16e9ae0f5f3b9010cbfd602582de471b7fc6ee8d122938151f526c8af",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+        "bytes": 58199,
+        "raw_sha256": "a2d0fb74eed58222a6b8756a449d8ca5f3e566149dc97faf683a2f443ac301d0",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplace.c",
+        "bytes": 6194,
+        "raw_sha256": "698eed91247af27aff669020a93368f0c01636234549c91c64ef4fd55031fc94",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplace.h",
+        "bytes": 4679,
+        "raw_sha256": "81675c0294d1d9249a19fe855192287724c459435627429f41fed3ad9040dd4c",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+        "bytes": 34848,
+        "raw_sha256": "2f6dc37c6796cea23128a6c25cfcc8bbf60c8724fa07dbd78f8a052ce4a98e0c",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "bytes": 470149,
+        "raw_sha256": "921d863f6966ce8d5d4a5971fb4d5e5c95b3e994f5ea2d49e091746997dd29ef",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+        "bytes": 186748,
+        "raw_sha256": "3bc57f905f9007243205779a8fdd3143bb99de07423be10e9f745a560e704a2c",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "bytes": 80227,
+        "raw_sha256": "a509d052ecfcfd43ef80f651cb56d0e3fefd35ca9a831d55762e20d1f5976f52",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+        "bytes": 57819,
+        "raw_sha256": "4db5a1523a3965679f1e655feab6f9ce2ff619e767049ccc410ecab31068a5db",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "bytes": 698364,
+        "raw_sha256": "a9324ed81e080aed9fdf36c94e06019b981a3743ea337defed75fc80cdeaa590",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/build.rs",
+        "bytes": 21662,
+        "raw_sha256": "4cf036f6b23cf5d45ad123974834a030c0919a742940ea10dcf7a70018b21986",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+        "bytes": 41299,
+        "raw_sha256": "bd61c251529b27c17273c916d25ca93a0b0e3a4e64c3dd344793d2a611d64d62",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 209338,
+        "raw_sha256": "c09b63df70ba9ea895aef63549242d7a7275e42d9b23eb1029f678ee7fca19df",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "bytes": 157456,
+        "raw_sha256": "49e6874ea2caabe23b65cc3bdfefd42ab5a3d9325c0c5c519eaa884419551e80",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/models.rs",
+        "bytes": 160018,
+        "raw_sha256": "81fa0c5c6bfbeeae3b0b9e1c9bbf30f3c58c8436fc94f265a7fdde00f1e1998f",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/roster.rs",
+        "bytes": 70409,
+        "raw_sha256": "462e184dbe456fb01e504f07c9cce371509fe7a8d5bcc9036959f6e3f1bc9dd7",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/csrc/city_box_control.c",
+        "bytes": 7346,
+        "raw_sha256": "68bbeb8d047b7950431779fdad91fd791f4e2ae3a8b80a9da1729af5608094b0",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "bytes": 287664,
+        "raw_sha256": "fcf10a35534017723b571ca4bc16274495c3a383b91cdf53273f11264997b011",
+        "Git_raw_binding_verified": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+        "bytes": 158604,
+        "raw_sha256": "7429d71a718563d19333d0d2a4d803fbaefa47fc77b8c57541dad009afbb4983",
+        "Git_raw_binding_verified": true
+      }
+    ],
+    "producer_terminal": {
+      "path": "R:\\d3-evidence\\claude-d3-city-box-construction-20261106-completion.json",
+      "bytes": 970,
+      "sha256": "61357e4a1ce8d69750d7ba4d291d68bfac63b2efeffb4c844004f8db68d32b37"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_model": "claude-sonnet-5-5",
+    "producer_completed_utc": "2026-11-06T11:51:38.639403+00:00"
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "findings": [
+      {
+        "id": "ENV-CITY-BOX-EXPANDED-ATOMIC-1",
+        "severity": "P2",
+        "title": "An inverted EXPANDED reply is committed before its axis-order postcondition is checked",
+        "locations": [
+          {
+            "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+            "line": 919
+          },
+          {
+            "path": "aphavoc/source/entity/fixed/city/ct_msgs.c",
+            "line": 114
+          },
+          {
+            "path": "modules/system/assert.h",
+            "line": 74
+          }
+        ],
+        "source_evidence": "check_city_expand_reply checks state/name/count, finite words and zero trailing words, but never checks min[i] <= max[i]. The exchange then writes six output words; ct_msgs assigns all six mirror components and only afterwards evaluates its three ASSERTs. A well-named six-finite-word payload with one inverted axis passes the new dialogue validation.",
+        "shipping_assert_qualification": "The actual supported cc::Build defines neither DEBUG nor DEBUG_ASSERT; ASSERT is write_debug_log in modules/system/assert.h:74..86, not an atomic fatal validation guard. The earlier reviewer shorthand that these ASSERTs reject an inverted reply was too strong and is corrected here. It is insufficient even in a fatal-assert build because the writes precede it.",
+        "original_behavior_boundary": "The initial phase14 sentinel with minimum1e6 and maximum-1e6 remains valid. After one valid finite original expansion, BOTH p1 and p2 are unioned into BOTH min and max on each axis; even if heading swaps the two corners, the resulting expanded axes are ordered. No eight-corner repair, corner re-sort or rejection of valid original two-corner behavior is requested.",
+        "required_correction": "After the existing raw finite classification, validate numeric min<=max for all three EXPANDED axes before any caller-buffer or Core mirror write. Use raw-word ordering or another check that adds no FP exception/rounding side effect; treat signed zeros as numerically equal without changing their bits. Refuse malformed EXPANDED output by a named box reason. Do not impose this expansion postcondition on the legal initial phase14 sentinel.",
+        "focused_validation": "Use the existing real C dialogue/canary collaborator: valid expanded reply positive first, then each single inverted axis must refuse with the whole output untouched. Retain signed-zero equality, finite-word and count/name/tail checks. No bad native experiment or new physical solver is needed.",
+        "effect": "A boundary/schema and atomic mirror-commit defect; no valid retail default failure has been measured."
+      },
+      {
+        "id": "ENV-CITY-BOX-BOOT-PROTOCOL-1",
+        "severity": "P2",
+        "title": "Boot witness can withdraw before a full current parent join and has incomplete grammar/failure classification",
+        "locations": [
+          {
+            "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+            "line": 950
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+            "line": 1015
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+            "line": 1042
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+            "line": 1088
+          }
+        ],
+        "subitems": [
+          {
+            "kind": "CURRENT_parent_child_admission",
+            "source_evidence": "request_join_problem(city_expand) requires non-ended keys, acknowledged CITY and fixed states, and only a non-nil scan.city.parent[child]. It does not join that tracked parent/list anchor to parsed.city. scan_question then sets box_eligible and sends the real state withdrawal before delegating the question. A live CITY A and a live held child of CITY B can mutate B state before the real provider rejects the mismatched pair. The final marker/cause checks prevent false acceptance, but do not prevent that invalid mutation.",
+            "required_correction": "Resolve the CURRENT sector CITY placement through actual acknowledged LINK/list-anchor equivalence and require the child belongs to that same current record/list before eligibility or withdrawal. Do not directly compare unrelated transient sector and retained list-anchor keys. Track enough lifecycle/acknowledged alias history to admit legitimate empty/repopulate/relink behavior; do not fabricate a parent association from callback order.",
+            "focused_validation": "Positive current pair and legitimate retained-anchor/relinked CITY pair; then two live cities with their own acknowledged states and a live child of the other city. Wrong-parent case must have request failure, zero eligibility/withdrawal and no state mutation. The original unmodified request may still reach its real provider refusal once; it cannot authorize withdrawal."
+          },
+          {
+            "kind": "Exact_expanded_reply_grammar",
+            "source_evidence": "expand_reply_problem checks length65 and gmatch nonempty comma tokens, not exactly six tokens or exact separator structure. Five valid10-character words plus15 commas have length65 and each visited token passes, so the wrapper can credit a malformed answer. tonumber also is not the existing exact PATTERN grammar.",
+            "required_correction": "Reuse words_of_text(answer.p,6), which checks each exact pattern, exact token count and reconstruction, then perform raw finite checks before expand_answered credit. Preserve all current valid words, including signed zero/subnormal transport.",
+            "focused_validation": "A positive six-word answer, then five valid words with extra/consecutive/trailing commas totalling65 bytes must fail without answered credit. Include a signed/whitespace pseudo-hex form if it exercises the tonumber gap; no new parser framework."
+          },
+          {
+            "kind": "Boot_failure_is_not_prerequisite_absence",
+            "source_evidence": "box_verdict checks a zero-withdrawal boot fatal only when failure.marker differs from the planned entity_scan.refused marker. A boot fatal at that same generic marker with no credited withdrawal and zero locally recorded faults falls through to UNREACHED. That is not a clean missing expansion prerequisite.",
+            "required_correction": "With no acknowledged control withdrawal, ANY recognized fatal at boot is a failure, including the same generic expected marker with an unrelated cause. Keep UNREACHED only for a clean no-fatal boot that lacks an eligible expansion. Continue to avoid every poisoned engine physical/counter/metrics/close call.",
+            "focused_validation": "An unrelated pre-expansion boot refusal at entity_scan.refused must remain failure/no withdrawal rather than UNREACHED or PASS; genuine clean no-expansion stays UNREACHED, and genuine withdrawn-building refusal still passes. Preserve exactly-once delegation and safe file-close handling."
+          }
+        ],
+        "effect": "Finite test witness admission/report truth; the real provider relationship check is already correct. No production math change is requested for this group."
+      }
+    ],
+    "finding_groups": 2,
+    "source_clear": false,
+    "native_launch_clearance": false,
+    "Windows_or_retail_native_validation_clearance": false,
+    "finite_CITY_constructor_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "instruction": "Batch the two bounded groups in the same sole implementation lane before exact corrected-source review/build/native clearance. Do not run known-bad diagnostic/expanded-reply cases natively."
+  },
+  "verified_source_positives": [
+    "Hosted ct_msgs excludes the physical Core expansion; the explicit original branch retains the original function body. The Host uses the existing final ModelStore and the same canonical CITY and child records, not a second geometry/property store.",
+    "Actual en_list ordering is child insertion/report, LINK_CHILD expansion, then LINK_PARENT. The CITY sector placement and building child placement/fixed state exist before the new request. C map preflight checks current child ownership under that CITY slot; request uses semantic roster-key pair and no raw pointer/entity index.",
+    "The real provider joins a live CITY sector entry to a child of the same record before looking up geometry. Missing/withdrawn CITY or building state and mismatched pair refuse before computation/mutation. The model store is fetched only for phase15; old scan phases retain their no-model behavior.",
+    "The host kernel retains the original two corners, matrix routine, alias-safe vector multiply, float narrowing, relative offsets, strict comparisons and no-shrink union, including valid sentinel and signed-zero behavior. No source-supported numeric solver defect was established in this pass.",
+    "Input exponent words are classified as integers before f32 construction/arithmetic. Scene domain and inventory-only stores are refused. Kernel failure withholds the result; the host record is replaced whole only after a successful finite result. No numerical/physical Core fallback is present.",
+    "The Expanded decision transports six words through Sys/Engine/DC without widening legacy object-ID domains. Key pair maximum41 fits the existing128-byte per-operation identity limit; lazy object identity timing is unchanged. Count/name/tail/finite guards are present; only the missing expanded-axis postcondition remains in finding1.",
+    "Boot refusal handling uses pcall around boot and retained wrapper state; no Engine object is constructed on its fatal branch, the verdict does not ask for box/counters/metrics or close a poisoned engine, and the outer close is the owned evidence file. This correct safety property is not a substitute for finding2 admission/report fixes."
+  ],
+  "FPU_BOOT_disposition": {
+    "source_evidence": [
+      "eech-engine-sys/csrc/eech_engine.c:83 ENTER saves fenv and completeMXCSR, setsRTZ at149..150; normal LEAVE and fatal unwind restore both at162..177.",
+      "eech_engine_boot at343 enters OPERATION_BOOT; boot at195 also selects the original zero rounding. modules/system/fpu.c:317 changes the rounding field, not exception masks; set_fpu_exceptions is a no-op in the current source.",
+      "model_step.c:179 requires x87/SSE masks63, saves caller state, selectsRTZ, and restores it at205. No new global FP normalization is added by the constructor."
+    ],
+    "retained_original_control_scope": "Verbatim original statements/matrix routines under a test entry, not an actual retail Original engine loop. Linux/glibc final output records MXCSR sticky0x20 over9 headings; original x87 control and MXCSR control/mask bits remain unchanged in that finite sample. It is not a universal all-input/all-platform flag measurement.",
+    "known_side_effect_difference": "The old inline arithmetic could add sticky flags inside the engine entry; the Host kernel restores its caller pre-state. Those are NOT intrinsically identical original FP side effects. The actual scoped argument is masked numerical arithmetic, no active Core sticky-status reader found in the relevant source, and public engine-entry restoration on normal/fatal exit. Do not promote this to identical FP state at every intermediate callback.",
+    "numeric_and_environment_tests": "The recorded1440 comparisons are4scenes x9headings x5offsets x4boxes x2caller rounding modes. The separate environment control uses all4rounding modes with caller sticky bits0x21 and one unmasked-exception refusal. This is neither an enabled-trap native campaign proof nor a new complete public boot-FP matrix.",
+    "verdict": "No further concrete FPU source blocker established. Windows/Mingw original-versus-host output and legitimate boot mask context remain actual gates after the bounded corrections. Successful actual expansions imply the masks required by the unchanged guard at those calls; do not invent a raw full-state measurement from that fact. Reuse the existing controls narrowly; no new generic FP programme or normalization.",
+    "prose_qualification": "Future CURRENT/status/publication should say the Linux sample measured0x20 over9headings, not that every supported input/platform can raise only inexact. The existing test logs that observation; its masked-bit assertion is not a universal whitelist of original arithmetic flags."
+  },
+  "required_remaining_lifecycle_gate": {
+    "name": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION",
+    "status": "OPEN_REQUIRED_WHOLE_D3",
+    "source": "eech-campaign/crates/eech-world/src/roster.rs:546",
+    "actual_boundary": "A held City box rejects different phase14 restatement. Never/Withdrawn accepts a lifecycle statement. When an empty CITY sector relink ends the old record, the new record is initialized from the campaign mirror of the box the Host previously built; the same restoration channel can re-establish a withdrawn state.",
+    "finite_cut_disposition": "Named remaining lifecycle coupling, not a constructor-math correction demanded in this finite batch: it preserves the existing legitimate path, is not query-time adoption, and introduces no second Host store. It MUST remain visible in canonical/card and final acceptance after any finite constructor closure.",
+    "required_end_state": "Host knowledge of the actual city lifetime/box must survive or authorize relink/restore without Core mirror bytes being the only retained physical box. No backing/constructor healthy or withdrawal control here closes that lifecycle requirement, and no new valid-path refusal may replace it."
+  },
+  "diagnostic_delta_disposition": {
+    "declared_rule": "For the SAME healthy pre-launch capture, city_state_before(new)=city_state_before(old)-N and city_expand_before(new)=N, with N being the replaced per-expansion phase14 reports.",
+    "source_join": "Hosted ct_msgs no longer calls campaign_place_fixed_state after expansion; phase15 is counted separately by the wrapper. Initial/move/relink position/state reports remain. The source supports one-for-one replacement of the old per-expansion statements, not arbitrary normalized counters.",
+    "limits": "The pre-launch window includes boot and any warmup before arming; do not silently equate every before counter to a unique boot writer or lifetime count. Exact native delta and all other shared fields/complete terminal/ordinary short equality remain actual checks, not established by source. No signature/output normalization is authorized."
+  },
+  "DCS_source_only_mapping_review": {
+    "mapping": {
+      "path": "R:\\d3-evidence\\dcs-city-box-api-reference-20261106\\MAPPING-DRAFT.md",
+      "bytes": 3908,
+      "sha256": "ac4d545f4d83f009a18d6bb6a09700f9ec2b4ac0331599d53e82db2eb996adba"
+    },
+    "provenance": {
+      "path": "R:\\d3-evidence\\dcs-city-box-api-reference-20261106\\PROVENANCE.json",
+      "bytes": 724,
+      "sha256": "d6d26fdac00894246bac54f96121f66ff74e9fd8f976f4fd0e93340fbc98b5cb"
+    },
+    "declaration": {
+      "path": "R:\\d3-evidence\\dcs-city-box-api-reference-20261106\\StaticObject.ts",
+      "bytes": 8405,
+      "sha256": "7a645cd741ffbb8d0b2ecf377e1b95e658ba116a79f355ca945bdebfcbaeb6ef"
+    },
+    "pinned_commit": "1179554fcafcef92d71313336cc09500febf8245",
+    "Git_blob": "0378b1f371fc57bc2d4f2b22dd4ed64653e92cad",
+    "raw_blob_size_SHA256_and_Git_object_identity_verified": true,
+    "finding": "No blocking wording finding. StaticObject example includes a box but StaticObjectDesc omits it; the draft correctly treats this as unresolved capability, not universal presence or API absence. The retained UnitDesc box declaration is bounds, not a mesh/normal oracle.",
+    "scope": "Declared API shapes/examples only. No TypeScript implementation, runtime DCS behavior, verified conversion frame/origin/scale, full type catalogue/dataset or dormancy claim. Actual needed-caller census, provenance-backed workaround/support domain and M6 live checks remain explicit; all needed D3 physical services remain required."
+  },
+  "optional_next_cut_source_accuracy": {
+    "facts": {
+      "path": "R:\\d3-evidence\\fixed-predicate-source-facts-20261106\\SOURCE-FACTS.json",
+      "bytes": 4476,
+      "sha256": "453fa8960db087f478cc093a718566ddd6b6539a680e3330bdfca5de77617901"
+    },
+    "notes": {
+      "path": "R:\\d3-evidence\\fixed-predicate-source-facts-20261106\\NEXT-CUT.md",
+      "bytes": 2410,
+      "sha256": "941d13f77fbc416c5a186a20452fae8d65c0b48437ed07d7c6b6adfb5f6c0564"
+    },
+    "pinned_source": "e49b8aa54b27f08021c304b7f15fdd61130594ef",
+    "nine_source_blobs_size_SHA256_and_Git_object_identity_verified": true,
+    "declared_fixed_subtypes": 15,
+    "source_only_not_design_or_runtime_approval": true,
+    "distinctions": "IDENTIFY_FIXED is separate campaign-used classification; keysite ALIGN comes from a different database than fixed_data. Do not move campaign policy or a mixed table wholesale by enum spelling. FIXED_UNKNOWN is one of15 declared valid enum values: an unknown/refused value must mean a genuinely unsupported/out-of-domain value, not rejection of that legitimate name."
+  },
+  "provenance": {
+    "freeze": {
+      "path": "R:\\d3-evidence\\city-box-construction-CODE-FROZEN-20261106.json",
+      "bytes": 47519,
+      "sha256": "e5df491b215a5b574a64c9dcd2f50ab5b9c04a5765e3fbe8d884ea1a48b5a972"
+    },
+    "literal_repo_freeze": {
+      "path": "eech-campaign/reference/d3-entity-collision/city-box-construction-source-and-checks/city-box-construction-CODE-FROZEN-20261106.json",
+      "bytes": 46171,
+      "sha256": "bec093e3b98758fcae5c7ddca1fa5f27c99fcb5d05d88d2044fd0aa8cbc6c40a"
+    },
+    "external_to_repo_strict_semantic_join": "After removing only external identity.meta_commit and publication metadata, the records agree exactly. Different hashes are preserved, not relabelled.",
+    "root_read_only_binding": {
+      "path": "R:\\d3-evidence\\city-box-f06-source-check-binding-20261106.json",
+      "bytes": 5916,
+      "sha256": "171330bb72bfaf7f1807746666b2666137a045dcfbab01480b8a04daa706f036"
+    },
+    "root_binding_does_not_grant_clearance": true,
+    "author_maps": {
+      "before": {
+        "path": "R:\\d3-evidence\\city-box-inputmap-before-f06db8570-20261106.json",
+        "bytes": 2029346,
+        "sha256": "629a0a0aee761f222cb52f614cbdce4d147b4ccb89cfa0ac361cb93eb5ac5d5f"
+      },
+      "after": {
+        "path": "R:\\d3-evidence\\city-box-inputmap-after-f06db8570-20261106.json",
+        "bytes": 2029346,
+        "sha256": "629a0a0aee761f222cb52f614cbdce4d147b4ccb89cfa0ac361cb93eb5ac5d5f"
+      },
+      "literal_equal": true,
+      "entries": 3953,
+      "all21_changed_raw_sizes_and_SHA256_equal_Git_verified": true,
+      "author_raw_equal": 3950,
+      "qualified_raw_differences": "Same three inherited unchanged tree-geometry test-Lua workingCRLF/GitLF inputs; not a normalization of source or baseline. Separate legacy filter-only identities are not raw-byte mismatches."
+    },
+    "raw_binding": {
+      "path": "R:\\d3-evidence\\city-box-raw-binding-f06db8570-20261106.json",
+      "bytes": 2251,
+      "sha256": "062ad9d3dea895c6bb9e51cd6830ab9c00b130c0dc4fa1e9006008f2fc43da9f"
+    },
+    "Root_clean_snapshot": "Exact f06 clean detached/nohardlinks/noalternates; Root binds3953rawGit and stable maps. No Root Cargo/Windows/native replay.",
+    "final_committed_check_records": [
+      {
+        "label": "cityboxfinal-fmt",
+        "command": "cargo fmt -p eech-world -p eech-engine -p eech-dc -p eech-engine-sys -- --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T11:45:28.125364+00:00",
+        "completed_utc": "2026-11-06T11:45:32.116419+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "d17894308ad8e03a5ee0f825ef7e007275c42eeffe1c3e1f7cc7745ba99bcacf",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+        "note": "cargo fmt -- --check over the four crates"
+      },
+      {
+        "label": "cityboxfinal-check",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T11:45:32.245278+00:00",
+        "completed_utc": "2026-11-06T11:45:36.066112+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "3c06798ca7afb526dfa4574a9b57109f97cd02bb0c182660a178ea1bdf2b568a",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "59f6f2e20cf924b3d0016af7616b3bd4826f68bff76a873fba36fc93718760e1",
+        "note": "cargo check over the four crates, all targets"
+      },
+      {
+        "label": "cityboxfinal-sys",
+        "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --no-fail-fast",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T11:45:36.186124+00:00",
+        "completed_utc": "2026-11-06T11:45:51.645406+00:00",
+        "test_binaries": 7,
+        "passed": 26,
+        "failed": 0,
+        "record_sha256": "51333fe4e73de41af1009cc51430d81937929d22a8ac180987435c38e3ae387a",
+        "stdout_sha256": "ae21d394062d5e0f91b3caac6c964a566fd1f5b004f8393c24df2d5cbac61eeb",
+        "stderr_sha256": "1750a0d1e961394916a27d415a49bbb048b6d1cc281e0ecb3ae93fdb5c9e606e",
+        "note": "every eech-engine-sys integration test, with entity-dialogue-check (the dialogue control, the roster/host/pose/tree guards)"
+      },
+      {
+        "label": "cityboxfinal-dcengine",
+        "command": "cargo test --release --locked -p eech-engine -p eech-dc --no-fail-fast",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T11:45:51.775706+00:00",
+        "completed_utc": "2026-11-06T11:45:55.455959+00:00",
+        "test_binaries": 5,
+        "passed": 188,
+        "failed": 0,
+        "record_sha256": "17441e3c4c2f137a37ae10fb986ac71e46e9640831b910310a0166661858587c",
+        "stdout_sha256": "00bb679169e42e7328a8b30b74df93063b1323dbb18231f69c2ab2148c1ca609",
+        "stderr_sha256": "7fa6bbf50cb0f9d71cf83b3f1799716696140fade370e9534cbe92168d79d88b",
+        "note": "every eech-engine and eech-dc test (libs and integration)"
+      },
+      {
+        "label": "cityboxfinal-world",
+        "command": "cargo test --release --locked -p eech-world --no-fail-fast",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T11:46:11.751322+00:00",
+        "completed_utc": "2026-11-06T11:46:36.327702+00:00",
+        "test_binaries": 55,
+        "passed": 1152,
+        "failed": 0,
+        "record_sha256": "1c2dd1e0ab5c662073cd4506c128c6338fd68ad8e4966be8863a742e90ee946c",
+        "stdout_sha256": "4071030fede7d0aa996b723b9c6470a9ba2d8865df3f3d6bc1db6ea5b00f4518",
+        "stderr_sha256": "e42b7475ae700566cef7346d3c0ca682c1bc9154ca6a3a21ebe81977c30593ad",
+        "note": "every eech-world test (55 binaries: lib, model_target_point incl. the kernel/control/provider tests, entity_authority incl. the boot driver tests, all others unchanged)"
+      },
+      {
+        "label": "cityboxfinal-feature-collision-fixture",
+        "command": "cargo check --release --locked -p eech-engine-sys --features collision-fixture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T11:45:55.576619+00:00",
+        "completed_utc": "2026-11-06T11:45:58.753793+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "4ce39b2a49b16b1ae77285ba33e6e407226d0766c233b13ca384e64d86109133",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "b3025a996a24a64f49d1e3c61561ac736f5c4a05fa959ee0a7b265f6a4216e3e",
+        "note": "the ORIGINAL-fixture build (original expansion kept) compiles"
+      },
+      {
+        "label": "cityboxfinal-feature-model-host-fixture",
+        "command": "cargo check --release --locked -p eech-engine-sys --features model-host-fixture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T11:45:58.890135+00:00",
+        "completed_utc": "2026-11-06T11:46:02.073906+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "44340ef7b7dbec8917a569c04aae65e8dff6aec33349d30ba85c448ce013c0fd",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "b3025a996a24a64f49d1e3c61561ac736f5c4a05fa959ee0a7b265f6a4216e3e",
+        "note": "the diagnostic build (counters) compiles"
+      },
+      {
+        "label": "cityboxfinal-feature-model-fixture",
+        "command": "cargo check --release --locked -p eech-engine-sys --features model-fixture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T11:46:02.201959+00:00",
+        "completed_utc": "2026-11-06T11:46:05.395097+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "832ae5c07294aa8d81487f4d74931ed9f397bddf7328d1abc5f705919731f680",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "dd0addf8b1dc4f321c579c5310fb267859100fb155fd1938b8230a180d06fc64",
+        "note": "the model-fixture build (original accessors) compiles"
+      },
+      {
+        "label": "cityboxfinal-fp-characterization",
+        "command": "cargo test --release --locked -p eech-world --test model_target_point -- --nocapture --exact the_original_arithmetic_changes_no_control_word_rounding_or_mask_and_only_raises_sticky_flags",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T11:47:12.908635+00:00",
+        "completed_utc": "2026-11-06T11:47:14.099081+00:00",
+        "test_binaries": 1,
+        "passed": 1,
+        "failed": 0,
+        "record_sha256": "e870fcf6527cea613d635617a2517e1f6307732ca0d52d775c00d5bc18fc33d9",
+        "stdout_sha256": "033b547fa2cf2fdf0e0813bdd5992ac7fb8334fde065b685bfb06f32ec6d6ebd",
+        "stderr_sha256": "8942760ee22dfdd21ddbd353a4c5f22e176698ad10798c4b2bda2a59baca307e",
+        "note": "the original arithmetic control, run with its output shown: the sticky MXCSR flags the original statements raised"
+      }
+    ],
+    "final_direct_children": 9,
+    "all_final_direct_actual_exits": 0,
+    "recorded_passed_result_instances": 1367,
+    "recorded_failed": 0,
+    "result_summary_rows": 68,
+    "test_count_qualification": "1152World+26Sys+188Engine/DC+1explicit repeatedFP characterization;1367is recorded result instances, not1367 distinct tests. Earlier working-tree/superseded chains and failures are retained but not current final-chain identity."
+  },
+  "correction_and_next_validation_scope": "Correct the two groups in ONE bounded batch and use the existing affected real C dialogue/canary and public-driver controls first, plus formatting/affected compile checks. Reuse unchanged f06 kernel/control/record/transport evidence only where exact byte identity supports it; no repeated old feature matrix or native failure probe is requested. After corrected-source clearance Root owns fresh exact profiles/object/payload seals, ordinary complete short and one healthy then conditional boot withdrawal.",
+  "remaining_required_scope": [
+    "Fixed collision/align/type/subtype derivation and needed classification remain NEXT before sector-height; preserve campaign-used identity/classification policy.",
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION remains mandatory even after finite constructor acceptance.",
+    "Shared UPDATED/terrain/tallest/spatial hints, raw tree/forest/cloud data and RNG, hierarchy/subobjects/viewpoints/devices and every other needed physical service, DCS needed-call/workaround mapping, natural moving integration and allten D3 requirements stay open.",
+    "Current f734 full pack is isolated and untouched, partial evidence only. It cannot validate changed f06 C; current complete shipping/CI/review/normal delivery/whole-D3 census remain separate."
+  ],
+  "review_operations": "Only immutable Git/source/evidence reads and this single safe report write. No subagents, source/card/canonical mutations, Cargo/tests/builds/natives/retail jobs, cache/VM/process/auth operations or external publication.",
+  "publication_safety": "Counts, hashes, source locations/private paths and synthetic schema descriptions only. No retail coordinates/vectors/geometry/physical tuples, cohort signatures, entity indices, pointers, host-ID suffixes, assets/binaries or raw transcripts."
+}

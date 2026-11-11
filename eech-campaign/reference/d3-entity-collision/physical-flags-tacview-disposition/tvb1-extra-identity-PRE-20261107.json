@@ -1,0 +1,206 @@
+{
+  "kind": "files and tool identity read by the final checks of the witness-residual batch (outside the batched input map)",
+  "files": [
+    {
+      "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+      "bytes": 59540,
+      "sha256": "0911b4b1c33f61d9ac9e4b98a557a4097465966828083d9e239fe69088ef844c",
+      "git_hash_object": "db0aba61d4c3e20d26e1b41cd7e9d76f2bdbdd3f"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+      "bytes": 50113,
+      "sha256": "9a8ca4dbfe376dab8bedace467049f629a7dbfe934f84cfe42f44f41bc3216ed",
+      "git_hash_object": "68a79d5cfbfc5bebed888d84adb44beecc9d1778"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows-sector-height-witness.sh",
+      "bytes": 2660,
+      "sha256": "7534adaa89d8698a14bf24784beadb92fb5b3e353a922ca694d13cf53822d218",
+      "git_hash_object": "1cbcea69760565b812dae3e10d162b0a35bde386"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows-collision-fixture.sh",
+      "bytes": 2177,
+      "sha256": "cd8ba9d5220606a2f9627a83ad6de45f70a27a567c26cb3d42e1fbe8331af91c",
+      "git_hash_object": "021d3326659f3cce6e29298ce3f1a40b144a9615"
+    },
+    {
+      "path": "eech-campaign/tools/build-windows.sh",
+      "bytes": 2898,
+      "sha256": "a8ed706aa8127617a3c32810a28be9330b744f22b3b4ed17d5c66229e8ff4cf7",
+      "git_hash_object": "9dbf3250ac324b9c8a7507192d8c5d17951b6b42"
+    },
+    {
+      "path": "eech-campaign/tools/migration-progress.py",
+      "bytes": 3240,
+      "sha256": "004b6a41519d6eaf9a6277d20bba1535f36e71041a0b5cbbb6bdc493867dca92",
+      "git_hash_object": "acb1b359900f972e9e344b1740a2f45dfac16297"
+    },
+    {
+      "path": "eech-campaign/rustfmt.toml",
+      "bytes": 16,
+      "sha256": "478e818c64a27dc341fffc827ee4b00c5aeef237ab8745efc9690f87ad245de9",
+      "git_hash_object": "b28d8cf772bba8f334032f2ba85902be31be9454"
+    },
+    {
+      "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "bytes": 9093,
+      "sha256": "e0591f3fe097df3662d9faa44d85b2cc9882d2ad3d0c8b150abaf5a6b674a827",
+      "git_hash_object": "eff26d2eb3d4aadb55b0c991ce1d5855592ae772"
+    },
+    {
+      "path": "R:/d3-evidence/run-physical-flags-tvb1-direct-20261107.py",
+      "bytes": 2367,
+      "sha256": "0d1a4d96e4d40691a7767fcfba697619df12bfe4956c348903e77db42c0852c6",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/check-physical-flags-tvb1-linux-20261107.sh",
+      "bytes": 1405,
+      "sha256": "1f912efbac96b0a8ef7d906f676ba8571147031097b80a18b84cba966757a7ce",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/run-tvb1-final-set-20261107.sh",
+      "bytes": 2303,
+      "sha256": "9bd4d8b0154dd13b7212ee7e5f5f1994ef357725d4174b5bae8d266555960920",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-extra-identity-20261107.py",
+      "bytes": 4013,
+      "sha256": "e8d87f7fa1a675a012933138f350abc8e58ba50479e644ee0c4e33b9f1122b43",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/freeze-tvb1-20261107.py",
+      "bytes": 18201,
+      "sha256": "c052e908a4f13974fba23385ef44f9fd6439f2b52b60a7786f2fecaafcba6188",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/publish-tvb1-20261107.py",
+      "bytes": 10619,
+      "sha256": "ce1d6920ced671744443250aecda22f40132abb97d36e90b1c7a76a0a1dd318d",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-name-check-20261107.py",
+      "bytes": 2771,
+      "sha256": "3f0d7aaf8ad99012587af690ff2daa84851aa88cec30b4b32e95779cb428af66",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py",
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/preflight-receipts-20261107.py",
+      "bytes": 2203,
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-retained-dev-runs-20261107.json",
+      "bytes": 1407,
+      "sha256": "005255c72f61ff5b43775b1882f59469485c7e4b2b5ae8875914fa7cac65f56a",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-feedback-files-20261107.json",
+      "bytes": 2666,
+      "sha256": "aa3774424b54ac104211dcbe00a95d571422c715208cdc0fff9fb4ac04150471",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-name-check-result-20261107.json",
+      "bytes": 143,
+      "sha256": "3851f492b152759fcec42a54a5a2c5d4c059c3c11d4b567bdb239aea6e5a7259",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-name-check-negative-control-20261107.json",
+      "bytes": 253,
+      "sha256": "489cf82a56471cb80a22550f35c17f4d65301e85a738d416dd61c2094adc9cf1",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-preflight-receipts-20261107.json",
+      "bytes": 1010,
+      "sha256": "45fe401cfa9081a0fa3da709292cf4799a8a1eb1141cb1fca807788e8b567553",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-preflight-negative-control-20261107.json",
+      "bytes": 232,
+      "sha256": "213808ba2d5b0e2e8c276de142e65426a605408906375fdd7da5c89249dccf1d",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/derive-tvb1-helpers-20261107.py",
+      "bytes": 1708,
+      "sha256": "de64ae75c67d6352a9f324fe61eb6509e7daacff4de2347791f0da7d28a72d76",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-extract-evidence-20261107.py",
+      "bytes": 5018,
+      "sha256": "1a15f7b63c6b9dbca2a431844c8eb44fe5dab54921807377d687f19197966e6d",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/tvb1-dormancy-evidence-20261107.json",
+      "bytes": 9924,
+      "sha256": "4bf168c52786ac94329ffc97d83998b586a40e6c5031ee77f036d4c5393f4240",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/Root-tacview-consumer-feedback-20261107-2349.json",
+      "bytes": 1806,
+      "sha256": "37bbdc7902cf02c13b4819ca8b2b520ed5bf90afaf982e50a200c96f2b4374bc",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/Root-tacview-consumer-feedback-20261107-2350.json",
+      "bytes": 758,
+      "sha256": "66b163280328961956cb14544215fb40afa72530e590674488866343d31e13ef",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/supply-closed-packets-Root-publication-20261107.json",
+      "bytes": 6334,
+      "sha256": "e69b9426fc0ba99a0c7235e1e541bc836075e198205f2fa784699480d73947a1",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/supply-boolean-b1b9-all9-CI-readback-20261107.json",
+      "bytes": 16920,
+      "sha256": "66132b97936f0867ca9affdb56c565d1caf7cb24eadfee42a9bb9c915442ee08",
+      "git_hash_object": null
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-020-WINDOWS-CACHE-RELEASE-20261107.json",
+      "bytes": 2201,
+      "sha256": "2272fd770222e481df6047b036c0879afa80123b25db1d8aba5c44c441574b91",
+      "git_hash_object": null
+    }
+  ],
+  "tools": {
+    "image_id": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+    "docker": "Docker version 29.9.2, build a82e528901260c8df6073311379eac65f92db204",
+    "python": "Python 3.12.14",
+    "git": "git version 2.51.2.windows.1",
+    "volume": "eech-linux-d3-physical-flags-9d247-20261107",
+    "image_repo_tags": "[eech-height-reference-reader-9d247-20261107:latest]"
+  },
+  "aggregate_sha256": "d943e9c50001cacbee0eb6aeced095668c77ba918426221cf4d2c5de6b626f73"
+}

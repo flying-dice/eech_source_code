@@ -1,0 +1,92 @@
+{
+  "kind": "Root clarification delta identity/provenance binding only; semantic SAME review pending",
+  "when_utc": "2026-11-07T01:36:21.287956+00:00",
+  "before": "1dbf945281dc818d96491e5743e0e6237b07992f",
+  "code": "2ab093b2cbca6f31dad44a8bffc95ec9570d4752",
+  "metadata_head": "c9a833d6e732db0ecce8e7d5ee901ee3f940500d",
+  "clean_pushed": true,
+  "actual_terminal_exit": 0,
+  "result_is_error": false,
+  "completion_sha256": "9c342982710038ff7bbe0188b9f0c6fe171c2d760a6cc90442a67086cbc1d609",
+  "freeze_sha256": "3841299dc424402c2f5a5032f5c11eac24e7df8b015f80aff1cbf6bd4982d52b",
+  "changed_paths": [
+    {
+      "path": "STATUS.md",
+      "sha256": "0d892ef20fb8b2ab5e2740864463360949198d6b4c75335ff94670cf64d455a9",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "docs/handover/ACTIVE-EXTRACTION.json",
+      "sha256": "b654d9553bb483bfdd2975094abe0ed8522ef135366049d831e5c895bdbc20f5",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/docs/d3-needed-consumer-api-disposition.md",
+      "sha256": "62b58907b489544f8e374dc7ae4f49305af37c48a4abe9a1f7016275e756de39",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/docs/d3-sector-height-contract.md",
+      "sha256": "e174f7a8179d3888a156f5505469e0745b60f0b7976be713d2720766831576f4",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/D3-needed-consumer-api-clarification-CODE-FROZEN-20261107.json",
+      "sha256": "3841299dc424402c2f5a5032f5c11eac24e7df8b015f80aff1cbf6bd4982d52b",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/README.md",
+      "sha256": "1115d399b21be6ff39d2ca74fab4ac6146c80fb897325e49fc677b0ad2dd6b4c",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/Root-needed-consumer-api-reference-response-20261107.json",
+      "sha256": "394d31fdf292004eb90327dd053a6f2d7ede783979eac8ee3e6713fa3b810d6b",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/independent-needed-consumer-api-disposition-2c6652f4d-20261107.json",
+      "sha256": "cc70a2cefe7ae4d7877d8197eced100cbe539db1275103bc2571b6e562274d70",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/manifest.json",
+      "sha256": "0c522393f652344b3d532898ff60c46eecc39dbc82b66b2bc24aab4bee61d515",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/needed-consumer-api-matrix.json",
+      "sha256": "7b0d2b07ed036a5dd21b144d172388357d2c2e51e8b197498487379e67d019d6",
+      "raw_Git_literal": true
+    },
+    {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/needed-consumer-api-reference-requests-clarified-20261107.json",
+      "sha256": "800326d4e2b4aceb89181635fa4d7969d3db58df58d131b19499d61f6ef06422",
+      "raw_Git_literal": true
+    }
+  ],
+  "original_packet_six_files_literal_unchanged": [
+    "eech-campaign/reference/d3-needed-consumer-api-disposition/.gitattributes",
+    "eech-campaign/reference/d3-needed-consumer-api-disposition/D3-needed-consumer-api-disposition-CODE-FROZEN-20261107.json",
+    "eech-campaign/reference/d3-needed-consumer-api-disposition/README.md",
+    "eech-campaign/reference/d3-needed-consumer-api-disposition/manifest.json",
+    "eech-campaign/reference/d3-needed-consumer-api-disposition/needed-consumer-api-matrix.json",
+    "eech-campaign/reference/d3-needed-consumer-api-disposition/needed-consumer-api-reference-requests-20261107.json"
+  ],
+  "new_manifest_entries_verified": 7,
+  "freeze_outputs_verified": 5,
+  "runtime_build_abi_source_changed": false,
+  "preparation_count": 2,
+  "both_review_findings_still_open": true,
+  "earlier_fullpack_P1_blocks_cutover": true,
+  "independent_review": "SAME delta-only pending",
+  "physical_cutover_clearance": false,
+  "full_shipping_acceptance": false,
+  "all_ten_requirements_preserved": true
+}

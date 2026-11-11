@@ -1,0 +1,75 @@
+{
+  "kind": "Root read-only actual flag lifetime source/entry fixture binding; no replay",
+  "utc": "2026-11-08T01:53:01.424889+00:00",
+  "code": "0c7b61bac977075f172bc3d55c2520d2f8aa1f51",
+  "metadata": "26f025321f83241155e0edbe39e04771ff33b6f4",
+  "source_rows": 4000,
+  "PRE_POST_current_Git_joined": true,
+  "raw_Git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "Git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "Git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "Git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+    }
+  ],
+  "extra_files_count": 18,
+  "all_extras_PRE_POST_current_equal": true,
+  "readers_count": 7,
+  "all_sealed_readers_current": true,
+  "final_commands": [
+    {
+      "label": "s1-fmt",
+      "actual_exit": 0,
+      "Rust_test_instances": 0
+    },
+    {
+      "label": "s2-clippy-default",
+      "actual_exit": 0,
+      "Rust_test_instances": 0
+    },
+    {
+      "label": "s3-clippy-lifetime",
+      "actual_exit": 0,
+      "Rust_test_instances": 0
+    },
+    {
+      "label": "s4-lifetime",
+      "actual_exit": 0,
+      "Rust_test_instances": 1
+    },
+    {
+      "label": "s5-source-guard",
+      "actual_exit": 0,
+      "Rust_test_instances": 3
+    },
+    {
+      "label": "s6-build-default",
+      "actual_exit": 0,
+      "Rust_test_instances": 0
+    }
+  ],
+  "selected_Rust_instances": 4,
+  "callback_calls_group_word_postpoison_calls": [
+    6,
+    1,
+    32,
+    0
+  ],
+  "other_mapped_Git_inputs_unchanged_from_parent": 3992,
+  "engine_c_only_40byte_include_plus_separator_insertion": true,
+  "original_engine_c_NUL_count_preserved": 1,
+  "author_service_status": "completed; no CLI PID/exit fabricated",
+  "author_completion_sha256": "23d25cf0295fa20d1bb4bb6ba91d840a11daace620b5d226ecaf643f013941e1",
+  "freeze_sha256": "a93dde6c22c7eabff23d2959c210b4d7a8cc27ab65c2ea2c066a5deae686cb78",
+  "limits": "UNREVIEWED owned-provider NULboot-attempt BEFORE C/retail and private shared-entry/callback/realstore characterization. Not successfulEngineboot/Lua/publicnativeREAD/replacement/sessionVMthread/fullFPU/DCS/wholeD3 proof. No global resets/production semantic fixes/Windows/native/defaultcampaign/fullpack replay or oldbinary relabel."
+}

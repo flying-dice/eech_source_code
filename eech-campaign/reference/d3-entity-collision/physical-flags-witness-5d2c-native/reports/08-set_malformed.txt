@@ -1,0 +1,9 @@
+pf-witness-identity schema=1 mode=set_malformed profile=hosted scenario=lebanon_retail seed=1 frame_ms=100 hours=0.001 campaign=LEBANON.CHC map=..\common\maps\map5 paired=1
+pf-witness-counts frames=1 attempts_group=1 attempts_set=1 attempts_read=0 attempts_reset=1 answered_group=1 answered_set=1 answered_read=0 answered_reset=1 accepted_group=1 accepted_set=0 accepted_read=0 accepted_reset=1 altered=1 changed_accepted=0 keys_issued=1 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=1 oracle_reads=0 oracle_resets=1 oracle_mismatches=0
+pf-witness-oracle sets=1 reads=0 resets=1 mismatches=0
+pf-witness-first event=reset ordinal=1 frame=1 before_group=0 before_set=0 before_read=0 before_reset=0
+pf-witness-first event=group ordinal=2 frame=1 before_group=0 before_set=0 before_read=0 before_reset=1
+pf-witness-first event=set ordinal=3 frame=1 before_group=1 before_set=0 before_read=0 before_reset=1
+pf-witness-intervention at=set_ordinal_3 entry=frame:1 callback_after=none
+pf-witness-fatal where=frame marker=entity_scan.answer entry=frame:1 line=runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.answer] p text must be exactly 3 bit patterns separated by commas
+pf-witness-verdict mode=set_malformed status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.answer immediately, in its entry frame:1

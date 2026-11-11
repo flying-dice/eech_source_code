@@ -1,0 +1,33 @@
+{
+  "schema": "tree-second-control-actual-safe-v1",
+  "source_native": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+  "diagnostic_lua_git_blob": "ed56799d60fe4b39f7e13c812d44f9f22f38a8f3",
+  "diagnostic_lua_commit": "3619cea4d0c2f8589e6038b74c2fbed57d8fbab2",
+  "provenance": "Safe projection of Root's retained private record (D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnostic3619-control-20261103/). No raw retail coordinates or transcripts.",
+  "actual_native_exit": 1,
+  "input_manifest_exits_and_payloads": {
+    "verified_payloads": 87
+  },
+  "selection": {
+    "rule": "nearest_valid_target_any_side_within_precision_range",
+    "launcher_kind": "ENTITY_TYPE_PERSON",
+    "weapon": 16,
+    "weapon_name": "PKM_AP_7.62mm",
+    "distance_m": "0.039",
+    "same_side": true,
+    "pairs_in_range": 2710,
+    "launchers_checked": 1
+  },
+  "cohort": {
+    "size": 1,
+    "ended": 1,
+    "terminal_code": "hit_land",
+    "terminal_steps": 72
+  },
+  "tree": {
+    "tests_delta": 0,
+    "tree_begin_after": 0,
+    "queries": 0
+  },
+  "verdict": "UNREACHED again, correctly. The nearest pair AT LAUNCH (0.039 m) is not the weapon's NEW position in a 72-step flight, so the precision input the original flight reads (wn_flight.c: new position within 50 m, a non-AI party, or a viewed weapon) was not met. No physics regression and no host authority is proved by zero questions."
+}

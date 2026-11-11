@@ -1,0 +1,24 @@
+{
+  "controller_pid": 5896,
+  "started_utc": "2026-11-11T00:34:26.573148+00:00",
+  "state": "running",
+  "commands": [
+    [
+      "s1-python",
+      null
+    ],
+    [
+      "s2-fmt",
+      "rustup component add rustfmt && cargo fmt --version && cargo fmt --all -- --check"
+    ],
+    [
+      "s3-clippy",
+      "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world --all-targets -- -D warnings"
+    ],
+    [
+      "s4-session-lua",
+      "cargo test --locked -p eech-world --test normal_fire_session -- --nocapture"
+    ]
+  ],
+  "actual_exits": {}
+}

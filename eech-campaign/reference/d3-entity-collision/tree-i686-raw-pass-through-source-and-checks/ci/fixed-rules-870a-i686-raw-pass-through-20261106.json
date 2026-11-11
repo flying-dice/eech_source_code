@@ -1,0 +1,15 @@
+{
+  "source": "870a243fba4d0e683697994617aacf60eedfd994",
+  "code": "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453",
+  "run": 42246707079,
+  "job": 127990702498,
+  "profile": "i686-unknown-linux-gnu debug",
+  "failure": "tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words",
+  "location": "eech-campaign/crates/eech-world/src/tree_host.rs:342",
+  "actual": "Done hit=false point[2145386497,2147483648,1]",
+  "expected": "Done hit=false point[2141192193,2147483648,1]",
+  "difference": "Expected raw signaling NaN0x7fa00001 becomes quiet0x7fe00001 on a no-hit/no-trees output. Cause requires source diagnosis; do not change golden words, skip test or waive CI.",
+  "log": "ci-870a-i686-decoded-20261106.log",
+  "status": "New real required-CI blocker; narrow subnormal correction22716/7920 is already running. Preserve its actualjob; consolidate this raw-pass-through issue before delivery/source-native clearance.",
+  "scope": "x64default/OPT2/Windows and helper jobs PASS at870a; bothi686 jobs FAIL. This is distinct from prior missing fpu helper compile errors."
+}

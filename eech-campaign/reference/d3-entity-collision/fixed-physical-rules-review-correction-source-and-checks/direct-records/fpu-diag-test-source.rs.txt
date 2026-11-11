@@ -1,0 +1,32 @@
+// TEMPORARY untracked diagnostic (fpu-diag): where does FE_INVALID rise for a signaling word? Deleted after the run.
+use eech_world::trees::{clear_exception_flags, exception_flags};
+use std::hint::black_box;
+
+fn flags_after(label: &str, f: impl FnOnce()) -> i32 {
+    clear_exception_flags().expect("clear");
+    f();
+    let raised = exception_flags();
+    println!("DIAG {label}: flags={raised}");
+    raised
+}
+
+#[test]
+fn where_the_flag_rises() {
+    let word = black_box(0x7fa0_0001u32);
+    let bits_only = flags_after("from_bits+black_box only", || {
+        black_box(f32::from_bits(word));
+    });
+    let integer_class = flags_after("integer exponent test", || {
+        black_box(word & 0x7f80_0000 == 0x7f80_0000);
+    });
+    let finite = flags_after("f32::is_finite", || {
+        black_box(f32::from_bits(word).is_finite());
+    });
+    let nan = flags_after("f32::is_nan", || {
+        black_box(f32::from_bits(word).is_nan());
+    });
+    let abs_lt = flags_after("abs < INFINITY", || {
+        black_box(black_box(f32::from_bits(word)).abs() < f32::INFINITY);
+    });
+    println!("DIAG summary bits_only={bits_only} integer={integer_class} is_finite={finite} is_nan={nan} abs_lt_inf={abs_lt}");
+}

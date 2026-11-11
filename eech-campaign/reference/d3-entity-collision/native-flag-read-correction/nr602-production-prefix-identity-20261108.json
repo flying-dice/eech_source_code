@@ -1,0 +1,40 @@
+{
+  "runtime": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+  "module": {
+    "path": "eech-campaign/crates/eech-dc/src/module.rs",
+    "runtime_sha256": "d86b00281356782c8e0dfd2c530fc344775f47f6bdc85e1e58734e94fb247ce5",
+    "current_sha256": "33eb0b56b38ed91a48ea5da185949db5e920deec8d35a2d25a58658aecc0d7b7",
+    "same_whole_file": false,
+    "entire_production_prefix_equal": true,
+    "only_delta_utf8": "\n#[cfg(test)]\n#[path = \"native_flag_read_refusal_check.rs\"]\nmod native_flag_read_refusal_check;\n",
+    "original_NUL_count_preserved": 3
+  },
+  "other_five_protocol_files": [
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "sha256": "48354a1e2f58df6b91bb1a3b701b7b1fd8d8781a9e2046aaa13e744791c7216a",
+      "same_whole_file": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "sha256": "96bad27212f2c30690812ba33e0860867721d6def844415d66fa0ebaa1d3291f",
+      "same_whole_file": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+      "sha256": "03c7b8644dc2980d57c93a429e21a949ee3fecbc3317b24cf145deaa17ab422f",
+      "same_whole_file": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "sha256": "0b82441d74216b8dffe628712796077a7e08e8d8663480977ed480f1242d06e1",
+      "same_whole_file": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "sha256": "11e3d49625a49b6f4ad3e92e50258f84f73eb74d5032a8e008c58df2bc911648",
+      "same_whole_file": true
+    }
+  ],
+  "limits": "No new Windows/runtime build or old binary relabel; actual converter control is a cfg(test) own-crate unit, scripted boot/SCENE, real converter and canonical provider over existing tiny-format installation; not native campaign acceptance."
+}

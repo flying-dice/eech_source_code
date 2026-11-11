@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "utc": "2026-11-11T01:18:24.209224+00:00",
+  "HEAD": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+  "source_bindings_literal_compiled2fc": {
+    "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c": "ebc6fa9d0a6780d94492f44b3c6118224fb040fe770265b0877fb01655d4c40c",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "33419d97a1b8fd701a18f3483b819494c80e3d8db4c185a7545947a9c6aa905b",
+    "eech-campaign/crates/eech-dc/src/module.rs": "d39bcab66d7324a4f3102b01f2c51b98de1b24dea641f90c68e048951ca0cfc1",
+    "eech-campaign/crates/eech-world/src/main.rs": "99f8769c29deef38a22c8b1d47b7c0aa52f2ad2dfd869ed99a70c60d21acb9dd",
+    "eech-campaign/crates/eech-world/src/movement.rs": "33560723cd2aaab531a9c180da5cd048dd59e2f4b9febb62a8446f1cace369cd",
+    "eech-campaign/crates/eech-world/csrc/convoy_step.c": "a3ca0e1b14264cfc36095cf29bd2d7c526b09da46ec26b1957348ac16bae0f97"
+  },
+  "terrain_optional_contract": [
+    "rv_hostmv.c336 begin_step MOVE zero-initializes request.349-377 fills terrain only if horizontal distance squared>1 AND guide terrain-follow !=NONE. Otherwise nil terrain is lawful; absence is not corrupted/nonfinite terrain.",
+    "eech-engine lib.rs5916-5925 validates follow/present consistency;5998 rejects negative delta only (zero legal);6001-6010 optional terrain becomes None. MovementStep437-448 declares delta/waypoint/optional terrain. module.rs21 serialize_none_to_null(false),2823 actual Lua converter sends nil/absent terrain. main.rs826-843 parses optional terrain independently of MOVE.",
+    "movement.rs3279-3310 passes c_int(terrain.is_some()) to real eech_convoy_step. convoy_step.c139-155 uses elevation/normal only when terrain_present, otherwise derives heading/pitch from real waypoint.171-176 moves xyz by min(distance,velocity*delta);absent terrain is ordinary physical movement."
+  ],
+  "zero_legal_and_effect": [
+    "lib.rs5998 accepts zero delta and rejects negative; host main number() enforces finite f32 but no positive-only requirement. No new API/domain widening.",
+    "convoy_step.c122-126 updates velocity by bounded_delta_velocity*delta_seconds; zero leaves original velocity.171-176 yields movement_distance=0 for nonnegative old speed and finite distance; absent terrain keeps pre y. It may recompute attitude from existing waypoint and clips to map bounds. Therefore require nonnegative pre speed, preposition inside map volume and terrain absent; do NOT claim the whole result/attitude unchanged.",
+    "movement.rs2025-2031 mutates real canonical pose and retains its real motion vector from resulting attitude/speed; main.rs1442 real returned position/attitude/motion are consumed by rv_hostmv.c380-409. A returned result cannot be fabricated/changed independently of host state."
+  ],
+  "proposed_schema4": {
+    "effect": "ONE actual existing routed MOVE physical delta_seconds ->0, sourceapproved by Root lead; actual engine frame remains100ms, seed1/1500/30+120 unchanged",
+    "healthy_prerequisite": "Exact real callback dt>0 finite, terrain absent, preposition inside bounds and prevelocity>=0, finite complete prestate, actual nonzero pre-to-post displacement; real moving Need/READ/reask/TEST at same first locked cohort/candidate. No arbitrary actor/window/distance change.",
+    "receipt": "Snapshot completed callback input pose(position/velocity/attitude), dt, bounds and actual reply; preserve callback/model/registration/frame IDs and latest-writer invalidation. Immutable atNEED. Actual prepose from existing step only, no getter or sidecar.",
+    "B": "At same actor/member/group/bind/callback/model predecessor/move_frame AFTER delivered earlier-frame identical normal birth prefix and <=NEED, compare all consumed input fields/prestate to healthy before delegation, clone ONLY dt=0. Actual solver must return exact preposition and distinct healthyposition, real samecandidate16TEST/positioneffect; no fallback intervention.",
+    "controls": "Real movement/SharedMovers/model/FlagStore healthy-first and zero-step pair with terrain absent, then single-field dt/prestate/identity/ordinal/model/prefix/writer faults beforeeffect/output. Oldterrain schema3/current completeUNREACHED remain literal; source/product C/Rust unchanged.",
+    "not_proved": "Retained raw has no MOVE inputs/prepose/dt, so actual displacement and future B reachability cannot be inferred. No new native run authorized here."
+  },
+  "actual_terminal": "Root ad149639 binding: complete1500UNREACHED,all16 candidate rejections code11,nil captured terrain;mode1receipt first birth938<MOVE1476<query1477; Babsent; rawsame1fd throughEOF. No stationarity/traffic absence inferred.",
+  "scope": "Source disposition/Rootlead proposal only; implementation now authorized separately by Root message, schema4 explicit change to old500m contract. All10/Generic1/prep2 and productioncutover gates remainOPEN; no native/default/Windows/build/replay."
+}

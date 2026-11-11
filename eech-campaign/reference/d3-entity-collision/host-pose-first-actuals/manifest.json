@@ -1,0 +1,42 @@
+{
+  "runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "metadata_before_publication": "0da8b14d884364eeccda11f1e610c351d2452a68",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 62,
+      "sha256": "9464b301a283a4eb3e9d7857adc11aee7074bf311ae6da26117d3458bad5be13"
+    },
+    {
+      "path": "actual-review.json",
+      "bytes": 16370,
+      "sha256": "8a64c2af7c4c1c577c8135756091678a0a9f2d197a23b088a7c910c445f4d7ce"
+    },
+    {
+      "path": "default-safe-facts.json",
+      "bytes": 4299,
+      "sha256": "86ed8a28ed50341253056d07ffca81ed540d7a7f9ab13c2a4601ced11cb656e5"
+    },
+    {
+      "path": "moving-unreached-safe-facts.json",
+      "bytes": 1635,
+      "sha256": "f886499ac1680bb69866279e64b36b4e5b9c2af20de1c659562f3386c7681014"
+    },
+    {
+      "path": "ordinary-short-comparison.json",
+      "bytes": 1746,
+      "sha256": "99c43b9cc2f01c4e3f70527f0661117dd754d0864a7828670b35b2bedb35492a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3330,
+      "sha256": "bfa9b7d3a4b3c10bc3aa084ac28927c408a9f767201cfedf309c324bc2ed4a38"
+    },
+    {
+      "path": "windows-builds-and-payloads.json",
+      "bytes": 30676,
+      "sha256": "507317c2a21f0530bf73f4a4f018e819becdef3fd0917fd43aae9db2119eabb5"
+    }
+  ],
+  "scope": "Default characterization/complete ordinary short verified; firstmoving UNREACHED; no wholepose/Task49/D3 acceptance"
+}

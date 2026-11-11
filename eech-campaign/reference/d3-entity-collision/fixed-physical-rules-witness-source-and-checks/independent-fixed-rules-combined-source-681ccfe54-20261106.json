@@ -1,0 +1,545 @@
+{
+  "schema": "d3.independent.fixed-rules-combined-source.v1",
+  "created_utc": "2026-11-06T17:55:59.244509+00:00",
+  "reviewer": "same sole independent Codex reviewer",
+  "scope": "One combined correctness/clean-code/boundary-safety review of new scan validation, tree raw transport and i686 candidate arithmetic corrections plus their retained checks/provenance. Closed physical-rule table/CITY constructor/other finite slices reused without replay.",
+  "source": {
+    "commit": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "parent": "e442946e5589ae9b91a1522bf4b35afec490cc63",
+    "metadata_commit": "33d1fc30e60477c26851204b88e9912d61726630",
+    "branch": "codex/d3-object-tree-collision",
+    "observed_clean_exact_metadata_HEAD": true,
+    "reviewed_chain": [
+      {
+        "code": "cd97e0b723e4f6710622ba9c6c19a16516fa4174",
+        "code_parent": "870a243fba4d0e683697994617aacf60eedfd994",
+        "meta_commit": "d45221d958a70afb78778b1a9ab3aae260469607",
+        "prior_code_under_review": "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453",
+        "reviewed_chain": [
+          "d2f5027c9154841c32f70ed87747b9d908e08e48",
+          "bfce56e3c9e56352c1f2c6beb6c53d930dbee649",
+          "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453",
+          "870a243fba4d0e683697994617aacf60eedfd994"
+        ],
+        "branch": "codex/d3-object-tree-collision",
+        "changed_paths_over_code_parent": "see changed_paths (two files; the code commit differs from 4fb81c673 in exactly these)",
+        "note": "meta_commit stays the tracked null placeholder in this repository copy; Root's external copy names the metadata commit",
+        "changed_paths": [
+          {
+            "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+            "bytes": 32186,
+            "sha256": "b19fa16ec862747dcb92622132d3969a6e1a7bb77bf56683a64c541b3a549190"
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+            "bytes": 52746,
+            "sha256": "16864ae99787511701853c9911f99657c6baad91011ad5cf90fc7730a87b0b07"
+          }
+        ]
+      },
+      {
+        "code": "0a7330f860c19a45a415f8a6cbf77513a9db84be",
+        "code_parent": "d45221d958a70afb78778b1a9ab3aae260469607",
+        "meta_commit": "e442946e5589ae9b91a1522bf4b35afec490cc63",
+        "branch": "codex/d3-object-tree-collision",
+        "note": "meta_commit stays the tracked null placeholder in this repository copy; Root's external copy names the metadata commit",
+        "changed_paths": [
+          {
+            "path": "eech-campaign/crates/eech-world/csrc/tree_step.c",
+            "bytes": 41539,
+            "sha256": "131ace9a71ee15231c5fae95dc24a6c2a7d44c24e58ea0b03b040fe33d25940d"
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/src/trees.rs",
+            "bytes": 72491,
+            "sha256": "451fd9806be67408f8d8b5693d6f0b951c438d9b6ae3fd01ce570596880a9dcf"
+          }
+        ],
+        "reused_unchanged_code_under_review": {
+          "cd97e0b723e4f6710622ba9c6c19a16516fa4174": "the narrow subnormal correction (external report SHA-256 62445b900a11ae56b0a6a4c53ce6c980380cd877ab60664de7b570bb3a40401f) is the code parent's code and is neither changed nor re-reviewed here; the same reviewer is to assess it TOGETHER with this material",
+          "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453": "reviewed parent of cd97e0b72 (sealed review d6b5df9f...)"
+        }
+      },
+      {
+        "code": "681ccfe5476a7c0a90036bc01cd054358c751162",
+        "code_parent": "e442946e5589ae9b91a1522bf4b35afec490cc63",
+        "meta_commit": "33d1fc30e60477c26851204b88e9912d61726630",
+        "branch": "codex/d3-object-tree-collision",
+        "note": "meta_commit stays the tracked null placeholder in this repository copy; Root's external copy names the metadata commit",
+        "changed_paths": [
+          {
+            "path": ".github/workflows/eech-campaign.yml",
+            "bytes": 6937,
+            "sha256": "3f66c24dbecc31289ac5ec2a209b39e267b4266e6c14c11c63d9e369dba3a087",
+            "inside_map_roots": false
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+            "bytes": 20295,
+            "sha256": "03c7b8644dc2980d57c93a429e21a949ee3fecbc3317b24cf145deaa17ab422f",
+            "inside_map_roots": true
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/tests/entity_candidate_host.rs",
+            "bytes": 48543,
+            "sha256": "af6f45dbeb4521ce99ad89653f2c8d2a3c972d50eb0ed24eadad25a5b51831ce",
+            "inside_map_roots": true
+          }
+        ],
+        "preserved_chain": {
+          "0a7330f860c19a45a415f8a6cbf77513a9db84be": "tree raw-copy fix (code); meta e442946e5589ae9b91a1522bf4b35afec490cc63 with its pack and report (external sha256 03168a4a...) literal",
+          "cd97e0b723e4f6710622ba9c6c19a16516fa4174": "scan classifier subnormal fix (code); external report sha256 62445b900a11ae56b0a6a4c53ce6c980380cd877ab60664de7b570bb3a40401f literal"
+        }
+      }
+    ],
+    "new_executable_test_and_workflow_paths": [
+      {
+        "introduced_at": "cd97e0b723e4f6710622ba9c6c19a16516fa4174",
+        "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+        "bytes": 32186,
+        "sha256": "b19fa16ec862747dcb92622132d3969a6e1a7bb77bf56683a64c541b3a549190"
+      },
+      {
+        "introduced_at": "cd97e0b723e4f6710622ba9c6c19a16516fa4174",
+        "path": "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+        "bytes": 52746,
+        "sha256": "16864ae99787511701853c9911f99657c6baad91011ad5cf90fc7730a87b0b07"
+      },
+      {
+        "introduced_at": "0a7330f860c19a45a415f8a6cbf77513a9db84be",
+        "path": "eech-campaign/crates/eech-world/csrc/tree_step.c",
+        "bytes": 41539,
+        "sha256": "131ace9a71ee15231c5fae95dc24a6c2a7d44c24e58ea0b03b040fe33d25940d"
+      },
+      {
+        "introduced_at": "0a7330f860c19a45a415f8a6cbf77513a9db84be",
+        "path": "eech-campaign/crates/eech-world/src/trees.rs",
+        "bytes": 72491,
+        "sha256": "451fd9806be67408f8d8b5693d6f0b951c438d9b6ae3fd01ce570596880a9dcf"
+      },
+      {
+        "introduced_at": "681ccfe5476a7c0a90036bc01cd054358c751162",
+        "path": ".github/workflows/eech-campaign.yml",
+        "bytes": 6937,
+        "sha256": "3f66c24dbecc31289ac5ec2a209b39e267b4266e6c14c11c63d9e369dba3a087"
+      },
+      {
+        "introduced_at": "681ccfe5476a7c0a90036bc01cd054358c751162",
+        "path": "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+        "bytes": 20295,
+        "sha256": "03c7b8644dc2980d57c93a429e21a949ee3fecbc3317b24cf145deaa17ab422f"
+      },
+      {
+        "introduced_at": "681ccfe5476a7c0a90036bc01cd054358c751162",
+        "path": "eech-campaign/crates/eech-world/tests/entity_candidate_host.rs",
+        "bytes": 48543,
+        "sha256": "af6f45dbeb4521ce99ad89653f2c8d2a3c972d50eb0ed24eadad25a5b51831ce"
+      }
+    ],
+    "fresh_Windows_snapshot": "D:\\EECH-Migration-Evidence\\fixed-rules-corrected-681ccfe54-20261106-source",
+    "fresh_snapshot_receipt": {
+      "path": "R:/d3-evidence/fixed-rules-windows-freeze-681cc-20261106.json",
+      "bytes": 3115,
+      "sha256": "e4aed581d4cac2d4c0d5f0aef419a312bf1337735d0c0ff5b9a6247b1b76b311"
+    },
+    "fresh_snapshot_map": {
+      "path": "R:/d3-evidence/fixed-rules-windows-snapshot-681cc-inputs-20261106.json",
+      "bytes": 913780,
+      "sha256": "9a426eb71912cd1af6fd24845f2d3d29eead27d6621a94418f003e04a9c55e2a"
+    },
+    "fresh_snapshot_distinct_raw_Git_inputs": 3954,
+    "local_longpaths_autocrlf_false_eol_LF_before_checkout": true,
+    "no_hardlinks_or_alternates": true
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "findings": [],
+    "native_launch_clearance": true,
+    "clearance_is_conditional_and_finite": true,
+    "ENV_SCAN_PRE_SAVE_SUBNORMAL_FPU_1_closed": true,
+    "tree_raw_word_correction_source_verified": true,
+    "i686_candidate_portability_correction_source_verified": true,
+    "native_authority_accepted": false,
+    "all_i686_or_historical_MSVC_behavior_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full40_all8_accepted": false,
+    "delivery_or_merge_accepted": false
+  },
+  "dispositions": [
+    {
+      "id": "ENV-SCAN-PRE-SAVE-SUBNORMAL-FPU-1",
+      "status": "CLOSED_SOURCE_AND_RETAINED_CONTROL",
+      "source": "cd97e0b723e4f6710622ba9c6c19a16516fa4174",
+      "assessment": "check_scan_facts is cfg(test) only; classify_scan_words is now the sole production validator. fp_state and the existing mask requirement precede conversion of request words to floats. Invalid-word domain/order/messages and unsupported-environment refusal stay intact; no flushing, added valid-input rejection, global mask or assertion weakening.",
+      "actual_evidence": "Old debug RED17passed/1failed reproduces valid-subnormal status leakage. Corrected debug/release World1173/0 each and workspace strict Clippy/fmt0. The focused control covers4rounding modes x2sticky setups x6DAZ/FTZ/mask contexts =48contexts, BEGIN and ENTRY each; masked valid scans succeed, DAZ-enabled unmasked cases receive the named unsupported-environment refusal, and whole state compares exactly.",
+      "limits": "DAZ-clear unmasked pre-fix trapping was not executed. Retained release pre-fix manifestation was not separately measured. The new test and source close the precise exposed path, not every other module float classifier."
+    },
+    {
+      "id": "ENV-TREE-NOHIT-RAW-WORDS-I686-1",
+      "status": "CLOSED_SOURCE_AND_RETAINED_SCOPED_CONTROL",
+      "source": "0a7330f860c19a45a415f8a6cbf77513a9db84be",
+      "assessment": "Tree begin/finish now copy caller point/normal storage with memcpy instead of scalar float loads/stores; static assert pins vec3d to exactly3floats. These are uninterpreted caller output words, not arithmetic inputs. This preserves signedzero/subnormal/signaling/quiet-NaN payloads without a conversion or invented write. Tree arithmetic, terrain order, RNG, identity, lifetime, cancellation and guard are unchanged.",
+      "actual_evidence": "Existing host-level and added kernel raw-word tests fail on old i686 C, and both pass after raw-copy C is rebuilt. Added test reinterprets complete arrays rather than scalar float-return paths and exercises three no-write exits.",
+      "limits": "The standalone committed focused attempt that failed is retained; the same Rust binary passes2tests after unchanged-C rebuild. Author attributes old archive selection to the old-source probe sharing its target volume; Root binds source/raw SHA unchanged and actual rebuilt test outcome, not a retrospective pristine-cache claim. Original x64/OriginalStack workspace controls were precommit without a pre-map and retain that qualification."
+    },
+    {
+      "id": "ENV-I686-ENTITY-CANDIDATE-NARROW-ULP-1",
+      "status": "JUSTIFIED_BOUNDED_PORTABILITY_CORRECTION",
+      "source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+      "assessment": "The intended profile is the accepted Windows-x64/SSE single-precision operation evaluation. The old i686 x87 compilation retained excess precision across expressions/inlined locals and produced context-dependent words. Conditional NARROW stores through an addressable volatile float only when FLT_EVAL_METHOD is nonzero; otherwise it is the original expression. It is applied at float-operation/assignment boundaries in placement/cross products, local normalization/magnitude helpers, speed/sweep, radius boxes and city offsets. Constants, operators, order, branches, staged services, refusals and output shape stay the same.",
+      "clean_code": "Narrowing is local to this kernel rather than changing shared eech_arith.h or global compiler flags. Local helper bodies correspond to the existing shared/original algorithms; no separate physical solver, policy, fallback or cache is introduced. Macro operands are pure reads and evaluated once.",
+      "x64_identity_limit": "The macro expands as identity for the declared x64 evaluation model, with the local helper operations preserving the old source semantics. This is not a binary/object-code identity claim. Retained patched x64 original-C control and x64 candidate differential are exact; new Windows builds and literal actuals remain mandatory.",
+      "FP_RNG_boundary": "Explicit x87 float stores can change internal rounding/status relative to old excess precision; that is the intended portability repair. Existing kernel FP guard and exception-mask requirement are unchanged and enclose the computations; no new global FP setting/RNG/callback/order change. No new universal32-bit caller-FP or historical32-bit MSVC proof is inferred.",
+      "oracle_integrity": "The existing Rust differential oracle/assertions are unchanged except explanatory comments. No tolerance, normalization, skip, golden rewrite, seed/input change or primary compiler FP flag was used to make it pass."
+    },
+    {
+      "id": "CI_NO_FAIL_FAST",
+      "status": "CORRECT_DIAGNOSTIC_WORKFLOW_CHANGE",
+      "assessment": "The two existing matrix/Windows test commands add only --no-fail-fast. Targets, features, flags, assertions and required jobs stay intact; Cargo still exits nonzero when a binary fails. This exposes subsequent failures rather than skipping or weakening gates."
+    }
+  ],
+  "original_C_control": {
+    "claim": "Retained scratch/surrogate compilation of original text, not a Windows game/engine recording.",
+    "extraction": "Reconstructed the four awk-selected original functions from immutable modules/maths/matrix.c and vector.c and the single normalization wrapper; bytes exactly equal original_extract.h. The actual original normalise_3d_vector delegates directly to normalise_any, so that wrapper is semantically faithful.",
+    "original_extract_sha256": "2f160adc618ad0bcafa7b92869a75f2f2f5dedf93b293f0ae32bdc5ee2d09c38",
+    "variants_read_and_hashed": 18,
+    "rows_each": 2000,
+    "all_four_input_words_identical_across_targets": true,
+    "all_nine_output_word_difference_counts_recomputed": true,
+    "patched_variants_exact_against_x64_original": 5,
+    "patched_rows_per_variant": 2000,
+    "common_patched_and_x64_original_SHA256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+    "pre_fix_i686_O1_original_vs_production_differing_rows": 1657,
+    "precision_interpretation": "Original/production i686 x87 context varied; diagnostic SSE builds and all five narrowed variants equal the x64 original on this corpus. Diagnostic SSE flags were not adopted in production. This supports the selected single-precision profile rather than rewriting its oracle.",
+    "coverage_limit": "The original-text control covers face-normal placement. Other narrowed sites rely on the existing exact randomized public differential over400generated worlds x6segments. It is not an original-C control per operation or all possible floats.",
+    "retained_failures": "Earlier scratch link failure and target-dependent-input run remain superseded; accepted comparisons use exact power-of-two/integer generated input words. Shell scratch summaries/raw corpora are diagnostic evidence, not substitutes for the separately recorded direct Cargo gate exits."
+  },
+  "retained_checks": {
+    "scan_final_commands": [
+      {
+        "command": "cargo fmt --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T16:15:42.026383+00:00",
+        "completed_utc": "2026-11-06T16:15:46.821251+00:00",
+        "receipt_sha256": "f3c0909f3a8b46af718bf34fb92394c3f831e66689aa588ff188f8df2ae56b96",
+        "result_rows": 0,
+        "passed": 0,
+        "failed": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu --no-fail-fast -p eech-world",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T16:15:46.941273+00:00",
+        "completed_utc": "2026-11-06T16:16:42.088361+00:00",
+        "receipt_sha256": "06a82aaeeaaf61b495a7cc3c28807ed4c1a4f3e92b3ea52818150e8eb952c675",
+        "result_rows": 55,
+        "passed": 1173,
+        "failed": 0,
+        "stdout_sha256": "c966124a9fbc6c5b9bd731cef2d319432b9679b47553b359f1b6e0a8904b69fe",
+        "stderr_sha256": "6da425787df0183d418d2e544a48c0f0be2bee17a5b7cb42fec9b99bc36d3962"
+      },
+      {
+        "command": "cargo test --release --locked --no-fail-fast -p eech-world",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T16:16:42.209550+00:00",
+        "completed_utc": "2026-11-06T16:17:46.616352+00:00",
+        "receipt_sha256": "c39202755171455289ab4ce8c8bd1078b667492b949978021a0741e7c426f172",
+        "result_rows": 55,
+        "passed": 1173,
+        "failed": 0,
+        "stdout_sha256": "ac166964ce13768d93e57cba3056dad4e6d22889ca11c582674658c82a0463f0",
+        "stderr_sha256": "1ae8c7bc9c388a5be825799fc6e33ec027cf42d322d8cd82efdc227899d1d59b"
+      },
+      {
+        "command": "cargo clippy --locked --all-targets -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T16:17:46.745333+00:00",
+        "completed_utc": "2026-11-06T16:17:54.612497+00:00",
+        "receipt_sha256": "2a3d03d4d902247a74135649e80ab8950669946dd7dc92df4c950e8b52c6ecd7",
+        "result_rows": 0,
+        "passed": 0,
+        "failed": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "a19fb826b9452cafcccef5531a9a228c38a4319b40a3382549515afd194e0f7d"
+      }
+    ],
+    "scan_result_instances": 2346,
+    "scan_result_rows": 110,
+    "pose_final_commands": [
+      {
+        "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --test entity_candidate_host",
+        "state": "terminal",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T17:37:01.806548+00:00",
+        "completed_utc": "2026-11-06T17:37:09.437074+00:00",
+        "receipt_sha256": "81e83dac130cad9a689488990a0bb5014c146d7329e2400789c0158b524ea0ca",
+        "result_rows": 1,
+        "passed": 13,
+        "failed": 0,
+        "test_binary": "entity_candidate_host-d8005ab78d8c4ab5",
+        "eech_world_recompiled": true,
+        "stdout_sha256": "4a9e6ddf7456595b79ba033b09e481e922408de7b630dddb9916a89f249dcdfe",
+        "stderr_sha256": "6258dc2b0122e0fd6d8f002b8071f823efc0a42e2ba54108f37657b735249dc0"
+      },
+      {
+        "command": "env EECH_ORIGINAL_STACK_ATTRIBUTES=1 cargo test --locked --target i686-unknown-linux-gnu -p eech-world --test entity_candidate_host",
+        "state": "terminal",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T17:37:09.543736+00:00",
+        "completed_utc": "2026-11-06T17:37:11.050536+00:00",
+        "receipt_sha256": "11ee3a1b74cd2d87668552f3010fed85003da4e6adaff092000690ce534bc705",
+        "result_rows": 1,
+        "passed": 13,
+        "failed": 0,
+        "test_binary": "entity_candidate_host-d8005ab78d8c4ab5",
+        "eech_world_recompiled": false,
+        "stdout_sha256": "2261c4cbbe3529410fb8867b589e85399d7ae27076c3880ae7b5d09d47acf3be",
+        "stderr_sha256": "d88e29ca213147c6ac1f351f74f14cff9495a64cd4fc9fe201dcb662d105b71b"
+      },
+      {
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_candidate_host",
+        "state": "terminal",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T17:37:11.152756+00:00",
+        "completed_utc": "2026-11-06T17:37:18.135405+00:00",
+        "receipt_sha256": "93ccec909b86b97cb3487ca10bfd8a69499f47fa3607137029bfa7076c2bf99e",
+        "result_rows": 1,
+        "passed": 13,
+        "failed": 0,
+        "test_binary": "entity_candidate_host-5f50ca84ba33b61c",
+        "eech_world_recompiled": true,
+        "stdout_sha256": "e6d63f31ffef2241ed285ecbdca1e110ffaaca0e669b29f745febf152a9c6cd5",
+        "stderr_sha256": "0bc9a036c034001a4d50bb5fd3658aa97a99d467e29a40b96d86b2bfc1957835"
+      },
+      {
+        "command": "cargo fmt -p eech-world -- --check",
+        "state": "terminal",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T17:37:18.240747+00:00",
+        "completed_utc": "2026-11-06T17:37:21.620827+00:00",
+        "receipt_sha256": "f525636d4fb501cfd00e65cc48758d1f73ca85bc123781b2ff9f1171d0e24ead",
+        "result_rows": 0,
+        "passed": 0,
+        "failed": 0,
+        "test_binary": null,
+        "eech_world_recompiled": false,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "a11f1d5e481f6404d7036f8e070b404406cb585908bd06230e4b0660206081da"
+      },
+      {
+        "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+        "state": "terminal",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T17:37:21.720821+00:00",
+        "completed_utc": "2026-11-06T17:37:32.521074+00:00",
+        "receipt_sha256": "8536f6a70fe643621294beeea650dbec0ad57dbca979245148a03ab77d1f7784",
+        "result_rows": 0,
+        "passed": 0,
+        "failed": 0,
+        "test_binary": null,
+        "eech_world_recompiled": true,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "333ea6079539355f398a7f05845f5000f54835b47b937a49d0ba84a9f8a2678a"
+      }
+    ],
+    "pose_final_actual_exits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "pose_scoped_passing_result_instances": 39,
+    "pose_result_rows": 3,
+    "pose_OriginalStack_qualification": "Second execution of the SAME scoped i686 binary, not a distinct original-stack build. Actual workspace profile coverage is separate CI.",
+    "candidate_trace_contract": "All13 existing tests pass per scoped run; exact differential includes first-hit/window/order/exclusion/effectful-service/pose/refusal traces. Oracle code only gained comments. No tolerance or physical-signature normalization.",
+    "tree_check_scope": "All21 retained receipt statuses and stdout result counts joined, including genuine REDs and later separate pose failure. Tree tests2pass after C rebuild; parent i686 full-workspace1391pass/1posefail remains a parent failure, not latest681green.",
+    "blocked_duplicates": [
+      {
+        "label": "final-i686-workspace-stackattr",
+        "state": "blocked_before_launch",
+        "actual_exit": null
+      },
+      {
+        "label": "final-x64-workspace-default",
+        "state": "blocked_before_launch",
+        "actual_exit": null
+      },
+      {
+        "label": "final-x64-workspace-opt2",
+        "state": "blocked_before_launch",
+        "actual_exit": null
+      }
+    ],
+    "blocked_qualification": "Root blocked before a Cargo child, exit null. These three are not GREEN; separate completed working-tree runs retain their own pre-map limitations.",
+    "no_new_whole_workspace_at_latest_code": "Latest681local checks are the scoped candidate tests/fmt/WorldClippy. Earlier workspace results keep their source and chronology. No blanket current workspace/release/C_OPT2/local native claim."
+  },
+  "provenance": {
+    "sealed_prior_review": {
+      "path": "R:/d3-evidence/independent-fixed-rules-correction-source-4fb81c673-20261106.json",
+      "bytes": 20178,
+      "sha256": "d6b5df9fddca12305e43f44c46d7aec54ebd00734d449446b799453405983cb1"
+    },
+    "freeze_and_publication_joins": [
+      {
+        "external_freeze": {
+          "path": "R:/d3-evidence/fixed-rules-subnormal-CODE-FROZEN-20261106.json",
+          "bytes": 23872,
+          "sha256": "62445b900a11ae56b0a6a4c53ce6c980380cd877ab60664de7b570bb3a40401f"
+        },
+        "repo_freeze": {
+          "path": "eech-campaign/reference/d3-entity-collision/fixed-rules-subnormal-source-and-checks/fixed-rules-subnormal-CODE-FROZEN-20261106.json",
+          "bytes": 21782,
+          "sha256": "74cb1d9c1a26d9ab757ab8435147c2cdba0511118798cf8013825d1c6c4c13d5"
+        },
+        "strict_external_repo_join": "Exact deep equality after ONLY removing publication and resetting identity.meta_commit to tracked null",
+        "author_before_map": {
+          "path": "R:/d3-evidence/fixed-rules-subnormal-inputmap-before-20261106.json",
+          "bytes": 2029467,
+          "sha256": "62794acb0e97e80cf774b65cc2f0860df8f4bcc12fb4da53ccacf94c9fe72abd"
+        },
+        "author_after_map": {
+          "path": "R:/d3-evidence/fixed-rules-subnormal-inputmap-after-20261106.json",
+          "bytes": 2029467,
+          "sha256": "62794acb0e97e80cf774b65cc2f0860df8f4bcc12fb4da53ccacf94c9fe72abd"
+        },
+        "maps_literal_equal": true,
+        "publication_manifest": {
+          "path": "eech-campaign/reference/d3-entity-collision/fixed-rules-subnormal-source-and-checks/manifest.json",
+          "bytes": 4954,
+          "sha256": "ef43d6ab6baf964d43b991c2396acdbae1ad6b0ad806ae86c3783cb3257cd5bb",
+          "listed_files_Git_verified": 29,
+          "total_pack_files_with_manifest": 30
+        }
+      },
+      {
+        "external_freeze": {
+          "path": "R:/d3-evidence/tree-i686-raw-pass-through-CODE-FROZEN-20261106.json",
+          "bytes": 38814,
+          "sha256": "03168a4af420f1c09185c9cd510f75e2e3bca429f6e841a9551c449aa35a3d04"
+        },
+        "repo_freeze": {
+          "path": "eech-campaign/reference/d3-entity-collision/tree-i686-raw-pass-through-source-and-checks/tree-i686-raw-pass-through-CODE-FROZEN-20261106.json",
+          "bytes": 36308,
+          "sha256": "fd63e8ace37eefa03548c2eab6888f4c02975d942378b7107b7eb0dfeb8a3b7c"
+        },
+        "strict_external_repo_join": "Exact deep equality after ONLY removing publication and resetting identity.meta_commit to tracked null",
+        "author_before_map": {
+          "path": "R:/d3-evidence/tree-i686-raw-pass-through-inputmap-before-20261106.json",
+          "bytes": 2029450,
+          "sha256": "6663e67173ffff8d4218ae2f54e4216a51ba297fa3beec725f04d3de1e31680b"
+        },
+        "author_after_map": {
+          "path": "R:/d3-evidence/tree-i686-raw-pass-through-inputmap-after-20261106.json",
+          "bytes": 2029450,
+          "sha256": "6663e67173ffff8d4218ae2f54e4216a51ba297fa3beec725f04d3de1e31680b"
+        },
+        "maps_literal_equal": true,
+        "publication_manifest": {
+          "path": "eech-campaign/reference/d3-entity-collision/tree-i686-raw-pass-through-source-and-checks/manifest.json",
+          "bytes": 13357,
+          "sha256": "a2c5b4e38960d0de3722649cd0029b7fd65fbc28bde487e7657ebdf77403ada0",
+          "listed_files_Git_verified": 83,
+          "total_pack_files_with_manifest": 84
+        }
+      },
+      {
+        "external_freeze": {
+          "path": "R:/d3-evidence/i686-enumeration-pose-CODE-FROZEN-20261106.json",
+          "bytes": 34671,
+          "sha256": "e675b95c8c292459a248ff69f68ae734c7e1bc1e4cc674b0c5fde78db6f7da10"
+        },
+        "repo_freeze": {
+          "path": "eech-campaign/reference/d3-entity-collision/i686-enumeration-pose-source-and-checks/i686-enumeration-pose-CODE-FROZEN-20261106.json",
+          "bytes": 31964,
+          "sha256": "ea4526bb20077dc8c335dd2a3d82a26cfe06c09b5fb966d8f0ae7d52376d746f"
+        },
+        "strict_external_repo_join": "Exact deep equality after ONLY removing publication and resetting identity.meta_commit to tracked null",
+        "author_before_map": {
+          "path": "R:/d3-evidence/i686-enumeration-pose-inputmap-before-20261106.json",
+          "bytes": 2029480,
+          "sha256": "403c39bf4f1750efbbdc0d45bdee4b3a92e5c928360e2dfe976603aab64c3b93"
+        },
+        "author_after_map": {
+          "path": "R:/d3-evidence/i686-enumeration-pose-inputmap-after-20261106.json",
+          "bytes": 2029480,
+          "sha256": "403c39bf4f1750efbbdc0d45bdee4b3a92e5c928360e2dfe976603aab64c3b93"
+        },
+        "maps_literal_equal": true,
+        "publication_manifest": {
+          "path": "eech-campaign/reference/d3-entity-collision/i686-enumeration-pose-source-and-checks/manifest.json",
+          "bytes": 8393,
+          "sha256": "89be998a4a2e1e6081fe47eaf40f1abf5fd9e34bb120b01626cc3bc2f548aeee",
+          "listed_files_Git_verified": 54,
+          "total_pack_files_with_manifest": 55
+        }
+      }
+    ],
+    "Root_bindings": [
+      {
+        "path": "R:/d3-evidence/fixed-rules-subnormal-Root-binding-d452-20261106.json",
+        "bytes": 4568,
+        "sha256": "2fb72d8eaa67c4ee14ac2915b2220ad250cdbd6c78eece5e9090c66bc30e9fbf"
+      },
+      {
+        "path": "R:/d3-evidence/tree-i686-Root-binding-e442-v2-20261106.json",
+        "bytes": 6913,
+        "sha256": "d17049297c5821e2601fe8ef26a8d6492c7ac4e6d60c9d0219f2492271ea0a81"
+      },
+      {
+        "path": "R:/d3-evidence/i686-pose-Root-binding-33d1-20261106.json",
+        "bytes": 8691,
+        "sha256": "a58e18e23687803956fc63c02f0da05ff6f972be4a94aac6a2b8b9d69008e771"
+      }
+    ],
+    "producer_terminal_receipt": {
+      "path": "R:/d3-evidence/claude-d3-i686-enumeration-pose-20261106-completion.json",
+      "bytes": 704,
+      "sha256": "557d95a5bcff55837e179c5f9bd82c6aba845aaf9c675e1afeaed9ff22ed4f2b"
+    },
+    "producer_terminal": {
+      "actual_exit": 0,
+      "result_is_error": false,
+      "model": "claude-sonnet-5-5",
+      "completed_utc": "2026-11-06T17:43:17.982369+00:00"
+    },
+    "source_map_qualifications": "Each author before/after raw map is literal. They contain3953mapped inputs with3950rawGit matches and the same three untouched test-Lua CRLF/GitLF qualifications; no normalization. Pose additionally binds the outside-map workflow, making3954distinct inputs. Map comparison revision arguments name parents; actual captured clean checkout HEADs, code raw bindings and record hashes bind the committed source.",
+    "latest_clean_Windows_snapshot": "Fresh detached681 with3954rawGit-exact inputs, local longpaths/autocrlffalse/eolLF before checkout and no hardlinks/alternates. No build/native has yet been performed there.",
+    "private_stderr_qualification": "Six tree-pack compile stderr streams remain private, with recorded raw hashes/lengths verified by Root v2; not claimed committed. Root v1 stopped on its mistaken all-stderr-in-Git assumption and produced no binding. Published receipts/stdout and available stderr hashes were joined independently.",
+    "tree_mtime_rebuild": "Rebuild after the after-map uses unchanged C bytes; mtime-only touch and author stale-archive explanation are retained separately. No process restart, source repair or successful failed-attempt relabelling by reviewer.",
+    "prior_4fb_provenance_erratum": "Old d960/c926 relation needs removepublication/removeexternal-onlyreview_sha256/resetmetaNULL; old literals preserved. The three new freeze joins each require only publication removal and metaNULL reset, independently checked."
+  },
+  "current_CI": {
+    "source_metadata_head": "33d1fc30e60477c26851204b88e9912d61726630",
+    "reported_by": "Root actual GitHub readback in this review turn; no formal reviewer approval fabricated",
+    "campaign_run": 42264119434,
+    "campaign_status": "completed SUCCESS, all7jobs including x64default, x64OPT2, bothi686, Windows/Wine and helpers",
+    "historical_run": 42264119327,
+    "historical_status": "SUCCESS",
+    "structural_run": 42264119574,
+    "structural_status": "SUCCESS",
+    "exact_current_head_jobs_total": 9,
+    "not_delivery_acceptance": true
+  },
+  "conditional_native_scope": {
+    "allowed": "Root may run pending standard ordinary/hosted/explicitOriginal Windows builds from exact clean681, bind actual feature/object/export profiles and seal payloads, then established complete ordinary short and ONE healthy physical-rule/default control followed by ONE real changed_fixed_rule refusal on fresh verified roots.",
+    "required_actuals": [
+      "Exact source/binary/Lua/profile/complete pre-post input/payload joins and separately recorded native/helper/outer exits.",
+      "Allthree complete ordinary short files literal accepted80fd; unchanged seed/frame/duration/flags.",
+      "Healthy zero request/reply/mirror faults; declare four added fixed_rule_* fields while every existing shared field and complete physical terminal/default outputs stay exact.",
+      "Current served held record, real prechange need_placement, strict same-key/provider ACK of subtype-onlyUNKNOWN restatement, SAME unmodified next placement request and exact named collision-fixed refusal/request0/reply1. No actor/time/geometry hunt; postfatal Engine data unknown and no poisoned close."
+    ],
+    "not_authorized_as_claim": "No native authority/full40all8/Task49/D3/dependency/delivery acceptance before actual required evidence. No extra old-kernel replay or test fleet is required by this source clearance."
+  },
+  "remaining_required": {
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION": "OPEN_REQUIRED_WHOLE_D3, mandatory next CITY production before sectorheight/fullCITY ownership: empty-city relink/restore must retain/authorize Host-built box knowledge without Core as its sole surviving physical copy.",
+    "all_ten_D3_requirements_preserved": true,
+    "other_scope": "Default shape/clutter/direct draw alignment and needed DCS/caller disposition, sectorheight/hints/UPDATED/shared terrain, raw tree/forest/cloud RNG, needed hierarchy/devices/services, natural moving integration, current final40/all8/final inputs/CI/normal merge/final census remain required. Historical32-bit MSVC behavior unknown; other kernels not audited for x87 evaluation independence in this pass. D4/D5/TypeScript unstarted.",
+    "parent_pack": "Existing f734 original fullpack processes/roots/binaries/output remain untouched; partial literal prefixes are not681/current/full acceptance."
+  },
+  "review_operations": "Read-only immutable Git source, retained raw outputs/maps/logs/statuses and publication checks; no Cargo/test/build/native/campaign/cache/process/VM/source/card/canonical changes or subagents. Only this new review artifact written.",
+  "publication_safety": "Source/evidence identities, hashes, counts and semantic outcomes only; no retail coordinates, actor IDs, raw geometry/physical tuples, trajectories, fatal lines or recordings."
+}

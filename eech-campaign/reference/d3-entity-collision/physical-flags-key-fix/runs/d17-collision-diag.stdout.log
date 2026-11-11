@@ -1,0 +1,22 @@
+
+running 1 test
+physical flags collision expectations made: 15
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c:430 unset flag: a segment ahead of the mobile (the future path) hits it
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c:454 flag set: a segment behind the mobile (the previous path) now hits it
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c:457 a second query reads the same raw mask again: the previous path still hits
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c:469 both set: the first visited (the older, slot 3) keeps its flag: its previous path hits
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c:470 the first read cleared the newer mobile's bit of the shared word: got 0, wanted 8
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c:472 and its future path hits (it is read as unset)
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c:483 reverse order: the first visited is the older (slot 9) and keeps its flag: its previous path hits
+FAIL /src/eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c:484 its read cleared the newer mobile's bit (slot 3) and kept its own (slot 9): got 0, wanted 512
+physical-flags-collision: consumer=get_line_of_sight_collision_entity (moving mobile pass-through, original profile)
+
+test the_moving_mobile_pass_through_of_the_collision_query_reads_the_raw_updated_word_destructively_and_swaps_the_path_it_tests ... FAILED
+
+failures:
+
+failures:
+    the_moving_mobile_pass_through_of_the_collision_query_reads_the_raw_updated_word_destructively_and_swaps_the_path_it_tests
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

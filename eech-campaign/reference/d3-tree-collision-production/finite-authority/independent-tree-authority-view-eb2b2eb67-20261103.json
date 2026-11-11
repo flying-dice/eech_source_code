@@ -1,0 +1,117 @@
+{
+  "schema": "independent-bounded-diagnostic-host-input-review-v1",
+  "reviewed_utc": "2026-11-03T03:45:39.893619+00:00",
+  "source": {
+    "commit": "eb2b2eb6781fefce7e6b76abdbbd4d947010a7f7",
+    "compared_to": "3619cea4d0c2f8589e6038b74c2fbed57d8fbab2",
+    "changed_paths": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/crates/eech-world/lua/tree-authority.lua",
+      "eech-campaign/crates/eech-world/tests/tree_authority.rs",
+      "eech-campaign/docs/d3-tree-collision-provider.md",
+      "eech-campaign/reference/d3-tree-collision-production/f0-second-control-selector3619-unreached-20261103.json"
+    ],
+    "all_other_entries_modes_and_blobs_exact": 9068,
+    "production_C_Rust_ABI_build_and_ordinary_scripts_unchanged": true,
+    "diagnostic_lua_git_blob": "9123f1448ec8ec412b146a2ff290360e5d7769ab",
+    "diagnostic_lua_sha256": "0feb86a0ed7bbf08da4b298531c793f969455524f0fcc6916dc91451bf33ae2a"
+  },
+  "decision": {
+    "source_review_no_blocking_findings": true,
+    "findings": [],
+    "diagnostic_native_launch_clearance": true,
+    "scope": "One fresh literal eb2 diagnostic Lua hosted control on already built f0 native with explicit source/binary/script identities.",
+    "new_native_TREE_or_authority_acceptance": false,
+    "whole_Task49_or_D3_accepted": false,
+    "full_shipping_or_dependency_accepted": false
+  },
+  "source_checks": [
+    "mb_hostaim.h enum declares CAMPAIGN_STEP_LOOKUP_VIEW_WEAPON=1. wn_move.c copies lookup to answer, fills r=&answer.f[6], and places the view answer at r[0]. Thus Lua array index7 is the FIRST result word r0, at zero-based event f[6], not a new float metadata field. module.rs aim_event_table sends kind/a/b/c/d plus all12 f words, and main.rs step_events reads that schema.",
+    "On armed mode=weapon_step only, the delegate scans the supplied answers and copies every changed kind1 event and all12 f values, setting f[7]=1. It copies the top-level request when a change is made; all other actual protocol fields, events and modes are passed unchanged to base host.aim. It does not mutate the caller table or add a second physical solver.",
+    "The configured view value is an exact representable input to the unchanged host precision rule. It is explicitly diagnostic configuration, not a measured camera/player condition. It is not an entity-MISS override, a manufactured TREE question, or a patched campaign precision rule.",
+    "The view input is global to all armed weapon steps because the protocol supplies no per-weapon identity. Natural/foreign war activity is declared affected and remains visible. Healthy control means unmodified TREE provider UNDER configured-view context, not wholly unmodified host input. Hosted and Original profiles apply the same input.",
+    "Restored simple first ballistic launcher/nearest-enemy selection is read-only until the same previously reviewed real launch/target-link operation. No placements, constructors, package overrides or production weapon rules change.",
+    "Normal verdict requires view application and a real precision_high delta before actual contact_trees_tests/provider equality. No step answer or no precision or no TREE call remains UNREACHED. Named fatal refusal still has no postpoison query; view application is observed before the fatal, and no unavailable precision counter is invented afterwards.",
+    "Existing exclusive checked-output, full launch/terminal schema, cohort completion/restoration, Engine-prefix/cause and endpoint pairing guards are retained. Closed kernel/P1/Task52 source is not reopened."
+  ],
+  "focused_actual_evidence": {
+    "logs": [
+      {
+        "path": "D:/EECH-Migration-Evidence/tree-view-20261103-f/v1-red.log",
+        "bytes": 20184,
+        "sha256": "4faca3219cc9a49d4daee36494d1c903fe922b071b74622aebca71fa6ecb1020"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/tree-view-20261103-f/v2-fmt.log",
+        "bytes": 24,
+        "sha256": "811df0065f32d37391ba07a8d77cf679a9a747442866c2054bb8de9f09d2f78b"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/tree-view-20261103-f/v3-final.log",
+        "bytes": 5935,
+        "sha256": "527d20b2a51d63442bcf63190497072f8957ddd3b37693133e17e7b79c5aa919"
+      }
+    ],
+    "old_selector_red": {
+      "actual_exit": 101,
+      "passed": 3,
+      "failed": 14,
+      "qualification": "The old3619 witness fails the new positive setup because the scripted pair is outside its previous50m restriction. In particular the new view-positive test fails BEFORE reaching a view answer. This is a retained selector/setup RED, not an isolated old-view-transform counterexample or a native failure. No rerun required to record that limit."
+    },
+    "new_green": {
+      "tree_authority_actual_exit": 0,
+      "passed": 17,
+      "failed": 0,
+      "child_exits": {
+        "tree_authority-green": "0",
+        "fmt-check": "0",
+        "clippy-world": "0",
+        "progress-fix-blocker": "0"
+      },
+      "stable_before_after_fingerprint": "7bace1e0365697e9a1633b07d11cd1dc740689623387556033914239ce84cbf0"
+    },
+    "meaningful_current_controls": "Current coherent positive checks changed path answers[2].f[7] only, caller nonmutation, unrelated signed-zero preservation, warmup/first-round/birth-mode pass-through. Ignored input, missing answer, no TREE test and short12-word vector fail with their own causes. Preset view and Original profile are explicitly covered by scripted controls.",
+    "limits": "Scripted real-Lua behavior, fmt and World strict only. No new native high-precision/entity-MISS/TREE proof, full caller FP result or retail campaign coverage is claimed."
+  },
+  "second_native_attempt_preserved": {
+    "runtime_source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+    "diagnostic_source": "3619cea4d0c2f8589e6038b74c2fbed57d8fbab2",
+    "controller": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnostic3619-control-20261103/controller.json",
+      "bytes": 4329,
+      "sha256": "bbfcec3fff0b4e62054f440fc49982de1a03d0632a80465164e687865d33fe87"
+    },
+    "complete_raw": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnostic3619-control-20261103/model.jsonl",
+      "bytes": 1671,
+      "sha256": "5c7c6fe34e4ba76ac181df02ccd6a323767513cdd6b02c2cefc937dae72a21bb"
+    },
+    "native_actual_exit": 1,
+    "controller_actual_exit": 1,
+    "pre_post_input_exits": [
+      0,
+      0
+    ],
+    "unchanged_payloads": 87,
+    "cohort_size": 1,
+    "case_weapons_ended": 1,
+    "terminal_steps": 72,
+    "tests_delta": 0,
+    "tree_begin_after": 0,
+    "classification": "Correctly rejected UNREACHED, not source regression, Original capability RED, or host authority. Nearest launcher/target at selection does not establish weapon NEW-position range during flight."
+  },
+  "safe_publication": {
+    "file": "eech-campaign/reference/d3-tree-collision-production/f0-second-control-selector3619-unreached-20261103.json",
+    "sha256": "8b528930b59d9ed2873d0dc89819ff2a4dda18ab48f893697333c4e92e536784",
+    "scope": "Explicit safe fieldwise projection of second f0-native/3619-Lua attempt, not literal raw transcript or independent authority approval. Native/source/script, zeroTREE failed verdict, terminal count/code/steps and selected-distance summary agree with retained attempt. It contains no raw retail coordinate vectors, geometry or pointer identities.",
+    "not_reaudited": "Existing f0 build/payload and COMPLETE ordinary-short proof stays at f0; it is not relabeled eb2. This review does not repeat their complete audit or the closed helper/kernel suites."
+  },
+  "runtime_identity_for_next_control": {
+    "native_source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+    "external_diagnostic_source": "eb2b2eb6781fefce7e6b76abdbbd4d947010a7f7",
+    "required": "Use exact reviewed Git-blob Lua and unchanged verified helper/payloads on one fresh root with full pre/post input checks. Do not label f0 binary eb2; source clearance does not promise the flight will reach a TREE question."
+  },
+  "remaining_gates": "Actual configured-view application, precision_high, entity MISS/TREE reachability and provider authority/consequences/refusal/Original evidence remain OPEN. The earlier two failed attempts remain retained. Required raw Core loader/forest/cloud RNG, object/entity collision and concrete DCS mapping plus whole Task49/D3 remain open. Existing long packs stay protected and no partial prefix is acceptance.",
+  "execution": "Same independent reviewer, read-only committed source/protocol and completed log/raw metadata inspection. No candidate edits, builds, test/native execution, caches/VM/auth/app writes or subagents. Only this new safe canonical-LF report written."
+}

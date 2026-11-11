@@ -1,0 +1,123 @@
+{
+  "kind": "Root fresh immutable source snapshot only; no build or native execution",
+  "utc": "2026-11-07T23:00:01.623609+00:00",
+  "source": "R:\\d3-evidence\\collision-characterization-20261029",
+  "source_observed_clean_HEAD": "442a834a5b52793249145f7253ba9b68c68e3182",
+  "snapshot": "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source",
+  "code": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+  "longpaths_before_checkout": true,
+  "clean_full_status": true,
+  "no_alternates": true,
+  "rows": 3995,
+  "compiled_inputs_exact": true,
+  "inherited_uncompiled_Lua_lineending_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "commands": [
+    {
+      "args": [
+        "git",
+        "-C",
+        "R:\\d3-evidence\\collision-characterization-20261029",
+        "rev-parse",
+        "HEAD"
+      ],
+      "actual_exit": 0,
+      "stdout": "442a834a5b52793249145f7253ba9b68c68e3182\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "R:\\d3-evidence\\collision-characterization-20261029",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "clone",
+        "--no-checkout",
+        "--no-hardlinks",
+        "R:\\d3-evidence\\collision-characterization-20261029",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": "Cloning into 'D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source'...\ndone.\n"
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source",
+        "config",
+        "--local",
+        "core.longpaths",
+        "true"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source",
+        "checkout",
+        "--detach",
+        "3abf03e5133279ae6ed53b657e76d4f7724f7dd3"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": "HEAD is now at 3abf03e51 UNREVIEWED CODE_FROZEN: the supply arrival descriptor's updated flag corrected to the boolean its Rust boundary requires (Task49, D3; intentional defect correction, one assignment; RED on ae367ca3a then GREEN in the ORIGINAL and HOSTED profile; native, Windows and default recordings UNRUN)\n"
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source",
+        "rev-parse",
+        "HEAD"
+      ],
+      "actual_exit": 0,
+      "stdout": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\supply-boolean-3abf-20261107-source",
+        "config",
+        "--get",
+        "core.longpaths"
+      ],
+      "actual_exit": 0,
+      "stdout": "true\n",
+      "stderr": ""
+    }
+  ]
+}

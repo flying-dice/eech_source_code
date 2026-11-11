@@ -1,0 +1,7 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.62s
+     Running tests/host_callbacks.rs (/target/t/debug/deps/host_callbacks-01e380bfce0df75c)
+     Running tests/physical_flags_witness_driver.rs (/target/t/debug/deps/physical_flags_witness_driver-156c1f77030291d2)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.58s
+     Running tests/entity_roster_guard.rs (/target/t/debug/deps/entity_roster_guard-3f9f02a05a504f84)
+     Running tests/physical_flags_guard.rs (/target/t/debug/deps/physical_flags_guard-6a148f79d6387257)

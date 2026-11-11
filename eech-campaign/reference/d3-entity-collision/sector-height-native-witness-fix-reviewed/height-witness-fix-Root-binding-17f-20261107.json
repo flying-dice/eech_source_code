@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "created_utc": "2026-11-07T12:35:42.077056+00:00",
+  "head": "17f4b824b468c608ef488423b6c568382dd12798",
+  "clean": true,
+  "Root_reader_created_after_tests_not_a_test_input": true,
+  "freeze_sha256": "2fe9732d2831be8c35ce0160caa986eada44102face18ff0afb7c15e361dc446",
+  "claude_completion_sha256": "7e6e3849d97f3bc7c67469f44d5651f8e21459622af125d5aff04d8418f15414",
+  "all_3976_pre_post_current_raw_equal": true,
+  "actual_git_blobs_checked": 3976,
+  "lua_raw_crlf_git_lf_qualified": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "four_core_filter_only_files_raw_git_literal": [
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+  ],
+  "extra_files_PRE_POST_equal_count": 23,
+  "extra_files_current_literal_count": 22,
+  "post_POST_reader_drifts": [
+    {
+      "path": "R:/d3-evidence/freeze-hwfix-20261107.py",
+      "pre_post_bytes": 25550,
+      "pre_post_sha256": "f54d678fe9b0dc5ff00d6d3615db7ca9c9f3b1e7e788ad941dc241b61470b8eb",
+      "current_bytes": 27576,
+      "current_sha256": "cfc428df6fdf947117944981a53f8c189eb258af32aec7567966828947511750",
+      "erratum": {
+        "script": "freeze-hwfix-20261107.py",
+        "sha256_at_PRE": "f54d678fe9b0dc5ff00d6d3615db7ca9c9f3b1e7e788ad941dc241b61470b8eb",
+        "sha256_now": "cfc428df6fdf947117944981a53f8c189eb258af32aec7567966828947511750",
+        "pre_version_retained": "freeze-hwfix-20261107.PRE-version.py",
+        "pre_version_sha256": "f54d678fe9b0dc5ff00d6d3615db7ca9c9f3b1e7e788ad941dc241b61470b8eb",
+        "edited_after_post": true,
+        "cause": "the first freeze attempt (after POST 12:31:15Z, before any output file of the freeze was written) crashed in the sort key of the run-record listing: it applied an x/y label pattern to the first witness batch's w*/v* records (AttributeError, traceback retained). The edit filters the batch's x*/y* records first and then sorts, and records this erratum; nothing else in the script, and no other reader, changed.",
+        "attempt1_stderr_retained": "hwfix-freeze-attempt1-20261107.stderr.txt",
+        "replay": "none: a publisher-only edit does not change any input of any check; the PRE and POST maps and extras are equal, the final checks ran before the edit"
+      },
+      "qualification": "Explicit publisher-only afterPOST crash fix; PRE body retained/hash verified. Current script sealed by freeze and Gitpacket. No compiled/testinput drift inferred; no broad replay."
+    }
+  ],
+  "changed_source_files_all_git_literal": 6,
+  "packet_manifest_entries_all_current_and_git_literal": 90,
+  "ten_final_check_receipts_actual_exit_zero": true,
+  "total_runs_including_retained_failures": 23,
+  "final_runs_count": 10,
+  "final_test_instances": 673,
+  "limits": "Read-only binding of NEW4P2correction e42bb/17f. All3976sourcePREPOST/current/raw+actualGitqualified; final10checks0/673instances; explicitonepublisherafterPOSTexception withPREbodyretained. Native/WindowsUNRUN; SAMEchangedmaterialreviewpending. No M5M6/height/Task49/D3/delivery acceptance."
+}

@@ -1,0 +1,14 @@
+cargo 1.99.1 (5f94df478 2026-08-27)
+
+running 1 test
+supply descriptors delivered to the host's answer: 9
+positive: host id eech-world:1, guide_position [0.0, 0.0, 0.0], reads this call 1
+lane 1: raw 2 refused: supply arrival: host supply_reached failed: invalid updated flag 2
+lane 2: raw 4 refused: supply arrival: host supply_reached failed: invalid updated flag 4
+lane 30: raw 1073741824 refused: supply arrival: host supply_reached failed: invalid updated flag 1073741824
+lane 31: raw -2147483648 refused: supply arrival: host supply_reached failed: invalid updated flag -2147483648
+host traffic (groups, sets, reads, resets, fresh bindings): (12, 13, 19, 6, 12)
+test the_shipping_supply_arrival_reads_the_raw_updated_mask_once_per_call_and_the_real_rust_boundary_accepts_only_zero_and_one ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

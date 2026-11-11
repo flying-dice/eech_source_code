@@ -1,0 +1,4 @@
+info: downloading component clippy
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.80s
+info: downloading component rustfmt

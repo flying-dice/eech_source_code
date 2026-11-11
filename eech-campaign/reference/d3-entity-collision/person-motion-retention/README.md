@@ -1,0 +1,9 @@
+# Person motion-vector retention: diagnosis and correction, 5 November 2026
+
+The ordinary `ea2b` full pack stopped at `entity_pose.mirror` difference mask 20 in all four native logs. ONE focused instrumented Lebanon replay (diagnostic `bd6e9c5794c26fc7e3fadbbcbcd31ae292b8d0ce`, parent `ea2b`, observational only) reached the same failure and captured the first mismatch privately. The safe facts are in [safe-facts.json](safe-facts.json); the SAME independent reviewer's source note and actual report are retained literally ([source](diagnostic-source-review.json) b2ef7882..., [actual](diagnostic-actual-review.json) 9f0399d1...).
+
+The first mismatching record was a living **Person** observed at the offer stage. The host's canonical held motion vector was still its zero bind seed after 3752 accepted `person_begin` and 3752 `person_end` steps, while the campaign held the walking vector the host's own person step had returned and `apply_person_pose` had written into Core. `begin_person`/`end_person` returned the vector in the Outcome without retaining it in the record. Mask 20 itself never identified this; the earlier provider-doc statement that the hosted build wrote no vector for a person was wrong and is corrected.
+
+Correction `c2aa4f52b4d2c114cae89747208874c1bcd2d8b0`: a non-pending begin and a completed end retain the exact Outcome vector the campaign applies; a pending begin leaves the held vector unchanged. RED with the real `Movers` and the real C person kernel, then GREEN. Nothing is seeded, cached, approximated or suppressed; the mirror predicate, the person kernel, FPU, RNG and order are unchanged.
+
+NOT established: that the other three failed-pack logs are the same actor, that no other kind has a stale boundary, or that the long run now conforms (no corrected-source Windows build, native or pack has run). All remaining D3 scope and the full Task49 gates stay open; D4/D5/TypeScript unstarted.

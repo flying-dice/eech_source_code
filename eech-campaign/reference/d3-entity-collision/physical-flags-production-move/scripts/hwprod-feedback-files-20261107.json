@@ -1,0 +1,8 @@
+{
+  "note": "Root-physical-flags-production-feedback*.json: none existed at the start of this batch (checked after cf1026a4c); two arrived DURING development and were read in full before the final PRE (17:31Z) and are honoured as stated in the packet README",
+  "at_start": [],
+  "arrived_during_development": [
+    "Root-physical-flags-production-feedback-20261107-1703.json",
+    "Root-physical-flags-production-feedback-20261107-1708.json"
+  ]
+}

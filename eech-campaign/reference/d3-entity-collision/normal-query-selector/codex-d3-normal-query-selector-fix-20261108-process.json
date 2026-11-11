@@ -1,0 +1,11 @@
+{
+  "provider": "codex_agent",
+  "state": "running",
+  "agent": "/root/d3_motion_flags_fallback",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "started_utc": "2026-11-08T11:05:42.381523+00:00",
+  "started_time_qualification": "Actual service-agent checkpoint creation, not OS PID/birth/CLI exit",
+  "source_before": "56d1b7e31c8e4c4b45ed41f45c0e984ce7bbe6d8",
+  "scope": "ONE signed normal-query selector domain correction from real source producers; retain frame1497FAIL/raw/defaultPASS, no C/native/default/Windows replay or all10 closure."
+}

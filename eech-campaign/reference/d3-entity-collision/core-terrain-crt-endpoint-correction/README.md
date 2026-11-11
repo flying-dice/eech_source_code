@@ -1,0 +1,3 @@
+# Core CRT endpoint correction (UNREVIEWED)
+
+Same P2, one Lua relation: a site with one draw in its final nonempty phase ends at that phase first, even after earlier-phase draws. Coherent multi-phase positive plus last8-to9 one-field contradiction: genuine RED101 then GREEN. Final3 direct0/fiveRust tests; old23 fault controls retained in the affected target. Actual RED source bytes and literal review/binding/completion preserved. Other4008 raw inputs and compiled552ee observer/staging unchanged. Full timed maps remain private immutable/hash-bound. Logs retain raw CRLF/EOF blanks; CURRENT/card/Git publication is post-POST metadata. No Windows/native/capture/removal or whole-D3 acceptance; STOP for SAME changed-line review.

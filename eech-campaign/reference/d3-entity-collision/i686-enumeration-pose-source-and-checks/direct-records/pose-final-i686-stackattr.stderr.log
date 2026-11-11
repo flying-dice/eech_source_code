@@ -1,0 +1,3 @@
+wsl: Failed to translate 'R:\d3-evidence\i686-enumeration-pose-20261106-env'
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.34s
+     Running tests/entity_candidate_host.rs (/target/i686-unknown-linux-gnu/debug/deps/entity_candidate_host-d8005ab78d8c4ab5)

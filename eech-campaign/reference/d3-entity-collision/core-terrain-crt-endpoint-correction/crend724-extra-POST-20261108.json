@@ -1,0 +1,16 @@
+{
+  "run-core-crt-crend724-direct-20261108.py": "66065ee1da52c25593960e56255aa6772c11722a435490b155f3dd8e830e2d7a",
+  "check-core-crt-crend724-linux-20261108.sh": "22fe023f9cd0aed05a240207fd11cccec36411e704f5d43de995f40be2fd7236",
+  "run-crend724-final-20261108.py": "b84f558a0b1fe814afe732820dd4f719e954a865d01e7e45e5ab5800d1f32b3a",
+  "crend724-proof-20261108.py": "0b9787b22c0a83a639ac7260921f115fd0046f8879534615cb701e25a5773350",
+  "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+  "independent-core-crt-report-correction-b5cb-source-20261108.json": "e14d66d6d1c5b5c53992b9efa11d00ad1dfbfa445bc8e043fa192d07a25e7f1d",
+  "core-crt-report-correction-Root-binding-20261108.json": "3712a8a08641e55d0159eb4d2b8569545d593c34cc4a984ec6c13725ec0f56e8",
+  "codex-d3-core-crt-report-correction-20261108-completion.json": "d00df5806074951f15e7d0c60f4e414d3598f00b8d5d66832517d1a2ef0cd12f",
+  "codex-d3-core-crt-endpoint-correction-20261108-process.json": "300e2d7903f2b35f640d176adf0ed02ef52a2fc30896655b3dec7f622eaa3624",
+  "crend724-RED-core-terrain-crt-observer.lua": "a3ec1d11c5e20ad2879b382e1f2eee00f839d99dcab283cde43962a6bbce1e55",
+  "crend724-RED-core_terrain_crt_driver.rs": "90159a960bb374c342d045fc4d7f5e80bac985fb1702147fbfc85170b3083b11",
+  "crfix19e-b-inputmap-POST-20261108.json": "58b2ed0e962272f82133d3a69714b49b488438849d104c0d771f74db469dd660",
+  "crend724-family-20261108.json": "0a4146a488bfa5115e79f21f554b6fed430b3935c90cba7a9f94f1e4a2ac14bb",
+  "eech-campaign/docs/d3-core-terrain-crt-capture-plan.md": "057dc5c0485b6389d0696bef6822cf6830c2cf87cbc3f08906e130420bfd5523"
+}

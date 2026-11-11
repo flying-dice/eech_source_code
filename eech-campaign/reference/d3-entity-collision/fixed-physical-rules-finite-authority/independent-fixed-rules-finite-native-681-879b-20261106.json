@@ -1,0 +1,358 @@
+{
+  "schema": "independent-d3-finite-actual-review.v1",
+  "reviewed_utc": "2026-11-06T19:42:28.423034+00:00",
+  "scope": "One combined retained-actual and checker-only recovery audit of finite physical fixed/CITY subtype-rule conformance and one real held-rule counterfactual. No source re-review, build, test, native/input-tool rerun, tracked edit or delegated review.",
+  "identity": {
+    "compiled_runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "negative_literal_source": "879b0ebde110250169513dfd9fecc4c83f3b7b01",
+    "negative_literal_metadata": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+    "literal_git_blob": "e27c2da83ee59dda1ac614a36d0755698f302722",
+    "literal_sha256": "8cb88ddf2ab548728abbbd99e64bdf4c41258fe144cf9607e9ba6efbf1867892",
+    "literal_bytes": 228139,
+    "literal_equals_actual_git_blob_bytes": true,
+    "binary_and_diagnostic_identities_separate": true,
+    "conditional_source_review": {
+      "path": "R:/d3-evidence/independent-fixed-rule-witness-positive-source-879b-20261106.json",
+      "sha256": "a747ed52c5601e1e9389ac4444f676e6ef4ec024303f04d43f5feb9a11979d23"
+    }
+  },
+  "decision": {
+    "status": "FINITE_PHYSICAL_FIXED_RULES_DEFAULT_CONFORMANCE_AND_REACHED_COUNTERFACTUAL_VERIFIED",
+    "findings": [],
+    "finite_fixed_physical_rules_authority_verified": true,
+    "finite_fixed_rule_authority_closed": true,
+    "next_required_city_lifecycle_production_may_start": true,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "new_negative": {
+    "output": "D:/EECH-Migration-Evidence/fixed-rule-witness-native-20261106",
+    "controller": {
+      "path": "D:/EECH-Migration-Evidence/fixed-rule-witness-native-20261106/controller.json",
+      "bytes": 4223,
+      "sha256": "290801ec9f84ea0b8ed441a3761ee4ea14d59df25488daba5c2c599628ef46d7"
+    },
+    "model_jsonl": {
+      "path": "D:/EECH-Migration-Evidence/fixed-rule-witness-native-20261106/model.jsonl",
+      "bytes": 5566,
+      "sha256": "b022044508e83391c8073bbab608c2214839c8bddafa11dfbd2b890cdedcc4a4"
+    },
+    "native_log": {
+      "path": "D:/EECH-Migration-Evidence/fixed-rule-witness-native-20261106/native.log",
+      "bytes": 41043,
+      "sha256": "7e8bac8a88026d16a1cbafe81f33d2d49538bbee5fb39dd289f7c163753573f0"
+    },
+    "event_order": [
+      "boot",
+      "warmed_up",
+      "case_selected",
+      "case_launch",
+      "cohort",
+      "authority"
+    ],
+    "native_helper_original_outer_exits": [
+      0,
+      0,
+      1
+    ],
+    "pre_native_post_actual_exits": [
+      0,
+      0,
+      0
+    ],
+    "expected_refusal_after_case_launch": true,
+    "safe_facts": {
+      "mode": "changed_fixed_rule",
+      "profile": "hosted",
+      "completed": false,
+      "fixed_rule_eligible": 1,
+      "fixed_rule_changed": 1,
+      "fixed_rule_changed_next": "placement",
+      "fixed_rule_changed_cause": "fixed_rule_mirror_differs",
+      "request_faults": 0,
+      "reply_faults": 1,
+      "first_fault": "candidate reply: result refused",
+      "failure_marker": "entity_candidate.refused",
+      "frames": 301,
+      "frame_budget": 6200,
+      "case_weapons_pending": -1,
+      "case_weapons_ended": 0,
+      "view_applied": 1
+    },
+    "named_cause_verified_privately_in_authority_and_native_log": "candidate.mirror / collision-fixed",
+    "answered_override_counts": {
+      "entity": 0,
+      "candidate": 0,
+      "scan": 0
+    },
+    "actual_core_candidate_questions": 21,
+    "actual_city_child_first": 1,
+    "actual_fixed_joined": 8,
+    "stationary_narrowphase_count": 0,
+    "moving_narrowphase_count": 0,
+    "physical_counter_sentinels": {
+      "contact_tests": -1,
+      "contact_hits": -1,
+      "precision_high": -1
+    },
+    "postfatal_limit": "Pending and physical-counter -1 values are deliberate unknown sentinels, not measurements of no physical work. No poisoned getter is needed to validate this refusal."
+  },
+  "checker_recovery": {
+    "original_completion": {
+      "path": "R:/d3-evidence/fixed-rule-witness-native-20261106-completion.json",
+      "bytes": 2465,
+      "sha256": "fe6ce47404bfc1bbf3067ec8bd8062a13723e878396d7362cda42a450d477bd0"
+    },
+    "original_actual_exit": 1,
+    "original_error": "KeyError physical_after_stop: the outer checker incorrectly required a BOOT-only field on the post-launch row.",
+    "script": {
+      "path": "R:/d3-evidence/recover-fixed-rule-witness-checker-20261106.py",
+      "bytes": 5174,
+      "sha256": "c963b1ffbd1c7a1b36c5c1bf90b1da641a96c19750870c8bf036196e8f684930"
+    },
+    "proof": {
+      "path": "R:/d3-evidence/fixed-rule-witness-checker-recovery-20261106.json",
+      "bytes": 2890,
+      "sha256": "020f877fdda8328eb3fce2815c90e27f8f2e47f7e4a34131efdfed254c9d12a3"
+    },
+    "recovery_checker_actual_exit": 0,
+    "original_native_helper_exits_unchanged": [
+      0,
+      0
+    ],
+    "original_receipt_preserved": true,
+    "all_seven_retained_output_hashes_match_before_after_recovery_record": true,
+    "native_and_input_tools_rerun": false,
+    "assessment": "The retained recovery checks the actual post-launch schema and pending=-1 sentinel. It retains all refusal, literal, payload and full-input assertions, invents no BOOT fields, and does not relabel original outer1 as0."
+  },
+  "healthy_runtime681": {
+    "output": "D:/EECH-Migration-Evidence/fixed-rules-healthy-681ccfe54-20261106",
+    "native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "parent_source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+    "parent_output": "D:/EECH-Migration-Evidence/city-box-healthy-4c0b89263-20261106",
+    "shared_fields_independently_compared": 190,
+    "changed_shared_fields": [],
+    "declared_added_fields": {
+      "fixed_rule_changed": 0,
+      "fixed_rule_changed_cause": "",
+      "fixed_rule_changed_next": "",
+      "fixed_rule_eligible": 0
+    },
+    "complete_terminal_literal_equal_including_ending": true,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+    "fixed_joined": 1224,
+    "city_state_joined": 4484,
+    "request_faults": 0,
+    "reply_faults": 0,
+    "scope": "Finite default case only; not a unique-object, subtype census or natural-moving guarantee."
+  },
+  "ordinary_short_runtime681": {
+    "proof": {
+      "path": "R:/d3-evidence/fixed-rules-ordinary-short-comparison-681cc-20261106.json",
+      "bytes": 1566,
+      "sha256": "39127cfd9fdeb46962fdaf6155437c3b5a4e9cbd23cc8e45b40407cfb1508f5d"
+    },
+    "native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "three_complete_files_independently_literal_equal_to_retained80fd": true,
+    "files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+      }
+    ],
+    "scope": "Complete original3.6simsec short, not partial prefix, fullpack, benchmark or visual inspection."
+  },
+  "prior_negative_preserved": {
+    "output": "D:/EECH-Migration-Evidence/fixed-rules-changed-rule-681ccfe54-20261106",
+    "native_helper_outer_exits": [
+      1,
+      1,
+      1
+    ],
+    "classification": "UNREACHED_PRECONDITION",
+    "eligible": 0,
+    "changed": 0,
+    "request_faults": 0,
+    "reply_faults": 0,
+    "completed": true,
+    "disposition": "Not a pass and not a physics regression. Its consumed root was not reused; no native was run on rejected96cc."
+  },
+  "evidence_and_integrity": {
+    "all_four_cases": [
+      {
+        "output": "D:/EECH-Migration-Evidence/fixed-rules-ordinary-short-681ccfe54-20261106",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/fixed-rules-ordinary-short-681ccfe54-20261106/controller.json",
+          "bytes": 4048,
+          "sha256": "84cafb5c744f20d6cad0fefedee29a5fb8f3722333297ff9189da0efa024b47b"
+        },
+        "native_exit": 0,
+        "helper_exit": 0,
+        "pre_native_post_exits": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "output": "D:/EECH-Migration-Evidence/fixed-rules-healthy-681ccfe54-20261106",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/fixed-rules-healthy-681ccfe54-20261106/controller.json",
+          "bytes": 4295,
+          "sha256": "ee652ce46a3f61beb1d2b8942454173d1bdbca30bd40a28a1fca345db982ca39"
+        },
+        "native_exit": 0,
+        "helper_exit": 0,
+        "pre_native_post_exits": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "output": "D:/EECH-Migration-Evidence/fixed-rules-changed-rule-681ccfe54-20261106",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/fixed-rules-changed-rule-681ccfe54-20261106/controller.json",
+          "bytes": 4369,
+          "sha256": "7f0fe85908b75b1b143351144e0b4df99f73ae2dcfac784ca1fe821d871d7fd8"
+        },
+        "native_exit": 1,
+        "helper_exit": 1,
+        "pre_native_post_exits": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "output": "D:/EECH-Migration-Evidence/fixed-rule-witness-native-20261106",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/fixed-rule-witness-native-20261106/controller.json",
+          "bytes": 4223,
+          "sha256": "290801ec9f84ea0b8ed441a3761ee4ea14d59df25488daba5c2c599628ef46d7"
+        },
+        "native_exit": 0,
+        "helper_exit": 0,
+        "pre_native_post_exits": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "full_input_manifests": {
+      "checks": 8,
+      "all_pre_post_tool_exits": 0,
+      "files_each": 1179,
+      "input_bytes_each": 102239559,
+      "manifest_bytes": 209622,
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "all_eight_full_manifest_bytes_literal_equal_frozen_reference": true,
+      "normalization": false
+    },
+    "build_completion": {
+      "path": "R:/d3-evidence/fixed-rules-corrected-681ccfe54-windows-20261106-completion.json",
+      "bytes": 46956,
+      "sha256": "70de0b124cdd609f099f78c9d9a6dd0eb1feb4191f5837c17b77654fe4e2bdae"
+    },
+    "profile_isolation_proof": {
+      "path": "R:/d3-evidence/fixed-rules-windows-profile-isolation-681cc-20261106.json",
+      "bytes": 7062,
+      "sha256": "af7ccb1c808157ef5452595a4c623526f98cade03a9c0024112105e1f290b9e8"
+    },
+    "changed_world_coff_binding_proof": {
+      "path": "R:/d3-evidence/fixed-rules-world-objects-681cc-20261106.json",
+      "bytes": 1932,
+      "sha256": "1c9fdffb16ec5b058271b269807575ccdc1ef6544338f04c5bbfec157c66a851"
+    },
+    "all_three_profile_builds_actual_exit": 0,
+    "current_payload_rehashes": {
+      "ordinary": 88,
+      "hosted": 88,
+      "original": 88
+    },
+    "profile_scope": "Existing feature/CoreCOFF/private-export and changed World-object bindings retain their recorded identities. The current three sealed exports were each rehashed. These are not builds of the test-only879b literal.",
+    "runtime_partial_proof": {
+      "path": "R:/d3-evidence/fixed-rules-native-partial-681cc-20261106.json",
+      "bytes": 4347,
+      "sha256": "f5007876404f8d3a4dc11f293693f02d62326b00699beec0ff1a77cdc2f3063e"
+    },
+    "shared_helper": {
+      "path": "R:/d3-evidence/run-entity-public-native-pipe-20261105.py",
+      "bytes": 6946,
+      "sha256": "3da2855f8b8b67c73d4ac0e157b40c81acdf633bdf21560daa3e588f024b0582"
+    },
+    "original_outer_driver": {
+      "path": "R:/d3-evidence/run-fixed-rule-witness-native-20261106.py",
+      "bytes": 6321,
+      "sha256": "10003ec91524a7cad8e81e9d4da7bab8f78b40ea300dde52696dde08a87b3cc6"
+    },
+    "negative_raw_output_hashes": {
+      "controller.json": {
+        "bytes": 4223,
+        "sha256": "290801ec9f84ea0b8ed441a3761ee4ea14d59df25488daba5c2c599628ef46d7"
+      },
+      "model.jsonl": {
+        "bytes": 5566,
+        "sha256": "b022044508e83391c8073bbab608c2214839c8bddafa11dfbd2b890cdedcc4a4"
+      },
+      "native.log": {
+        "bytes": 41043,
+        "sha256": "7e8bac8a88026d16a1cbafe81f33d2d49538bbee5fb39dd289f7c163753573f0"
+      },
+      "post-inputs.json": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post-inputs.log": {
+        "bytes": 333,
+        "sha256": "4e77ab7cc4e9950e55671a2c2a814bc2699cbbeb97ce18c3437477274aed31fe"
+      },
+      "pre-inputs.json": {
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "pre-inputs.log": {
+        "bytes": 333,
+        "sha256": "4e77ab7cc4e9950e55671a2c2a814bc2699cbbeb97ce18c3437477274aed31fe"
+      }
+    },
+    "privacy": "Raw identities, physical signatures/coordinates, fatal-line identity text and retail catalogue arrays remain private; only aggregate counts, hashes, semantic enums and paths are included."
+  },
+  "combined_assessment": {
+    "correctness": "The reviewed literal reaches one valid consumed final fixed-family placement, credits it before the real subtype-only UNKNOWN restatement and receives the same-provider real collision-fixed mirror refusal on the unchanged actual payload. This is bounded held-rule authority, not a second Core question or every-subtype proof.",
+    "default_conformance": "All three complete ordinary files, all190 healthy shared fields and the complete physical terminal agree literally with their retained references; only the four declared fixed_rule diagnostics are new. No field deletion, normalization, timing/seed change or tolerance adjustment was used.",
+    "clean_code_and_orchestration": "The outer wrong-schema assertion is a resolved checker defect. Separate recovery preserves failed outer evidence and untouched outputs, rather than restarting a successful native or hiding the error.",
+    "boundary_safety": "The outcome is the real named Host mirror refusal with zero request faults, exactly one declared reply fault and zero altered-answer counters. It does not fabricate a generic reply, credit an unrelated fatal or inspect physical state after the fatal."
+  },
+  "limits_and_next_required_work": [
+    "Finite fixed/CITY physical subtype-rule cut only. A listed-building consumer is permitted by the reviewed predicate and city traversal was reached; aggregate rows are not a native subtype census, ordinary-sector guarantee or proof all fifteen values executed. Scripted acceptance controls remain separate evidence.",
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION remains OPEN and mandatory next production before sector height. Empty-city relink/restore must not depend on Core as the sole retained physical-box copy. Beginning that next source cut is permitted; this report does not accept its future implementation.",
+    "All ten D3 requirements remain, including required default-shape/clutter/draw-align caller and DCS disposition, sector height/hints/writers, effectful UPDATED/shared terrain, raw TREE/FOREST/CLOUD RNG, needed hierarchy/devices/services, remaining DCS mappings and natural-moving/weapon integration.",
+    "No current final full40/all8, final input/payload census, normal merge/delivery or wholeTask49/D3 acceptance follows. Protected f734 fullpack remains separate; partial prefixes are not acceptance. D4/D5 and historical TypeScript remain unstarted.",
+    "Root supplied a new exact97dc all-nine SUCCESS readback at report sealing; the separate ci-fixed-rule-witness-97dc-20261106.json is not independently re-audited by this finite actual pass. This report makes no delivery/merge decision.",
+    "Prior numeric/FPU source evidence is reused at its own identities; this is not a new universal native caller-FP or natural-weapon authority measurement."
+  ]
+}

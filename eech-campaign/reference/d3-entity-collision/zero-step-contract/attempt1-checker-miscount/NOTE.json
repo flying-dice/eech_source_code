@@ -1,0 +1,6 @@
+{
+  "attempt": 1,
+  "result": "final set all six direct exit 0; PRE/POST 4024 rows equal 5d701eba; freeze reader exit 1 BEFORE creating the packet",
+  "cause": "freeze reader asserted 25 real-host cases; the Rust case list has 24 (all 24 passed). Checker miscount, not a test failure.",
+  "disposition": "Attempt-1 records retained raw here. Reader corrected (24) and the whole seal/PRE/final/POST/freeze chain rerun so the frozen tree has one consistent chain. Sources unchanged between attempts except STATUS.md prose count 25->24."
+}

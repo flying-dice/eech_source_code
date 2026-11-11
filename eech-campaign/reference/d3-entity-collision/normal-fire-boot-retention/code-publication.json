@@ -1,0 +1,20 @@
+{
+  "CODE": "4ceb1006c714ed40a7e9ff2bb2c350cebb50df51",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "source_rows": 4023,
+  "raw_equals_Git": 4020,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "source_fingerprint": "bb2c7c31a2b8d5055038af17cd260c5a6cf5c53fc23fed7855bc6c74abe968b6",
+  "post_POST_metadata": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "manifest.json",
+    "code-publication.json",
+    "publication-manifest.json"
+  ],
+  "scope": "UNREVIEWED boot retention correction; no binary relabel/native/cutover/all10 closure; Root completion separate."
+}

@@ -1,0 +1,24 @@
+{
+  "source": "5182b526d08aefdd40ea93803188227fd74abae5",
+  "before_selected_checks_after_checks_after_native_maps_all_literal_equal": true,
+  "file_count": 3952,
+  "all_raw_inputs_equal_committed_Git": true,
+  "maps": [
+    {
+      "path": "R:\\d3-evidence\\sector-roster-5182-snapshot-before-20261106.json",
+      "bytes": 2028077,
+      "sha256": "4edce1ff87831c41a82fd73b63c86b89fc9bd82a7c1d9ea33f9a34b01427a67a"
+    },
+    {
+      "path": "R:\\d3-evidence\\sector-roster-5182-snapshot-after-20261106.json",
+      "bytes": 2028077,
+      "sha256": "4edce1ff87831c41a82fd73b63c86b89fc9bd82a7c1d9ea33f9a34b01427a67a"
+    },
+    {
+      "path": "R:\\d3-evidence\\sector-roster-5182-snapshot-after-native-20261106.json",
+      "bytes": 2028077,
+      "sha256": "4edce1ff87831c41a82fd73b63c86b89fc9bd82a7c1d9ea33f9a34b01427a67a"
+    }
+  ],
+  "scope": "Final immutable compiled-source stability join; separate505Lua literal keeps its own reviewed Git identity. No fullpack/wholeD3 claim."
+}

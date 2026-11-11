@@ -1,0 +1,3 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.60s
+     Running tests/entity_roster_guard.rs (/target/t/debug/deps/entity_roster_guard-3f9f02a05a504f84)
+     Running tests/physical_flags_guard.rs (/target/t/debug/deps/physical_flags_guard-6a148f79d6387257)

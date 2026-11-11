@@ -1,0 +1,44 @@
+{
+ "after_final_checks": {
+  "bytes": 2030619,
+  "sha256": "0664e1f7b478ca2fdb4c00fca7ede06c4409a89bd2f6c58039d8169e18ea965e"
+ },
+ "before_and_after_byte_identical": true,
+ "before_final_checks": {
+  "bytes": 2030619,
+  "sha256": "0664e1f7b478ca2fdb4c00fca7ede06c4409a89bd2f6c58039d8169e18ea965e"
+ },
+ "captured_over_head": "002a19ba1a06e15e380a3329248a6a492d833766",
+ "changed_from_head": [
+  "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+  "eech-campaign/crates/eech-dc/src/module.rs",
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+  "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+  "eech-campaign/crates/eech-engine/src/lib.rs",
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+  "eech-campaign/crates/eech-world/src/roster.rs",
+  "eech-campaign/crates/eech-world/tests/city_box_lifecycle.rs",
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+ ],
+ "changed_from_head_count": 16,
+ "file_count": 3954,
+ "fingerprint_of_raw_sha256_map": "ae2b4de6a4ddfaa3049f71b00eedb5c2c00c0269b5a7615945033ebbf3e8e32d",
+ "note": "The full maps (about 2 MB each) stay external with these hashes. The 16 paths are the 13 of this correction plus three tree-geometry test controls whose raw bytes and Git-filtered identity already disagreed at the parent (never normalised). The map was captured over the working tree before the code commit; the committed tree is the same bytes (git status clean at 4ef1f42f3).",
+ "raw_vs_git_filtered_disagreement_qualification": [
+  "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+  "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+  "modules/system/malloc.c.h",
+  "modules/system/nedmalloc.c"
+ ],
+ "scope": "every tracked or untracked non-ignored file under aphavoc/source, modules, eech-campaign Cargo.toml/Cargo.lock/rust-toolchain.toml and the eech-engine-sys, eech-engine, eech-dc and eech-world crates"
+}

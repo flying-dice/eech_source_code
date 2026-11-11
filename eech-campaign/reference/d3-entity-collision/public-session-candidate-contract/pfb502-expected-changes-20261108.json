@@ -1,0 +1,14 @@
+[
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json",
+  "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+  "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua",
+  "eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+  "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-positive.txt",
+  "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-same-frame.txt",
+  "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua",
+  "eech-campaign/docs/d3-public-session-finalization.md",
+  "eech-campaign/tools/normal_fire_capture.py",
+  "eech-campaign/tools/normal_fire_capture_controller.py",
+  "eech-campaign/tools/test_normal_fire_capture.py"
+]

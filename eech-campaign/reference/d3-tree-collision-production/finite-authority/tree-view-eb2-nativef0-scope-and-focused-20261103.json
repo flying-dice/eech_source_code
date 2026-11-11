@@ -1,0 +1,32 @@
+{
+  "checked_utc": "2026-11-03T03:46:41.620060+00:00",
+  "diagnostic_source": "eb2b2eb6781fefce7e6b76abdbbd4d947010a7f7",
+  "native_source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+  "all_production_compiled_inputs_and_ordinary_drivers_unchanged": true,
+  "all_other_git_entries_exact": 9067,
+  "changed_only": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/crates/eech-world/lua/tree-authority.lua",
+    "eech-campaign/crates/eech-world/tests/tree_authority.rs",
+    "eech-campaign/docs/d3-tree-collision-provider.md",
+    "eech-campaign/reference/d3-tree-collision-production/f0-native-identities-and-first-control-20261103.json",
+    "eech-campaign/reference/d3-tree-collision-production/f0-second-control-selector3619-unreached-20261103.json"
+  ],
+  "diagnostic_blob": "9123f1448ec8ec412b146a2ff290360e5d7769ab",
+  "literal_file": "R:\\d3-evidence\\tree-authority-diagnostic-eb2b2eb67.lua",
+  "literal_sha256": "0feb86a0ed7bbf08da4b298531c793f969455524f0fcc6916dc91451bf33ae2a",
+  "source_review_sha256": "5120c508b161e29409dc17a80846ecfff43bce61414919a69be867d00045ac2e",
+  "focused_actual_children": {
+    "tree_authority-green": "0",
+    "fmt-check": "0",
+    "clippy-world": "0",
+    "progress-fix-blocker": "0"
+  },
+  "focused_tests_passed": 17,
+  "stable_fingerprints": [
+    "7bace1e0365697e9a1633b07d11cd1dc740689623387556033914239ce84cbf0",
+    "7bace1e0365697e9a1633b07d11cd1dc740689623387556033914239ce84cbf0"
+  ],
+  "scope": "Literal configured-view Lua on unchanged f0 native. Ordinary short/build evidence reuse by exact scope, no binary relabel. Prior v1 RED was old-selector setup, not isolated missing-view proof. Native TREE/precision still unproven."
+}

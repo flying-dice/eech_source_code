@@ -1,0 +1,25 @@
+{
+  "ledger": {
+    "page": "14548994",
+    "snapshot": "v:187",
+    "previous_characters": 527491,
+    "entire_previous_body_literal_prefix": true,
+    "all_five_macro_parameters_literal": true,
+    "new_section_readback_equal_ignoring_generated_new_local_ids": true
+  },
+  "jira": {
+    "issue": "EEDCS-49",
+    "comment": "11021",
+    "exactHTMLreadback": true,
+    "entire_prior_comment_preserved": true
+  },
+  "PR": {
+    "number": 109,
+    "head": "c5a3ed3bb9ce9e061006640ab1a0070dd475c180",
+    "base": "84775522f9eb9c7182ff89f75387115b9e3883fd",
+    "open": "open",
+    "draft": true,
+    "body_exact_readback": true
+  },
+  "scope": "SAME1ae native17 actualPASS/6NOTLAUNCHEDunreached accepted finite only; next required supply consumer active. All10/Task49/D3/currentshipping remainOPEN."
+}

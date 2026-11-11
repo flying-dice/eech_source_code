@@ -1,0 +1,166 @@
+{
+  "schema": "independent-finite-correction-review-v1",
+  "reviewed_utc": "2026-11-03T03:03:47.710546+00:00",
+  "source": {
+    "commit": "d7cf5b17c0fc4c27ddbd7125b71d85eb8f2f752b",
+    "reviewed_against": "eec18682f486b94ab92a020ed106bed64b3b0827",
+    "scope": "Changed TREE production dialogue, finalized model-store view, witness/guards and documentation only; metadata merge905b retained. Existing closed numeric/Task52/original capture evidence not reopened.",
+    "files": [
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hosttree.h",
+        "bytes": 6420,
+        "sha256": "734e17414341d4adad26b900cc3e151bc53e5b8890f512fa7cbacd4471057b2a"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostterrain.c",
+        "bytes": 19894,
+        "sha256": "c5d55b8129e304cec80f91c99ff20d717130422c8dd2703cdee2777d72d68fe8"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "bytes": 94408,
+        "sha256": "0c92123bde339f1233a682d9b4c77b1036c716872ea6eff1d96de5556a472166"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/tree_host.rs",
+        "bytes": 20023,
+        "sha256": "a3a8a261519c206bda8ccd7d156f815fcfd5892564512e6d8b47b546e0fa7345"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+        "bytes": 78437,
+        "sha256": "397ceb387cf610269204c5be3496df3283c913a1cf6ec789430350f6e169e2cb"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/tree-authority.lua",
+        "bytes": 35432,
+        "sha256": "9a58777497ae1c22ad43c5aa173805d312c44dd9b00a024bdcea36b59bad0eac"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/tree_authority.rs",
+        "bytes": 30811,
+        "sha256": "4751b9000779a416fa2f39127ddc84a3c35254a84f01d2d1ee82b59d38041bc2"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_store.rs",
+        "bytes": 208184,
+        "sha256": "4435264b0e9e4368d5507b1edf1dd751767003e757c982eb255a1883f6455df0"
+      },
+      {
+        "path": "eech-campaign/docs/d3-tree-collision-provider.md",
+        "bytes": 14196,
+        "sha256": "86eed65edd9247348548633c1c93a37d44acad6833095ab8969e41b57f939dfd"
+      }
+    ]
+  },
+  "decision": {
+    "verdict": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "source_review_no_blocking_findings": false,
+    "new_production_P1_findings": false,
+    "finite_tree_route_or_native_actuals_closed": false,
+    "whole_Task49_or_D3_accepted": false,
+    "full_shipping_or_dependency_accepted": false
+  },
+  "prior_report": {
+    "path": "R:/d3-evidence/independent-tree-production-source-eec18682f4-20261103.json",
+    "sha256": "857cd81e600fd9ae70f2af2637860592fef0951ae45881188f8fa88e6c0b23dc",
+    "preserved": true
+  },
+  "closed_or_improved_groups": [
+    {
+      "id": "ENV-TREE-FOREST-IDENTITY-1",
+      "status": "CLOSED at changed source",
+      "evidence": "FOREST_TREE_SCENE now exactly FOREST_TREE_OBJECT. ReferenceModel is a weak read-only view of registered host.model ProviderState; announced_final_store upgrades/try-borrows, checks pinned root identity, walk_final and owned Arc<ModelStore>. walk_final is set only after accepted complete custom-order replay/verification. Tree forest source uses that finalized store and does not load another sorted image. Order-sensitive synthetic two-directory geometry controls show distinct sorted versus announced results and the current source selects the announced one. Missing/busy/dead, unfinished/sorted or different-installation cases are named refusals.",
+      "limits": "This is the registered reference host.model contract, not arbitrary external model providers. Native retail TREE compatibility remains unmeasured."
+    },
+    {
+      "id": "ENV-TREE-ENDPOINT-1",
+      "status": "CLOSED at changed source plus meaningful C dialogue control",
+      "evidence": "Shared production mb_hosttree.h tracks endpoint bits, accepts none/OLD/NEW/OLD-then-NEW and rejects duplicates, reversal and unknown endpoints before another terrain call. At most two requests follows from the monotone two-bit domain. Exact caller-word copies/whole final answer commit and nested-query refusal are retained. The isolated C control includes the same header with scripted ask/elevation bindings and checks valid sequences, malformed states/words, nested query and no writes on refusal. Old-rule NEW-only RED101 is retained; corrected control0 executes C.",
+      "limits": "The isolated binding is not a retail campaign or full public FPU proof; the old host numeric kernel is reused unchanged."
+    },
+    {
+      "id": "ENV-TREE-AUTHORITY-1",
+      "status": "PARTIALLY CORRECTED; residual below",
+      "evidence": "Zero sign now uses formatting without division; Unix x86/x64 child tests prove deliberate SIGFPE control plus exact signed-zero/boundary words under unmasked divide-by-zero. Anchored Engine first-line marker recognition, no further Engine query after caught fatal, nonempty launch cohort, pending-at-cap INCOMPLETE refusal, duplicate terminal rejection, explicit Original API/call-counter CAPABILITY RED versus UNREACHED, and positive-first scripted controls are substantial corrections. They do not close the output ownership/complete schema residual."
+    },
+    {
+      "id": "ENV-TREE-MAPPING-SCOPE-1",
+      "status": "UNSUPPORTED-MISS PLAN AND OMITTED SCOPE CORRECTED; two prose residuals below",
+      "evidence": "DCS provider is now explicitly unresolved required mapping, unsupported tree capability refuses rather than returning false. Required raw Core loader/forest/cloud work is visible beside entity/object collision, with no dormant/unreachable claim or deletion/padding of draws. The source still contains two overstatements about misses and constructor RNG."
+    }
+  ],
+  "findings": [
+    {
+      "id": "ENV-TREE-AUTHORITY-1-RESIDUAL",
+      "parent_group": "ENV-TREE-AUTHORITY-1",
+      "severity": "P2",
+      "title": "Complete checked output ownership and existing launch/terminal schema before using the native witness",
+      "locations": [
+        "eech-campaign/crates/eech-world/lua/tree-authority.lua: host.output_create_new and factory setup before main",
+        "eech-campaign/crates/eech-world/src/output.rs: Output close method",
+        "eech-campaign/crates/eech-world/lua/tree-authority.lua: launch report and final terminal checks"
+      ],
+      "evidence": [
+        "The new script chooses host.output_create_new. Its actual existing output.rs close method takes the File, calls sync_all and returns its result; the actual OS close happens only in unchecked File Drop. Mock Lua close controls prove checked return handling, not actual platform-close error observation. Existing host.create_exclusive/exclusive_output has the corrected platform-close implementation already; no new output framework is needed.",
+        "The evidence is opened before host.terrain_provider existence validation and factory(root,map). Those calls occur outside xpcall(main). A missing or throwing factory therefore exits without the explicit owned checked-close path despite the close-on-every-path claim.",
+        "The launch join only rejects restored==0 and creates<1; it accepts restored=2/-2 and fractional positive creates. The promised complete terminal check requires only type/code/pos, accepting missing steps/velocity/lifetime. These are the existing C report fields and domains, not a request for a new physical oracle."
+      ],
+      "minimum_correction": [
+        "Use the existing genuinely checked-close exclusive handle and keep its current API/ownership behavior; do not globally redesign or reopen the older output helper.",
+        "Place all fallible setup before exclusive creation or inside the owned xpcall close scope, including factory validation/construction. Preserve first failure while still checking release on all paths.",
+        "Validate the actual launch report integer/domain fields and complete terminal grammar: permitted restoration states, positive integral creates/birth join, complete per-member fields and finite/domain-correct numeric words as declared by the existing C schema. Preserve meaningful original/UNREACHED and natural foreign-activity qualifications.",
+        "Add focused coherent-positive-first single-fault controls for missing/throwing factory, invalid restoration/creation domain and missing terminal fields. Keep mock IO controls distinguished from actual helper OS-close tests. No native, baseline or closed-kernel rerun is required to establish these source corrections."
+      ]
+    },
+    {
+      "id": "ENV-TREE-MAPPING-SCOPE-1-RESIDUAL",
+      "parent_group": "ENV-TREE-MAPPING-SCOPE-1",
+      "severity": "P2",
+      "title": "Qualify miss-buffer and transitive constructor-RNG claims",
+      "locations": [
+        "eech-campaign/docs/d3-tree-collision-provider.md: final DCS-mapping sentence",
+        "eech-campaign/docs/d3-tree-collision-provider.md: required remaining scope RNG paragraph"
+      ],
+      "evidence": [
+        "The final DCS sentence says a genuine miss must return the caller initial point/normal words unchanged. The closed original TREE contract expressly includes misses that partly overwrite those buffers. No-hit does not universally imply no write; the service must return the actual final original-contract words.",
+        "The statement that the forest constructor itself draws nothing because it contains no rand is lexical, not transitive. construct_3d_object_by_name (3dobjid.c783..801) calls construct_3d_object; 3dobjdb.c2950 calls skin_random, which draws at 3dobjid.c950/954 when skin.animation>=0. Current text supplies no supported actual forest skin fact excluding this branch. This review does not assert that a new retail constructor actually drew."
+      ],
+      "minimum_correction": "State actual final miss-word behavior, including partial overwrites. Keep constructor RNG conditional/unproved until the effective forest skin metadata and call/seed observations show the branch; include that condition in the already required loader-removal disposition. No new capture is needed merely to correct these two prose claims, and no current loader/draw deletion or dummy padding is authorized by this report."
+    }
+  ],
+  "actual_test_scope": {
+    "root_audit": {
+      "path": "R:/d3-evidence/tree-correction-t5-child-exits-and-fingerprint-20261103.json",
+      "bytes": 923,
+      "sha256": "12bac7c6b4ca5ffb314f10b8524f1f34850fa12fbb05f17fa5a33ecf1b58f491"
+    },
+    "raw_final_log": {
+      "path": "D:/EECH-Migration-Evidence/tree-correction-20261103-c/t5-final.log",
+      "bytes": 261993,
+      "sha256": "e612dfefff3ffea5fc85a9a6878611ea2341a7988bbcfb53b060c74ec4bb84e5"
+    },
+    "independent_child_exit_readback": {
+      "fmt-check": "0",
+      "clippy-default": "0",
+      "clippy-sys-tree-dialogue-check": "0",
+      "clippy-dc-collision-fixture": "0",
+      "clippy-dc-weapon-fixture": "0",
+      "clippy-dc-weapon-and-collision-fixture": "0",
+      "dialogue-control": "0",
+      "full-affected-crates": "0",
+      "progress-fix-blocker": "0"
+    },
+    "result_rows": 59,
+    "passed_test_sum": 1128,
+    "failed_test_sum": 0,
+    "stable_working_tree_fingerprint": "13b84c99a03746fd5d82de5256f2ce137d2dfbe6dd972c1dd9103b663a565d7f",
+    "qualification": "Actual Linux tests executed C ABI/boundary/dialogue code and host Lua/Rust controls. This is not no-C-execution. The logs are focused working-tree validation, not a new clean Windows or retail/native campaign result. The divide-by-zero child proof is Unix x86/x64; no new Windows enabled-trap result is claimed.",
+    "retained_chronology": "t1 old dialogue RED101; t2 corrected dialogue and focused World0; t3 default strict101 while other commands completed0; t4 formatter0; final t5 nine child0. No earlier failed result is relabeled success."
+  },
+  "unchanged_closed_components": "The prior accepted numeric/original/Task52 source and evidence remains at its own identity. No baseline, tolerance, oracle or global FP masking change is proposed; no reviewer build/test/native, source edit, cache/VM/auth operation or subagent was used.",
+  "remaining_required_scope": "Raw Core tree loader/forest construction/cloud allocation and conditional CRT effects; entity/object collision and sector policy boundary; concrete DCS TREE API/data workaround. These remain required whole Task49/D3 work, not waived by future finite TREE native authority.",
+  "next_unmet_gate": "One narrow same-author correction of the two residual groups, then changed-byte source review plus focused actual guard/helper results. Native TREE launch stays gated until the witness ownership/schema is sound. No old capture or unrelated full suite repetition is required for this source finding.",
+  "safe_publication": "Only source identities, counts, test/log hashes and bounded semantic findings; no raw retail geometry/positions/pointers/catalogue/credentials/binaries. Canonical LF new report; prior literal reports unchanged."
+}

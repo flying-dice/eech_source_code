@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "observed_utc": "2026-11-08T09:01:42.285105+00:00",
+  "CODE": "f88d6a3b04b72797e33425de569321b7c50aeca7",
+  "META": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "clean": true,
+  "source_rows": 4021,
+  "raw_Git_equal": 4018,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "CODE_META_runtime_rows_literal_equal": true,
+  "PRE_POST_literal_equal": true,
+  "extras_unchanged": 24,
+  "readers_unchanged": 5,
+  "unchanged_prior_rows": 4017,
+  "nine_Lua_controller_artifacts_literal_unchanged": true,
+  "packets": [
+    {
+      "name": "normal-fire-public-session",
+      "publication_entries": 67,
+      "literal_Git_files": 68
+    },
+    {
+      "name": "normal-fire-query-isolation",
+      "publication_entries": 34,
+      "literal_Git_files": 35
+    }
+  ],
+  "isolation_final_exits": {
+    "s1-fmt": 0,
+    "s2-hosted-clippy": 0,
+    "s3-coexistence": 0
+  },
+  "unfiltered_separate_Rust_executables": 2,
+  "new_hosted_C_expectations": 3,
+  "legacy_C_expectations": 16,
+  "hosted_actual_provider_entries": 3041,
+  "hosted_interval": [
+    3030,
+    3041
+  ],
+  "prior_nqt2_actual_nine_exits": {
+    "s1-fmt": 0,
+    "s2-original-clippy": 0,
+    "s3-hosted-clippy": 0,
+    "s4-normal-controls": 0,
+    "s5-hosted-join": 0,
+    "s6-session-lua": 0,
+    "s7-profile-census": 0,
+    "s8-python": 0,
+    "s9-shipping-compile": 0
+  },
+  "frozen_sha256": "e5a4a7f1bad9736dfcaa9662beee24eb96ab6fe81351da80733f4a5ac01182b8",
+  "all10_preserved": true,
+  "generic_parent_open": true,
+  "scope": "Root readonly mechanical source/actual/publication joins only. New combined source/controller independent review and actual agent terminal completion are separate. Private Original normal-born movement, manually registered hosted query and synthetic public-session controls remain distinct; no native/natural/physical ownership/delivery acceptance."
+}

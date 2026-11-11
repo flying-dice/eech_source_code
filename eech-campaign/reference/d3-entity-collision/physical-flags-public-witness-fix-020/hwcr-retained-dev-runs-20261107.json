@@ -1,0 +1,34 @@
+{
+  "d1-red-parent-f4d-new-tests": {
+    "actual_exit": 101,
+    "why": "GENUINE RED against the unchanged f4d62c9b4 driver: 5 of 25 tests failed (the damaged Original and control references were accepted and the report created; an engine ignoring the injected fault and raising the same marker later was credited PASS; a refusal during boot was not captured at the boot entry: the witness stopped); the preserved group/set/reset-only control test passed before and after"
+  },
+  "d2-green-attempt1": {
+    "actual_exit": 101,
+    "why": "first run of the corrected driver: 22 of 25 passed; the 3 failures were test expectations only (two older tests named the old messages, and my duplicate first-event row case was inserted after the consume record, so the order check fired before the duplicate check): the expectations were updated, the driver unchanged"
+  },
+  "d3-green-attempt2": {
+    "actual_exit": 101,
+    "why": "24 of 25 passed; one older test looked for the words 'backing difference' while the refusal says 'the backing check found a difference': expectation updated, driver unchanged"
+  },
+  "d4-green-attempt3": {
+    "actual_exit": 101,
+    "why": "24 of 25 passed; one older damage case appended an unknown token and expected the old count refusal, the complete validation names the unknown key first: expectation updated, driver unchanged"
+  },
+  "d5-green-attempt4": {
+    "actual_exit": 0,
+    "why": "GREEN: the 25 driver tests pass (the 19 of the parent candidate and the 6 new ones)"
+  },
+  "d6-fmt-apply-world": {
+    "actual_exit": 0,
+    "why": "cargo fmt -p eech-world applied to the test file (git status showed no other file changed)"
+  },
+  "d7-clippy-world-engine-dc": {
+    "actual_exit": 0,
+    "why": "clippy -D warnings over eech-world, eech-engine and eech-dc all targets after formatting"
+  },
+  "d8-world-all": {
+    "actual_exit": 0,
+    "why": "the whole eech-world suite passes after the corrections"
+  }
+}

@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 #include "eech_arith.h"
+#include "sector_height_raise.h"
 
 #define MODEL_OK 0
 #define MODEL_MASKS 1
@@ -912,4 +913,136 @@ int eech_model_fixed_target_point(const float *base, const float *offset, const 
 	result = fixed_target_point_body(base, offset, heading, out, path);
 
 	return (leave_environment(&caller, result));
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+/* ct_msgs.c update_city_bounding_box: the float part (Task49, D3) */
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+
+/*
+ * The expansion a building's link makes of its city's bounding box, statement for statement from ct_msgs.c (the original-fixture build keeps the original body):
+ *
+ *	p1.x = bounding_box->xmin;  p1.y = bounding_box->ymin;  p1.z = bounding_box->zmin;
+ *	p2.x = bounding_box->xmax;  p2.y = bounding_box->ymax;  p2.z = bounding_box->zmax;
+ *	get_3d_transformation_matrix (attitude, heading, 0.0, 0.0);
+ *	multiply_matrix3x3_vec3d (&p1, attitude, &p1);
+ *	multiply_matrix3x3_vec3d (&p2, attitude, &p2);
+ *	position_offset = building_position - city position;      (three float subtractions)
+ *	p1 += position_offset;  p2 += position_offset;            (three float additions each)
+ *	twelve comparisons, p1 against the minimum then the maximum, then p2: a strict `<` lowers a minimum word and a strict `>` raises a maximum word
+ *
+ * `bounds` is the scene's bounding box WITHOUT lines (xmin, xmax, ymin, ymax, zmin, zmax: the store's `bounding_box2`); the two corners are rotated by the heading about the vertical axis
+ * only (no pitch, no roll) and are NOT re-sorted (the original does not repair them to eight corners); the box words in are the box the city holds (the inverted 1.0e6 / -1.0e6 box until its
+ * first building) and the box words out are the union. The box never shrinks. A comparison that is false (an equal word, a signed zero, a NaN) leaves the word it was made against as it was: the words are
+ * copied in and out, never re-derived.
+ *
+ * The caller (the host's Rust) has classified every input word by its bits (finite) BEFORE this runs; the environment is the one every public entry of this file has (see above): the original's
+ * exception masks required, the caller's complete state saved, round-toward-zero set and the caller's state restored. The sticky exception flags the original's arithmetic raised stay in the engine's
+ * state until the engine entry's own restore; here they end with the restore of the caller's state (nothing reads them: measured in the control, tests/city_box_kernel.rs).
+ */
+static int __attribute__((noinline)) city_box_expand_body(const float *bounds, const float *heading, const float *building, const float *city, const float *box_min, const float *box_max, float *out_min, float *out_max)
+{
+	vec3d p1, p2, position_offset, building_position, city_position, bounding_box_min, bounding_box_max;
+	matrix3x3 attitude;
+	float heading_value;
+
+	memcpy(&heading_value, heading, sizeof(float));
+	memcpy(&building_position, building, sizeof(vec3d));
+	memcpy(&city_position, city, sizeof(vec3d));
+	memcpy(&bounding_box_min, box_min, sizeof(vec3d));
+	memcpy(&bounding_box_max, box_max, sizeof(vec3d));
+
+	p1.x = bounds[0];
+	p1.y = bounds[2];
+	p1.z = bounds[4];
+
+	p2.x = bounds[1];
+	p2.y = bounds[3];
+	p2.z = bounds[5];
+
+	get_3d_transformation_matrix(attitude, heading_value, 0.0, 0.0);
+
+	multiply_matrix3x3_vec3d(&p1, attitude, &p1);
+	multiply_matrix3x3_vec3d(&p2, attitude, &p2);
+
+	position_offset.x = building_position.x - city_position.x;
+	position_offset.y = building_position.y - city_position.y;
+	position_offset.z = building_position.z - city_position.z;
+
+	p1.x += position_offset.x;
+	p1.y += position_offset.y;
+	p1.z += position_offset.z;
+
+	p2.x += position_offset.x;
+	p2.y += position_offset.y;
+	p2.z += position_offset.z;
+
+	if (p1.x < bounding_box_min.x) bounding_box_min.x = p1.x;
+	if (p1.y < bounding_box_min.y) bounding_box_min.y = p1.y;
+	if (p1.z < bounding_box_min.z) bounding_box_min.z = p1.z;
+	if (p1.x > bounding_box_max.x) bounding_box_max.x = p1.x;
+	if (p1.y > bounding_box_max.y) bounding_box_max.y = p1.y;
+	if (p1.z > bounding_box_max.z) bounding_box_max.z = p1.z;
+
+	if (p2.x < bounding_box_min.x) bounding_box_min.x = p2.x;
+	if (p2.y < bounding_box_min.y) bounding_box_min.y = p2.y;
+	if (p2.z < bounding_box_min.z) bounding_box_min.z = p2.z;
+	if (p2.x > bounding_box_max.x) bounding_box_max.x = p2.x;
+	if (p2.y > bounding_box_max.y) bounding_box_max.y = p2.y;
+	if (p2.z > bounding_box_max.z) bounding_box_max.z = p2.z;
+
+	memcpy(out_min, &bounding_box_min, sizeof(vec3d));
+	memcpy(out_max, &bounding_box_max, sizeof(vec3d));
+
+	return (MODEL_OK);
+}
+
+int eech_model_city_box_expand(const float *bounds, const float *heading, const float *building, const float *city, const float *box_min, const float *box_max, float *out_min, float *out_max)
+{
+	eech_model_caller_environment caller;
+	int result;
+
+	if (!bounds || !heading || !building || !city || !box_min || !box_max || !out_min || !out_max)
+	{
+		return (MODEL_BAD_ARGUMENT);
+	}
+
+	result = enter_environment(&caller);
+
+	if (result != MODEL_OK)
+	{
+		return (result);
+	}
+
+	result = city_box_expand_body(bounds, heading, building, city, box_min, box_max, out_min, out_max);
+
+	return (leave_environment(&caller, result));
+}
+
+/*
+ * A sector's high-water height after the arrival of one fixed structure (sc_msgs.c response_to_link_child; the expression is sector_height_raise.h, shared with the real-engine control). `position_y` and `box_ymax`
+ * are the arriving structure's position y and the top of its scene's bounding box WITH lines, `tallest` the word the sector holds on the way in and the word it holds on the way out. All three are plain words copied by the
+ * caller; the caller has classified the two inputs by their bits (finite) and `tallest` is ANY word (a restored negative, infinite or NaN word is valid history). The environment is the one every public entry of this
+ * file has: the original's exception masks required, the caller's complete state saved, round-toward-zero set and the caller's state restored.
+ */
+int eech_model_sector_height_raise(const float *position_y, const float *box_ymax, float *tallest)
+{
+	eech_model_caller_environment caller;
+	int result;
+
+	if (!position_y || !box_ymax || !tallest)
+	{
+		return (MODEL_BAD_ARGUMENT);
+	}
+
+	result = enter_environment(&caller);
+
+	if (result != MODEL_OK)
+	{
+		return (result);
+	}
+
+	sector_height_raise_body(position_y, box_ymax, tallest);
+
+	return (leave_environment(&caller, MODEL_OK));
 }

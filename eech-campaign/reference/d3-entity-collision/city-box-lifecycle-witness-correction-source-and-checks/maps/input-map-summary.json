@@ -1,0 +1,36 @@
+{
+ "after_final_checks": {
+  "bytes": 2030151,
+  "sha256": "3939dc9474860cca4b06cb05262b678c41398b0f08bc3a950e735ff041ec0600"
+ },
+ "before_and_after_byte_identical": true,
+ "before_final_checks": {
+  "bytes": 2030151,
+  "sha256": "3939dc9474860cca4b06cb05262b678c41398b0f08bc3a950e735ff041ec0600"
+ },
+ "captured_over_head": "c82ab182dfa05ef541105bd5c903c646e105bad9",
+ "changed_from_head": [
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+  "eech-campaign/crates/eech-engine/src/lib.rs",
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+ ],
+ "changed_from_head_count": 8,
+ "file_count": 3954,
+ "fingerprint_of_raw_sha256_map": "23504e8e198c66058b645f69fbda80dff8b0529e79d4ca71fc9b56720fe48602",
+ "note": "The full maps (about 2 MB each) stay external with these hashes. The 8 paths are the 5 of this correction plus three tree-geometry test controls whose raw bytes and Git-filtered identity already disagreed at the parent (never normalised). The map was captured over the working tree before the code commit; the committed tree is the same bytes (git status clean at 4ef1f42f3).",
+ "raw_vs_git_filtered_disagreement_qualification": [
+  "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+  "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+  "modules/system/malloc.c.h",
+  "modules/system/nedmalloc.c"
+ ],
+ "scope": "every tracked or untracked non-ignored file under aphavoc/source, modules, eech-campaign Cargo.toml/Cargo.lock/rust-toolchain.toml and the eech-engine-sys, eech-engine, eech-dc and eech-world crates"
+}

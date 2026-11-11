@@ -1,0 +1,48 @@
+{
+  "checked_utc": "2026-11-03T03:19:58.115698+00:00",
+  "source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+  "windows_controller_actual_exit": 0,
+  "linux_controller_actual_exit": 0,
+  "windows_profiles": [
+    {
+      "profile": "hosted-fixture",
+      "binary": "D:\\EECH-Migration-Evidence\\tree-collision-production-f0f928147f\\eech-campaign\\target\\weapon-fixture\\tree-f0f928147f",
+      "build_info_sha256": "9fc4d144cb840b45df922eca96a302580b3c7cd790baaf5200bc2e9d127e2995",
+      "payloads_verified": 87,
+      "image": "sha256:bcead02430cac871ae51a5b8cd9373df75017522ee6630f050ec4d578a0dceae",
+      "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+      "mingw": "gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+      "target": "x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/weapon-fixture): test-only, not a shipping artifact",
+      "actual_profile_exit": 0
+    },
+    {
+      "profile": "original-control",
+      "binary": "D:\\EECH-Migration-Evidence\\tree-collision-production-f0f928147f\\eech-campaign\\target\\weapon-fixture\\original-tree-f0f928147f",
+      "build_info_sha256": "073f87a2d3e5da30b1e34db4e9b0b16c9f7e5748f8610fd75887fe9860d86cb9",
+      "payloads_verified": 87,
+      "image": "sha256:2aaafaf7c5ee77dc4c754393e2145e7b1233c0d3ad2e5b07801e5a4416d11106",
+      "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+      "mingw": "gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+      "target": "x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/weapon-fixture,eech-dc/collision-fixture): explicit ORIGINAL tree collision control",
+      "actual_profile_exit": 0
+    },
+    {
+      "profile": "ordinary",
+      "binary": "D:\\EECH-Migration-Evidence\\tree-collision-production-f0f928147f\\eech-campaign\\target\\windows-tree-f0f928147f",
+      "build_info_sha256": "294146a06181db79aba7941a24645c7607bf0ee9514e7b969171b4f0a5b1a57d",
+      "payloads_verified": 87,
+      "image": "sha256:7f1dc8f936768fcc54779aeb4bf927742c0784b1670216b632ec8db32fad7b1a",
+      "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+      "mingw": "gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+      "target": "x86_64-pc-windows-gnu, release",
+      "actual_profile_exit": 0
+    }
+  ],
+  "linux_scope": "Hosted weapon fixture compiled/copied0; Linux image4a5618cb, not a Linux retail campaign. Actual artifact hashes in its retained log.",
+  "source_clean_after_builds": true,
+  "actual_image_note": "Unmodified repo Windows builder rebuilds its Dockerfile and records each actual image ID. IDs differ from prior811/bce builds; observed Rust/Cargo/MinGW/Lua version labels match. No binary relabel or toolchain equivalence inferred solely from ID/version.",
+  "limits": "Build/payload evidence only. Native control/authority, short/full conformance, final review and wholeTask49/D3 remain separate."
+}

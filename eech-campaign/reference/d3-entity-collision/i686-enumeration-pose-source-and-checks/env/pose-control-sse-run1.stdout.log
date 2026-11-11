@@ -1,0 +1,8 @@
+i686_O0_sse_original exit=0 lines=2000
+i686_O1_sse_original exit=0 lines=2000
+i686_O1_sse_production exit=0 lines=2000
+i686_O2_sse_production exit=0 lines=2000
+words vs x64_O1_original: pose_i686_O0_sse_original.out output_lines_differing=0
+words vs x64_O1_original: pose_i686_O1_sse_original.out output_lines_differing=0
+words vs x64_O1_original: pose_i686_O1_sse_production.out output_lines_differing=0
+words vs x64_O1_original: pose_i686_O2_sse_production.out output_lines_differing=0

@@ -1,0 +1,7 @@
+{
+  "actual_exit": 1,
+  "command": "nf3p2-proof-20261108.py join",
+  "CODE": "e8cb7944e75af0ea3fbcbb4d4414015af3eb140c",
+  "reason": "Expected only3 inherited Lua raw/Git qualifications; found2 additional changed diagnostic/testLua CRLF qualifications. Independent testPython artifact CRLF also differsGit. Rawtested receipts remain true, no rawGitliteral publication claimed.",
+  "retained_helper_sha256": "a2637223743e1b663c88ab5cdb9882496a5f0f7a4bb36641f18512363fbf794a"
+}

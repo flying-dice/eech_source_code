@@ -175,18 +175,8 @@ void campaign_movement_place (entity *vehicle)
 		return;
 	}
 	begin_step (&step, vehicle, CAMPAIGN_MOVEMENT_PLACE);
-	if (type == ENTITY_TYPE_FIXED_WING)
 	{
-		/* the campaign's own write of an aircraft's motion vector is an explicit placement of that physical state */
-		const mobile *mob = hosted_mobile (vehicle);
-
-		step.fw_motion_vector[0] = mob->motion_vector.x;
-		step.fw_motion_vector[1] = mob->motion_vector.y;
-		step.fw_motion_vector[2] = mob->motion_vector.z;
-	}
-	if (type == ENTITY_TYPE_HELICOPTER)
-	{
-		/* likewise a helicopter's: any campaign write of its pose or vector is a placement the host adopts */
+		/* the campaign's own write of a hosted mobile's pose or motion vector is an explicit placement of that physical state: the host adopts both (the record holds every kind's canonical vector) */
 		const mobile *mob = hosted_mobile (vehicle);
 
 		step.fw_motion_vector[0] = mob->motion_vector.x;
@@ -406,12 +396,30 @@ void campaign_movement_move (entity *vehicle, entity *guide, const vec3d *waypoi
 	campaign_movement_apply_end ();
 
 	//
-	// Calculate motion vector for view system
+	// The motion vector for the view system and for collision: the host's own result. The legacy expression (attitude row 2 times the speed) is evaluated
+	// by the host solver from the post-step attitude and speed and retained in its record, so the vector the host holds is the vector this writes
 	//
 
-	raw->vh.mob.motion_vector.x = raw->vh.mob.attitude [2][0] * raw->vh.mob.velocity;
-	raw->vh.mob.motion_vector.y = raw->vh.mob.attitude [2][1] * raw->vh.mob.velocity;
-	raw->vh.mob.motion_vector.z = raw->vh.mob.attitude [2][2] * raw->vh.mob.velocity;
+	raw->vh.mob.motion_vector.x = result.motion_vector[0];
+	raw->vh.mob.motion_vector.y = result.motion_vector[1];
+	raw->vh.mob.motion_vector.z = result.motion_vector[2];
+}
+
+// A routed vehicle's motion vector at a place where the legacy code evaluated attitude row 2 times the speed without a step (its early returns: no waypoint, not in a state to move).
+// The host evaluates it from its own record (the speed was just zeroed by the host's own stop where the legacy code stopped it), retains it and answers it
+
+void campaign_movement_routed_vector (entity *vehicle)
+{
+	routed_vehicle *raw = (routed_vehicle *) get_local_entity_data (vehicle);
+	campaign_movement_step step;
+	campaign_movement_result result;
+
+	begin_step (&step, vehicle, CAMPAIGN_MOVEMENT_ROUTED_VECTOR);
+	result = ask_host (&step);
+
+	raw->vh.mob.motion_vector.x = result.motion_vector[0];
+	raw->vh.mob.motion_vector.y = result.motion_vector[1];
+	raw->vh.mob.motion_vector.z = result.motion_vector[2];
 }
 
 void campaign_movement_ship_move (entity *vehicle, entity *guide, const vec3d *waypoint)

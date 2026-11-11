@@ -1,0 +1,63 @@
+{
+  "kind": "Post-POST actual committed Git blob byte publication join, no experiment replay",
+  "utc": "2026-11-08T01:12:30.051291+00:00",
+  "code_commit": "fda05b65109ea19bc1d10f022555297670495b94",
+  "packet_manifest_entries": 89,
+  "packet_tracked_files": 90,
+  "packet_all_actual_committed_blob_bytes_literal": true,
+  "source_input_rows": 3997,
+  "source_raw_bytes_equal_committed_blob_count": 3994,
+  "source_raw_byte_mismatches": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "source_all_current_bytes_equal_frozen_POST": true,
+  "contract_actual_committed_blob_bytes_equal": true,
+  "source_fingerprint": "88b08e83ea525112bc58513ada343340dca5df67b02d713ee7e48db7d88418e2",
+  "extra_identity_aggregate": "d11eea349d034930e5b0cd6eef65d50e700879b823c95e28aa5a92aa87c57921",
+  "final_direct_exits": {
+    "s1-fmt-check": 0,
+    "s2-clippy-default": 0,
+    "s3-clippy-motion-hosted": 0,
+    "s4-clippy-motion-original": 0,
+    "s5-motion-hosted": 0,
+    "s6-motion-original": 0,
+    "s7-flags-guard": 0,
+    "s8-flags-controls-hosted": 0,
+    "s9-flags-controls-original": 0,
+    "s10-build-dc": 0
+  },
+  "selected_counts": {
+    "s5-motion-hosted": {
+      "physical_flags_motion": 1
+    },
+    "s6-motion-original": {
+      "physical_flags_motion": 1
+    },
+    "s7-flags-guard": {
+      "physical_flags_guard": 10
+    },
+    "s8-flags-controls-hosted": {
+      "physical_flags": 1,
+      "physical_flags_consumer": 1,
+      "physical_flags_collision": 1
+    },
+    "s9-flags-controls-original": {
+      "physical_flags": 1,
+      "physical_flags_consumer": 1,
+      "physical_flags_collision": 1
+    }
+  },
+  "freeze_sha256": "a5f8b795fef427e0f53da01130fe04b93a5f2fe429bce585cb478fb3c12f6274",
+  "qualifications": [
+    "Three inherited uncompiled Lua working files are CRLF while their Git blobs are LF; their filtered identities match. Four separate inherited Core filter-identity disagreements retain raw bytes equal to Git. No normalization was performed.",
+    "Plain staged whitespace check returned nonzero (outer PowerShell exit1; child numeric status not retained) on literal CRLF receipts and blank lines at EOF in raw logs. CR-at-EOL-only check returned nonzero (outer PowerShell exit1; child numeric status not retained) on log EOF blank lines. Source-only whitespace check and receipt-qualified cr-at-eol,-blank-at-eof check each exited0. Literal packet bytes were preserved; no test result changed.",
+    "Native UNRUN / nothing ran natively in the packet means no Windows/retail public campaign execution. Compiled Linux C fixtures executed in the Rust tests, and the default Linux eech-dc module build ran (s10 actual0).",
+    "Raw mb_hostmodel.c changed only the preprocessor gate of test-only helpers. This source is not the retained 3abf Windows binaries; no relabelling.",
+    "Motion-hosted traffic6groups/10sets/4explicit inspection reads/0resets/11fresh bindings. No motion-consumer READ or reset case is claimed.",
+    "This helper was created after POST solely for committed byte publication and tracked metadata; it was not a sealed final-test reader, changed no tested source/helper, and requests no replay."
+  ],
+  "state": "UNREVIEWED; STOP for SAME independent source/evidence review. Generic NativeAcceptance1, all10, Task49 and D3 OPEN.",
+  "publication_helper_sha256": "7b5df8113b1695ddf8e084d220b6ef380ab2bef647d73e2768483886c202b7c5"
+}

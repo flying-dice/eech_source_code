@@ -1,0 +1,16 @@
+{
+  "kind": "Explicit dual identity for the normalized audit stdout; original raw retained, no original packet changed",
+  "source_code": "e326a35724feb0566491c51d84d587995e2f9de8",
+  "source_packet_commit": "c4c9d0f1771860cda60dcd418245a7e5f21e2079",
+  "entry": {
+    "path": "runs/shp3-real-accepted-shape-20261107.txt",
+    "manifest_bytes": 232,
+    "manifest_sha256": "2e8256cc148483f0bcd6d7da3d9c6d5ada0cde57263f76d8e074baa4e866b299",
+    "actual_git_bytes": 230,
+    "actual_git_sha256": "b5c8bd944c6b91a919b0f86b4fd38b15eece8abe1419635d0834335cc0097bde",
+    "qualification": "Stored Git output is CRLF-to-LF of the original Windows Python audit stdout. Manifest row retains original CRLF identity and does NOT hash literal Git bytes for this one entry. No content/test/source change. Original raw output retained externally; both identities explicitly qualified."
+  },
+  "raw_retained": "R:/d3-evidence/shp3-real-accepted-shape-20261107.txt",
+  "transformation": "raw.replace(CRLF, LF) == immutable Git bytes",
+  "scope": "Read-only Python audit stdout, not campaign/Tacview/retail data. Old packet remains 62/63 literal; this receipt binds the single normalized entry. No test or source replay."
+}

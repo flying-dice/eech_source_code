@@ -1,0 +1,6 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.25s
+     Running tests/entity_authority.rs (/target/debug/deps/entity_authority-e560af20ef34dd57)
+entity-authority: mode=scan_real profile=hosted completed entity=1 other_ops=2 altered=1
+error: test failed, to rerun pass `-p eech-world --test entity_authority`

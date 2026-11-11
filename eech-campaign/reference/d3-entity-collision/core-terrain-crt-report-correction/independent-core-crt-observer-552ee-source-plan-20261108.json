@@ -1,0 +1,165 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T05:00:55.249591+00:00",
+  "review_kind": "One independent combined changed-source, frozen-control and finite capture-plan review",
+  "source": {
+    "commit": "552ee8e079b75626199c4e348ed0e986bc02b7ba",
+    "metadata_HEAD": "19e319a5fd0a11220a5ccf2c1b2d03433719c981",
+    "source_before": "1516f5a9279dbfbb3a7d8ac309a8bb722c58e40e",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_full_status": "clean",
+    "feature": "eech-dc/core-terrain-crt-observer",
+    "unchanged_raw_source": "aphavoc/modules raw files remain unchanged; the dedicated feature adds eight strict staging patch rules plus gated engine boundary/report code."
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-CORE-CRT-OBSERVER-FROZEN-20261108.json",
+      "bytes": 12652,
+      "sha256": "7144501117d2c340b1a58b72e6250c6582b2a0f46d864da47bf8d849b390f89e"
+    },
+    {
+      "path": "R:/d3-evidence/crt1516-publication-checkpoint-20261108.json",
+      "bytes": 1963,
+      "sha256": "370196112b0a09e48b475cee978a37142b18b9f938a9901989e268ca5a051190"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-core-terrain-crt-capture-plan.md",
+      "bytes": 7367,
+      "sha256": "0616fe8dad025b43c923345b74638dcbc08aff5273a29ed40027916182068d10"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-observer/windows-observer-build-recipe.md",
+      "bytes": 2925,
+      "sha256": "f4812b532be5d99c5048f850a8143ad7c405563aa46c0c5780c4171c435ac9be"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-observer/crt1516-PRE-utc-20261108.txt",
+      "bytes": 28,
+      "sha256": "d954c434e492a72e57b5201b01e8673c4d71c93f32146ee497e8c07a6a1c3755"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-observer/crt1516-POST-utc-20261108.txt",
+      "bytes": 28,
+      "sha256": "2a0890b8eabe0213b821100d6673f68b166379539ccfff211d07f1c5b7c153b9"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/core-terrain-crt-observer/crt1516-final-completion-20261108.json",
+      "bytes": 225,
+      "sha256": "5deb3b9f2ee325b0040c2966d2a1883b0c127b84209861f23eda1182b2433004"
+    }
+  ],
+  "findings": [
+    {
+      "id": "ENV-CORE-CRT-OBSERVER-REPORT-COMPLETE-1",
+      "severity": "P2",
+      "status": "CHANGES_REQUIRED",
+      "category": "Finite observer report completeness and interpretation gate",
+      "title": "Validate actual row contracts and load/seed/count relations before declaring a complete observer report",
+      "evidence": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+          "line": 30,
+          "fact": "The summary is parsed, but the loop below it accepts site and skin rows solely from their family label/count. Their fields, domains and relations are not parsed."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+          "line": 34,
+          "fact": "Mark rows receive only an order/draw substring check and a loose kind extraction. There is no required load_begin/load_end or constructor balance/domain check; only the first and last indexed marks must contain kind=seed."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/core_terrain_crt_driver.rs",
+          "fact": "The coherent REPORT fixture is available, but the current damage controls exercise only summary flags/totals/row count and one mark ordinal; they do not reject missing or contradictory load/site/skin evidence."
+        },
+        {
+          "path": "eech-campaign/docs/d3-core-terrain-crt-capture-plan.md",
+          "fact": "The plan requires malformed/count/order contradictions to fail before absence credit and declares real seed bounds, balanced constructor/skin/site traffic and a completed load as the interpretation contract."
+        }
+      ],
+      "source_supported_counterexamples": [
+        "Keep the coherent fixture otherwise unchanged and replace its load_begin or load_end kind token with an unrelated kind. The summary remains complete1/loads1/ends1, all row counts and monotone mark ordinals pass, and the boundary-prefix checks ignore the unrecognized kind. No actual completed load is then established by the rows.",
+        "Keep the same fixture and replace one site body with core-crt-site garbage, or a skin body with core-crt-skin garbage. The family/count checks still pass and the driver writes/logs a complete report.",
+        "A single altered site phase count can contradict the summary phase totals without affecting any current check. These are source-walk counterexamples, not reviewer-executed tests or native results."
+      ],
+      "impact": "Malformed or internally inconsistent evidence can receive the same successful complete-report path as a real bounded capture. That can turn missing load/constructor/skin or phase evidence into misleading absence/zero-draw credit. No production loader/RNG defect is asserted.",
+      "minimum_correction": "Use the existing report family and driver to parse the complete exact current summary/mark/site/skin schemas, canonical numeric domains and family order. Join summary counts and draw phases to the rows; require the real ordered load begin/end and seed bounds, permitted ordered boot-boundary prefix, balanced constructor/skin relationships and meaningful first/last ordinals. Preserve legitimate inactive skin and genuinely outside-window marks as qualified absence, rather than requiring a preferred reseed location or changing the window. Do not introduce a replacement observer framework.",
+      "required_controls": [
+        "Start with the current coherent accepted fixture and retain successful exact-copy/delegation. Apply each missing-boundary, unknown-kind, malformed-site/skin and contradictory phase/ordinal mutation singly; each must fail for its own evidence error.",
+        "Keep the legitimate earlier-reseed prefix positive and inactive-skin zero-draw case. Do not force later boot boundaries to appear after capture already froze.",
+        "Run only the affected Lua/report-control, formatting/lint and identity checks for a Lua/test/docs-only correction. Reuse exact unchanged C forwarding/staging evidence rather than replaying old matrices or retail runs."
+      ],
+      "blocks_native_launch": true,
+      "requires_C_RNG_or_loader_algorithm_change": false
+    }
+  ],
+  "source_review_assessment": {
+    "forwarding": "The feature wrappers undefine their own macros for the real rand/srand calls, forward each original call once with the original seed conversion and return rand int unchanged. They preserve the underlying errno result around integer/static bookkeeping and introduce no hook I/O/allocation/time/extra RNG call. Capture freezes at the first actual seed in the post-load phase while later calls continue forwarding.",
+    "staging": "The eight additive patch rules surround the two actual FOREST source alternatives, CLOUD construction and skin_random boundaries, and preserve existing RNG expressions. Source anchor counts and the actual compiled-stage equality control bind the staged text, not merely an uncompiled copied fixture. The original branch/season/cloud expression is not repaired or normalized.",
+    "gating": "Cargo forwards the opt-in feature dc to engine to sys. The C observer body is entirely guarded and the generic csrc loop compiles it once; the force include and staging patches are feature-gated. Lua/Rust report methods are absent from default builds. Target-point-fixture is explicitly incompatible. Default shipping is not relabelled as this observer.",
+    "bounds_and_FFI": "Static site64/mark64/skin128 bounds record problem rather than overwrite, and forwarding continues. The report writer returns an error for insufficient capacity; the Rust wrapper uses a fixed65536-byte buffer and only reads a successful NUL-terminated result. The gated engine report entry uses the existing ENTER/LEAVE state/poison/FPU boundary. Unsafe C test entry strings/buffers are controlled by the isolated test; no public reset/arming API is added.",
+    "FPU_thread_limits": "The small real-CRT forwarding control demonstrates its recorded FP words and call sequence, not whole campaign/Windows/provider FPU noninterference. Integer bookkeeping alone does not supply a universal compiler/register/trap guarantee. The observer assumes the supported one owner thread/process and is not a synchronized whole-process CRT monitor.",
+    "coverage_truth": "Observed site counts/first ordinals/first-last values and32-bit digest are compact Core-call-expression evidence, not a collision-free per-draw trace or Host/library-internal RNG coverage. Source functions shared by several callers may still require source/value-use attribution; ambiguous first consumer evidence stays OPEN. No zero-draw claim follows merely from an unobserved FOREST path or a frozen later boundary."
+  },
+  "frozen_checks_and_identity": {
+    "final_commands": 6,
+    "actual_final_direct_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "selected_Rust_instances": 8,
+    "selection": {
+      "observer_forwarding_staging_gates": 4,
+      "Lua_driver": 3,
+      "existing_profile_census": 1
+    },
+    "PRE_utc": "2026-11-08T04:40:18.6080968Z",
+    "POST_utc": "2026-11-08T04:45:46.3686904Z",
+    "final_commands_window": "04:40:22 through04:45:23, as retained direct receipts",
+    "reported_input_rows": 4010,
+    "reported_raw_Git_exact": 4007,
+    "inherited_Lua_CRLF_qualifications": 3,
+    "reported_extras": 14,
+    "reported_readers": 8,
+    "direct_reviewer_changed_source_join": "All14 changed source files were individually read and compared byte-for-byte to immutable552ee Git blobs and their frozen hashes. Actual HEAD/full status was inspected. No source/check identity is inferred from a later metadata label.",
+    "reported_publication": "Checkpoint records67 manifest entries/68 literal Git files including two metadata publication files. The Windows recipe is explicitly post-POST documentation; it does not change the tested code/plan bytes or create build evidence.",
+    "Root_mechanical_receipt_at_seal": "Promised independent batched whole-input/publication receipt has not yet been supplied or observed. Broader4010-row/67-entry mechanical claims above remain labelled as frozen/checkpoint claims, not falsely attributed to an unseen Root proof. Root must join the final raw source/test/publication identities before any conditional build. A concrete identity mismatch would require assessment; a matching later read-only receipt alone does not require replaying controls.",
+    "service_completion": "Reviewer observed the fallback agent completed via collaboration.list_agents with its final source/meta/checkpoint scope; no OS PID or CLI exit is fabricated. The separate Root typed completion receipt is still pending at this seal.",
+    "small_CRT_control": "Actual recorded control: three captured draws, one further correctly forwarded draw after freeze, two seeds, two load draws/one gap draw and inactive0 versus active1 skin draw, with equal recorded FP words. Boundaries/skins in that control are scripted; it is not a real Core retail terrain boot.",
+    "retained_development_failures": "The libc/GNU force-include ordering101 and missing actual sys archive linkage101 remain setup failures, not product or retail baseline REDs."
+  },
+  "finite_plan_assessment": {
+    "status": "SUPPORTED_BOUNDED_DIRECTION; NATIVE_PREREQUISITES_NOT_COMPLETE",
+    "scope": "At most one matched ordinary control plus one observer per declared Georgia/Lebanon retail map, unchanged seed1/100ms/hours0.001/35-frame cap/ordinary record-observe-supply settings. No actor/configuration/season/window hunt or baseline rewrite.",
+    "client": "The new wrapper delegates the unchanged campaign.lua once and retains that same session. It restores dc.boot after the client call; a client/boot/frame failure closes the output only and does not query or close a poisoned engine. It adds no second preparation/profile selection, and the existing66/2 census is actually checked.",
+    "baseline_gate": "Lebanon accepted3abf43fe/80fd complete short evidence can be reused only through exact literal/runtime/input/configuration/argument correspondence. No matched Georgia ordinary short is established in this packet: bind an existing exact counterpart or obtain the one genuinely missing ordinary control. Do not create a new accepted golden baseline.",
+    "required_before_native": [
+      "Correct the complete-report P2 and review its changed material.",
+      "Produce an exact frozen Windows observer build and its own feature/compiler/staged/COFF/export/full-payload provenance. The retained image and post-POST explicit Cargo recipe are prerequisites for a new build, not evidence of an existing observer binary.",
+      "Bind the actual observer and ordinary baseline identities, fresh roots/outputs, input tool/full manifests, exact unchanged campaign/helper/wrapper literals, controller arguments/hash and required complete-output comparisons in a concrete Root controller plan, then obtain the bounded launch disposition.",
+      "Require complete raw ACMI/observations/metrics equality and unchanged full inputs/payloads to assess noninvasiveness; source forwarding control or a digest alone cannot grant it.",
+      "Interpret only the actual closed capture window and identify the first gap consumer/value use before any loader/RNG removal decision. Overflow/incomplete/malformed/setup or output differences fail, rather than becoming absence credit."
+    ],
+    "reload": "The UI gameflow/client MISSION_DATA reload paths have no established supported headless public entry here. They remain source-blocked/unmeasured, not universally dormant. No invented API or packet injection is authorized."
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED_REPORT_COMPLETENESS; COMPILED_OBSERVER_REVIEW_BOUNDED",
+    "windows_build_clearance": true,
+    "windows_build_clearance_conditions": "Build-only permission is conditional on Root first completing the final raw source/check/publication and actual-completion join, freezing exact552ee in a clean independent longpaths-enabled snapshot, owning the cache exclusively, and using the reviewed dedicated feature recipe/fresh output with retained actual compiler/staged/COFF/payload evidence. It is not an assertion that the pending Root proof or any Windows build has occurred. The P2 is in Lua/report validation, so a later strictly Lua/test/docs-only correction may reuse this exact compiled observer only after source/input equivalence is demonstrated.",
+    "native_launch_clearance": false,
+    "capture_accepted": false,
+    "loader_removal_clearance": false,
+    "generic_NativeAcceptance1_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "limits": [
+    "This is source/finite-plan review only; no Windows build/native/retail terrain capture or loader removal is accepted. No recorded fake fixture result is promoted to a retail fact.",
+    "The existing D3G04/Core CRT first-consumer/draw/season/skin fact remains REQUIRED OPEN; this observer has not resolved it yet. All10/GenericNative1/remaining services/natural moving/DCS/final census/current40all8/four inputs/currentCI/review/normal merge/Task49/D3 remain OPEN as applicable.",
+    "Both original fullpacks and all source/bin/root/output/process identities are preserved. Growing prefix equality is PARTIAL only.",
+    "No reviewer cache/build/test/native/campaign/checker replay, source/Git mutation or nested delegation occurred. Only this new external immutable JSON is written. Prep2 and noD4/D5/TypeScript restrictions remain."
+  ]
+}

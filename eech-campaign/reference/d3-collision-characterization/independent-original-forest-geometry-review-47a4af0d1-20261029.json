@@ -1,0 +1,141 @@
+{
+  "review_kind": "One combined new original controlled forest-geometry/model-decoder witness correctness, clean-code, boundary and actual-evidence pass",
+  "reviewed_utc": "2026-10-29T21:52:28.755173+00:00",
+  "base": "5022df48a466477f65b44ef6bd9595afce07753e",
+  "reviewed_and_measured_head": "47a4af0d1a5a5694c1678147a19240b071627fac",
+  "frozen_snapshot": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1",
+  "snapshot_clean_before_and_after": true,
+  "verdict": "CHANGES_REQUIRED: one P2 in witness validation/positive test histories. Retained actual native measurements remain valid and satisfy the stronger constraint. No new C physical math/ownership/restoration defect found. This does not approve production/model-loader extraction/task49/shipping/whole-D3 acceptance.",
+  "findings": [
+    {
+      "id": "P2-decoder-history-conservation",
+      "priority": 2,
+      "path": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+      "line": 812,
+      "related_source": {
+        "path": "R:\\d3-evidence\\tree-geometry-state-source-47a4af0d1\\eech-campaign\\crates\\eech-world\\tests\\lua\\collision-caller.lua",
+        "line": 384
+      },
+      "problem": "check_witness accepts impossible decoder histories as evidence of geometry/depth coverage. It checks true<=calls and depth<6 but not conservation across exhausted six-triangle walks and the final hit. The positive stand-in already emits calls2,true2,last1,depth0 (and cycles higher depths with the same calls), while a first-triangle hit needs one successful decoder read. Its exhausted example calls3,true2,last0,depth1 is also impossible for this fixed6-triangle mesh.",
+      "failure_mechanism": "Report counts/depth buckets are generated from the same inconsistent per-query fields, so report/transcript correspondence passes. This can manufacture apparent later-depth/exhaustion coverage without a possible original decoder call sequence. Actual18-driver-test success does not make those positive histories coherent.",
+      "bounded_correction": "For the controlled fixed6-triangle model only, let F=g_calls-g_true. Require g_true=6*F+(g_last==1 ? g_depth+1 : 0). A nonzero exhausted history with last0 must have depth5; no-call history retains depth0. Keep existing bounds/hit implications. Correct the positive collaborator to possible walks and add genuine actual-driver impossible-history controls with coherent report buckets, retaining healthy positives. This checks call history only, not a physical answer.",
+      "observed_native_status": "Reviewer independently checked all4802/5126/5126 retained actual query histories: zero violations. Root separate conservation audit agrees. No native/oracle/tolerance/solver change or original campaign rerun is needed solely for this validator correction.",
+      "required_followup": "Focused changed-validator/collaborator source and affected actual-driver red/green evidence; do not repeat the unchanged decoder/kernel/native witness pass."
+    }
+  ],
+  "source_assessment": [
+    "The feature-OFF geometry macro expands to the same original get_object_3d_collision_object_geometry_triangle(OBJECT_3D_FOREST_TREE_OBJECT,P,D) at the same two original read sites. P and depth++ are evaluated once. Feature-ON wrapper calls that original decoder once and then updates integer observations; no extra terrain or intersection query was introduced.",
+    "Controlled object storage is bounded:12 short points,3 faces4/3/5,2 surfaces with7/5 local point mappings,12 face references and12 surface-point references. Original fan/depth traversal yields2+1+3=6 triangles. A third zero surface sentinel safely covers the original read after the final face; no later point reference is dereferenced then. Short-point scaling and all triangle values come from the unchanged original decoder.",
+    "The fixture copies the actual real object table0..total_number_of_raw_3d_objects and appends one controlled object; all real indexes/pointers/content retain their positions. Only the forest scene collision index and global table pointer are redirected. The scene index and original table pointer are restored before freeing the copy; full original table/scene hashes and flags are asserted. No native pointer is exposed as a Lua value; diagnostic hashes and legacy model indexes remain fixture-only.",
+    "probe_run_body remains the original query/case/fold path. The outer witness wrapper removes the model after every normal C return, including body precondition refusal and report overflow, before appending witness diagnostics. Existing terrain/update-flag/RNG restoration remains in the body. Induced fatal interruption/OOM is not claimed as dynamically tested.",
+    "The fixed trace mode now follows the current probe, preventing controlled g_* fields from leaking into later default pages without trace rearming. One-shot arming is consumed in C and cleared on Rust range and Lua conversion refusals. Raw MultiValue conversion uses the same FromLuaMulti tuple scalar rules as the previous typed method; no scalar policy tightening or extra host callback was added.",
+    "The driver labels controlled input in boot/start/facts/report, validates restoration/model counts/trace correspondence and merges explicit geometry gaps into total gaps. Existing checked trace I/O/disarm/error handling remains applicable; the witness is already consumed/restored before later trace writer failure.",
+    "Geometry-hit classification is grounded in the real query result plus the last actual decoder return: a true final decode only remains when the original returns immediately after a triangle hit; exhausted walks end in false. This is distinct from invented stand-in physics. The missing history-conservation check above still needs correction.",
+    "Lua replay now passes actual recorded decoded triangles, in order, to the already-reviewed host component and refuses capped/miscounted/out-of-order geometry instead of treating it absent. No host C/library/Lua API implementation was re-reviewed or changed."
+  ],
+  "actual_evidence_verified": {
+    "reviewer_actions": "Read-only Git/file/hash inspection and own Python analysis only; no source edits, supplied tests/builds/native execution, process/cache/auth/Git mutations, delegation or external write.",
+    "build_and_checks": {
+      "measured_source": "47a4af0d1a5a5694c1678147a19240b071627fac",
+      "fixture_manifest_entries_rehashed": 44,
+      "fixture_build_info_sha256": "03c4195509d653aafa05d7030ff4ef81ce9f0e52174e3f103b43233bbf09b4a6",
+      "guard_manifest_entries_rehashed": 5,
+      "guard_build_info_sha256": "2313534314b81d9c1fa6e0e9c37a50f53f46f820bdff20abed832156bc508202",
+      "combined_manifest_entries": 49,
+      "scope": "File-manifest entries, not DLL-export counts",
+      "linux": "Actual fmt18-driver-guards/all-host-target Clippy0; no physical claim from stand-in tests",
+      "windows": "Actual build0,18/18 driver guards0 and expected invalid-host override101/controller0, payload hashes unchanged"
+    },
+    "current_native_controller": {
+      "actual_exit": 0,
+      "all27_recorded_command_exits": 0,
+      "all27_log_hashes_rechecked": true,
+      "pre_and_post_input_records": 0,
+      "payloads_unchanged": true
+    },
+    "per_map": [
+      {
+        "map": "georgia",
+        "queries": 4802,
+        "terrain_lookups": 9598,
+        "geometry_primary_entered": 35,
+        "geometry_primary_hits": 22,
+        "geometry_primary_misses": 13,
+        "geometry_partial_write_misses": 13,
+        "after_first_triangle_hits": 3,
+        "all_four_flag_combinations_entered": true,
+        "actual_hit_depths": [
+          0,
+          1
+        ],
+        "library_default_Up_Down_Zero_exit": 0,
+        "actual_host_Lua_exit": 0,
+        "controlled_transcript_sha256": "6d4407214194d43747394e3a517065f554a42ad4789e2178744fb55bf645aac0"
+      },
+      {
+        "map": "lebanon and separate repeat each",
+        "queries": 5126,
+        "terrain_lookups": 10148,
+        "geometry_primary_entered": 24,
+        "geometry_primary_hits": 19,
+        "geometry_primary_misses": 5,
+        "geometry_partial_write_misses": 5,
+        "after_first_triangle_hits": 1,
+        "all_four_flag_combinations_entered": true,
+        "actual_hit_depths": [
+          0,
+          1
+        ],
+        "library_default_Up_Down_Zero_exit": 0,
+        "actual_host_Lua_exit": 0,
+        "controlled_transcript_sha256": "647927fc7ed66d8489dbc230d36a08076f7ba365f753eb531ba3d8243dbf4698"
+      }
+    ],
+    "physical_compare_scope": "Every full controlled query replays ordered terrain lookup count/XZ and hit/point/normal bits through the library and actual host Lua with zero mismatches; library caller modes/status checks pass. This compares original controlled measurements, not new host output against itself.",
+    "unchanged_data": "All three default206-row report files and full transcripts byte-identical to retained f3. All three controlled full transcripts byte-identical to first537 originals. No baseline/expected bits/formula/tolerance normalized or replaced. All actual query histories satisfy the stronger conservation rule despite the permissive checker.",
+    "one_shot_and_refusal_controls": "Same exact three private CRLF scripts: original537 one-shot control failed1 with report/facts equal but later default records contaminated; range/conversion RED raw outputs show next probe still controlled and first summary records actual1. Corrected47a same scripts all0: default report/facts/records fully restored; range/conversion errors genuine; next default unarmed/report byte equal. Separate controls do not claim production authority.",
+    "embedded_nul": "eech_engine.c retains exactly one embedded NUL; inspected without deleting/rewriting it.",
+    "publication": "Four newly authored script/safe-summary copies verified: private raw CRLF hash and current pinned Git LF hash match explicit provenance; only CRLF->LF transformation gives exact bytes/decoded text. They are not byte-identical copies. Actual RED/GREEN used unchanged private script bytes."
+  },
+  "limits": [
+    "The six triangles are decoded by the actual original function from a deliberately controlled bounded mesh. This now provides a genuine original geometry branch/decoder witness; it does not characterize every retail model format/surface combination or complete host model-loader extraction.",
+    "Actual triangle-hit depths are0 and1. Exhaustion reads all six decoded triangles and exposes their facts, but hits at depths2..5 are not claimed. Geometry subset gaps=none is not all collision/whole-D3 coverage.",
+    "The reference model scene is temporarily controlled while actual retail tree positions remain unchanged. This is not a natural retail forest model, DCS world authority or a generic production provider proof.",
+    "C cleanup was inspected for normal/precondition/report-overflow returns. No forced allocation failure/fatal interruption/unmasked-FP path or arbitrary lifecycle reentry is claimed.",
+    "No host decoder/model loader has moved; entity collision and remaining geometry/model/environment/time/spatial services, DCS mapping/workaround, production handoff/refusal, final shipping and normal delivery remain D3 work. No D4/D5 deferral or unsupported-miss substitute approved.",
+    "Closed host-component review4258 remains reused; no unchanged source/core/capture re-review or repeated accepted test run. Task47 shipping115 and all unrelated live processes/caches remain untouched. No formal GitHub approval."
+  ],
+  "next_bounded_action": "Correct the one validator/collaborator P2 and provide focused actual-driver controls. Reuse preserved native47a measurements and compare affected transcript validation without rerunning healthy campaigns solely for that guard.",
+  "source_sha256": {
+    "STATUS.md": "ac5217e89abf4814c6fbb5277a2da09fac36cea89836ecd908cf40c7891b8f76",
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c": "6853e3dfe119a6be790a271470835b41afaa67f81790802d75d77e823eec96f1",
+    "eech-campaign/crates/eech-dc/src/module.rs": "bad9698eee05507cbed95c287b4cdfe8aea173f6d8a3090fab0ee161e467e146",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_collision_fixture.c": "9df24398c08870297684653b2306e60579ebd66414ab0c723b838cef1ccf2873",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "8fe856a62e1c05ac964ebe37a309149be1e01cd2d63395ab43c99bf3d0f19582",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "921525126971ecc0cc60c6333fcaba470a691ef794eab259840f993dc5ac83c4",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "57647b55d3d1da4b7ef92f568a7f7a357ce2df341df23b52012df8eb82f08541",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "818558c51d250ed350a60eb07e2a6745d6933d3aeb78099173737d22ff8c2311",
+    "eech-campaign/crates/eech-world/lua/collision-characterization.lua": "b8a1f33a1d55ec73ae07003a8ce281f7d4145274242c617a56dae680b566f2a9",
+    "eech-campaign/crates/eech-world/lua/tree-collision-replay.lua": "820d6609ad44446b4b4cc25825913cfab3124b73630f405e9d77d7e1375fcfd8",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "d631cef15f62026f0d570fd41abadd70a68dbaa1c8c2202e15cfd7475dc521db",
+    "eech-campaign/crates/eech-world/tests/lua/collision-caller.lua": "9e2780e57888c5b968590633e5ad3d030885568a2652dd300073f0046ccfab27",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+    "eech-campaign/docs/m5-collision-characterization.md": "86ebf65811c76c91b2ecb0ac3b9c836eae837bfb0d6c7d6621f0b13a84eb4085"
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\tree-geometry-original-537c36faf-first-measurements.json": "903c4f2dea34cfeae95ea72f90aad7855f8737cfd835446ec9de370bea5de92c",
+    "R:\\d3-evidence\\tree-geometry-original-537c36faf-native-20261029\\controller.json": "a79f549c6e9bc9200884b7b63a00cc9418966931dc72e864c7d9500adec5bf4d",
+    "R:\\d3-evidence\\tree-geometry-state-47a4af0d1-native-20261029\\controller.json": "8cf4c921a5815cdc6c9a587fd9a238374de71c25a804c658b8d3fe371b739d9d",
+    "R:\\d3-evidence\\tree-geometry-state-47a4af0d1-native-summary.json": "f96bef488ec03352f7f2a4447e3ee7170549ab782f4663758234cba208fabab9",
+    "R:\\d3-evidence\\tree-geometry-state-linux-47a4af0d1-20261029-completion.json": "ea2f8e23284bf172ac2bb1cae1df20f75f6e532602a84ba0eeb99667b72eb14a",
+    "R:\\d3-evidence\\tree-geometry-state-linux-47a4af0d1-20261029.log": "daf8a3da6a41ce495799fcdfec2093157bd4d9b42fe6925bfa2fbfa98c908cc2",
+    "R:\\d3-evidence\\tree-geometry-state-windows-47a4af0d1-20261029-completion.json": "2fc95a65905e386c112ef89d17861598a388c472521afd828baaf3defd66b397",
+    "R:\\d3-evidence\\tree-geometry-state-driver-windows-47a4af0d1-actual-20261029\\controller.json": "bbe2a266cb929af40244721250ef4f0e9599ba75634a7cc93757bd95d51612fe",
+    "R:\\d3-evidence\\geometry-47a-native-history-conservation-audit.json": "0123d2f8519c94eca0299a134c80422516190348c4730236e5276393c317867c",
+    "R:\\d3-evidence\\tree-geometry-one-shot-control-20261029.lua": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+    "R:\\d3-evidence\\tree-geometry-refused-probe-control-20261029.lua": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+    "R:\\d3-evidence\\tree-geometry-conversion-refused-control-20261029.lua": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0"
+  }
+}

@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "review_date": "2026-11-05",
+  "reviewer_role": "sole independent Codex reviewer",
+  "review_type": "Combined correctness, clean-code and boundary-safety changed-source review plus direct-gate/source-identity join; source clearance for planned native validation only",
+  "source": {
+    "commit": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "substantive_correction_commit": "f3107332bf28e156ec6205ba321432bfad14dc60",
+    "pre_lint_metadata_commit": "41447a67e8817bbfa6f92a46baf13beaa548868a",
+    "correction_base": "5f76e01235da02f25a57e932cb050dc98baec9e5",
+    "rejected_runtime": "4f790b712871561c2b04c3d3173ad7ad51ee8a24",
+    "snapshot": "D:/EECH-Migration-Evidence/canonical-pose-production-ea2b23481",
+    "changed_correction_paths": [
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_pose_lifecycle_guard.rs",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/movement.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md"
+    ],
+    "last_delta_paths": [
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md"
+    ],
+    "last_delta": "The only code delta is one cfg(test) next() % 2 == 0 replaced by next().is_multiple_of(2); exact whole-file substitution verified. Same single generator evaluation, branch, corpus and assertions. Provider prose corrects hosted aircraft caller disposition. All production/C inputs are unchanged from f310."
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "source_review_no_blocking_findings": true,
+    "findings": [],
+    "finite_source_correction_closed": true,
+    "native_launch_clearance": true,
+    "native_launch_scope": {
+      "allowed": [
+        "Fresh ordinary and hosted Windows build/profile validation at the pinned source",
+        "The retained exact ordinary short scenario and complete literal output/input/payload comparisons",
+        "ONE healthy default public characterization first",
+        "Only after that healthy run genuinely passes: the bounded moving_control and terrain_lift positive validation, with the declared original-profile comparison where reached"
+      ],
+      "conditions": [
+        "Keep runtime, diagnostic Lua, profile and payload identities explicit",
+        "A missing moving target, target NeedUpdated/test, lifted step or later target query is UNREACHED, never acceptance; do not tune accepted scenarios to conceal it",
+        "Physical effect and moving parity must be established from actual results; coherent Core/Host mirrors alone are insufficient to identify the consumed authority"
+      ],
+      "not_covered": [
+        "Native runtime acceptance",
+        "Whole pose/lifetime ownership",
+        "Whole Task49, whole D3 or delivery acceptance"
+      ]
+    },
+    "physical_pose_authority_accepted": false,
+    "moving_public_path_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "finding_dispositions": [
+    {
+      "id": "ENV-ENTITY-POSE-DOMAIN-1",
+      "severity_at_rejected_source": "P1",
+      "disposition": "Corrected at source for the compiled normal server-created mobile lifecycle; safe to measure this scope, not universal lifecycle acceptance",
+      "verified": [
+        "All six collidable aircraft/vehicle creator types bind through the group MEMBER link before insertion into the sector list; the group-link callback seeds the canonical record, including its vector, before returning",
+        "The entity list insertion requires its parent; absence of a required group is not silently treated as a supported created mobile",
+        "Routed, anti-aircraft, ship, person, fixed-wing and helicopter types have explicit movement-kind binding; every canonical vector is seeded",
+        "Group unlink/loss keeps the semantic identity and record. Heap release retires it; the six destroy paths remove sector membership before release",
+        "Hosted ENTITY compilation now requires hosted movement and identities. No query-time seeding, guessed pose, second cache or Core physical fallback is added",
+        "Real Movers lifecycle and provider-boundary tests cover first question, placement, host advance, skipped-step vector update, loss/wreck retention and retirement; they are controls, not claims of native branch coverage",
+        "Named record refusals remain appropriate for forged, stale, withdrawn or inconsistent identities; they do not substitute for valid lifecycle availability"
+      ],
+      "compiled_caller_qualification": [
+        "fw_move.c1959 returns through hosted taxi before its sole legacy taxi call1980; the airborne branch1984 returns through hosted flight before the #else absolute caller2059",
+        "basic_fixed_wing_movement_absolute itself returns through hosted_fixed_wing_step at2193 before legacy pose math",
+        "hc_move.c802 uses hosted guided begin/end; the legacy attitude/vector/position block and calculate_new_position call867 are excluded in hosted movement",
+        "Aircraft POSITION and MOTION setters call campaign_movement_place"
+      ],
+      "limits": [
+        "Source proof is for the current normal server-created hosted path. Player flight dynamics, pack/unpack and other physical writers still require ownership/coherence disposition",
+        "AA/person retained seed vectors, first lifecycle claim adoption of a Core-origin vector and other remaining physical backing are not declared fully extracted",
+        "The old kind-1-only observer does not prove all movement kinds or lifetime domains",
+        "No new native/moving/physical-effect result existed at this review"
+      ]
+    },
+    {
+      "id": "ENV-ENTITY-POSE-FLAG-VALIDATION-1",
+      "severity_at_rejected_source": "P2",
+      "disposition": "Corrected",
+      "verified": [
+        "The raw 44-word integer classifier runs before any float conversion, flag evaluation or canonical registry lookup in the provider",
+        "Finite words, flag domains, UPDATED state, contradictory city states and diagnostic precedence match the established checker. Both signs of zero are preserved",
+        "Malformed signalling-NaN and finite invalid flag requests cannot be replaced by missing/unknown/busy record failures",
+        "The integer classifier is used at the underlying candidate entry as well. Production code does not depend on compiler optimization of a floating comparison",
+        "The 200000-case differential and caller-MXCSR tests passed at f310 and both passed again at ea2b; the latter tests 4 rounding modes, 3 seeded sticky patterns and masked/unmasked exceptions, not every possible FP state",
+        "The test-only lint fix preserves the exact generator call count and assertions; the failed f310 lint is retained"
+      ]
+    }
+  ],
+  "actual_gate_join": {
+    "parent_source": "f3107332bf28e156ec6205ba321432bfad14dc60",
+    "parent_matrix_actual_exit": 1,
+    "parent_steps": 16,
+    "parent_passing_steps_reused": 15,
+    "parent_only_failed_step": {
+      "name": "clippy-four-crates",
+      "child_exit": 101,
+      "reason": "test-only manual_is_multiple_of at entity_host.rs498"
+    },
+    "parent_compile_errors_reviewed": [
+      "manual implementation of .is_multiple_of()",
+      "could not compile eech-world (lib test) due to 1 previous error"
+    ],
+    "parent_test_summary_rows": 67,
+    "parent_tests_passed_across_recorded_summaries": 1246,
+    "parent_test_failures": 0,
+    "parent_scope": "Four-crate tests, model walk, real C tree/entity dialogue tests, all five affected fixture builds, formatting, and the other five strict-lint checks. C dialogue does execute C; these are not retail/native campaign measurements.",
+    "corrected_source": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "corrected_targeted_actual_exit": 0,
+    "corrected_direct_children": [
+      {
+        "name": "fmt",
+        "exit": 0
+      },
+      {
+        "name": "classifier-tests",
+        "exit": 0,
+        "passed": 2,
+        "failed": 0,
+        "filtered_out": 349
+      },
+      {
+        "name": "clippy-four-crates",
+        "exit": 0
+      }
+    ],
+    "reuse_basis": "Exact production/C source equivalence and the single cfg(test) expression substitution. This is 15 applicable passing parent checks plus corrected focused gates; no fresh full-16-green run at ea2b is claimed.",
+    "direct_log_status_and_process_exits_joined": true
+  },
+  "source_binding": {
+    "parent_before_after_maps_literal_equal": true,
+    "corrected_before_after_maps_literal_equal": true,
+    "rows_each": 2920,
+    "corrected_all_2920_raw_hashes_equal_committed_blobs_and_snapshot_bytes_independently_verified": true,
+    "only_code_scope_map_delta": "eech-campaign/crates/eech-world/src/entity_host.rs",
+    "three_Core_filtered_hash_exceptions": [
+      "aphavoc/laa.c",
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h"
+    ],
+    "qualification": "These three raw files equal Git bytes; their filtered Git IDs differ. Unlike the earlier working-tree maps, fresh snapshots have no working-CRLF/Git-LF test-Lua discrepancy. No normalization was performed. Parent and corrected maps each have their own SHA and source identity."
+  },
+  "public_proof_review": {
+    "new_diagnostic_blob": "3015ac7ff49388ab4e58544dde67f9ec9617c1ed",
+    "lua_sha256": "d289806870b4ee2e9c67bfc242c4920a033c87f3cd3281c8648229c6596958d5",
+    "modes": [
+      "moving_control",
+      "terrain_lift"
+    ],
+    "source_safety": "Pass-through movement wrapper logs actual host answers. It copies the input table and changes only the armed selected target routed move terrain elevation by the declared bounded constant; engine-owned tables and campaign policy inputs are not mutated. Per-target NeedUpdated/test and after-lift observations distinguish global counts. Original mode offers outcome/hash comparison only.",
+    "not_yet_measured": true,
+    "limits": [
+      "Withdrawn/displaced record modes are named stops, not positive effect proof",
+      "Target selection does not guarantee a moving routed target exists; valid UNREACHED stays a failed coverage gate",
+      "Host answer and Core mirror changing together does not independently identify which solver representation was consumed; the provider canonical-versus-discarded-words test supplies separate source/control evidence",
+      "No moving actual, weapon effect, Original moving parity or new full public FP result is claimed"
+    ]
+  },
+  "remaining_required_scope": [
+    "Current player/pack/other writer ownership and coherence",
+    "Core-origin lifecycle adoption and remaining unowned physical vectors",
+    "Backing sector/city lists, roster and synchronization/identities/live pose coupling",
+    "Destructive UPDATED getter and terrain-record effects retained in order",
+    "Raw tree/forest/cloud/RNG, hierarchy/viewpoint/devices/muzzle/target points/rotor/smoke and required DCS mappings",
+    "Whole Task49 complete conformance/current delivery gates and whole D3 work"
+  ],
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/canonical-pose-f310-matrix-and-source-actuals-20261105.json",
+      "bytes": 9359,
+      "sha256": "7aace59e73d21db6ce20d94fb46f8764ce5095a8b2b283d44b3d561a2ff4ce12"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-corrected-gate-source-binding-ea2b23481-20261105.json",
+      "bytes": 2639,
+      "sha256": "307a91bfced8a7a60d55493438a8867bbcb3eb869c7f963588fcb35e239f2362"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-final-gate-f310-20261105-process.json",
+      "bytes": 4402,
+      "sha256": "6d0e04e74fc01401b05f353212a0536f4e74962823b6a7827f6dd4fad44ddb3d"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-lintfix-gate-ea2b-20261105-process.json",
+      "bytes": 5284,
+      "sha256": "c1adade011dfa25fea0c4bdf5c7db7b2f27e2669ef9b727ae946899b8ebbd302"
+    },
+    {
+      "path": "R:/d3-evidence/mobile-pose-host-record-fix-CODE-FROZEN-20261105.json",
+      "bytes": 10759,
+      "sha256": "3863870445348ca69bb08586c5a54e74099754ff5f75b4cda3265ac07928b8f1"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-test-lint-CODE-FROZEN-20261105.json",
+      "bytes": 2195,
+      "sha256": "a605e1c47c1baed609f1e2147b107495ed1452740d22d6bdc011825ed25c74dc"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-final-gate-f3107332b-20261105/gate.log",
+      "bytes": 289002,
+      "sha256": "f35552f554b1fbf68367cf4b1aed774329090d97f8515148170a5d2383350417"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-final-gate-f3107332b-20261105/status.txt",
+      "bytes": 410,
+      "sha256": "f6cdd327dd2504f67523fdea4927ca478ad11ea68d7f11fcae8e3ea023d1d87f"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-final-gate-f3107332b-20261105/source-before.txt",
+      "bytes": 466066,
+      "sha256": "0556ea92d1b0660b43cdf75d128f60003b289223375126e4e91e62cff583cc77"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-final-gate-f3107332b-20261105/source-after.txt",
+      "bytes": 466066,
+      "sha256": "0556ea92d1b0660b43cdf75d128f60003b289223375126e4e91e62cff583cc77"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-lintfix-gate-ea2b23481-20261105/gate.log",
+      "bytes": 1553,
+      "sha256": "7ebbfc6e3365f1f6552e4fb9b84aa31beea62a1706fbe96e663563f81396416a"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-lintfix-gate-ea2b23481-20261105/status.txt",
+      "bytes": 66,
+      "sha256": "442d94d677d3fd54bef1133d14ce627ee578c8ff95b94ffcec73f9ad9f53b427"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-lintfix-gate-ea2b23481-20261105/source-before.txt",
+      "bytes": 466066,
+      "sha256": "5d955b62be7c5a1f6a422bc148814457b18db49f55305fb678bb06c7725d7443"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-lintfix-gate-ea2b23481-20261105/source-after.txt",
+      "bytes": 466066,
+      "sha256": "5d955b62be7c5a1f6a422bc148814457b18db49f55305fb678bb06c7725d7443"
+    }
+  ],
+  "prior_reports_reused_at_their_own_identities": [
+    {
+      "path": "R:/d3-evidence/independent-entity-canonical-pose-source-17d3-runtime4f790-20261105.json",
+      "sha256": "4d2f7343ff1890bb9a85f0dc4730f0d3ba755b679986672f63f1d57efaf7c050",
+      "status": "Rejected source and two findings retained literally; this report is the changed-source follow-up"
+    },
+    {
+      "path": "R:/d3-evidence/independent-entity-pose-observer-actuals-1f9a-20261105.json",
+      "sha256": "dc7b102d3c48edaae0ae9d246462687f4c3054d34dc13ffec462daba38bc2f51",
+      "status": "Finite prior observer actual only; not relabeled as production pose authority"
+    }
+  ],
+  "review_operations": "Read-only changed-source/evidence inspection and this new report write. No reviewer builds, tests, native launches, source mutations, agents, cache/VM operations or external approval actions."
+}

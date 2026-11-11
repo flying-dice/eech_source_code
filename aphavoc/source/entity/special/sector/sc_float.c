@@ -66,6 +66,10 @@
 
 #include "project.h"
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+#include "entity/mobile/mb_hostmodel.h"
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,7 +202,17 @@ static float get_local_float_value (entity *en, float_types type)
 		case FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT:
 		////////////////////////////////////////
 		{
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+			// the sector's high-water height is the HOST's word (Task49): it is raised, reset and restored there and this is the ONE read of it, so the scan, the fixed-wing clearance and the session pack all use it.
+			// The legacy field is not read (and is not written) in a hosted build, and nothing falls back to it.
+			campaign_model_sector_height ((int) raw->x_sector, (int) raw->z_sector, &value);
+
+#else
+
 			value = raw->tallest_structure_height;
+
+#endif
 
 			break;
 		}

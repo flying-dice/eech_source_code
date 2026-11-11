@@ -1,0 +1,265 @@
+{
+  "kind": "FROZEN receipt of the Tacview/MOVED-ROTATED consumer DISPOSITION: the legacy C writer is compiled in but dormant in the headless shipping path (source-reachability, compiled-reference and retained-root evidence; one source-guard test, the contract's section 13 and this packet; NO production source change; UNREVIEWED; native, Windows and default recordings UNRUN)",
+  "frozen_utc": "2026-11-08T00:00:29.810749+00:00",
+  "dry": false,
+  "source_before": "b1b9a5d9ea27cbbbeda33035972e416ee7925001",
+  "checkpoint": "b1b9a5d9e",
+  "pre_utc": "2026-11-07T23:57:21Z",
+  "post_utc": "2026-11-08T00:00:24Z",
+  "lease": {
+    "volume": "eech-linux-d3-physical-flags-9d247-20261107",
+    "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+    "root_leased_names_asserted": {
+      "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+      "volume": "eech-linux-d3-physical-flags-9d247-20261107"
+    }
+  },
+  "changed_files": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+      "bytes": 38856,
+      "sha256": "46c1899cfb12eb965e7bb4968bd9da59eae9419b68098c8b7550ff9894266161",
+      "git_blob_of_raw_bytes": "02fb3b2f3fd19b825d16d5f31da565fb156bbe04",
+      "head_blob": "45ad740cd5b7e17631e9cc1ba6af3c6f8e644608"
+    }
+  ],
+  "expected_changed_files": [
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs"
+  ],
+  "inherited_raw_versus_git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "git_blob_of_raw_bytes": "41780e08e6f192c4f90d27052f61beadf5a8ae40",
+      "head_blob": "41780e08e6f192c4f90d27052f61beadf5a8ae40"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "git_blob_of_raw_bytes": "ec7dd360f70821a2213efe82db9f93ad46f20ee0",
+      "head_blob": "ec7dd360f70821a2213efe82db9f93ad46f20ee0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "git_blob_of_raw_bytes": "fb767e110002096f637c48c4e65d48ff5c6168fc",
+      "head_blob": "fb767e110002096f637c48c4e65d48ff5c6168fc"
+    }
+  ],
+  "final_runs": {
+    "s1-fmt-check": {
+      "label": "s1-fmt-check",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T23:57:26.585134+00:00",
+      "completed_utc": "2026-11-07T23:57:34.368082+00:00",
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "record_sha256": "efd4efd867b0bab40d85b56c7033776ca607f74d398e44d0639e76f057516622",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s2-clippy-engine-sys": {
+      "label": "s2-clippy-engine-sys",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T23:57:34.508142+00:00",
+      "completed_utc": "2026-11-07T23:59:10.192013+00:00",
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-engine-sys --all-targets -- -D warnings",
+      "record_sha256": "6ef27fcdc8a4d700eeed8d212366a78071ad44fbde967ffe04eb1f555a95dd24",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "5caf4b6183af5ceb18ee70b31fe609c1e2e88b081b20cbba61b1f6535843f5d9",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {}
+    },
+    "s3-flags-guard": {
+      "label": "s3-flags-guard",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T23:59:10.354829+00:00",
+      "completed_utc": "2026-11-08T00:00:17.222693+00:00",
+      "command": "cargo --version && cargo test --locked -p eech-engine-sys --no-fail-fast --test physical_flags_guard",
+      "record_sha256": "49404d4f8ba40491c572b1e9ef7aa9305772e1b36d594ebb398da151c11cb778",
+      "stdout_sha256": "0428b4ccb69a5f2a8c636cf2b27b5b28bc67644acb42c563be6f90484e5b7ae8",
+      "stderr_sha256": "5d3b988b026b9ebbda457ecccbd8487a3426621f506210cb7aefc2e28eefb403",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 8,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_guard": 8
+      }
+    }
+  },
+  "retained_development_runs": [
+    {
+      "label": "d1-fmt-apply",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T23:56:25.992147+00:00",
+      "completed_utc": "2026-11-07T23:56:29.560760+00:00",
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt -p eech-engine-sys",
+      "record_sha256": "0b2424d2773375ca2b28dbd8327f3866c4c706b464d64a7aa9aebf1706d01789",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a",
+      "uses_declared_helper": true,
+      "test_binaries": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "selected_counts": {},
+      "why": "cargo fmt -p eech-engine-sys applied after the guard edit (rustup component add rustfmt in the same ephemeral container); git status afterwards showed only this batch's two files modified (the guard test and the contract)"
+    },
+    {
+      "label": "g1-guard-first",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T23:51:34.842876+00:00",
+      "completed_utc": "2026-11-07T23:51:56.195092+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast --test physical_flags_guard",
+      "record_sha256": "d7e0fde4b3693f74e820929100a21763a9c770e0c24efcc93fe350cec1abf2f0",
+      "stdout_sha256": "48e37d99e7ce1f35bced577aa2244841d81656ae4d247c643901e13b9cadbe20",
+      "stderr_sha256": "35434fd9dabf585471123061dd16e925a246238edceb7ff81950b5be5d199615",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 7,
+      "tests_failed": 1,
+      "selected_counts": {},
+      "why": "first run of the new source-guard test: 7 of the 8 guard tests passed and the new one failed at my own premise 'the writer opens exactly one file': tacview.c has THREE safe_fopen calls (the log file's first open, its periodic reopen, and the SRTM terrain grid file). A test-premise error found by the run, not a product finding"
+    },
+    {
+      "label": "g2-guard-second",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T23:52:05.261694+00:00",
+      "completed_utc": "2026-11-07T23:52:25.290062+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast --test physical_flags_guard",
+      "record_sha256": "9ab7563ac021a52a3718e2c472f25286a892e0c050ad360bfa4e5223a6288ecc",
+      "stdout_sha256": "411e0c5b20913f653a8e294f6a1fb44da8ebf7594fc71c0d15689c7e4ecd4f0f",
+      "stderr_sha256": "205b9c2bbc1f06f8a1fbec33ff467a49797da68856ac3311a5c97036fc67fcf5",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 7,
+      "tests_failed": 1,
+      "selected_counts": {},
+      "why": "second run after narrowing the premise to 'the log file is assigned from safe_fopen exactly once': it failed again (two assignments: the first open in open_tacview_log and the periodic reopen, 'ab', in write_tacview_frame_header after an fclose). I re-ran before reading the source around the reopen, which cost a run; the premise is corrected in g3 to exactly the two places and the reopen's close-first shape"
+    },
+    {
+      "label": "g3-guard-third",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T23:52:39.339780+00:00",
+      "completed_utc": "2026-11-07T23:53:45.662125+00:00",
+      "command": "cargo test --locked -p eech-engine-sys --no-fail-fast --test physical_flags_guard",
+      "record_sha256": "46d2052b9766bfc8d672eb85a69715fa4c5bb12cd69a7e8dac403dc17ce3a1bb",
+      "stdout_sha256": "0b8d4aae1b8cb2ab851fdbd6e58e545e4a2eb3b3d0b9fd92b23e1e8f83b35971",
+      "stderr_sha256": "d6f05b5c3ab34d937f84583f07d4aa026cd0258339e92a96702fa96b2c7ef916",
+      "uses_declared_helper": true,
+      "test_binaries": 1,
+      "tests_passed": 8,
+      "tests_failed": 0,
+      "selected_counts": {
+        "physical_flags_guard": 8
+      },
+      "why": "the new guard passes (8 of 8 guard tests): a characterisation of a dormancy fact in the unchanged source, which is correctly green before any move (no red is manufactured for a disposition); repeated in the final set s3 after the formatter"
+    }
+  ],
+  "run_file_short_names": {
+    "flags-tvb1-s1-fmt-check.json": "runs/s1-fmt-check.json",
+    "flags-tvb1-s1-fmt-check.stdout.log": "runs/s1-fmt-check.stdout.log",
+    "flags-tvb1-s1-fmt-check.stderr.log": "runs/s1-fmt-check.stderr.log",
+    "flags-tvb1-s2-clippy-engine-sys.json": "runs/s2-clippy-engine-sys.json",
+    "flags-tvb1-s2-clippy-engine-sys.stdout.log": "runs/s2-clippy-engine-sys.stdout.log",
+    "flags-tvb1-s2-clippy-engine-sys.stderr.log": "runs/s2-clippy-engine-sys.stderr.log",
+    "flags-tvb1-s3-flags-guard.json": "runs/s3-flags-guard.json",
+    "flags-tvb1-s3-flags-guard.stdout.log": "runs/s3-flags-guard.stdout.log",
+    "flags-tvb1-s3-flags-guard.stderr.log": "runs/s3-flags-guard.stderr.log",
+    "flags-tvb1-d1-fmt-apply.json": "runs/d1-fmt-apply.json",
+    "flags-tvb1-d1-fmt-apply.stdout.log": "runs/d1-fmt-apply.stdout.log",
+    "flags-tvb1-d1-fmt-apply.stderr.log": "runs/d1-fmt-apply.stderr.log",
+    "flags-tvb1-g1-guard-first.json": "runs/g1-guard-first.json",
+    "flags-tvb1-g1-guard-first.stdout.log": "runs/g1-guard-first.stdout.log",
+    "flags-tvb1-g1-guard-first.stderr.log": "runs/g1-guard-first.stderr.log",
+    "flags-tvb1-g2-guard-second.json": "runs/g2-guard-second.json",
+    "flags-tvb1-g2-guard-second.stdout.log": "runs/g2-guard-second.stdout.log",
+    "flags-tvb1-g2-guard-second.stderr.log": "runs/g2-guard-second.stderr.log",
+    "flags-tvb1-g3-guard-third.json": "runs/g3-guard-third.json",
+    "flags-tvb1-g3-guard-third.stdout.log": "runs/g3-guard-third.stdout.log",
+    "flags-tvb1-g3-guard-third.stderr.log": "runs/g3-guard-third.stderr.log"
+  },
+  "inputmaps_compare": {
+    "pre_fingerprint": "917d6dd6e75bc1ce48e2da0b2f654cb0e7585617c37ed6d618ba9afcc3fe62e5",
+    "post_fingerprint": "917d6dd6e75bc1ce48e2da0b2f654cb0e7585617c37ed6d618ba9afcc3fe62e5",
+    "file_count_pre": 3995,
+    "file_count_post": 3995,
+    "rows_only_in_pre": [],
+    "rows_only_in_post": [],
+    "rows_that_differ": [],
+    "all_rows_equal": true,
+    "head_sha": "b1b9a5d9ea27cbbbeda33035972e416ee7925001",
+    "changed_from_head_count": [
+      4,
+      4
+    ],
+    "deleted_from_head": [
+      [],
+      []
+    ],
+    "raw_vs_git_filtered_disagreements": {
+      "pre": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ],
+      "post": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ]
+    },
+    "extra_identity_equal": true,
+    "extra_identity_aggregate": [
+      "d943e9c50001cacbee0eb6aeced095668c77ba918426221cf4d2c5de6b626f73",
+      "d943e9c50001cacbee0eb6aeced095668c77ba918426221cf4d2c5de6b626f73"
+    ]
+  },
+  "feedback_files_present_at_freeze": [
+    "Root-physical-flags-supply-consumer-feedback-20261107-2148.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2150.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2154.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2201.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2205.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2215.json",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2222.json",
+    "Root-physical-flags-witness-feedback-20261107-2012.json",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json",
+    "Root-supply-boolean-fix-feedback-20261107-2242.json",
+    "Root-supply-boolean-fix-feedback-20261107-2243.json",
+    "Root-tacview-consumer-feedback-20261107-2349.json",
+    "Root-tacview-consumer-feedback-20261107-2350.json"
+  ],
+  "readers_PRE_identity_equal": true,
+  "hygiene_problems_at_freeze": [],
+  "not_run": [
+    "any native, Windows, i686 or O2 run",
+    "any build of product source (none changed)",
+    "any replay of the accepted default, the finite witness or the supply correction family",
+    "the other consumers of the flag store",
+    "the shipped Engine::boot bridge",
+    "any Root-owned gate"
+  ]
+}

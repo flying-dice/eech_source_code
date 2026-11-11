@@ -1,0 +1,6 @@
+{
+  "utc": "2026-11-08T09:43:43.582338+00:00",
+  "source_before": "e8cb7944e75af0ea3fbcbb4d4414015af3eb140c",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "scope": "LF literal correction ONLY for newly changed driver/testLua/testPython. Prior nf3p2 all5pass/freeze retained; no C or oldmatrix replay."
+}

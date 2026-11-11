@@ -1,0 +1,63 @@
+{
+  "observed_utc": "2026-11-06T08:38:39.993537+00:00",
+  "old_process_ids": [
+    2756,
+    5028,
+    12344,
+    12732,
+    15696,
+    16824,
+    17472,
+    20760,
+    22452,
+    23720
+  ],
+  "all_old_processes_absent": true,
+  "completion_receipts_absent": true,
+  "actual_old_exit": null,
+  "status": "INTERRUPTED_WITHOUT_COMPLETION",
+  "old_healthy": "fixed-static-healthy-f734fdfc0-20261106",
+  "old_fullpack": "person-motion-shipping-3475fb93b-20261105",
+  "safe_processes": [
+    {
+      "pid": 5700,
+      "parent_pid": 15456,
+      "birth": "/Date(1793954319263)/",
+      "name": "python.exe",
+      "argv_sha256": "f928f514daa5b5519ebe49539ae39b9544598d7ec1575b9cb6371ca2eaabf478"
+    }
+  ],
+  "outputs_preserved": true,
+  "reason": "Both original process trees absent, no terminal receipt; cause and original exits unknown. No product failure inferred. No completed experiment replayed.",
+  "partial_fullpack": [
+    {
+      "path": "reference/run1/recording.acmi",
+      "bytes": 48879870,
+      "sha256": "742d75dd5d45f25096c9b6a596c7489e0164dbed340c7b8767e8378a2c0bb3ff",
+      "literal_partial_prefix_equal": true,
+      "last_complete_acmi_marker": "4151.33"
+    },
+    {
+      "path": "reference/run1/observations.jsonl",
+      "bytes": 33124352,
+      "sha256": "e809ee4ee56c3c3aefd2d2892aca98a5b39b47a826465225f4a5c313b3cd1a75",
+      "literal_partial_prefix_equal": true,
+      "last_complete_acmi_marker": null
+    },
+    {
+      "path": "reference/run2/recording.acmi",
+      "bytes": 48773402,
+      "sha256": "78a31fed042ba2131b59b9ba5cfe784ddf2808a5b753ae7f82cda47219b67767",
+      "literal_partial_prefix_equal": true,
+      "last_complete_acmi_marker": "4141.37"
+    },
+    {
+      "path": "reference/run2/observations.jsonl",
+      "bytes": 33107968,
+      "sha256": "96ed6c446ca445751c8115e0065efe4b9b231d37bdeefd6af38df28610e746eb",
+      "literal_partial_prefix_equal": true,
+      "last_complete_acmi_marker": null
+    }
+  ],
+  "partial_only_not_full_acceptance": true
+}

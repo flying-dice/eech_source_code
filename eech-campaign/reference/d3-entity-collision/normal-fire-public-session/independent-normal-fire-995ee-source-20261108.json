@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T07:42:59.170904+00:00",
+  "reviewer": "SAME independent Task49 reviewer /root/d3_environment_review",
+  "source": {
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "source_before": "d419afb575adac32b1d6fd1b2fe2706ffb5efcf1",
+    "code_commit": "995ee68501b4b0f9859e703a6713c99c6c9b4245",
+    "metadata_HEAD": "94fe4309eedddc634b37fa9294b93263866e6ea7",
+    "actual_HEAD_and_full_clean_status_observed": true,
+    "clean_exact_upstream": "Root bound; no Git mutation by reviewer",
+    "review_scope": "NEW additive normal-fire hooks, capture lifetime, feature/test bridge, collector, private real-collaborator controls, contract and producer erratum only."
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-NORMAL-FIRE-CORRELATION-FROZEN-20261108.json",
+      "bytes": 6490,
+      "sha256": "d4ceef2a6e09e51bc2e62d9b2832cff15df193e7544f7ddb5249f86d80349841"
+    },
+    {
+      "path": "R:/d3-evidence/normal-fire-995ee-94fe-Root-binding-20261108.json",
+      "bytes": 1543,
+      "sha256": "6356d373e5adcad7bb548b1767f646cc636da5ac32fbfebd0af910074e215173"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-normal-fire-correlation-20261108-completion.json",
+      "bytes": 2014,
+      "sha256": "36868864c1075818aeafb0de1236e73e8d1f0800f93b8469209c82c248e8ae67"
+    },
+    {
+      "path": "R:/d3-evidence/nfcD419-final-completion-20261108.json",
+      "bytes": 1064,
+      "sha256": "1bb5ca0c63a4e4d78916f2e956f60cef2cb04bcd0d202744adae0ee2a4f5d265"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-normal-fire-correlation.md",
+      "bytes": 7214,
+      "sha256": "62d320f57f8e1f0f6fb384d98b502cb9a8626e4e1842ae6f29d02859baa88e98"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+      "bytes": 7771,
+      "sha256": "6b96633d7ccde24d7fedc33f5c2e64379cfa7c706843b6161e01c381782cf8bd"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/normal-fire-correlation/runs/s3-controls.stdout.log",
+      "bytes": 7222,
+      "sha256": "eced2d15b9539eb7dcc81023fa7aa4495644248650bb8ab224be1a0fac6ce6b6"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/normal-fire-correlation/manifest.json",
+      "bytes": 8754,
+      "sha256": "0717a57ae270c373429a94093eacf2d2dee9b34ee65099218a0c665b03c8a768"
+    }
+  ],
+  "findings": [],
+  "source_and_check_binding": {
+    "basis": "Root mechanical proof reused; relevant actual source/control branches and retained final stdout read independently. No experiment replay.",
+    "timed_PRE_POST_source_rows": 4016,
+    "PRE_POST_literal_equal": true,
+    "raw_Git_literal": 4013,
+    "qualified_inherited_uncompiled_Lua_CRLF_GitLF": 3,
+    "stable_extras": 17,
+    "stable_sealed_readers": 5,
+    "publication_manifest_entries": 60,
+    "packet_files_literal_Git": 61,
+    "code_to_metadata_runtime_inputs_equal": true,
+    "final_direct_exits": {
+      "s1-fmt": 0,
+      "s2-clippy": 0,
+      "s3-controls": 0,
+      "s4-shipping-check": 0
+    },
+    "original_outer_session": 25001,
+    "original_outer_actual_exit": 0,
+    "Rust_tests": 2,
+    "portable_Lua_controls": 9,
+    "selected_single_field_faults": 5,
+    "observer_rounding_modes": 4,
+    "unique_Original_model_fallback_cases": 5,
+    "typed_author_completion": "Actual service FINAL/completed and released cache lease; no fabricated author OS PID/CLI exit."
+  },
+  "producer_erratum": {
+    "accepted": true,
+    "detail": "The earlier d419/36b2 rv_wpn example is disabled by #ifdef 0 and not a compiled producer. Original plan/review literals remain unchanged. The current compiled rv_updt update_server executes readiness, systems, vectors, then vh_wpn update_vehicle_weapon_fire; its real selection/readiness/range/altitude/vector/angle/LOS/timer/suppression gates precede the new hook and unchanged launch call. Direction-only acceptance of d419 is not relabelled as runtime evidence."
+  },
+  "assessment": {
+    "producer_and_default_isolation": [
+      "mb_normalfirefx.h makes all new macro arguments unevaluated when the opt-in correlation feature is absent. sys/engine/dc feature wiring enables the existing weapon fixture for correlation; the separate private check feature gates its bridge and C collaborators.",
+      "vh_wpn.c adds only the include and NF_FIRE/NF_FIRE_END around its existing launch_client_server_weapon call. weapon.c adds only the include and observations at actual package, device, effects, fallback and completed-detach sites. Root source audit binds removal of those additive lines back to the exact d419 bodies; no fire policy, selected package, angle, timer, model traversal, RNG or physics expression is replaced.",
+      "The default eech-dc check passes at this source, but this is not a new Windows profile/build or successful Engine boot. No shipping API or native launch controller was added."
+    ],
+    "observer_boundary_and_lifetime": [
+      "Observation uses pure campaign_roster_host_id and the existing simulated_ms getter, raw memcpy word/pose copies and bounded integer formatting. It introduces no lazy actor identification/registration, host/model query, reset/initializer, explicit allocation, I/O or RNG draw in producer hooks.",
+      "Source/target/detaching/status/station/flash pointers stay private within the one owner-thread fire/detach stack. End-of-detach clears status/station/flash pointers; end-of-fire clears interval context. Nested or wrong-identity/context observations become normal_error, not correlation credit.",
+      "The 8192-slot normal record stream has its own monotonic sequence, cursor and overflow state, separate from legacy ready()/trace_reset. Whole records drain through the existing wpn_events loop. Truncation/overflow becomes an explicit error; the collector latches it. This is bounded finite storage, not a reset/replay or arbitrary-session service.",
+      "Four selected x86 hook-only controls compare x87 control/status, MXCSR with nonzero flags, errno and shared RNG word across all caller rounding modes, with no aim provider and unchanged terrain count. This is finite observer evidence, not whole-fire whole-FPU, CRT internals, every-platform, signalling-NaN or session/lifetime restoration proof."
+    ],
+    "actual_private_collaborator_control": [
+      "The positive calls actual readiness/systems/vector/vehicle fire in the real order over three fixed updates, then the real release/create/model detach/host D2 birth path. It uses an actual compiled Bradley TOW loadout and real model writer/loader/constructor/search/viewpoint collaborators plus this engine library instance's actual aim/environment converters and reference D2/environment kernels.",
+      "The retained positive shows one actual birth, ready/vectors true and ammunition 2 to 1; reference requests include forecast/readiness/vectors/release/birth. The fixture sets environmental records, initial loadout/engagement/readiness animation/timer and flat terrain/LOS, not an angle, firing verdict or replacement movement/weapon solver.",
+      "Five real detach controls preserve full-device and absent heading/pitch/station/muzzle behavior. Missing heading/pitch retains launcher-origin pose while decrementing ammunition; station/muzzle alternatives use the original branch. Detach pose and later host birth pose remain separate; equality is not invented where D2 may change launch attitude/state.",
+      "These controls use manual heap/sector/session/update/group/roster records, synthetic Original model data and a private sound/environment setup in dedicated test processes. They do not call a successful Engine boot, retail campaign or public native Lua campaign path. Full global/table/model/heap cleanup and broad FPU/provider replacement semantics are expressly outside scope."
+    ],
+    "collector_and_failure_contract": [
+      "The collector is a non-preparing pure module over existing event text; it neither boots, launches, selects actors, queries providers nor writes output. Caller capture/frame/expected-clock context is explicit. The clock is previous simulated time at frame end, not an invented native frame ordinal.",
+      "It checks normal record schema and selected integer/raw finite domains, contiguous observed sequence, clock/frame consistency, active fire closure, source/target/weapon joins, pending detach to birth identity, birth ordinal uniqueness, package ammunition/station effects and declared device path. Uncorrelated fire=0 diagnostics are parsed and domain checked rather than silently skipped.",
+      "The retained coherent C-produced stream is the first Lua positive. Selected single-field faults damage ineligible identity, birth identity, clock context, weapon identity and schema; no-eligible/native-failure/frame controls preserve failure-before-UNREACHED. Failure latches reject later feed/finish calls; successful finish rejects later continuation.",
+      "Acceptance here covers the implemented correlation structure and these actual private controls. It is not an independent physical oracle for every raw pose, flash timer, configuration or package across all models/families, and does not credit a future native cohort merely from a CORRELATED label."
+    ],
+    "evidence_honesty": [
+      "Development loader/provider/file/model/texture/callback/roster/environment/link failures remain setup evidence. d8 is Original behavior positive with missing observation; d10 exposed legacy initialization record loss; d21 is the actual malformed-ineligible adapter RED with retained working Lua/test bytes, followed by d22 GREEN. These are not retrospectively frozen shipping experiments.",
+      "Current final checks are separately bound to their actual PRE/POST inputs. Prior 36b2 direction, 965 finite CRT and accepted flag READ/default scopes are reused unchanged and not promoted into natural-moving authority. The runtime checkpoint read still contained final-check transient state; actual clean HEAD, final completion and Root binding supply the current bounded review identity. Sole author/Root owns checkpoint reconciliation."
+    ]
+  },
+  "decision": {
+    "status": "ACCEPTED_FINITE_NORMAL_FIRE_CORRELATION_SOURCE_AND_PRIVATE_CONTROLS",
+    "bounded_prerequisite_source_accepted": true,
+    "selected_private_behavior_and_observer_controls_accepted": true,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "loader_removal_clearance": false,
+    "natural_moving_accepted": false,
+    "D3G08_closed": false,
+    "GenericNativeAcceptance1_closed": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "remaining_next_gate": [
+    "No new native case or controller exists. Root must separately freeze/materialize exact observer source/profile/bin/Lua/capture/frame binding and fresh input roots, supply concrete baseline/noninterference and positive-first native plan/controller, and obtain changed-material launch review before execution.",
+    "At the unchanged Lebanon seed1/100ms/declared30s warmup/120s settle bounds, actual normal campaign fire/cohort and the SAME target's real host motion, lawful NEED_UPDATED/flag-store traffic/moving candidate/pose effect must be observed. Existing desired vectors, direct fixture launch, global counts, old hit_land underreach and stationary diagnostic READ do not satisfy it.",
+    "Only fully validated healthy reach can gate the existing eligible terrain/ceiling input variation on the same target/cohort after common birth. Absence remains UNREACHED; malformed/context/observer/native failure remains failure. No actor/seed/window/distance hunt or package angle/readiness/target-link/fire-policy forcing is approved.",
+    "D3G-08 eventual physical device/current-pose viewpoint ownership and campaign policy/accounting boundary remain required; this read-only prerequisite moves no physical authority. All ten D3 requirements, GenericNative1, other consumers/services/DCS, full current40/all8/four inputs/census/current CI/formal review/normal merge remain open as applicable; prep2 unchanged."
+  ],
+  "reviewer_actions": "Read-only source/evidence inspection and this new external JSON only. No build/test/cache/native/controller execution, Git/source/card edits, process interference or nested agents. Both original fullpacks untouched; partial prefixes remain partial. No D4/D5/TypeScript or formal GitHub approval/merge."
+}

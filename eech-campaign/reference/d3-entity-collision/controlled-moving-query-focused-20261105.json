@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "state": "CODE_FROZEN_UNREVIEWED_BEFORE_FINAL_CHECKS",
+  "written_utc": "2026-11-05",
+  "lane": "sole Sonnet 5.5 High implementation session, whole D3 / EEDCS-21, Task49 / PR109",
+  "branch": "codex/d3-object-tree-collision",
+  "start": "e39b1162532a68501a5f709b6dc571d3d91537a7",
+  "source_commit": "2fccc23b704264637ae40921bcdb228b122d38e5",
+  "decision": "R:/d3-evidence/D3-MOVING-QUERY-FIXTURE-DECISION-20261105.md (technical lead): one opt-in test-only direct real moving entity QUERY case; a query-SERVICE proof, not a natural weapon engagement",
+  "preserved_facts": {
+    "clear_witness": "source 605e / literal fa903 cleared 67a3; compiled runtime ea2b and defaults 8a64 reused and untouched",
+    "A2_native": "helper/outer 1, pre/post 0, all88, four events, six final-frame aim sources, no eligible case, no launch/cohort/authority: exact pre-launch UNREACHED (supplement SHA 49aa8075d2954afac3832218945a2c05cf09f811d800d801ebdc9483b8720104)",
+    "source_review": "SHA 67a34865d24bce1ed2401777f65fbc6866ae8928c62fa4f8fecdb3c112de91ed",
+    "reference_checkpoint": "eech-campaign/reference/d3-entity-collision/moving-engagement-reviews/ (README, manifest, the two literal reports byte for byte; no raw model log, retail data or cohort word)",
+    "ordinary_pack": "the full ordinary shipping 40/all8 pack on immutable ea2b source/bin/roots was never touched or restarted",
+    "closed_and_open": "old default short all3 80fd and healthy 6091 held / 0 mismatches stay closed at their own identity; no moving, whole-pose, Task49 or D3 acceptance; the natural moving weapon integration gap stays OPEN"
+  },
+  "capability": {
+    "c_fixture": "csrc/eech_wpn_fixture.c (EECH_WEAPON_FIXTURE only): eech_wpn_moving_query_prepare_run and eech_wpn_moving_query_run. Prepare: target by roster host id (1..128 bytes), must be an alive collidable ROUTED_VEHICLE with a finite position and a model with a positive finite radius and finite bounds-without-lines; latches THREE segments from the collision fixture entity_struct_target recipe (bearings 0,1,2; reach radius+20; ymid from the bounds; same float expressions); any unsupported input is a named wpn-case-error and latches nothing. Run: validates the latch, re-looks the target up by host id (no pointer kept), the identity kinds and the report capacity BEFORE the first query, then calls the production get_line_of_sight_collision_entity(NULL, NULL, &a, &b, &point, &normal) for each latched segment (point zeroed, normal unwritten, as the recipe), reports hit/miss, the hit kind and host identity, and for a HIT only the point and normal bits; consumes the latch.",
+    "engine_bridges": "eech_engine.c/.h entry points (ENTER with NULL host: the boot-installed model provider answers), eech-engine-sys extern, eech-engine Engine methods, eech-dc Lua methods wpn_moving_query_prepare / wpn_moving_query_run; all cfg(feature = \"weapon-fixture\"); no new ABI struct, no new script, no inventory entry",
+    "witness": "lua/entity-authority.lua modes moving_query_control and moving_query_lift (host_side_movement, allowed under profile=original): target = first alive routed vehicle in identity order whose last host step (final warmup frame) had |motion|^2 > 1; prepare; ONE actual frame (lift mode: the existing bounded terrain lift of that target host step only, via lift_window); run; verifies the asked segments equal the latched ones; rows query_case_selected, query_prepared, query_segment x3, query_authority with the physical outputs, per-target need_updated/test/16-word-moving-pose/after-lift counters and the pose/candidate counters. Hosted verdict: no faults, no unnamed mobile question, scan asked, target need_updated >= 1, test >= 1, test with the 16-word pose >= 1 (lift: a question after the lifted step), conformance assertion intact (a mirror difference is an engine stop, never a pass). Original verdict: lift verified, the host must have been asked nothing, outputs reported. Every miss of coverage, eligibility, latch or lift is an exact UNREACHED.",
+    "not_added": "no solver, synthetic model/entity/registry, geometry catalogue, new production ABI, retarget, teleport, fake updated flag, query-time seeding or fallback, modified entity answer, guessed vector, effectful UPDATED observer read or RNG/reseed; provider, domain validation and getters/order unchanged; natural moving_control / terrain_lift untouched"
+  },
+  "shipping_isolation": {
+    "claim": "every executable new line is under #ifdef EECH_WEAPON_FIXTURE (C) or cfg(feature = \"weapon-fixture\") (Rust); the only unguarded additions are two function DECLARATIONS and a comment in eech_engine.h, like the existing wpn_case declarations. The ordinary module compiles none of it.",
+    "proof_run_here": "default four-crate cargo check --locked --all-targets exit 0; this is not a Windows shipping build",
+    "for_root": "the ordinary ea2b pack may be reused only with an explicit feature-filtered shipping equivalence proof; it is NOT relabelled here, and the fixture module needs fresh reviewed hosted and Original Windows builds"
+  },
+  "changed_paths": [
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "git_blob": "22a75a87397083ef30c0ade674c5425a62ba7959",
+      "sha256_raw": "34f364cd695c0c8efc2f0774c08bd8022265863c8a84e2034b1408d63ba5afc9",
+      "bytes": 460922
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "git_blob": "a794d90ebbff7707e13dfb040d979f9d279ae1db",
+      "sha256_raw": "3b1b62524e0d0ac5216569c394e03594f9167ab51fd6f7b85d98972e7dbe9df8",
+      "bytes": 84113
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "git_blob": "7cb59e8a6083c5e8ae6418c8409b0d9d6db9bfae",
+      "sha256_raw": "23f3378216df5cc32d529d4b9babb74d444316df12a00d91e28f5e4b4e7afcd3",
+      "bytes": 41601
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+      "git_blob": "7b10778625041670b4fb6a3254f60224c35b2cc9",
+      "sha256_raw": "a9e0f68ea7c0bb8b6ac89682aa6d376ef3305094a8b76a8360715f7690c90258",
+      "bytes": 75677
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "git_blob": "b2cb96866591bd3acae7d4e5c7a7806cdf1e399c",
+      "sha256_raw": "a9419e3ec91660b253c722d68474266126d2b075a52b2a312bc2a74a035fb888",
+      "bytes": 78980
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "git_blob": "42430bfeb1a48877edbc0dbbba06938a45bdcb03",
+      "sha256_raw": "55ff7d7e3f5d1ee40d82b691e342e35ceec73df336fba3acfce4a5ea38434051",
+      "bytes": 680600
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "b73c21549f4e3fc8000a5597960b23f3daa240e8",
+      "sha256_raw": "8a417fafd6bab715ac3106cf89164767a1ab6c29a6c2ab9264b2a966838552ed",
+      "bytes": 117781
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "git_blob": "171a4ccdd004c1b26ef55b7607c29becaac14c3d",
+      "sha256_raw": "ffbe8850cb6f1bad34b7ff24cc230197c85e8982580d7bccc3ca5f6d859ae623",
+      "bytes": 146449
+    },
+    {
+      "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+      "git_blob": "db7d07e58ea6ed456b394ee4d0da712145901091",
+      "sha256_raw": "2d381b087fa88952e5bb49016bf6952ea0d5f852ff901ee6aec13949ea18d205",
+      "bytes": 91419
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/moving-engagement-reviews/.gitattributes",
+      "git_blob": "b852dfeefa0d636690220c98eac17d8c2faba54d",
+      "sha256_raw": "9464b301a283a4eb3e9d7857adc11aee7074bf311ae6da26117d3458bad5be13",
+      "bytes": 62
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/moving-engagement-reviews/README.md",
+      "git_blob": "5b591f94d4e568e70ad7b43fa1760ce62ca2d46c",
+      "sha256_raw": "834534b3d09c1b45975dad1955c56d082e5fac9607e93e75d3f9d30be3fc3f0f",
+      "bytes": 1231
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/moving-engagement-reviews/independent-entity-moving-engagement-A2-unreached-605e-nativeea2b-20261105.json",
+      "git_blob": "178e38b98d0a8115cc98e4bf093930f5f9172a9a",
+      "sha256_raw": "49aa8075d2954afac3832218945a2c05cf09f811d800d801ebdc9483b8720104",
+      "bytes": 7033
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/moving-engagement-reviews/independent-entity-moving-engagement-witness-source-605e-20261105.json",
+      "git_blob": "96bb589d5d4f1a90e73b540d1685e16378692f4d",
+      "sha256_raw": "67a34865d24bce1ed2401777f65fbc6866ae8928c62fa4f8fecdb3c112de91ed",
+      "bytes": 13713
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/moving-engagement-reviews/manifest.json",
+      "git_blob": "442bdee62bd60688914f2f04823428a9b12fbc74",
+      "sha256_raw": "e413afa0b62b919aa0ab0e3021b71ca8a8a600f521d1811bd225d21732f92095",
+      "bytes": 959
+    }
+  ],
+  "characterization_and_red": {
+    "source_characterization": "read with rg -a: eech_collision_fixture.c query_entity (1141) and entity_struct_target (1410, bearings[], radius+20, ymid); en_cllsn.h get_line_of_sight_collision_entity signature; build/main.rs (EECH_CAMPAIGN_HOST_ENTITY is defined unless collision-fixture or model-fixture, so the same function in the weapon fixture file is the hosted caller in the hosted build and the original solver in weapon+collision); eech_engine.c ENTER (the model host is installed once and kept, a NULL entry leaves it)",
+    "red": "against the previous Lua the three new driver tests fail on \"unknown mode moving_query_control\" (37 passed, 3 failed; log D:/EECH-Migration-Evidence/pose-fix3-20261105-a/q-red/tests.log); with the new Lua 40 pass. The C fixture and bridges are a pure wrapper of the production caller and no red was manufactured for them.",
+    "driver_controls": "scripted engine with the query surface: selection by identity and host step (not the nearer stationary vehicle), no weapon/launch/cohort, prepare then ONE frame then run, the three segments equal across control and lift, exactly one lifted step in the lift mode, per-target counters, and UNREACHED/failure for: no moving vehicle, refused prepare, refused run, a changed segment, no surface, no need_updated, no test, no 16-word pose, an unnamed mobile question, a ceiling-refused lift, an answer that ignores the lift, a conformance difference; Original reports outputs only and a module that asks the host is not the original"
+  },
+  "actual_focused_exits": {
+    "runner": "own-volume Linux runner, pinned image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51, cache eech-linux-d3-collision-driver-5416adb3b-20261029 (single owner, no job left); direct child exits; raw logs D:/EECH-Migration-Evidence/pose-fix3-20261105-a/{q1,q2,q3,q-red}/tests.log",
+    "q1": {
+      "cargo fmt --all": 0,
+      "cargo test -p eech-world --test entity_authority": "40 passed, exit 0"
+    },
+    "q2": {
+      "cargo check --locked --all-targets (default four crates)": 0,
+      "cargo check --locked -p eech-dc --features weapon-fixture (hosted weapon fixture incl. the new C)": 0
+    },
+    "q3": {
+      "cargo check --locked -p eech-dc --features weapon-fixture,collision-fixture (Original combined)": 0,
+      "cargo clippy --locked -p eech-world --all-targets -- -D warnings": 0,
+      "cargo clippy --locked -p eech-dc -p eech-engine --features eech-dc/weapon-fixture -- -D warnings": 0,
+      "cargo fmt --all -- --check": 0
+    },
+    "guard": "migration-progress.py --action fix-blocker --blocker entity-host-sourced-live-pose: exit 0",
+    "not_run": "no native or Windows run, no fixture/5-profile/full-16 matrix, no host_callbacks or other suites beyond the above, no run of the new C (it needs a retail installation: compile-checked only)"
+  },
+  "source_map": {
+    "file": "R:/d3-evidence/host-pose-fix-20261105/source-identity-2fccc23b7.txt",
+    "taken": "on the clean committed AND pushed SHA, after cargo fmt --all and its check",
+    "rows": 2920,
+    "filtered_column_sha256": "3941a08db606f7ec574bfa2850887bc2b215800f4f47a6546ea7796b6ede191c",
+    "raw_column_sha256": "06680a9f953ae14d0f800dbd19024992b8787a577d2d79708606b91a5618f88c",
+    "qualifications_kept_separate": "the 3 tests/lua working-CRLF/Git-LF files and the 3 Core filtered-hash files are pre-existing and unchanged; eech-dc/src/module.rs keeps its 2 pre-existing NULs and eech_engine.c its 1 (patched byte-wise, no normalisation)"
+  },
+  "side_effects_and_limits": [
+    "the production query runs its real getters: the whole-word AND of the UPDATED flag and the shared terrain point record change exactly as in any scan; neither is observed nor restored; no RNG is drawn and the floating-point mode is the engine entry's (round toward zero)",
+    "the C fixture was only compiled here (hosted weapon-fixture and weapon+collision), never executed: whether the real target is collidable, has bounds, is asked need_updated and tested with the moving pose is decided by the native run and is never assumed; a real miss stays a miss and no coverage gap is converted",
+    "the three segments are inputs built from the target's own position and model at latch time; they are not an expected answer and do not make the fixture a second physical authority",
+    "a query-service proof only: no weapon aim, launch, cohort or natural engagement; Original comparison is on physical query outputs only (it asks no candidate questions)",
+    "the lift is the existing bounded terrain input (500 m within the step's own map ceiling); its result is read across control and lift by Root"
+  ],
+  "not_closed": "moving public path, whole physical pose, native clearance of this source, full Task49 (40/all8/CI/review/merge) and whole D3; D4/D5/TypeScript unstarted; all 10 D3 scope items remain REQUIRED",
+  "next_gate": "Root joins the same reviewer on this frozen source (changed material only), then selects final validation; fresh reviewed hosted and Original Windows builds with weapon-fixture (and collision-fixture) are needed before any native query run; no native before source clearance",
+  "baselines_tolerances_inputs_unchanged": true
+}

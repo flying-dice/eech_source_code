@@ -1,0 +1,101 @@
+{
+  "controller_pid": 18596,
+  "state": "terminal",
+  "source": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+  "snapshot": "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-215a8f738-20261106-source",
+  "started_utc": "2026-11-06T21:59:44.107638+00:00",
+  "controller_sha256": "1a172f6975fb12994db3edb7caed775f5ae158651c8f7d80dda4ec90a38f1c54",
+  "source_review": "R:\\d3-evidence\\independent-city-lifecycle-remove-identity-source-215a8-20261106.json",
+  "source_review_sha256": "12ad9fd32ff7b1543bf733e0eeb850405c7ea4a767f69281fc3740b2e7cba3b1",
+  "steps": [
+    {
+      "args": [
+        "git",
+        "clone",
+        "--no-checkout",
+        "--no-hardlinks",
+        "-c",
+        "core.longpaths=true",
+        "-c",
+        "core.autocrlf=false",
+        "-c",
+        "core.eol=lf",
+        "R:\\d3-evidence\\collision-characterization-20261029",
+        "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-215a8f738-20261106-source"
+      ],
+      "pid": 17800,
+      "started_utc": "2026-11-06T21:59:44.116652+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-06T21:59:47.077733+00:00"
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-215a8f738-20261106-source",
+        "config",
+        "--local",
+        "core.longpaths",
+        "true"
+      ],
+      "pid": 7512,
+      "started_utc": "2026-11-06T21:59:47.088862+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-06T21:59:47.144777+00:00"
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-215a8f738-20261106-source",
+        "config",
+        "--local",
+        "core.autocrlf",
+        "false"
+      ],
+      "pid": 19240,
+      "started_utc": "2026-11-06T21:59:47.152812+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-06T21:59:47.208697+00:00"
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-215a8f738-20261106-source",
+        "config",
+        "--local",
+        "core.eol",
+        "lf"
+      ],
+      "pid": 1372,
+      "started_utc": "2026-11-06T21:59:47.216853+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-06T21:59:47.269465+00:00"
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\city-lifecycle-witness-215a8f738-20261106-source",
+        "checkout",
+        "--detach",
+        "215a8f7389dfc9ab1dac1df2f4e45344392967d9"
+      ],
+      "pid": 6384,
+      "started_utc": "2026-11-06T21:59:47.279761+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-06T21:59:51.614716+00:00"
+    }
+  ],
+  "scope": "Read-only source freeze preparation. No build/native launch or independent clearance; review gate follows. Existing campaigns/caches/roots untouched.",
+  "actual_exit": 0,
+  "completed_utc": "2026-11-06T22:00:15.253536+00:00",
+  "all_snapshot_raw_bytes_equal_Git": true,
+  "verified_distinct_source_files": 3955,
+  "input_map": "R:\\d3-evidence\\city-lifecycle-witness-windows-snapshot-215a8f738-inputs-20261106.json",
+  "input_map_sha256": "dfce7a7210da9985c3251fa8fd236b307f13c013f6fb4b8c45fc69efa7813ffd",
+  "full_status_clean": true,
+  "longpaths_set_before_checkout": true,
+  "no_hardlinks_or_alternates": true
+}

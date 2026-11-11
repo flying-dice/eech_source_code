@@ -1,0 +1,9 @@
+{
+  "volume": "eech-linux-d3-physical-flags-9d247-20261107",
+  "image": "sha256:9d247b4ea15457f06579ef703ce287e96358128e7a2217f2833ee8b628fc85c3",
+  "owner": "Opus5.5 zs4 schema4 lane (single source/cache writer under Fable orchestrator)",
+  "leased_utc": "2026-11-11T10:24:29.731836400Z",
+  "volume_users_at_lease": 0,
+  "dockerd": "started by this lane (attempt2 wsl pid 18896); WSL dockerd was absent at start",
+  "scope": "Linux cargo checks of the schema4 diagnostic witness only; no Windows/native/default build."
+}

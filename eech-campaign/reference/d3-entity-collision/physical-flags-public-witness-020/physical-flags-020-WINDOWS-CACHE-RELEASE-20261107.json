@@ -1,0 +1,33 @@
+{
+  "kind": "Root completed build/profile gates and releases cache ownership to existing sole Sonnet lane",
+  "utc": "2026-11-07T19:59:11.572480+00:00",
+  "actual_build_exit": 0,
+  "build_receipt": "physical-flags-native-windows-020-20261107-completion.json",
+  "build_receipt_sha256": "8def045f2f4380e62de3429cac50e6831b78d7b1cd960eb4243bdc9e6ecbb186",
+  "actual_profile_audit_exit": 0,
+  "audit_receipt": "physical-flags-native-020-profile-20261107-completion.json",
+  "audit_receipt_sha256": "5a1ff2a2c4cff94934b1c273ec7b57f106c7fc051518f67398817efb4bd792b9",
+  "source": "020fb3cfa5450acd91f136e678974160c12c8275",
+  "immutable_snapshot": "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source",
+  "retained_and_rehashed_COFF": 30,
+  "retained_staged_sources": 26,
+  "retained_rehashed_payloads": 180,
+  "raw_audit_files_rehashed": 54,
+  "images": {
+    "ordinary": {
+      "actual_producer": "sha256:6591cccdc3ef3e40cf95b35e4f8b06d48bf6d68d705d33dd2b198c6c892c9a0f",
+      "producer_image_resident": false,
+      "image_inspect_actual_exit": 1,
+      "stderr": "Error response from daemon: No such image: sha256:6591cccdc3ef3e40cf95b35e4f8b06d48bf6d68d705d33dd2b198c6c892c9a0f\n",
+      "qualification": "Actual producer identity/versions remain BUILD-INFO-bound; image no longer resident after subsequent build. Original producer was used as read-only audit reader for both profiles, recorded by the profile controller; no compiler/image/binary equality or reidentification claim. No rebuild to recreate historical image."
+    },
+    "original": {
+      "actual_producer": "sha256:de45afe0bdd3b7d4ef8b935b697842787e67825199411a8039a2498b67a21d86",
+      "retained_tag": "eech-physical-flags-020-original-20261107",
+      "producer_image_resident": true
+    }
+  },
+  "Docker_actual_empty": true,
+  "next_cache_owner": "Sole Sonnet15684/controller644/context2e/session59640 after reading this literal release; exact warmflags9d volume and exact9d247 image only",
+  "scope": "Compile/profile/payload gates only. No native campaign/authority/default/full40/all8 acceptance. No cache removed; original764 native jobs/source/bin/roots/raw unchanged. Allten D3 requirements remain."
+}

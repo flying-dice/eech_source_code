@@ -1,0 +1,3 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+     Running tests/normal_fire_session.rs (/target/t/debug/deps/normal_fire_session-1904c73208ef1b9a)

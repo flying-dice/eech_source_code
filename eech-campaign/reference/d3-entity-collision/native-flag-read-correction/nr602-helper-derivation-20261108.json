@@ -1,0 +1,18 @@
+{
+  "utc": "2026-11-08T03:12:12.716954+00:00",
+  "rows": [
+    {
+      "old": "run-physical-flags-nr395-direct-20261108.py",
+      "old_sha256": "1279ebcbe0b9b8ad19d094be3d80c28ac6f15abe5ea8de4b17f600b17ebe2f93",
+      "new": "run-physical-flags-nr602-direct-20261108.py",
+      "sha256": "a2e162255f95ac6f24f84d3605b6642caa88d5da13bc2f3f7699aff16f81f81b"
+    },
+    {
+      "old": "check-physical-flags-nr395-linux-20261108.sh",
+      "old_sha256": "f61689d0e380418f17ae12ab56fa77d0dfd05cd7f6e798ee6ed7ab12bfc6e38d",
+      "new": "check-physical-flags-nr602-linux-20261108.sh",
+      "sha256": "4057cac09794a133bd91003008418bed246002962b956aad75857682d74f46d5"
+    }
+  ],
+  "scope": "New family only; exact old cache/image retained, no old helper changed"
+}

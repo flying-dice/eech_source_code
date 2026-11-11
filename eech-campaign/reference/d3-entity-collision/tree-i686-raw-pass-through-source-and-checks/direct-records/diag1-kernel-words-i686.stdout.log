@@ -1,0 +1,20 @@
+
+running 1 test
+test trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold ... FAILED
+
+failures:
+
+---- trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold stdout ----
+
+thread 'trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold' (301) panicked at crates/eech-world/src/trees.rs:1157:17:
+assertion `left == right` failed: old [1000.0, 50.0, 1024.0] new [1048.0, 50.0, 1024.0]
+  left: ([2145386497, 2147483648, 1], [4290773283, 1, 2147483649])
+ right: ([2141192193, 2147483648, 1], [4290773283, 1, 2147483649])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 368 filtered out; finished in 0.00s
+

@@ -80,7 +80,9 @@ enum campaign_movement_mode
 	/* EEDCS-40 */
 	CAMPAIGN_MOVEMENT_DEPENDENT_CARRY,		/* a movement-dependent mobile follows its parent: the host validates the parent's move, positions the dependent and answers its pose */
 	/* EEDCS-44 */
-	CAMPAIGN_MOVEMENT_PERSON_FACE			/* an infantry member with a target turns to face it: the host forms the heading from its own position and the target's, turns its record and answers the attitude and the heading */
+	CAMPAIGN_MOVEMENT_PERSON_FACE,			/* an infantry member with a target turns to face it: the host forms the heading from its own position and the target's, turns its record and answers the attitude and the heading */
+	/* EEDCS-49 */
+	CAMPAIGN_MOVEMENT_ROUTED_VECTOR		/* a routed vehicle's motion vector, at the places the legacy code evaluated attitude row 2 times the speed without a step: the HOST evaluates it from its own record, retains it and answers it */
 };
 
 enum campaign_movement_kind
@@ -667,6 +669,9 @@ void campaign_movement_apply_end (void);
 
 /* a campaign pose write: tell the host (no-op during the host-result application or for unhosted entities) */
 void campaign_movement_place (struct ENTITY *vehicle);
+
+/* a routed vehicle's motion vector at a place the legacy code derived it without a step (EEDCS-49): the host derives, retains and answers it; the engine writes it. Hosted vehicles only (campaign_movement_is_hosted) */
+void campaign_movement_routed_vector (struct ENTITY *vehicle);
 
 /* the physical incarnation ends: tell the host to retire the identity (no-op without a host id); called before the heap free */
 void campaign_movement_retire (const char *host_id);

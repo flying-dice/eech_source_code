@@ -1,0 +1,126 @@
+{
+  "utc": "2026-11-08T05:24:02.381410+00:00",
+  "source_before": "724183dbfa608aef75532fd8082d25239f56c4fb",
+  "source_rows": 4010,
+  "PRE_POST_equal": true,
+  "source_fingerprint": "e733236642585f6627b0a2673a55cc656f970957db39ac418f98f48330483764",
+  "extras": {
+    "run-core-crt-crend724-direct-20261108.py": "66065ee1da52c25593960e56255aa6772c11722a435490b155f3dd8e830e2d7a",
+    "check-core-crt-crend724-linux-20261108.sh": "22fe023f9cd0aed05a240207fd11cccec36411e704f5d43de995f40be2fd7236",
+    "run-crend724-final-20261108.py": "b84f558a0b1fe814afe732820dd4f719e954a865d01e7e45e5ab5800d1f32b3a",
+    "crend724-proof-20261108.py": "0b9787b22c0a83a639ac7260921f115fd0046f8879534615cb701e25a5773350",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+    "independent-core-crt-report-correction-b5cb-source-20261108.json": "e14d66d6d1c5b5c53992b9efa11d00ad1dfbfa445bc8e043fa192d07a25e7f1d",
+    "core-crt-report-correction-Root-binding-20261108.json": "3712a8a08641e55d0159eb4d2b8569545d593c34cc4a984ec6c13725ec0f56e8",
+    "codex-d3-core-crt-report-correction-20261108-completion.json": "d00df5806074951f15e7d0c60f4e414d3598f00b8d5d66832517d1a2ef0cd12f",
+    "codex-d3-core-crt-endpoint-correction-20261108-process.json": "300e2d7903f2b35f640d176adf0ed02ef52a2fc30896655b3dec7f622eaa3624",
+    "crend724-RED-core-terrain-crt-observer.lua": "a3ec1d11c5e20ad2879b382e1f2eee00f839d99dcab283cde43962a6bbce1e55",
+    "crend724-RED-core_terrain_crt_driver.rs": "90159a960bb374c342d045fc4d7f5e80bac985fb1702147fbfc85170b3083b11",
+    "crfix19e-b-inputmap-POST-20261108.json": "58b2ed0e962272f82133d3a69714b49b488438849d104c0d771f74db469dd660",
+    "crend724-family-20261108.json": "0a4146a488bfa5115e79f21f554b6fed430b3935c90cba7a9f94f1e4a2ac14bb",
+    "eech-campaign/docs/d3-core-terrain-crt-capture-plan.md": "057dc5c0485b6389d0696bef6822cf6830c2cf87cbc3f08906e130420bfd5523"
+  },
+  "readers": {
+    "run-core-crt-crend724-direct-20261108.py": "66065ee1da52c25593960e56255aa6772c11722a435490b155f3dd8e830e2d7a",
+    "check-core-crt-crend724-linux-20261108.sh": "22fe023f9cd0aed05a240207fd11cccec36411e704f5d43de995f40be2fd7236",
+    "run-crend724-final-20261108.py": "b84f558a0b1fe814afe732820dd4f719e954a865d01e7e45e5ab5800d1f32b3a",
+    "crend724-proof-20261108.py": "0b9787b22c0a83a639ac7260921f115fd0046f8879534615cb701e25a5773350",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "changed_sources": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/core-terrain-crt-observer.lua",
+      "sha256": "196081ee912daf7bdbb11b6258fed5ddc99b9111f22ec00329bd3240601e910c"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/core_terrain_crt_driver.rs",
+      "sha256": "2cce5d7e6ba6a2e3a99740d58e30e737395692b86f911d6c335b05ae7dba9977"
+    }
+  ],
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "other_raw_rows_unchanged": 4008,
+  "private_maps": [
+    {
+      "path": "R:\\d3-evidence\\crfix19e-b-inputmap-POST-20261108.json",
+      "bytes": 2060050,
+      "sha256": "58b2ed0e962272f82133d3a69714b49b488438849d104c0d771f74db469dd660"
+    },
+    {
+      "path": "R:\\d3-evidence\\crend724-inputmap-PRE-20261108.json",
+      "bytes": 2060050,
+      "sha256": "5a08fed43e15e5b58d76c6a595f82afed496a614581c28d3cdd0e318bfa0d33c"
+    },
+    {
+      "path": "R:\\d3-evidence\\crend724-inputmap-POST-20261108.json",
+      "bytes": 2060050,
+      "sha256": "5a08fed43e15e5b58d76c6a595f82afed496a614581c28d3cdd0e318bfa0d33c"
+    }
+  ],
+  "runs": {
+    "d1-old-endpoint-red": {
+      "actual_exit": 101,
+      "command": "cargo test --locked -p eech-world --test core_terrain_crt_driver multi_phase_final_singleton_has_its_own_last_endpoint -- --nocapture",
+      "started_utc": "2026-11-08T05:21:25.048169+00:00",
+      "completed_utc": "2026-11-08T05:21:27.905958+00:00",
+      "Rust_result_rows": [
+        [
+          "FAILED",
+          "0",
+          "1"
+        ]
+      ]
+    },
+    "d2-endpoint-green-format": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt && cargo test --locked -p eech-world --test core_terrain_crt_driver multi_phase_final_singleton_has_its_own_last_endpoint -- --nocapture",
+      "started_utc": "2026-11-08T05:21:44.720684+00:00",
+      "completed_utc": "2026-11-08T05:21:53.235781+00:00",
+      "Rust_result_rows": [
+        [
+          "ok",
+          "1",
+          "0"
+        ]
+      ]
+    },
+    "s1-fmt": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "started_utc": "2026-11-08T05:23:23.586233+00:00",
+      "completed_utc": "2026-11-08T05:23:31.857128+00:00",
+      "Rust_result_rows": []
+    },
+    "s2-clippy": {
+      "actual_exit": 0,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+      "started_utc": "2026-11-08T05:23:32.004408+00:00",
+      "completed_utc": "2026-11-08T05:23:36.007378+00:00",
+      "Rust_result_rows": []
+    },
+    "s3-driver": {
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-world --test core_terrain_crt_driver -- --nocapture",
+      "started_utc": "2026-11-08T05:23:36.199472+00:00",
+      "completed_utc": "2026-11-08T05:23:38.197872+00:00",
+      "Rust_result_rows": [
+        [
+          "ok",
+          "5",
+          "0"
+        ]
+      ]
+    }
+  },
+  "final_commands": 3,
+  "final_Rust_tests": 5,
+  "new_positive": "Coherent load1/gap1 siteA with B interior draw at9",
+  "one_field_mutation": "siteA.last8->9: old gate accepts/actual101, corrected gate rejects/actual0",
+  "single_Lua_relation_changed": "latest_count==1 requires last==latest, regardless of total site draws",
+  "reused_scope": "Other report contracts/C forwarding/staging remain reviewed at original identities; no new C/Windows/native test or observer algorithm",
+  "hygiene_problems": [],
+  "scope": "Same P2 endpoint residual candidate UNREVIEWED. No Windows/native/retail capture/removal/baseline/config/auth change. Compact evidence only; all10/GenericNative1/prep2/Task49/D3 remain open as applicable. Root owns actual agent completion separately."
+}

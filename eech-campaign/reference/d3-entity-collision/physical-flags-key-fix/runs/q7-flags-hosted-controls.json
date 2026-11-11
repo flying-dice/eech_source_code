@@ -1,0 +1,22 @@
+{
+  "controller_pid": 17136,
+  "state": "terminal",
+  "started_utc": "2026-11-07T19:32:35.049054+00:00",
+  "command": "cargo test --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check,physical-flags-collision-check,entity-dialogue-check --no-fail-fast --test physical_flags --test physical_flags_consumer --test physical_flags_hosted_faults --test physical_flags_identity --test physical_flags_collision --test physical_flags_guard --test entity_dialogue -- --nocapture",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-physical-flags-keyfix-linux-20261107.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check,physical-flags-collision-check,entity-dialogue-check --no-fail-fast --test physical_flags --test physical_flags_consumer --test physical_flags_hosted_faults --test physical_flags_identity --test physical_flags_collision --test physical_flags_guard --test entity_dialogue -- --nocapture"
+  ],
+  "scope": "Working-tree check in the sole leased volume eech-linux-d3-physical-flags-9d247-20261107, image sha256:9d247b4e... named, never substituted.",
+  "pid": 20484,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T19:33:58.517185+00:00"
+}

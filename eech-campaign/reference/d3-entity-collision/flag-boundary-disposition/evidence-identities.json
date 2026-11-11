@@ -1,0 +1,134 @@
+{
+  "schema": "flag-boundary-source-evidence-disposition/v1",
+  "utc": "2026-11-08T03:52:00.547924+00:00",
+  "source": "b4ddd9ca2dd05c79b847ef6a8e7a32edb36c949a",
+  "document_lines": 93,
+  "document_sha256": "7c5d70ffc79a2f296ff9c875131c56baa6304926f2feeb131e255ebcfaf1eedc",
+  "live_authority_read": {
+    "goal": "11534337v3",
+    "ledger": "14548994v195",
+    "representation": "Connector full markdown; lossy conversion explicitly reported for macros/time; no external API claim inferred",
+    "Root_live_readback": {
+      "path": "R:\\d3-evidence\\native-read-accepted-live-services-v195-20261108.json",
+      "sha256": "d8934182699451df81bcdac31a5bbc77df83f347df2663b3d3ee995e3788b413"
+    }
+  },
+  "current_source_files": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "sha256": "1185183a6c71f9e182358461e274a1ab09d6a90f9ffe5dc10727152ff1416818",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "b9f9e3e80c152acfadd4e89a1bf120c1bab970da465927563c953e416d6409ba",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "sha256": "33eb0b56b38ed91a48ea5da185949db5e920deec8d35a2d25a58658aecc0d7b7",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "sha256": "11e3d49625a49b6f4ad3e92e50258f84f73eb74d5032a8e008c58df2bc911648",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/flags.rs",
+      "sha256": "c857fa2d6fc205379b2febefa3b15489057bcee0adf5e8fdcabb1b92d4baa714",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/roster.rs",
+      "sha256": "852887dc616e6f8fdd7b4e28a6560b57a59f635c87f9d14615b55f8f5bdbf18e",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "sha256": "99f8769c29deef38a22c8b1d47b7c0aa52f2ad2dfd869ed99a70c60d21acb9dd",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_int.c",
+      "sha256": "c1891de38ba5b109ba70849ad00aa0ce43d82d92763354e4cf0e3cffb6a6feb4",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "sha256": "48354a1e2f58df6b91bb1a3b701b7b1fd8d8781a9e2046aaa13e744791c7216a",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "sha256": "7cab38d5fbb8a9a2d99ed83befdef6f624950fedfb69935a5a216e64cfa925ff",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/update/up_update.c",
+      "sha256": "206ea4350725135ef0c0ae8f26fd1f6836557bb35470f0fea13866ea60ebba85",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/guide/guide.c",
+      "sha256": "ce25098eed7dddf4cb5cc19b27df2ebe3585d3b22d89a1a10954acbd418aa8ee",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/guide/gd_supply_arrival.c",
+      "sha256": "c2ab9f1578f1934ee0f029175daabb724688f69a94727c0019d3102137df5f52",
+      "same_as_starting_Git_bytes": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "sha256": "a07cc815f0acffdf67313ec84294a1e093b9b0ea2c3260f119bfc44ed233e3e1",
+      "same_as_starting_Git_bytes": true
+    }
+  ],
+  "accepted_evidence": [
+    {
+      "path": "eech-campaign/reference/d3-model-characterization/independent-reference-host-profile-closeout-e48808f53-20261030.json",
+      "sha256": "77edfac9d67c5ed20adf773daf16ac9a431f85d8bb9f7c59e5556c39ac7948de"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/independent-physical-flags-keyfix-020-source-20261107.json",
+      "sha256": "3e74ae30c3403cd3ae67dc0c84da213cd8123841f54149a364113830644a0c91"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/physical-flags-lifetime-reviewed/independent-flag-lifetime-0c7b-source-20261108.json",
+      "sha256": "7d458d4a2430b17cd4d09ffdcaa46f8ad21af6c56526264cca2324fe1f8234a7"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/native-flag-read-accepted/independent-native-flag-read-correction-04bf-source-controller-20261108.json",
+      "sha256": "4cda90703989cde0350a99e3dceea8a98ea768247d8d62a647bd10c5deb04838"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/native-flag-read-accepted/independent-native-flag-read-nr602-actual-20261108-v2.json",
+      "sha256": "400394a42c1883c3c50e0a3e3cef552c5ac184e06e5b1f0daa1978f67efea3dd"
+    },
+    {
+      "path": "eech-campaign/docs/d3-needed-consumer-api-disposition.md",
+      "sha256": "62b58907b489544f8e374dc7ae4f49305af37c48a4abe9a1f7016275e756de39"
+    }
+  ],
+  "literal_useful_receipts": [
+    {
+      "source": "R:\\d3-evidence\\native-read-b4ddd-all9-CI-readback-20261108.json",
+      "target": "native-read-b4ddd-all9-CI-readback-20261108.json",
+      "sha256": "52e02be1329fc956029cae1c7dbb76aeb9b968e91d7664d142f18bb8b610e526",
+      "literal": true
+    },
+    {
+      "source": "R:\\d3-evidence\\native-read-accepted-b4ddd-Root-publication-20261108.json",
+      "target": "native-read-accepted-b4ddd-Root-publication-20261108.json",
+      "sha256": "4d7734d08907a5ed2de4bda68c876bbe1b56547124f60e1fd4459b7bd52a5042",
+      "literal": true
+    }
+  ],
+  "assessment": "Candidate disposition, UNREVIEWED. Historical16-entry FPU measurement plus current common outer route is source inference, not new flag measurement. One persistent owner/provider/store/VM/boot domain only; no replacement guarantee. Host words are metadata, physical DCS consumer contracts remain separate. GenericNative1/all10/Task49/D3 stay open. Next concrete coupling: hosted raw TREE/FOREST/CLOUD removal blocked on effective CRT draws/pre-reseed consumer facts already in D3G04/card. No empirical case implemented.",
+  "no_tests_build_native_cache_code_API_or_semantic_change": true,
+  "family_claim": {
+    "path": "R:\\d3-evidence\\fpuB4-family-exclusive-20261108.json",
+    "sha256": "8fc9a37bd8ed341b3c3d40871b5017c9e4ca0a4cd94939d9ab99cc47de864b59"
+  }
+}

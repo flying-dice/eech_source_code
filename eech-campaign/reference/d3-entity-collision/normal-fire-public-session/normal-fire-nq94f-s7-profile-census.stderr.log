@@ -1,0 +1,8 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.88s
+     Running tests/host_callbacks.rs (/target/t/debug/deps/host_callbacks-01e380bfce0df75c)
+
+thread 'every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not' (150) panicked at crates/eech-world/tests/host_callbacks.rs:2082:32:
+normal-fire-session.lua: no reference arithmetic profile after the installation is prepared
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`

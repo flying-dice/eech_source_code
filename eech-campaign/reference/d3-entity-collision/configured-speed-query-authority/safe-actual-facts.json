@@ -1,0 +1,189 @@
+{
+  "compiled_source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "literal_source": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+  "literal_sha256": "5d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422",
+  "created_utc": "2026-11-05T23:52:38.749703+00:00",
+  "cases": {
+    "hosted-A": {
+      "actual_native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_inputs_literal_equal": true,
+      "pre_post_exits": [
+        0,
+        0
+      ],
+      "payloads": 88,
+      "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+      "literal_source": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+      "model_jsonl_sha256": "3350b0283efc895b5c22933ad63a6214c7e6804f44aebecd37a8be865f5f0d9b",
+      "facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 3,
+        "target_test": 3,
+        "target_test_moving16": 3,
+        "speed_window_valid": 1,
+        "speed_window_bad": 0,
+        "speed_transforms": 0,
+        "speed_delegations": 0,
+        "target_after_speed": 0,
+        "entity_after": 4,
+        "candidate_after": 586,
+        "scan_after": 609,
+        "pose_after": 34,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0
+      },
+      "incoming_demand_present_finite_positive": true,
+      "substituted_demand_zero": true
+    },
+    "hosted-B": {
+      "actual_native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_inputs_literal_equal": true,
+      "pre_post_exits": [
+        0,
+        0
+      ],
+      "payloads": 88,
+      "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+      "literal_source": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+      "model_jsonl_sha256": "516b331dfede6cb35c51ccda9cdf7c492b6e43c10673442e5963bd6d3c90ac8f",
+      "facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 3,
+        "target_test": 3,
+        "target_test_moving16": 3,
+        "speed_window_valid": 1,
+        "speed_window_bad": 0,
+        "speed_transforms": 1,
+        "speed_delegations": 1,
+        "target_after_speed": 9,
+        "entity_after": 4,
+        "candidate_after": 586,
+        "scan_after": 609,
+        "pose_after": 34,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0
+      },
+      "incoming_demand_present_finite_positive": true,
+      "substituted_demand_zero": true
+    },
+    "original-A": {
+      "actual_native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_inputs_literal_equal": true,
+      "pre_post_exits": [
+        0,
+        0
+      ],
+      "payloads": 88,
+      "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+      "literal_source": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+      "model_jsonl_sha256": "e51195b51f67787a8f1d81c8b74dec8919e8b481543bcc6836944968667825d8",
+      "facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 0,
+        "target_test": 0,
+        "target_test_moving16": 0,
+        "speed_window_valid": 1,
+        "speed_window_bad": 0,
+        "speed_transforms": 0,
+        "speed_delegations": 0,
+        "target_after_speed": 0,
+        "entity_after": 0,
+        "candidate_after": 0,
+        "scan_after": 0,
+        "pose_after": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0
+      },
+      "incoming_demand_present_finite_positive": true,
+      "substituted_demand_zero": true
+    },
+    "original-B": {
+      "actual_native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_inputs_literal_equal": true,
+      "pre_post_exits": [
+        0,
+        0
+      ],
+      "payloads": 88,
+      "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+      "literal_source": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+      "model_jsonl_sha256": "62d4e4c09e48f56abde4565c85f3103789d1c3381e7cb69be096eec7116d8f1e",
+      "facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 0,
+        "target_test": 0,
+        "target_test_moving16": 0,
+        "speed_window_valid": 1,
+        "speed_window_bad": 0,
+        "speed_transforms": 1,
+        "speed_delegations": 1,
+        "target_after_speed": 0,
+        "entity_after": 0,
+        "candidate_after": 0,
+        "scan_after": 0,
+        "pose_after": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0
+      },
+      "incoming_demand_present_finite_positive": true,
+      "substituted_demand_zero": true
+    }
+  },
+  "all_same_prepared_target_type_radius_and_three_latched_rays": true,
+  "all_same_fixed_warmup_seed_frame_budget_and_input_manifest_bytes": true,
+  "each_B_actual_supplied_signature_matches_its_completed_same_profile_A": true,
+  "hosted_A_Original_A_full_physical_rows_literal_equal": true,
+  "hosted_B_Original_B_full_physical_rows_literal_equal": true,
+  "each_B_physical_signature_changed_from_its_A": true,
+  "hosted_A_B_changed_physical_field_counts": {
+    "hit": 0,
+    "hit_is_target": 0,
+    "hit_type": 0,
+    "hit_host_id": 0,
+    "point": 3,
+    "normal": 0,
+    "a": 0,
+    "b": 0
+  },
+  "scope": "Finite configured speed-demand INPUT query-service authority only. Same solver/canonical store/normal Core application, realcallback desired_velocity becomes0 in B only. Not unchanged-command fulfillment failure, terrain authority, natural weapon integration, whole physical cutover, fullpack/Task49/D3 acceptance. Raw actors/poses/rays/signatures/argv remain PRIVATE external. Ordinary3475fullpack unchanged/active."
+}

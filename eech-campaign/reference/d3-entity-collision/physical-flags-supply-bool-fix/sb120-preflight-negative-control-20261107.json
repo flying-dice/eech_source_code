@@ -1,0 +1,10 @@
+{
+  "prefix": "flags-sb120b-",
+  "label_regex": "^[rgd]\\d+-",
+  "declared_helper": "check-physical-flags-sb120-linux-20261107.sh",
+  "records": 0,
+  "rows": [],
+  "problems": [
+    "no run record matches flags-sb120b-^[rgd]\\d+-"
+  ]
+}

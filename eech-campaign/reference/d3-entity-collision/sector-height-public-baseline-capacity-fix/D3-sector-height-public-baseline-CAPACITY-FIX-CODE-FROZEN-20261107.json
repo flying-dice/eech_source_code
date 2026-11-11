@@ -1,0 +1,485 @@
+{
+  "kind": "D3 sector-height public baseline observer CAPACITY-FIX CODE_FROZEN (storage-only; source corrected; UNREVIEWED; corrected source UNRUN natively)",
+  "frozen_utc": "2026-11-07T05:56:11.186350+00:00",
+  "task": "EEDCS-49",
+  "stage": "one minimal storage-only correction of the necessary public baseline observer inside the required sector-height extraction; not a preparation batch (count stays 2)",
+  "source_before": "1ef730a40ecd56c10f1a8262e0990ac71bd40102",
+  "corrects_code": "eff3b4b332ec3592ae57c89f0a3d9bf426087e0b",
+  "review": {
+    "path": "R:\\d3-evidence\\independent-sector-height-public-baseline-eff3-actuals-20261107.json",
+    "sha256": "e60093c880bc3817be453228a4f707a910fd5caac55579cc4b338b5de5baea9f",
+    "decision": "FINITE_BUILD_PROFILE_SHORT_PASS_PUBLIC_BASELINE_FAILED_CAPACITY",
+    "open_finding_until_the_same_reviewer": "ENV-SECTOR-HEIGHT-BASELINE-CAPACITY-1",
+    "closed_and_not_reopened": [
+      "ENV-SECTOR-HEIGHT-OBSERVER-JOIN-1 (SAME 04b2f588 source review)",
+      "ENV-SECTOR-HEIGHT-OBSERVER-COMPLETE-1 and ENV-SECTOR-HEIGHT-BASELINE-RUN-1 (636e0d38)"
+    ]
+  },
+  "root_feedback": {
+    "path": "R:\\d3-evidence\\Root-sector-height-capacity-fix-feedback-20261107.json",
+    "exists": false,
+    "checked": "before the first write, before the PRE map and at this freeze: absent each time"
+  },
+  "actual_failure_as_red": {
+    "attempted_event_records": 304811,
+    "stored": 262144,
+    "omitted": 42667,
+    "window": "hours 0.001, frame_ms 100, seed 1: floor 35 frames, 3.5 simulated seconds (not rounded)",
+    "report_sha256_private": "1674d50cc32d0be177d8e921573bd07411eb79a5c2ec77255427fe5119ef3e36",
+    "note": "aggregate figures only from the sealed review; the private report is never copied"
+  },
+  "change": {
+    "SHO_EVENTS": "262144 -> 524288 (219477 slots of headroom)",
+    "SHO_EVENTS_MAX": "262_144 -> 524_288",
+    "report": "sho-tables gains event_record_bytes (measured sizeof 136)",
+    "memory": "524288 x 136 B = 71303168 B (68.0 MiB) static, zero-initialised, diagnostic feature only; measured demand touches about 41.45 MB (39.5 MiB)"
+  },
+  "guards_before_the_batch": {
+    "fix-blocker --blocker sector-height-host-move-open-facts": 0,
+    "production-cutover": 0,
+    "note": "preparation count stays 2; no reset"
+  },
+  "changed_paths": [
+    {
+      "status": "M",
+      "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "sha256": "311594bde8586c76aba0c8cfe393ce290a2b6dfb6b38d499c372e83709cbf634",
+      "git_blob_of_bytes": "0f3cea286fd950ca78c635ebba9a619df81524ce"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+      "sha256": "50c8a88512969ce30e25d752279ca5ca3c241074923ecbff895c4597310b5d63",
+      "git_blob_of_bytes": "4aa8f2278e9342846c2ac93a6da98ab2ad14c662"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "013dd90f89da6aeaf171299cb2b756eceee0e53e4fcd774732e9b4c971949ce7",
+      "git_blob_of_bytes": "4ec6b25937aededeb998431622598289dcfa9b3e"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs",
+      "sha256": "6e2566a58a996924af69e2920c5b6d73432783e7e4c298eeb6186a5f64914fdf",
+      "git_blob_of_bytes": "6a8b524aad99562b8507e92f9b9025851d87585b"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/tests/data/sector-height-observer-report.txt",
+      "sha256": "d4c88c43fac7640eb1012ebe8f4b0f219bdd43b61a59371a237b3e145419096d",
+      "git_blob_of_bytes": "3ddc14ba1f7bf24fe962f956a0a732d193630e8d"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+      "sha256": "1cf8704a5f5aff0215808429cb910c31fb9dac905a8f4469ced47d29ee940191",
+      "git_blob_of_bytes": "e82f6b47738c39225cea296a94e8509718523729"
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/docs/d3-sector-height-public-baseline-plan.md",
+      "sha256": "9316fe6c8136ebef51a8a2838eb5d3354349238df99908a1799b69c5557f9455",
+      "git_blob_of_bytes": "6cf281fe1dc457977bdbed09b4dd20843d9299da"
+    }
+  ],
+  "tracked_lines_deleted_by_file": {
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c": 3,
+    "eech-campaign/crates/eech-engine/src/lib.rs": 1,
+    "eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs": 1,
+    "eech-campaign/crates/eech-world/tests/data/sector-height-observer-report.txt": 1,
+    "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs": 1
+  },
+  "no_aphavoc_or_modules_path_changed": true,
+  "runs": [
+    {
+      "label": "q1-fmt-apply",
+      "final": false,
+      "command": "cargo fmt -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:46:14.410701+00:00",
+      "completed_utc": "2026-11-07T05:46:19.123728+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "label": "q2-chain-stale-fixture",
+      "final": false,
+      "command": "cargo test --locked -p eech-engine --features sector-height-observer --test sector_height_observer_chain -- --nocapture",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T05:46:19.274019+00:00",
+      "completed_utc": "2026-11-07T05:47:23.033779+00:00",
+      "stdout_sha256": "0d8b83d51b0d9da2e48333cddfaf25d7b863a315f6c423bedf5c72cce01abfe1",
+      "stderr_sha256": "be8b715c0fbec0659eb3033f52ccd72633842aab004dbe340bc14ffed1f300b4"
+    },
+    {
+      "label": "s0-superseded-r1-fmt-check",
+      "final": false,
+      "command": "cargo fmt -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world -- --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:47:39.515234+00:00",
+      "completed_utc": "2026-11-07T05:47:43.645344+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "label": "s0-superseded-r2-clippy-default",
+      "final": false,
+      "command": "cargo clippy --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:47:43.793490+00:00",
+      "completed_utc": "2026-11-07T05:48:47.234506+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "5adac4883814b4acb374a79a773d2caf5bac3d51fbe0e5d598fba6f5d1ef0fb4"
+    },
+    {
+      "label": "s0-superseded-r3-clippy-engine-funnel",
+      "final": false,
+      "command": "cargo clippy --locked -p eech-engine --features sector-height-funnel-check --all-targets -- -D warnings",
+      "actual_exit": 101,
+      "started_utc": "2026-11-07T05:48:47.386802+00:00",
+      "completed_utc": "2026-11-07T05:49:48.299157+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a984adc9b4ba994b5b5d0b498f0bed0c9d46dbb1672e61b9417261bef7b2ced2"
+    },
+    {
+      "label": "s0-superseded-r4-clippy-sys-observer",
+      "final": false,
+      "command": "cargo clippy --locked -p eech-engine-sys --features sector-height-check,sector-height-observer --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:49:48.460264+00:00",
+      "completed_utc": "2026-11-07T05:50:49.957947+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "469f663914e380250048e98fcce5c41260fbcbf9c4b58942bc244cae0aa66aba"
+    },
+    {
+      "label": "s1-fmt-apply",
+      "final": false,
+      "command": "cargo fmt -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:51:10.341670+00:00",
+      "completed_utc": "2026-11-07T05:51:14.488588+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "label": "s2-clippy-engine-funnel-dev",
+      "final": false,
+      "command": "cargo clippy --locked -p eech-engine --features sector-height-funnel-check --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:51:14.628582+00:00",
+      "completed_utc": "2026-11-07T05:51:17.888038+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "1d67a5d9e78653e0f94b0d4905341cf72dc4d52542bd856d7044d2c8fede18e5"
+    },
+    {
+      "label": "t1-fmt-check",
+      "final": true,
+      "command": "cargo fmt -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world -- --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:51:29.078136+00:00",
+      "completed_utc": "2026-11-07T05:51:33.207843+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "label": "t2-clippy-default",
+      "final": true,
+      "command": "cargo clippy --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:51:33.359085+00:00",
+      "completed_utc": "2026-11-07T05:51:37.192195+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "b48f5d6eceadb85899b1ef6f1d497f5173277377c69cc603eacf9f4c05db8db2"
+    },
+    {
+      "label": "t3-clippy-engine-funnel",
+      "final": true,
+      "command": "cargo clippy --locked -p eech-engine --features sector-height-funnel-check --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:51:37.354472+00:00",
+      "completed_utc": "2026-11-07T05:51:40.544507+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "5338b6bf41a73cb7f3e23cd8761dc56eeabb69dc63f4bef8ce45efffb09f6356"
+    },
+    {
+      "label": "t4-clippy-sys-observer",
+      "final": true,
+      "command": "cargo clippy --locked -p eech-engine-sys --features sector-height-check,sector-height-observer --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:51:40.690906+00:00",
+      "completed_utc": "2026-11-07T05:51:43.851663+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "c9400544cb635a52e3820d19cc008b30fd3cc636da1fcbd6a7196769bcd75f07"
+    },
+    {
+      "label": "t5-engine-controls",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine --features sector-height-funnel-check --test sector_height_funnel --test sector_height_observer_chain --test sector_height_observer_cap",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:51:50.350030+00:00",
+      "completed_utc": "2026-11-07T05:52:52.793295+00:00",
+      "stdout_sha256": "cfc318711a2c26a411f05dc50ae1e243d833a6785e3a2ad2005e8d6a3172d668",
+      "stderr_sha256": "ee6eecfb8957ca26fe5b49f0cec3f1e32380d3031b550771ef8ca69eeff43e0c"
+    },
+    {
+      "label": "t6-sys-control",
+      "final": true,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check,sector-height-observer --test sector_height_observer -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:52:52.952388+00:00",
+      "completed_utc": "2026-11-07T05:53:55.024429+00:00",
+      "stdout_sha256": "2b7d780e38cc8f7b7035c5c16a11fa6134775b93f8938505392778b88db81377",
+      "stderr_sha256": "3f9e79ae72917ee96a750c8fdfd61169a3c47faba71b8952799320b3090e76ce"
+    },
+    {
+      "label": "t7-driver-guards",
+      "final": true,
+      "command": "cargo test --locked -p eech-world --test sector_height_baseline_driver",
+      "actual_exit": 0,
+      "started_utc": "2026-11-07T05:53:55.182828+00:00",
+      "completed_utc": "2026-11-07T05:53:56.843929+00:00",
+      "stdout_sha256": "3d29da098a134812a66e388b4530ff512e2871d1cd7092be12e8eb4393b1a8c6",
+      "stderr_sha256": "36915a1d85bab87b96dd38959e65d9327e1dced4f192d0aac56e36839593da99"
+    }
+  ],
+  "input_maps": {
+    "files": {
+      "sector-height-capfix-inputmap-PRE-20261107.json": {
+        "bytes": 2037140,
+        "sha256": "29a00f3af9cdda76844f91505562b71a5e4ff6dce58ee83706af4530823010f6",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-capfix-inputmap-POST-20261107.json": {
+        "bytes": 2037140,
+        "sha256": "29a00f3af9cdda76844f91505562b71a5e4ff6dce58ee83706af4530823010f6",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-capfix-extra-identity-PRE-20261107.json": {
+        "bytes": 2285,
+        "sha256": "16a3ed92ad7a322049ee98611f4032fbba0cce7c5fcce000087563bf729dc4cd",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-capfix-extra-identity-POST-20261107.json": {
+        "bytes": 2285,
+        "sha256": "16a3ed92ad7a322049ee98611f4032fbba0cce7c5fcce000087563bf729dc4cd",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-capfix-inputmap-SUPERSEDED-PRE-before-lint-fix-20261107.json": {
+        "bytes": 2037140,
+        "sha256": "c5972b5e2e3737206a8a777519e9a5c4186077f6070ce635d4e871a43f1ea028",
+        "location": "external (full per-file rows)"
+      },
+      "sector-height-capfix-extra-identity-SUPERSEDED-PRE-before-lint-fix-20261107.json": {
+        "bytes": 2285,
+        "sha256": "16a3ed92ad7a322049ee98611f4032fbba0cce7c5fcce000087563bf729dc4cd",
+        "location": "external (full per-file rows)"
+      }
+    },
+    "compare_pre_post": {
+      "pre_fingerprint": "13c2b2c2ebc2c4071a2d35eca1972baf7b9ce990473b3bc6bdf7b518baf55a91",
+      "post_fingerprint": "13c2b2c2ebc2c4071a2d35eca1972baf7b9ce990473b3bc6bdf7b518baf55a91",
+      "file_count_pre": 3967,
+      "file_count_post": 3967,
+      "rows_only_in_pre": [],
+      "rows_only_in_post": [],
+      "rows_that_differ": [],
+      "all_rows_equal": true,
+      "head_sha": "1ef730a40ecd56c10f1a8262e0990ac71bd40102",
+      "changed_from_head_count": [
+        8,
+        8
+      ],
+      "deleted_from_head": [
+        [],
+        []
+      ],
+      "raw_vs_git_filtered_disagreements": {
+        "pre": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ],
+        "post": [
+          "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+          "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "modules/system/malloc.c.h",
+          "modules/system/nedmalloc.c"
+        ]
+      },
+      "extra_identity_equal": true,
+      "extra_identity_aggregate": [
+        "9f9f93b868dabefb4e71b8308d7362d3fa1bac436c2a5423a7d6c99a822b710f",
+        "9f9f93b868dabefb4e71b8308d7362d3fa1bac436c2a5423a7d6c99a822b710f"
+      ]
+    },
+    "vs_eff3_final_post": {
+      "previous_post_fingerprint": "ed55208c789e7820413f360af265fbfe13d057ba1dccc8b5277f090dabf49683",
+      "current_post_fingerprint": "13c2b2c2ebc2c4071a2d35eca1972baf7b9ce990473b3bc6bdf7b518baf55a91",
+      "files_previous": 3967,
+      "files_current": 3967,
+      "map_rows_changed_since_the_d74_final_post": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+        "eech-campaign/crates/eech-engine/src/lib.rs",
+        "eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs",
+        "eech-campaign/crates/eech-world/tests/data/sector-height-observer-report.txt",
+        "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs"
+      ],
+      "map_rows_added": [],
+      "map_rows_removed": [],
+      "unchanged_map_rows": 3962,
+      "tool_and_script_rows_changed": [
+        "eech-campaign/docs/d3-sector-height-public-baseline-plan.md"
+      ],
+      "tool_and_script_rows_unchanged": [
+        "R:/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+        "R:/d3-evidence/check-sho-windows-wrapper-ast-20261107.ps1",
+        "R:/d3-evidence/run-sector-height-baseline-direct-20261107.py",
+        "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py",
+        "eech-campaign/tools/build-windows-sector-height-observer.sh",
+        "eech-campaign/tools/native-arguments.ps1",
+        "eech-campaign/tools/sector-height-baseline-windows.ps1"
+      ]
+    },
+    "pre_utc": "2026-11-07T05:51:26Z",
+    "post_note": "taken after the final checks t1-t7 with no source write between",
+    "qualification": "seven inherited raw-versus-Git-filtered identity disagreements unnormalised; the first PRE (05:47:30Z) and its set r1-r4 are SUPERSEDED (a lint failure of my own new assertion), retained and labelled"
+  },
+  "feature_off_equivalence_join": {
+    "base": "eff3b4b332ec3592ae57c89f0a3d9bf426087e0b",
+    "kind": "source-derived structural join for the feature-off profile; not an object comparison",
+    "changed_or_added_paths": [
+      "STATUS.md",
+      "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs",
+      "eech-campaign/crates/eech-world/tests/data/sector-height-observer-report.txt",
+      "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+      "eech-campaign/docs/d3-sector-height-public-baseline-plan.md"
+    ],
+    "rows": [
+      {
+        "path": "STATUS.md",
+        "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+      },
+      {
+        "path": "docs/governance/D3-FIVE-WHYS-20261102.md",
+        "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+      },
+      {
+        "path": "docs/handover/ACTIVE-EXTRACTION.json",
+        "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_sho.c",
+        "class": "translation unit that preprocesses to nothing without EECH_SECTOR_HEIGHT_OBSERVER (checked on the eff3 text and the new text: one outer #ifdef...#endif pair, nothing else outside comments)",
+        "outer_gate_only_before": true,
+        "outer_gate_only_after": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "class": "one cfg(feature = \"sector-height-observer\") constant changed (SHO_EVENTS_MAX)",
+        "diff_body": [
+          "-pub const SHO_EVENTS_MAX: i32 = 262_144;",
+          "+pub const SHO_EVENTS_MAX: i32 = 524_288;"
+        ],
+        "line_before_new_const": [
+          " #[cfg(feature = \"sector-height-observer\")]"
+        ]
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/tests/sector_height_observer_cap.rs",
+        "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/data/sector-height-observer-report.txt",
+        "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+        "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sector-height-public-baseline-plan.md",
+        "class": "not compiled into the DLL (test, data, documentation or governance prose)"
+      }
+    ],
+    "no_aphavoc_or_modules_path": true,
+    "problems": [],
+    "conclusion": "the compiled inputs of the ORDINARY (feature-off) profile are unchanged in effect: a binary built from eff3b4b33 and one built from this tree differ in no preprocessed translation unit and no non-gated Rust item; the sealed ordinary eff3 binary keeps its true identity and is not relabelled"
+  },
+  "scripts": [
+    {
+      "name": "sho-compare-maps-20261107.py",
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "name": "sho-compare-prev-20261107.py",
+      "sha256": "c156340f117be61e58d893dccfc63588778342e4cb490f89c655d521c5b65fd3"
+    },
+    {
+      "name": "sho-extra-identity-20261107.py",
+      "sha256": "5c6f50e8ba69203b502600f6429eef85207a3ebe57e2018066187b3d6e278890"
+    },
+    {
+      "name": "sho-extract-fixture.py",
+      "sha256": "e0ccda76892e4f97db8e3b1f1894689b29db15e4b29eaef059dd021b0e55d985"
+    },
+    {
+      "name": "sho-offprofile-join-20261107.py",
+      "sha256": "21debf20e517ce4559acc64d8441f9099ba234b6249efcb4527e907bb16732bb"
+    },
+    {
+      "name": "run-sector-height-baseline-direct-20261107.py",
+      "sha256": "00222f9cdbd463f59c3af79d5162bd2412fdb2be15f4bc61228cc068f42e972c"
+    }
+  ],
+  "cache": {
+    "volume": "eech-linux-d3-collision-driver-5416adb3b-20261029",
+    "image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+    "owners": "one (this lane); docker ps -a empty before",
+    "cleanup": "none performed"
+  },
+  "retained_failures": [
+    "q2: the stale pinned report (101, by design; regenerated)",
+    "s0-superseded-r3: strict clippy of the cap control, assertions_on_constants (101; fixed with a compile-time assertion)",
+    "the superseded first PRE map and set r1-r4"
+  ],
+  "process_lessons": "docs/governance/D3-FIVE-WHYS-20261102.md: two short bullets appended (diagnostic capacity must cover the real demand and keep incomplete-as-failure; authoritative sealed records outrank display headers, parse section markers; Root's reader fix is tooling, not a product defect)",
+  "not_run": [
+    "Windows build",
+    "native or campaign or war launch",
+    "retail data",
+    "any replay of the failed native",
+    "artificial mutants",
+    "i686",
+    "EECH_C_OPT=2",
+    "broad matrix",
+    "agents/MCP/authentication/model change",
+    "cache or process deletion",
+    "merge"
+  ],
+  "limits": [
+    "source and Linux checks only; the new observer binary, its profile audit, its ordinary-short comparison and the new finite baseline are Root's next actual gates after the SAME reviewer's source clearance",
+    "a partial prefix is not a whole baseline; clearance and save/restore were UNREACHED in the failed window and stay named; natural LOS offers are not a natural weapon engagement",
+    "engine C at its default level 1; no -O2, signalling-NaN, x87 control-word or exhaustive runtime-census claim; the observer DLL is not assumed result-neutral beyond the finite ordinary short already compared",
+    "the Core high-water writer, clocks, random stream and every policy are unchanged; no baseline, input, seed, frame, duration or tolerance changed"
+  ],
+  "state": {
+    "finding": "ENV-SECTOR-HEIGHT-BASELINE-CAPACITY-1 OPEN until the same reviewer and a whole actual",
+    "sector-height-host-move-open-facts": "OPEN",
+    "ENV-ENTITY-POSE-LONG-RUN-MOTION-1": "CLOSED at f734 (SAME 4de6d2e9)",
+    "claims": "no self-review, approval, native clearance, physical move, whole Task49 or D3, delivery",
+    "D3-CURRENT.json": "not edited (Root owns it)"
+  },
+  "hygiene_problems_at_freeze": []
+}

@@ -1,0 +1,89 @@
+{
+  "schema": "d3-independent-sector-height-clarification-review.v1",
+  "created_utc": "2026-11-07T00:48:28.678200+00:00",
+  "reviewer": "SAME sole independent Codex reviewer",
+  "scope": "Continuation limited to two comment/document changes and their preservation/provenance. Correctness, clean-code and boundary-safety review only; no old control replay, test/build/native/cache/process operations, agents or tracked edits.",
+  "source": {
+    "commit": "3fac41f0448bfc3f1330e0fd4c8ff72f1ee3fdce",
+    "metadata_commit": "75596753a4131b8f498abd6d80417fd08d7d40c0",
+    "parent": "12a2235567c9c30a13b0813dface15822ad9aab5",
+    "characterized_code": "a8ef0ce662df0528dcae414287ffe45b2847cd8f",
+    "observed_HEAD_clean": true,
+    "changed_paths": [
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+      "eech-campaign/docs/d3-sector-height-contract.md"
+    ],
+    "production_behavior_delta": false
+  },
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-sector-height-characterization-source-a8ef-20261107.json",
+    "sha256": "7471e653366196803eb7a66dbc9b12287aacc140c1b19388a3b805c27a3904b9"
+  },
+  "finding_dispositions": [
+    {
+      "id": "ENV-SECTOR-HEIGHT-SAVED-WORD-PLAN-1",
+      "status": "CLOSED",
+      "basis": "Header and contract qualify the zero floor as zero-initialized history, preserve strict comparison against the actual restored word and explicitly admit valid saved negative/Inf/quiet-NaN words. The plan distinguishes malformed/mismatched replies from valid restoration and forbids re-clamping or fmax-away of NaN. Restored-word consequences are source-derived, not newly measured."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-MEASURED-DOMAIN-PRECISION-1",
+      "status": "CLOSED",
+      "basis": "Measured save coverage is explicitly13 representative patterns; the wider raw-word domain is source-derived. Exhaustive finite enumeration, signaling-NaN payload, O2/nondefault engine-C and full FP-control/status claims are excluded."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-RAW-BINDING-PRECISION-1",
+      "status": "CLOSED",
+      "basis": "Current contract/sibling packet qualify4077 literal raw-Git inputs plus3 unchanged inherited CRLF-only test Lua files, literal PRE2/POST rows and reconstructed PRE1. Retained constructor identity is not presented as an attestation of the original PRE1 script. Historical frozen evidence remains literal."
+    }
+  ],
+  "preservation_verified": {
+    "only_C_prefix_single_comment_changed": true,
+    "old_raw_C_sha256": "7b80c8e323dca3ef7cd797d6e8c192163db18bc4087bc8c2eb45e9a8b4e3e20f",
+    "new_raw_C_sha256": "84f4c9e6039fb5f95ad6007719b5f41b7c83b5bd750fb16460affcfbc4f0f89c",
+    "guarded_suffix_literal_equal": true,
+    "guarded_suffix_sha256": "df20a3b07de0c7af8396023c85c522aa706f5250fe6e24b0754438014bb47f4f",
+    "guard_start_line_unchanged": 41,
+    "line_count_preserved": true,
+    "historical82_file_pack_unchanged": true,
+    "new_pack_listed_files_verified": 8,
+    "new_pack_including_manifest": 9,
+    "all_new_listed_Git_sizes_SHA256_verified": true,
+    "metadata_only_paths": 11,
+    "new_checks_run": false,
+    "test_attribution": "The179-expectation x64/i686 controls,6guards and lints remain results of characterized sourcea8ef and its qualified maps. They are not new runs on the changed raw C comments. Byte-identical executable suffix and line positions justify reuse without replay."
+  },
+  "evidence": {
+    "freeze": {
+      "path": "R:/d3-evidence/sector-height-characterization-clarification-CODE-FROZEN-20261107.json",
+      "sha256": "6c9f127e645b5a76b17704b2f33093449cd3ead6af5d86f6ec127158aaf13beb"
+    },
+    "freeze_external_repo_literal_equal": true,
+    "Root_delta_binding": {
+      "path": "R:/d3-evidence/sector-height-clarification-Root-binding-3fac-7559-20261107.json",
+      "sha256": "5453d3ea4f47f92fe0ab846798c3136f5b798b69f937d8f94e6aedfba7ef0d07"
+    },
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-sector-height-clarifications-20261107-completion.json",
+      "sha256": "4af000ebdc17727a174361e44cf70c5682f0f8f72a78511826dc7da25094203f"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_completed_utc": "2026-11-07T00:45:39.491483+00:00",
+    "producer_actual_model": "claude-sonnet-5-5"
+  },
+  "decision": {
+    "status": "CHARACTERIZATION_CLARIFICATIONS_ACCEPTED",
+    "findings": [],
+    "all_three_prior_P2s_closed": true,
+    "characterization_batch_closed": true,
+    "characterization_contract_precision_accepted": true,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "production_design_approved": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "limits": "Characterization only, preparation batch1of2 unchanged. Original linked controls used handmade entities/map and one scripted scene provider, not the public list funnel/retail campaign; CITY shape remains unresolved and native triggers unrun. Isolated test-process scope and full-FP/Windows/O2/caller-census limits remain. ENV-ENTITY-POSE-LONG-RUN-MOTION-1 stays OPEN/blocks_cutover=true while protectedf734 fullpack is incomplete. All ten D3 requirements and needed physical-service/DCS disposition, natural-moving integration, current final40/all8/final inputs/CI/review/normal merge/final census remain required. No new production cutover, native authority, D4/D5 or historical TypeScript work is authorized."
+}

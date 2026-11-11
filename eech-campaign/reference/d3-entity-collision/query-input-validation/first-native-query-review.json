@@ -1,0 +1,385 @@
+{
+  "schema": "independent-bounded-actual-review/v1",
+  "reviewed_utc": "2026-11-05T23:09:46.043612+00:00",
+  "source": {
+    "runtime_commit": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "diagnostic_commit": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "diagnostic_git_blob": "ad4238d9a51e79b236dba833bdcea18ca146fde3",
+    "diagnostic_sha256": "e580b0e2752c28ccb440b66778bd0b4992de0651502dcdc9e9975d4b6af68d05",
+    "diagnostic_bytes": 127724,
+    "source_review": {
+      "path": "R:/d3-evidence/independent-person-motion-query-corrected-source-3475-20261105.json",
+      "bytes": 14486,
+      "sha256": "62f5641e61c2c470cb9cca17aed90d0d0e69f20c800d942c4b2974e212e24be1"
+    }
+  },
+  "scope": "One new actual review: profile isolation, ordinary short, healthy stationary control, moving-query A/Original A parity, B signature/input authenticity and the unmet lift prerequisite. Closed source and other finite proofs were not reopened. No builds, campaigns, source edits or process operations were performed.",
+  "decision": {
+    "status": "A_POSITIVE_AND_ORIGINAL_PARITY_VERIFIED; B_UNREACHED",
+    "findings": [
+      {
+        "id": "ENV-MOVING-QUERY-LIFT-PREREQUISITE-1",
+        "priority": "P2",
+        "scope": "Witness eligibility/provenance, not a newly established production defect",
+        "blocks": "Acceptance of B changed-input authority",
+        "finding": "Selection establishes recent routed motion, not a terrain-bearing callback in the B window. Actual B applied no lift and recorded no inner ceiling refusal. Completed queries and coherent mirrors do not supply the missing input alteration.",
+        "minimum_correction": "Use actual existing callback terrain eligibility/provenance in the bounded witness, with a real eligible B-window step. Preserve legitimate optional terrain; do not synthesize input, retarget/fabricate poses, tune actors/geometry/seed/warmup or weaken A/B criteria."
+      }
+    ],
+    "windows_profile_isolation_verified": true,
+    "ordinary_short_complete_literal_equal": true,
+    "healthy_finite_stationary_control_verified": true,
+    "controlled_moving_query_A_positive_verified": true,
+    "Original_A_full_physical_rows_equal": true,
+    "B_control_signature_authentic": true,
+    "B_same_source_target_rays_config_inputs_verified": true,
+    "B_changed_input_authority_verified": false,
+    "finite_controlled_moving_query_authority_closed": false,
+    "Person_long_run_regression_runtime_closed": false,
+    "natural_weapon_engagement_proved": false,
+    "full_pack_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "build_profiles": {
+    "profile_receipt": {
+      "path": "R:/d3-evidence/person-motion-windows-profile-isolation-3475-20261105.json",
+      "bytes": 4888,
+      "sha256": "188834969e87fc28ee0436be4338639691f6e900956d23ced704c7e0255e0219"
+    },
+    "build_receipt": {
+      "path": "R:/d3-evidence/person-motion-3475-windows-20261105-completion.json",
+      "bytes": 45813,
+      "sha256": "b2dfb831bcfb6665473cf0bd97f23146d2985cc4125c9bbcb309e42a47c8d5d4"
+    },
+    "object_audit_log": {
+      "path": "R:/d3-evidence/person-motion-windows-profile-audit-3475-20261105.log",
+      "bytes": 7283,
+      "sha256": "e5b1b5cecc9f0382c159df405beee9928f58d765b4a5e081ccbe79231e656de9"
+    },
+    "rlib_binding_log": {
+      "path": "R:/d3-evidence/person-motion-windows-rlib-binding-3475-20261105.log",
+      "bytes": 2851,
+      "sha256": "b19ca8570aa2e8d0dcbba0d299383a28d426619e20912cc1cec61464cfbaf0ff"
+    },
+    "three_actual_build_exits": [
+      0,
+      0,
+      0
+    ],
+    "all_three_profiles_payloads_independently_rehashed": [
+      88,
+      88,
+      88
+    ],
+    "distinct_images": {
+      "original": "sha256:3f1f891a4b7fa64c6ad42b3e63598897fd84171b732479ae2609170f727ff121",
+      "ordinary": "sha256:c7aaec7c8930868b7e9739f4b083bd8bfd226e830b9bd65f6d8d79ee968e1642",
+      "hosted": "sha256:48b2ed12475a2714732d55edcb1c8f7e8079d99c1488653bebf99d10191a8139"
+    },
+    "ordinary_new_fixture_symbols_absent": true,
+    "hosted_Original_required_symbols_present": true,
+    "test_checker_symbol_absent_all_profiles": true,
+    "ordinary_features": [],
+    "hosted_features": [
+      "weapon-fixture"
+    ],
+    "Original_features": [
+      "collision-fixture",
+      "weapon-fixture"
+    ],
+    "source_files_resealed": 4136,
+    "qualification": "C defines are derived from actual feature manifests and frozen build mapping, corroborated by bound rlib COFF objects and symbol/export inspection. Ordinary/hosted earlier image configurations are unavailable, not inferred. This is guarded fixture isolation, not overall production equivalence to failed ea2b."
+  },
+  "ordinary_healthy": {
+    "safe_facts": {
+      "path": "R:/d3-evidence/person-motion-safe-first-actual-facts-3475-20261105.json",
+      "bytes": 4301,
+      "sha256": "236a8b1fd6816fbc4edcfc49e8d4c17cfdcb12d933adde65c0374a686dc80deb"
+    },
+    "private_audit_reference_only": {
+      "path": "R:/d3-evidence/person-motion-private-first-actual-audit-3475-20261105.json",
+      "bytes": 17637,
+      "sha256": "563f904b1aa49262e1e2460506584581724070accdb7b2b34bff76d131657821"
+    },
+    "short_comparison": {
+      "path": "R:/d3-evidence/person-motion-ordinary-short-comparison-3475-20261105.json",
+      "bytes": 1749,
+      "sha256": "5890857a1517dc6c579e0b1021cc0e5b038129f28143137a85bd8397c71c9063"
+    },
+    "two_native_helper_outer_exits": [
+      0,
+      0
+    ],
+    "four_full_input_checks": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "pre_post_manifest_bytes_equal": true,
+    "three_complete_short_files": [
+      {
+        "name": "recording.acmi",
+        "bytes": 230871
+      },
+      {
+        "name": "observations.jsonl",
+        "bytes": 1553674
+      },
+      {
+        "name": "metrics.json",
+        "bytes": 7477
+      }
+    ],
+    "all_three_short_files_independently_compared_literal_to_retained_80fd": true,
+    "native_short_seconds": 9.920688,
+    "timing_scope": "Single observation, not a benchmark.",
+    "observations": 9252,
+    "offers": 6091,
+    "attitude_observations": 3161,
+    "motion_held": 6091,
+    "held_motion_position_attitude_differences": [
+      0,
+      0,
+      0
+    ],
+    "moving_queries": 0,
+    "reached_scope": "Repeated kind1 observations, not unique mobiles or Person/lifetime coverage.",
+    "parent_comparison": "All 20 declared physical fields including the private signature independently verified equal observer1f9a. Private raw values are omitted."
+  },
+  "controlled_actuals": [
+    {
+      "role": "hosted-A",
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-A-3475fb93b-20261105/controller.json",
+        "bytes": 4358,
+        "sha256": "7434acef8243a8143fc245acde0650b212e5c7a3a579702dc4a9f7a0f3ae314c"
+      },
+      "outer_receipt": {
+        "path": "R:/d3-evidence/person-motion-query-hosted-A-3475-20261105-completion.json",
+        "bytes": 1882,
+        "sha256": "af1d33fb11aac45ec1bd165092d20d4a0d29e7b5f7afb1e880ac2455b977f458"
+      },
+      "raw_report": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-A-3475fb93b-20261105/model.jsonl",
+        "bytes": 3133,
+        "sha256": "0cdffb517a249a81915f2dbdc2871926f321f9146757e632cc3836619cb7fda1"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-A-3475fb93b-20261105/native.log",
+        "bytes": 44198,
+        "sha256": "ae47244ed0e0f7f91040d11a6b5109afe1a290e380ef7385ed848ef2fbf8af40"
+      },
+      "pre_inputs": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-A-3475fb93b-20261105/pre-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post_inputs": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-A-3475fb93b-20261105/post-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "full_pre_post_input_exits": [
+        0,
+        0
+      ],
+      "manifest_bytes_equal": true,
+      "inputs": 1179,
+      "input_bytes": 102239559,
+      "payloads_verified": 88,
+      "native_controller_helper_outer_exit": 0,
+      "json_rows": 8,
+      "safe_query_facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 3,
+        "target_test": 3,
+        "target_test_moving16": 3,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0,
+        "lifted": 0,
+        "lift_refused": 0,
+        "lift_frame": -1,
+        "target_after_lift": 0
+      }
+    },
+    {
+      "role": "original-A",
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-original-A-3475fb93b-20261105/controller.json",
+        "bytes": 4397,
+        "sha256": "129550b3d7c64b8ba5217e305e962cec9cacfb8f34bdb0d1763fa5ed47a82658"
+      },
+      "outer_receipt": {
+        "path": "R:/d3-evidence/person-motion-query-original-A-3475-20261105-completion.json",
+        "bytes": 1904,
+        "sha256": "49cf6d3d13078354226c75aa781366974a616c966b528a3f1dccb2a7f6421da5"
+      },
+      "raw_report": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-original-A-3475fb93b-20261105/model.jsonl",
+        "bytes": 3037,
+        "sha256": "88a4ee640095a85315359e1b5b43388429647770f974431df7c016330518766d"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-original-A-3475fb93b-20261105/native.log",
+        "bytes": 44682,
+        "sha256": "1148533c9fc17dd8a7e1324f610bc599313ef1d2e4ea505d28778f44043da1e3"
+      },
+      "pre_inputs": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-original-A-3475fb93b-20261105/pre-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post_inputs": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-original-A-3475fb93b-20261105/post-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "full_pre_post_input_exits": [
+        0,
+        0
+      ],
+      "manifest_bytes_equal": true,
+      "inputs": 1179,
+      "input_bytes": 102239559,
+      "payloads_verified": 88,
+      "native_controller_helper_outer_exit": 0,
+      "json_rows": 8,
+      "safe_query_facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 0,
+        "target_test": 0,
+        "target_test_moving16": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0,
+        "lifted": 0,
+        "lift_refused": 0,
+        "lift_frame": -1,
+        "target_after_lift": 0
+      }
+    },
+    {
+      "role": "hosted-B",
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-B-3475fb93b-20261105/controller.json",
+        "bytes": 4737,
+        "sha256": "83abcb5f74543cef684c2e47881a7bf284a5bf50713469c3eecefa7eb84f6d98"
+      },
+      "outer_receipt": {
+        "path": "R:/d3-evidence/person-motion-query-hosted-B-3475-20261105-completion.json",
+        "bytes": 2764,
+        "sha256": "fc53cc53e34603fe9379c6ce916984cda17b68cf0959e10a469bf4ec4244766f"
+      },
+      "raw_report": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-B-3475fb93b-20261105/model.jsonl",
+        "bytes": 3127,
+        "sha256": "6218ac89505780b6a7873517434ce673c7a1fdfbbb3f4b509da47e6b61aeabd7"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-B-3475fb93b-20261105/native.log",
+        "bytes": 44460,
+        "sha256": "af2cb0c0c1055f97cefd9e4eb343db2c5e1d359eb7b25e9e75bdf945c607c7eb"
+      },
+      "pre_inputs": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-B-3475fb93b-20261105/pre-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post_inputs": {
+        "path": "D:/EECH-Migration-Evidence/person-motion-query-hosted-B-3475fb93b-20261105/post-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "full_pre_post_input_exits": [
+        0,
+        0
+      ],
+      "manifest_bytes_equal": true,
+      "inputs": 1179,
+      "input_bytes": 102239559,
+      "payloads_verified": 88,
+      "native_controller_helper_outer_exit": 1,
+      "json_rows": 8,
+      "safe_query_facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 3,
+        "target_test": 3,
+        "target_test_moving16": 3,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0,
+        "lifted": 0,
+        "lift_refused": 0,
+        "lift_frame": -1,
+        "target_after_lift": 0
+      }
+    }
+  ],
+  "cross_run_joins": {
+    "A_versus_Original_A": {
+      "same_source_selection_target": true,
+      "same_prepared_target_type_radius_exact_three_rays": true,
+      "same_seed_frame_warmup_settle_budget": true,
+      "complete_input_manifest_bytes_equal": true,
+      "all_three_full_physical_row_dictionaries_equal": true,
+      "Original_no_Host_entity_candidate_scan_pose_questions": true,
+      "qualification": "Real reached Original query comparison, not API absence or UNREACHED."
+    },
+    "B_versus_A": {
+      "same_binary_and_literal": true,
+      "same_selection_target": true,
+      "same_prepared_target_type_radius_exact_three_rays": true,
+      "same_seed_frame_warmup_settle_budget": true,
+      "complete_input_manifest_bytes_equal": true,
+      "provided_control_signature_exactly_completed_positive_A_signature": true,
+      "all_three_full_physical_row_dictionaries_equal": true,
+      "physical_signature_equal": true,
+      "lifted": 0,
+      "inner_ceiling_refusals": 0,
+      "last_lift_frame": -1,
+      "post_lift_target_questions": 0,
+      "classification": "Correct UNREACHED native/helper/outer1. No input alteration or changed physical effect established."
+    }
+  },
+  "bounded_prerequisite_source_join": {
+    "Lua_path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "locations": {
+      "lift_conjunction": "848-871",
+      "selection": "1137-1155",
+      "one_B_window": "1174-1187",
+      "verdict": "1218-1242"
+    },
+    "facts": [
+      "The outer lift condition requires plan.lift, armed-or-lift_window, watched identity match, a table step, mode move and a table terrain. Numeric elevation/map-ceiling acceptance or lift_refused increments occur only inside it.",
+      "Selection requires routed kind, last movement answer in the final warmup frame and finite motion norm above one; it does not establish terrain presence.",
+      "Actual compiled Core rv_hostmv.c:347-373 supplies terrain only in the waypoint-distance branch and when the actual guide terrain-follow mode is not NONE. Engine lib.rs:5809-5817 preserves absent terrain as None."
+    ],
+    "inference_limit": "Zero lifted/refused proves the inner eligibility branch was not entered in the recorded window. It does not identify the failed outer conjunct or actual guide/input shape. Those fields were not recorded; no more specific actor diagnosis is claimed.",
+    "no_new_instrumentation_or_run_performed": true
+  },
+  "remaining_gates": [
+    "Source review of the bounded witness-only actual-input eligibility/provenance correction, then a real B-window eligible step, target offer/coherence and changed physical output against authentic same-input A. Reuse A only with an explicit exact diagnostic/source/input scope join.",
+    "Natural weapon engagement remains unproved; query-service parity is separate.",
+    "The corrected ordinary full40/all8 pack is active, untouched and not accepted by this review. Completion, exact outputs, inputs and payload audits remain required. Failed ea2b remains failed.",
+    "All required Core backing/roster/identities, live pose synchronization and writers, effectful getters, city children, loaders/forest/cloud/hierarchy/devices and DCS mappings remain within whole-D3 scope."
+  ],
+  "publication_safety": "Counts, hashes, outcomes, private/source paths and verified join booleans only. No retail coordinates/vectors/physical tuples, target suffixes, actor indices, trajectories, full signatures or assets."
+}

@@ -1,0 +1,294 @@
+{
+  "schema": "independent-bounded-correction-source-review/v1",
+  "reviewed_utc": "2026-11-06T01:54:59.124428+00:00",
+  "source": {
+    "commit": "92d0739a18a34905223f76d0cbbc081375e3c845",
+    "actual_direct_parent": "64d4bc899f4baeb4aa8566aeff210f9f448209bb",
+    "semantic_production_baseline": "7bec89e45a9e45f14c76e0cf3f5d1bb001809f94",
+    "metadata_only_head": "1aa35d4dbcb336efeb9ba5e8c5d328c9936df09b",
+    "metadata_delta": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "six_changed_World_files": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "blob": "beb7fdc877079f9ef57849a5c5b3e0dd0d0150e3",
+        "bytes": 149909,
+        "sha256": "bde7abfc24b80d9bcb49d28dcebdf8f905a8c3927eb6751a31f69f9601fed074"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "blob": "8089204988bed515480def2682183ac355b4f236",
+        "bytes": 121910,
+        "sha256": "63d48a0de9b683d265e943ebe655bd84346113240b504a6d84da6a91dc535994"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/roster.rs",
+        "blob": "8bc38d8d382f1b31ce563596f11e7492262b16db",
+        "bytes": 17176,
+        "sha256": "9cf8bc54bb57c7412558255d5d3ec2776678e7fc3364c3ff755a6f81abce9a30"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "blob": "fb9c1cbdefaec0faf075f5053aa9ffb3ea2c6be0",
+        "bytes": 206316,
+        "sha256": "fb0df3d66509538858a890e3ab48ef3d4e286bd8abb981be1f50b5c9afacee7a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+        "blob": "0ef9d80dda9ec0c99f947700b9e9baf7cc5dd0eb",
+        "bytes": 22237,
+        "sha256": "019200daf57aee6a2af007c23a22b2f24b2cf517aeed69830aed32060f04c19d"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+        "blob": "51b907410dbeae630d4abb84e0a43c99aa6afdd9",
+        "bytes": 89416,
+        "sha256": "aea5109b48db4a79d044bea57cd4dd689d7eae79d413df4c24d462b4a1f724bb"
+      }
+    ],
+    "no_C_FFI_engine_DC_or_build_delta": true,
+    "source_review_uses_exact_Git_blobs": true
+  },
+  "scope": "One changed-material follow-up to the three a21 source groups, plus final scoped direct results and source binding. Unchanged7bec C/heap/list/order/lazy-ID/buffer review is reused; no old numeric/authority/source sweep, builds/tests/native/process operations or agents were performed.",
+  "decision": {
+    "status": "CHANGES_REQUIRED_NARROW_DRIVER_RESIDUAL",
+    "findings": [
+      {
+        "id": "ENV-SECTOR-ROSTER-DRIVER-CONTRACT-1",
+        "priority": "P2",
+        "status": "OPEN_NARROW_REQUEST_JOIN_ALTERATION_RESIDUAL",
+        "blocking_native_clearance": true,
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "locations": {
+          "local function scan_question": [
+            805
+          ],
+          "local joined = request_join_problem": [
+            817
+          ],
+          "if parsed == nil or problem then return real end": [
+            857,
+            931,
+            1101,
+            1140
+          ],
+          "if plan.marker then": [
+            1676
+          ]
+        },
+        "finding": "scan_question detects request_join_problem(parsed) and counts a request fault, but does not retain that result in the alteration eligibility gate. The gate still checks only parsed==nil or reply problem. A syntactically valid standing key failing the new last-served/ended join can therefore still reach plan.scan and create its expected refusal. The existing refusal verdict checks marker and alteration credit without checking faults; it can credit that malformed-input refusal.",
+        "minimum_correction": "Retain the request-join failure and disqualify scan alteration when it is present, just as parse or real-reply failures already do. Use one positive-first existing sociable refusal-mode case with a bad standing-key join to show the malformed request is not altered/credited. Preserve the source/physical predicates and error channel; no broader framework or native malformed-input experiment is needed.",
+        "qualification": "This is a source-level diagnostic false-credit path, not a measured bad production native or a reopening of old SCAN math."
+      }
+    ],
+    "native_launch_clearance": false,
+    "FP_source_group_closed": true,
+    "provider_standing_key_source_group_closed": true,
+    "driver_protocol_grammar_compatibility_corrected": true,
+    "driver_refusal_credit_group_closed": false,
+    "new_roster_actual_authority_closed": false,
+    "full_pack_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "closed_changed_source_groups": [
+    {
+      "id": "ENV-SECTOR-ROSTER-FP-BOUNDARY-1",
+      "disposition": "CORRECTED_AT_SOURCE_WITH_FOCUSED_ACTUALS",
+      "evidence": "All new roster phase/type/side/position/cursor classification and truncation use integer operations on u32 words. Nonfinite and magnitude-above-domain words are rejected before floating comparison/conversion; the eager then_some float cast is gone. Integer exponent/significand branches handle signed zero, subnormals, fractions, sign and bounded shifts; maximum accepted magnitude1e9 fits signed32. Existing scan kernel arithmetic guard remains unchanged.",
+      "tests": "The real provider test passes all four rounding directions with clear and raised status, valid fractional insertion and first entry, plus11 malformed/signaling cases and complete caller-state equality. Integer unit tests compare200000 generated words plus12 named edges to compiler truncation, and strict decimal-key parsing is tested. This finite sweep is not an exhaustive2^32 execution or a new public full-FP/trap matrix."
+    },
+    {
+      "id": "ENV-SECTOR-ROSTER-STANDING-KEY-1",
+      "disposition": "CORRECTED_AT_SOURCE_WITH_FOCUSED_ACTUALS",
+      "evidence": "ENTRY and RESOLVED now validate a strict decimal key against the live roster/current sector before any Offer/Next/DoneHit decision. Malformed cursors still receive the kernel refusal after key liveness validation. BEGIN/END/reset reject a stray standing identity; insert/remove keep their distinct identity domains. The held RefCell borrows are released before subsequent kernel/provider work.",
+      "tests": "Real provider positive Offer/skip/hit/miss/first/end decisions precede4decision×7bad-key cases and wrong-phase keys. Refusals serve no key and do not change the roster."
+    },
+    {
+      "id": "ENV-SECTOR-ROSTER-DRIVER-CONTRACT-1_PROTOCOL_SHAPE",
+      "disposition": "GRAMMAR_AND_COUNTER_COMPATIBILITY_CORRECTED; refusal-credit residual remains",
+      "evidence": "The actual public driver and faithful collaborator now carry16facts plus phase-appropriate standing identity, accept FIRST/NEXT keys and phases4..6 lifecycle states, track ended/reused/last-served keys, enforce phase/result/flag joins and count roster events separately. Events are never scan controls; event-only traffic is UNREACHED, Original rejects hosted roster traffic. Existing56driver tests pass, but they omit combining the new join fault with a refusal-mode alteration."
+    }
+  ],
+  "related_test_setup_delta": {
+    "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+    "assessment": "The enumeration collaborator now installs a real roster entry and supplies its standing key on ENTRY/RESOLVED. Existing first-sector/offer/skip/done-none/outside-window predicates are preserved. The old failure is retained and correctly qualified as inferred preexisting at7bec, not a new baseline run."
+  },
+  "final_direct_actuals": {
+    "checks": [
+      {
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-1-fmt.json",
+          "bytes": 861,
+          "sha256": "89990efa0776300ea59807ead99182ec6711a25637e828ad8cac41d4519bec18"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-1-fmt.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-1-fmt.stderr.log",
+          "bytes": 42,
+          "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+        },
+        "command": "cargo fmt -p eech-world -- --check",
+        "actual_exit": 0,
+        "test_result_rows": []
+      },
+      {
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-2-world.json",
+          "bytes": 1009,
+          "sha256": "8f43ba8ed5f25c0117897cb96c0ebd5e9d8dfabc97f7021bdf2e1ca7b4a2e7e9"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-2-world.stdout.log",
+          "bytes": 7730,
+          "sha256": "894fd5a36b97e91df58c21a9edc60715f1d864943c42b087fc60099f5f4f1b87"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-2-world.stderr.log",
+          "bytes": 11349,
+          "sha256": "1a05de053cb5a849f6ea0aa12cf8b2a8f4fb56ce280edecd1dfa0b5b0a5b252f"
+        },
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --no-fail-fast",
+        "actual_exit": 0,
+        "test_result_rows": [
+          "test result: ok. 56 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s",
+          "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        ]
+      },
+      {
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-3-lib.json",
+          "bytes": 904,
+          "sha256": "ab040fef53bf35a9ccf9b2a5a2d62c76c25dd4e5e0fd45b047b98bd32e3df65f"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-3-lib.stdout.log",
+          "bytes": 850,
+          "sha256": "3ae746e2f0cd5fb628d799bd208356bd4435cb7d98df037bf22151a7dc1d45a8"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-3-lib.stderr.log",
+          "bytes": 259,
+          "sha256": "7ebc70e91434eea975b31f4881425a8823b485fc24cb8fc9c5d70198b2fc493a"
+        },
+        "command": "cargo test --release --locked -p eech-world --lib roster",
+        "actual_exit": 0,
+        "test_result_rows": [
+          "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 351 filtered out; finished in 0.00s"
+        ]
+      },
+      {
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-4-target.json",
+          "bytes": 931,
+          "sha256": "a091964967ad3f2b7ceefbb272471235702df1c4fa0798b3d5fa360175603a70"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-4-target.stdout.log",
+          "bytes": 3624,
+          "sha256": "407d100f43a377527dc9cca1a89fb74c4992a72032e5c85b2b7591dfbfdea871"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-4-target.stderr.log",
+          "bytes": 274,
+          "sha256": "7f134e58026d47fa8cdb169b32856e45a8ce7a2c0fa2919a4bfb851ed7ebf2e7"
+        },
+        "command": "cargo test --release --locked -p eech-world --test model_target_point",
+        "actual_exit": 0,
+        "test_result_rows": [
+          "test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s"
+        ]
+      }
+    ],
+    "verified_test_counts": {
+      "entity_authority": {
+        "passed": 56,
+        "failed": 0
+      },
+      "entity_roster_host": {
+        "passed": 9,
+        "failed": 0
+      },
+      "roster_library_filter": {
+        "passed": 7,
+        "failed": 0,
+        "filtered": 351
+      },
+      "model_target_point": {
+        "passed": 33,
+        "failed": 0
+      }
+    },
+    "scope": "Four direct Cargo commands, five checked targets including fmt; separate stdout/stderr, no trailing echo/pipeline. No feature matrix, Windows/native or complete campaign coverage is claimed.",
+    "producer_checkpoint": {
+      "path": "R:/d3-evidence/sector-roster-corrections-CODE-FROZEN-20261106.json",
+      "bytes": 51799,
+      "sha256": "8df9aad2122d9deb7df75f4cff150bd261ae4db7196b9dcd65b551c57dd654bc"
+    }
+  },
+  "source_binding": {
+    "before": {
+      "path": "R:/d3-evidence/qrofix-20261106/inputmap-before.json",
+      "bytes": 2028777,
+      "sha256": "3c76708b1f1881934c960fe263d9b6759f7ceeb68abe2cf780ef3d931c7ffc97"
+    },
+    "after": {
+      "path": "R:/d3-evidence/qrofix-20261106/inputmap-after.json",
+      "bytes": 2029138,
+      "sha256": "2c95527b4d05bdc3fd2d4f245f99837e9a735087034215b7d9459881d2aae530"
+    },
+    "rows_before": 3952,
+    "rows_after": 3952,
+    "raw_changed_paths": [
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/roster.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs"
+    ],
+    "changed_after_bytes_independently_joined_to_committed_Git": true,
+    "qualification": "The before map is from before the correction edits, the after map from final checked working bytes before commit. They differ in exactly the six reviewed files. They are NOT a literal-equal frozen pre/post gate pair. All final changed-file hashes match92d; no full-map stability or immutable Linux snapshot claim is made. Existing inherited raw/filter and test-Lua CRLF qualifications remain untouched.",
+    "raw_vs_Git_qualifications_from_checkpoint": {
+      "paths_whose_raw_bytes_and_git_filtered_identity_disagree": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ],
+      "three_tree_geometry_lua_files_differ_from_their_committed_blob_bytes_in_the_working_tree_in_both_maps": [
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+      ],
+      "note": "present identically before and after; not touched, not normalised."
+    }
+  },
+  "preserved_failures_and_limits": {
+    "old_Lua_RED": "13pass43fail101 under the new roster-shaped collaborator; valid source missing-protocol counterexample, not acceptance evidence.",
+    "old_provider_RED": "Corrected red-roster2 is7pass2fail101 at fractional caller-state preservation and unknown Offer key. The first red-roster setup assertion was wrong and is preserved/qualified separately.",
+    "intermediate_failures": "Mock/setup/format and the target-point missing-roster failure remain at their recorded source identities. The final direct checks do not relabel them green.",
+    "prior_review": {
+      "path": "R:/d3-evidence/independent-sector-roster-source-7bec-20261106.json",
+      "bytes": 22650,
+      "sha256": "a21e4443f3fe835b3e30d987c3cca9610a9a0a9e33a0204cc3f112fc17d1acf5"
+    },
+    "checkpoint_claim": "The author checkpoint's assertion that all three groups are corrected is superseded by this source review's narrow remaining driver finding; retain the checkpoint literally."
+  },
+  "next_step": "One bounded Lua/test-only request-join alteration fix and affected focused check/source binding, then the same reviewer joins only that new delta. Root selects the required final compile/native gates after source clearance; do not repeat the old C/math review or broad matrix for this residual.",
+  "remaining_scope": [
+    "No corrected roster Windows/native/authority/refusal/short/full-pack or Task49 delivery result exists in this report.",
+    "The active ordinary3475 full40/all8 pack is a different pre-roster compiled runtime, protected and not touched or accepted here.",
+    "All remaining physical backing/roster/lifecycle/live pose and writers, city children/effectful getters, raw tree/forest/cloud/RNG, hierarchy/devices, DCS mappings, natural weapon integration and all10whole-D3 requirements remain required."
+  ],
+  "publication_safety": "Only code locations, counts, hashes and bounded findings; no retail coordinates/vectors, actor identity suffixes, physical tuples, signatures, model catalogue, transcripts or binaries."
+}

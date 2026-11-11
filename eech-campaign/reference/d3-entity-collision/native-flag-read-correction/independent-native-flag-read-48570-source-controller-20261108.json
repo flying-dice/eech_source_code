@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T03:06:47.334386+00:00",
+  "review_kind": "Independent combined changed-material source, offline evidence and concrete controller review",
+  "source": {
+    "commit": "48570fdeec26bd8332334741586e89afbff2ab21",
+    "metadata_commit": "602f243d9b7911942868ddec792c39715d053614",
+    "source_before": "395913f9a3c877a894a0030257730153fe0bd579",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_full_status": "clean",
+    "compiled_runtime_commit": "3abf03e5133279ae6ed53b657e76d4f7724f7dd3",
+    "runtime_identity_qualification": "The separately copied and sealed 91-payload ordinary bundle remains true3abf. The new diagnostic Lua and transaction module are external files; no implementation HEAD relabels a binary."
+  },
+  "plan_sha256": "eecd985c9f25ce08221b75c9aa724ffa7334ebdb4ce6d01492a6230517e8c3e4",
+  "controller_sha256": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+  "validator_sha256": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+  "binding_sha256": "3c27e9aaed8bfadb6a60c577d054790f74604fbab905515a4b80a24bf6af6084",
+  "lua_sha256": "2e8ccebca6f0255543b76d4e42b44a17c1bf649ed51a7e4a01043f600843931c",
+  "protocol_sha256": "3a18cfe7ca647da6bd3f6c6c567fe0517b529271b7b2229a25fba8ac1ef4f2e7",
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-NATIVE-READ-IMPLEMENTATION-FROZEN-20261108.json",
+      "bytes": 12101,
+      "sha256": "f05e1c138c04f3c2713c0dce8e318e35043460e9f528335d49910ce09a9a0ad9"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-48570-Root-binding-20261108.json",
+      "bytes": 1076,
+      "sha256": "d3f735a16e9e26e934911ab0b6b4cf76438d5284abc62ec844a46830bbd37d05"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-602f-Root-publication-20261108.json",
+      "bytes": 1225,
+      "sha256": "488039376bf32e62a75b671d9b3b056081cc443e30efd6b2355562b606b9db98"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-native-read-implementation-20261108-completion.json",
+      "bytes": 2142,
+      "sha256": "6f959bb5b1fb4c7c0f9123e13351ba3a310c26da92a6f796913ae9c77c9ab95a"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-nr395-materialized-plan-20261108.json",
+      "bytes": 2259,
+      "sha256": "eecd985c9f25ce08221b75c9aa724ffa7334ebdb4ce6d01492a6230517e8c3e4"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-nr395-healthy-materialization-20261108.json",
+      "bytes": 4229,
+      "sha256": "2576082c28a938be06d402116007b6fc0acc324e8b6e5d0f1b67dcdaecbe9382"
+    },
+    {
+      "path": "R:/d3-evidence/native-read-nr395-staging-readonly-preflight-20261108.json",
+      "bytes": 2378,
+      "sha256": "1c57d255f3527f3deddcf84f252eb70a9b2eee1908d8d80d185385e8b9c22748"
+    },
+    {
+      "path": "R:/d3-evidence/independent-native-flag-read-plan-395913-20261108.json",
+      "bytes": 10996,
+      "sha256": "dde3b645568861122d4d897a48980162cb5db25e444a63b5bc5a9695787255ba"
+    }
+  ],
+  "identity_and_checks": {
+    "input_rows": 4003,
+    "raw_Git_exact_rows": 4000,
+    "qualified_rows": [
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+    ],
+    "qualification": "The same three inherited uncompiled Lua raw CRLF/Git LF differences are preserved. All current raw input rows and complete PRE/POST maps are joined by the Root source binding; 21 extras and seven readers are stable. No retrospective map or input normalization is claimed.",
+    "source_fingerprint": "1172707a4788149b6e52f610f120e76d4c34ad7f2e10ef44f025c9f50fdb9814",
+    "final_direct_commands": [
+      "s1-fmt",
+      "s2-clippy",
+      "s3-read-driver"
+    ],
+    "actual_final_exits": [
+      0,
+      0,
+      0
+    ],
+    "selected_Rust_tests": 9,
+    "Python_validations_of_actual_Lua_offline_reports": 7,
+    "Python_offline_controls": 5,
+    "test_scope": "Scripted boot, SCENE and candidate decisions with the real reference flag provider/store. No native campaign, successful real boot or public-runtime authority is proved by these tests.",
+    "retained_failures": "Development fixture, optional-group, reference-hash and formatting/isolation attempts remain literal. They are not relabelled as production regression REDs.",
+    "publication": "61 manifest entries, 62 tracked packet files and 58 external literal byte comparisons. Metadata changes exactly five publication files; STATUS/card are already in the source commit. No post-POST source or reader repair is claimed.",
+    "author_completion": "Root received the service agent FINAL and observed completed status. This is an actual service completion, not a fabricated OS PID or CLI exit. Actual direct child exits and reported outer session exit remain separately recorded."
+  },
+  "findings": [
+    {
+      "id": "ENV-NATIVE-FLAG-READ-DELEGATED-REFUSAL-1",
+      "severity": "P2",
+      "status": "CHANGES_REQUIRED",
+      "category": "Diagnostic adapter refusal continuity",
+      "title": "Return the canonical provider refusal unchanged instead of converting it into a callback exception",
+      "evidence": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua",
+          "line": 42,
+          "fact": "T.answer returns a problem string whenever the real candidate answer has result refused."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/physical-flags-read-witness.lua",
+          "line": 514,
+          "fact": "candidate passes every delegated answer through T.answer; line515 records state.abort then raises a new Lua error for that refusal before returning the answer."
+        },
+        {
+          "path": "eech-campaign/crates/eech-dc/src/module.rs",
+          "line": 4130,
+          "fact": "The existing public MODEL_BRIDGE explicitly preserves result refused and its string reason. call_model maps a raised callback error to entity_candidate.callback at line4485, whereas a returned refusal uses the existing operation.refused channel at line4793."
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+          "line": 598,
+          "fact": "The real candidate provider returns refused tables for malformed classified facts, absent/busy/unknown/retired/incomplete canonical movement records, fixed-state joins and kernel errors. These are existing boundary outcomes, not successful candidates to modify."
+        },
+        {
+          "path": "eech-campaign/docs/d3-native-flag-read-plan.md",
+          "line": 22,
+          "fact": "The accepted plan explicitly requires missing, retired, unknown, incomplete and busy records to retain their real refusal unchanged."
+        }
+      ],
+      "impact": "A lawful candidate reaching an existing canonical-record refusal has its native failure domain and reason transport changed by the diagnostic wrapper. It still fails rather than earning intervention credit, but that does not satisfy the promised unchanged delegated-refusal contract or characterize the real named refusal. This is confined to the new diagnostic adapter; no product C/Rust defect is asserted.",
+      "minimum_correction": "Distinguish a real delegated refusal from a malformed positive. Record diagnostic failure/no eligibility, return the same refused answer unchanged, and let the public converter/native boundary deliver its existing refusal. Do not issue GROUP/READ, select another actor, change the reason, or convert the outcome to UNREACHED. Preserve the current complete-positive validation before every intervention.",
+      "required_controls": [
+        "Start from a coherent accepted positive, then change only the delegated candidate result/reason to a valid refused result. Prove the unchanged result/reason traverses the actual public conversion contract and retains entity_candidate.refused rather than entity_candidate.callback.",
+        "Use the real canonical provider refusal where supported by the current sociable fixture; verify one delegation, zero additional selected READ/intervention and failure precedence over clean UNREACHED.",
+        "Retain positive healthy/changed/five-fault controls. Keep malformed-positive name/pose/request failures distinct from a valid canonical refusal."
+      ],
+      "blocks_native_controller_launch": true
+    }
+  ],
+  "reviewed_source_and_controller_facts": [
+    "The actual C check permits NEED_UPDATED for a mobile, non-city-listed candidate whose UPDATED fact is zero; speed is not a protocol precondition. The offer loop performs one real destructive getter and immediately re-asks the same candidate with only the carried UPDATED fact changed. No invented generation field or actor selection is required.",
+    "The new transaction checks the complete 44-word request, preserves the raw sector-height exception, validates state/name/pose legality for successful delegated positives, retains C-acknowledged scene-name echoes, and records the existing registration tuple. The valid transaction allows only its optional GROUP, issued key and array0 READ before the immediate re-ask.",
+    "The traffic oracle applies the real provider answer before any returned-answer intervention. W&M and the destroyed neighbour lanes are kept separate from the changed returned word. A changed carried fact is diagnostic evidence, not a second store write or a physical collision outcome.",
+    "Both Lua and Python check canonical complete healthy report structure, phase/count/order/oracle/selection/store/re-ask relationships. The controller hashes the actual healthy file before creating each child root/output. All ten actual callable surfaces participate in continuation tracking; another callback or normal return cannot earn immediate-refusal credit.",
+    "The concrete materialized paths are distinct from the active fullpacks. Preflight validates the exact 91-payload bundle, external two-Lua inventory, immutable artifact hashes, fresh output/child roots and full retail input reference. Live execution additionally requires the exact later review, plan and artifact hashes. Actual PID creation time is obtained from each child process handle; stages, exits and output hashes are persisted.",
+    "The proposed seven cases are sequential, fixed to the accepted Lebanon setup and at most35 frames. The healthy control must PASS before child creation. A clean healthy UNREACHED is nonzero native exit plus six NOT_LAUNCHED_UNREACHED rows; controller0 in that branch means bounded completion, not seven PASS. No restart, window extension, scenario sweep or actor hunt is authorized."
+  ],
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_controller_launch_clearance": false,
+    "source_accepted_for_native": false,
+    "native_authority_accepted": false,
+    "whole_flags_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false,
+    "reason": "One diagnostic refusal-continuity P2 remains. The concrete plan is materialized and its other reviewed gates are bounded, but no execution is authorized for these source hashes. Corrected source/literals/controller bindings require one changed-material follow-up before any native launch."
+  },
+  "limits": [
+    "No reviewer test, build, cache, native process, controller execution or tracked write was performed. Only this new external report was written.",
+    "The preliminary no-blocker message was corrected before any sealed clearance or native execution after the final converter cross-check found the refusal mismatch. This report is the final disposition.",
+    "Accepted plan dde3, prior key/store/lifetime characterization, finite defaults and earlier17PASS/six-UNREACHED evidence retain only their own identities and scopes; none is replayed or promoted into new public READ acceptance.",
+    "No public native READ, changed carry or refusal authority is accepted here. Natural moving-weapon/collision/default conformance, all consumers, reset histories, replacement/session/VM/thread lifetimes, whole FPU state, DCS disposition and all ten D3 requirements remain open as applicable.",
+    "Both existing immutable fullpack jobs, sources, binaries, roots and outputs are preserved. Growing prefix equality is partial only. Current candidate CI, final current40/all8/four inputs, final census, normal review/merge and whole Task49/D3/delivery are not accepted by this report."
+  ]
+}

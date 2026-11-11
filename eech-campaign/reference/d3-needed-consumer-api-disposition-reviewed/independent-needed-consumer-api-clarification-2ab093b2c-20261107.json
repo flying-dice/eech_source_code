@@ -1,0 +1,89 @@
+{
+  "schema": "d3-independent-needed-consumer-api-clarification-review.v1",
+  "created_utc": "2026-11-07T01:37:29.152368+00:00",
+  "reviewer": "SAME sole independent Codex reviewer",
+  "scope": "Continuation limited to the changed documentation/matrix/provenance for two prior P2 findings and post-bundle primary clarification. Correctness, clean-code, boundary and evidence review; no old source64 hash replay, closed physical-proof review, tests/builds/native/war/cache/process actions, agents or tracked writes.",
+  "source": {
+    "commit": "2ab093b2cbca6f31dad44a8bffc95ec9570d4752",
+    "metadata_commit": "c9a833d6e732db0ecce8e7d5ee901ee3f940500d",
+    "registration_parent": "1dbf945281dc818d96491e5743e0e6237b07992f",
+    "original_documentation_commit": "2c6652f4dfcb1c31a0eb46bf74eb318976f4b9e6",
+    "observed_clean_pushed": "Root final binding",
+    "changed_executable_paths": [],
+    "current_documents": [
+      "eech-campaign/docs/d3-needed-consumer-api-disposition.md",
+      "eech-campaign/docs/d3-sector-height-contract.md"
+    ],
+    "corrected_matrix": "eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/needed-consumer-api-matrix.json"
+  },
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-needed-consumer-api-disposition-2c6652f4d-20261107.json",
+    "sha256": "cc70a2cefe7ae4d7877d8197eced100cbe539db1275103bc2571b6e562274d70"
+  },
+  "finding_dispositions": [
+    {
+      "id": "ENV-D3-DISPOSITION-CALLER-PROFILE-1",
+      "status": "CLOSED",
+      "basis": "D3G-01/02/06/07 now separate compiled inclusion from runtime conditions. HOST_LOS/TERRAIN/ENV are unconditional in current builders; HOST_TREE excludes collision-fixture only; HOST_ENTITY excludes collision-fixture or model-fixture. Legacy mb_tgt object-LOS anchors are explicitly separated from active campaign_los_query -> mb_hostlos. Fixed-wing clearance is runtime-guarded by task leader and terrain-follow mode, and the referenced sector contract row is corrected consistently."
+    },
+    {
+      "id": "ENV-D3-DISPOSITION-MOVING-COVERAGE-1",
+      "status": "CLOSED",
+      "basis": "D3G-06/13 and R-CONFIGURED-MOVING explicitly preserve the accepted configured public query-service/NeedUpdated/moving16 scope at compiled3475/Lua6fb/source742/actual853 identities. The natural campaign weapon engagement, remaining state domains and long-run motion blocker stay OPEN. No accepted proof was rerun or broadened."
+    }
+  ],
+  "post_bundle_primary_disposition": {
+    "response": {
+      "path": "R:/d3-evidence/Root-needed-consumer-api-reference-response-20261107.json",
+      "sha256": "394d31fdf292004eb90327dd053a6f2d7ede783979eac8ee3e6713fa3b810d6b"
+    },
+    "annotation_accepted": true,
+    "basis": "Corrected matrix/narrative cite the additional export and AI/index declarations with separate provenance, preserve the original bundle and update outstanding-reference wording. Named Category/VolumeType properties typed number are distinct from numeric literal values, parameter structures, object coverage and runtime behavior; AI task constant groups are distinct from typed Controller task payloads.",
+    "interpretation": "A named numeric property can be referenced symbolically; absence of its numeric literal is not by itself proof of an unusable service. Missing volume parameter contracts, physical geometry/coverage and live behavior keep the relevant rows OPEN. No value/shape/mesh/joint guarantee or API-wide absence is inferred.",
+    "OPEN_rows_closed_by_declarations": false
+  },
+  "preservation_and_evidence": {
+    "Root_delta_binding": {
+      "path": "R:/d3-evidence/needed-consumer-api-clarification-Root-binding-2ab-c9a-20261107.json",
+      "sha256": "4a42b8ab7025a2e1d08be3512465040b1234347747fa37b2792d5bb1f28d0c52"
+    },
+    "freeze": {
+      "path": "R:/d3-evidence/D3-needed-consumer-api-clarification-CODE-FROZEN-20261107.json",
+      "sha256": "3841299dc424402c2f5a5032f5c11eac24e7df8b015f80aff1cbf6bd4982d52b"
+    },
+    "freeze_external_repo_literal_equal": "Verified by Root binding",
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-needed-consumer-api-corrections-20261107-completion.json",
+      "sha256": "9c342982710038ff7bbe0188b9f0c6fe171c2d760a6cc90442a67086cbc1d609"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_actual_model": "claude-sonnet-5-5",
+    "producer_completed_utc": "2026-11-07T01:35:23.540805+00:00",
+    "original_six_packet_files_unchanged": true,
+    "new_manifest_entries_verified_by_Root": 7,
+    "freeze_outputs_verified_by_Root": 5,
+    "changed_raw_paths_verified_by_Root": 12,
+    "all_changes_documentation_evidence_metadata_only": true,
+    "historical_results_relabelled": false,
+    "new_checks_run": false
+  },
+  "decision": {
+    "status": "DOCUMENTATION_CLARIFICATIONS_ACCEPTED",
+    "findings": [],
+    "closed_ids": [
+      "ENV-D3-DISPOSITION-CALLER-PROFILE-1",
+      "ENV-D3-DISPOSITION-MOVING-COVERAGE-1"
+    ],
+    "documentation_disposition_accepted_with_OPEN_rows": true,
+    "preparation_batch_2_closed": true,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "DCS_runtime_or_geometry_mapping_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "limits": "This closes only the two documentation findings. Fifteen groups remain source-derived/declared planning, not an exhaustive compiled/runtime census; unresolved consumer/API/hierarchy/setup/renderer/RNG decisions remain OPEN. Accepted Task50/52 and finite scopes retain their exact limits. Preparation2of2 then STOP preparation; this clarification is within that batch. ENV-ENTITY-POSE-LONG-RUN-MOTION-1 remains OPEN/blocks_cutover=true until a complete corrected pack and independent review. Partial output/one map metrics equality is not missing exit/full-pack acceptance; original jobs remain protected. All ten D3 requirements, remaining physical services and needed DCS dispositions, natural moving integration, final current40/all8/full inputs/CI/review/normal merge/final census remain required. No new physical/API implementation, native authority, D4/D5 or historical TypeScript work is authorized."
+}

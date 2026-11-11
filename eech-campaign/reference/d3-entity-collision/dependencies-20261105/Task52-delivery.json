@@ -1,0 +1,23 @@
+{
+  "task": "EEDCS-52",
+  "pr": 112,
+  "merged": true,
+  "merge": "84775522f9eb9c7182ff89f75387115b9e3883fd",
+  "parents": [
+    "873a172d9d26d0f2e437aa491187ea3cc3ef6cb2",
+    "350d594e4cdc70b10b63dee6e7541bbb2a7d2c61"
+  ],
+  "actual_tree": "badf1f7d1ae2e0aacdb44408167ec1c6652f48c5",
+  "actual_tree_equals_exact_CI_publication_head_tree": true,
+  "Task50_delivered_first": "873a172d9d26d0f2e437aa491187ea3cc3ef6cb2",
+  "ordinary_source": "8118389a96d84ba3e4528967bbca973d5f2bd804",
+  "all_production_and_fixture_inputs_same_reviewed_7ca": true,
+  "closed_ordinary811_scope_proofs_reused_at_own_identity": true,
+  "literal_final_review_blob_verified": true,
+  "final_CI": "Task52-final-current-CI-350d594e4-20261105.json all8SUCCESS",
+  "accepted40": true,
+  "all8_complete_literal_equal": true,
+  "four_final_inputs_zero": true,
+  "payloads": 84,
+  "scope": "Task52 delivered after Task50. Required legacy hierarchy/live placement/host identities and Task49 physical services keep whole D3 open."
+}

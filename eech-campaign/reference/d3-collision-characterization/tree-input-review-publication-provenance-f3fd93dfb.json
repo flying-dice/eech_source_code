@@ -1,0 +1,7 @@
+{
+  "review_source": "f3fd93dfb2ad81b6cbe4d89174953376efd07611",
+  "original_private_review_sha256": "d71fcaea939a6207b2267a45ad7183d05eae74a6621e0ff329e3ac71a5d82fd8",
+  "git_lf_review_sha256": "5c48a1cd2e73ac1870a0a09d3cf062a8a808b837c0848cea43ee9ae70f22c149",
+  "decoded_json_values_identical": true,
+  "difference": "Private Windows CRLF review copy is normalized to LF by Git text attributes; source and runtime evidence is unchanged"
+}

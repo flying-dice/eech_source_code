@@ -1,0 +1,225 @@
+{
+  "source_before": "602f243d9b7911942868ddec792c39715d053614",
+  "utc": "2026-11-08T03:18:07.345421+00:00",
+  "kind": "nr602 delegated-refusal/census/Wine harness correction UNREVIEWED",
+  "input_rows": 4004,
+  "input_fingerprint": "dab220a45de00a1d0b191b67ca3d2b1ed955d27c829d9a0f7a84598a7e19e1fe",
+  "PRE_POST_equal": true,
+  "extras_equal": true,
+  "readers_equal": true,
+  "readers": {
+    "nr602-derive-helpers-20261108.py": "423c96a5f8835b0a8f56583b2b07690b63a47bea5bac2b3593915f095989f330",
+    "nr602-add-dc-check-20261108.py": "66bd04660ba3b5a5a894e8752b89efd7da0e7cfff605bd7d436535203d336132",
+    "nr602-provenance-20261108.py": "ae4f3ee686d0249ae2a15e90ee7859e906e90deb6806305f81f487f5b0cedc59",
+    "nr602-derive-proof-20261108.py": "820ba6f137c0cf6c9b02d823c3cc8990ed652cd9fef26e597a40aa41cc098710",
+    "run-physical-flags-nr602-direct-20261108.py": "a2e162255f95ac6f24f84d3605b6642caa88d5da13bc2f3f7699aff16f81f81b",
+    "check-physical-flags-nr602-linux-20261108.sh": "4057cac09794a133bd91003008418bed246002962b956aad75857682d74f46d5",
+    "run-nr602-final-20261108.py": "9b46319d16fa1015fb112e6556a6eb341a519ad8b7e2a90b025e362e1e71db86",
+    "nr602-proof-20261108.py": "95bd0a34e028878ed99697b6effbb5685f2fcb0a98b85d11d8a1f6ba49fe87bf",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "extra_files": {
+    "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "eech-campaign/tools/native-flag-read-runtime.json": "3c27e9aaed8bfadb6a60c577d054790f74604fbab905515a4b80a24bf6af6084",
+    "eech-campaign/tools/test_native_flag_read.py": "980721fadaa79675297d9706cdfa68da659385149f706054a4abaa4d92423c42",
+    "eech-campaign/docs/d3-native-flag-read-correction.md": "e891205f930fe5f10e588c768e3fd6e18b3870e848d509e543be961872e290a0",
+    "eech-campaign/docs/d3-native-flag-read-plan.md": "1c472eec613c09041491617d692c91b957568a21d18d9137c316ea1cfebe7352",
+    "eech-campaign/rustfmt.toml": "478e818c64a27dc341fffc827ee4b00c5aeef237ab8745efc9690f87ad245de9",
+    "nr602-derive-helpers-20261108.py": "423c96a5f8835b0a8f56583b2b07690b63a47bea5bac2b3593915f095989f330",
+    "nr602-add-dc-check-20261108.py": "66bd04660ba3b5a5a894e8752b89efd7da0e7cfff605bd7d436535203d336132",
+    "nr602-provenance-20261108.py": "ae4f3ee686d0249ae2a15e90ee7859e906e90deb6806305f81f487f5b0cedc59",
+    "nr602-derive-proof-20261108.py": "820ba6f137c0cf6c9b02d823c3cc8990ed652cd9fef26e597a40aa41cc098710",
+    "run-physical-flags-nr602-direct-20261108.py": "a2e162255f95ac6f24f84d3605b6642caa88d5da13bc2f3f7699aff16f81f81b",
+    "check-physical-flags-nr602-linux-20261108.sh": "4057cac09794a133bd91003008418bed246002962b956aad75857682d74f46d5",
+    "run-nr602-final-20261108.py": "9b46319d16fa1015fb112e6556a6eb341a519ad8b7e2a90b025e362e1e71db86",
+    "nr602-proof-20261108.py": "95bd0a34e028878ed99697b6effbb5685f2fcb0a98b85d11d8a1f6ba49fe87bf",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+    "codex-d3-native-read-correction-20261108-process.json": "0e3b1969c537a3d6ecbe2692c29d65a0705769f60e4876b60e4b408bdd37aab9",
+    "independent-native-flag-read-48570-source-controller-20261108.json": "5c367013bc5168fd5bc50dd7c069fce399eb6f21f264a87fdf526eb56ed202ba",
+    "independent-native-flag-read-48570-source-controller-20261108-v2.json": "5218cff150ed3a145a08cea4a338c71d1f32665c3cbe5a2ccaf87c73c14fe100",
+    "native-read-48570-Root-binding-20261108.json": "d3f735a16e9e26e934911ab0b6b4cf76438d5284abc62ec844a46830bbd37d05",
+    "native-read-602f-Root-publication-20261108.json": "488039376bf32e62a75b671d9b3b056081cc443e30efd6b2355562b606b9db98",
+    "codex-d3-native-read-implementation-20261108-completion.json": "6f959bb5b1fb4c7c0f9123e13351ba3a310c26da92a6f796913ae9c77c9ab95a",
+    "native-read-602f-all9-CI-terminal-20261108.json": "d428ded7eb6a400024ef320beb89dc5197888b9f058f0aacdd7edaa6af3387b2",
+    "native-read-nr602-materialized-plan-v2-20261108.json": "4ee21a2c6598787c598247f6059f3f1339a49333ad737ac4b6df1857c8e87d53",
+    "native-read-nr602-staging-readonly-preflight-v2-20261108.json": "1eff56e0d5d14995c95ab5048e4e2ba50f2233919a061879757dc614f043ea46",
+    "nr602-production-prefix-identity-20261108.json": "99c92ff75e1df620d58d3dba6880a16237506449e048f47dca3f4a29b90106cf",
+    "native-read-602f-CI-job-128609409742-20261108.log": "3620b9d4a2e0aa3127571ac3fba1f52d948580b77ef70d8b27a9d67bc0846a13",
+    "native-read-602f-CI-job-128609409746-20261108.log": "f2ffcc5c4229638df777c126272b817a26edd41601cb50ddf4747823642c3e7e",
+    "native-read-602f-CI-job-128609409784-20261108.log": "dc8cfa0f4bf6632736923817451525bc033311db9304c28dd27afde0d113bb0c",
+    "native-read-602f-CI-job-128609409851-20261108.log": "21e1e5932ac0e9fa53938ad1338e7d4a79b7ee8ed72bbc152ad6e1c7ae319778",
+    "native-read-602f-CI-job-128609409557-20261108.log": "1a6b16cb456871501e185f9d5d85e0bd36a10758303398d99a8fab98a681804f",
+    "Root-native-read-feedback-Wine-Python-CI-20261108.json": "fb4832ac7ca4ae316d0e0312000f6666ccac7ef445a2bc38a885451ac3127c6d"
+  },
+  "extra_aggregate": "eee8b9f0937c76c3ee24ba5128523e9f74b2f317a29f949d51c021c8c456dbb7",
+  "changed_files": [
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "sha256": "33eb0b56b38ed91a48ea5da185949db5e920deec8d35a2d25a58658aecc0d7b7"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+      "sha256": "16bc4fc41e4bccfad76acb0c06d4ac8284ea721f1a4a1fbf31cec68af21fd0b5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua",
+      "sha256": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/physical-flags-read-witness.lua",
+      "sha256": "3bfbeab0e336c2ffe9b8784c3e818c0cded329e9dc30562f939cb6fdfeaf9e7d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "sha256": "e15ea5042c23f932309594ba688cd6dbbe1bc04a3fb172d3cfedc13277b048a6"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/physical_flags_read_driver.rs",
+      "sha256": "ec6af53d2d980a412b92fb49cd4252531cda7370b5246aab11361bb44fe0cf27"
+    }
+  ],
+  "inherited_Lua_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "runs": {
+    "d1-refusal-red": {
+      "actual_exit": 101,
+      "command": "cargo test --locked -p eech-dc --lib nr602_real_delegated_refusal -- --nocapture",
+      "started_utc": "2026-11-08T03:12:12.989605+00:00",
+      "completed_utc": "2026-11-08T03:13:50.613721+00:00",
+      "results": [
+        {
+          "passed": 0,
+          "failed": 1
+        }
+      ],
+      "record_sha256": "6c9cb7adc193125d4ee0c28f836fbe331b83b956f71fdd90cdb873dfbc6d49ea",
+      "stdout_sha256": "251b58e8f5f278879d2014f164aa24c9711a5c00102e39b1b619f69a77c54b34",
+      "stderr_sha256": "82f09f6f98cb0fa3f421cbc56da0a6447aabdc1a56bcf4deaf7194f1f84a799f"
+    },
+    "d2-refusal-green": {
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-dc --lib nr602_real_delegated_refusal -- --nocapture",
+      "started_utc": "2026-11-08T03:14:02.504944+00:00",
+      "completed_utc": "2026-11-08T03:14:07.954937+00:00",
+      "results": [
+        {
+          "passed": 1,
+          "failed": 0
+        }
+      ],
+      "record_sha256": "82c66e7c831f2289eb89a592bb80300bc2f8dd0e8f5ab41e489cb83a1de63e8a",
+      "stdout_sha256": "0240fd508ca9a318577978bffa2a4868907064084641eee545b473af9490c2d6",
+      "stderr_sha256": "fc04b97743af4f05402927a2bddae1e1eb07e8947bbc3fd067f306bfc10d5243"
+    },
+    "d3-lua-and-census": {
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-world --test physical_flags_read_driver -- --nocapture && cargo test --locked -p eech-world --test host_callbacks every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not",
+      "started_utc": "2026-11-08T03:14:29.748924+00:00",
+      "completed_utc": "2026-11-08T03:14:34.716788+00:00",
+      "results": [
+        {
+          "passed": 9,
+          "failed": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0
+        }
+      ],
+      "record_sha256": "d8dd8c524dab87e190ce6d8f0ba3d6588a10d29c1a777354b65770c27a119743",
+      "stdout_sha256": "71ba552a7b34d8a55c5846334fed2a7759486e5a47aef26d025667a065cfdcb2",
+      "stderr_sha256": "75a5a707b2852bdc1f177259db2b0a11f4c006e4b6e105e1e0f067000a6bfe31"
+    },
+    "d4-fmt-apply": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt",
+      "started_utc": "2026-11-08T03:14:34.873519+00:00",
+      "completed_utc": "2026-11-08T03:14:42.742847+00:00",
+      "results": [],
+      "record_sha256": "3ea1edf37da0da62379bc90d2a40462d048edc657918ecd9520d554e49bac36b",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    "d5-clippy": {
+      "actual_exit": 0,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world -p eech-dc --all-targets -- -D warnings",
+      "started_utc": "2026-11-08T03:14:42.868979+00:00",
+      "completed_utc": "2026-11-08T03:16:18.032056+00:00",
+      "results": [],
+      "record_sha256": "274982bb6f61b9d37c7b18acf57fce894d3cb3154f47af508d2194c41f9178f9",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "0cb9e0056166b78e7576455bad4a007177a3dc52b8a12f8f3137f743bbdd1d74"
+    },
+    "s1-fmt": {
+      "actual_exit": 0,
+      "command": "rustup component add rustfmt && cargo fmt --version && cargo fmt --check",
+      "started_utc": "2026-11-08T03:17:31.008064+00:00",
+      "completed_utc": "2026-11-08T03:17:38.613426+00:00",
+      "results": [],
+      "record_sha256": "188c446ca910f048289fee0b81dadbd839d2dc78aa058fc7744de39fd14e0809",
+      "stdout_sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be",
+      "stderr_sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    "s2-clippy": {
+      "actual_exit": 0,
+      "command": "rustup component add clippy && cargo clippy --version && cargo clippy --locked -p eech-world -p eech-dc --all-targets -- -D warnings",
+      "started_utc": "2026-11-08T03:17:38.743526+00:00",
+      "completed_utc": "2026-11-08T03:17:44.878812+00:00",
+      "results": [],
+      "record_sha256": "3b3d0c157d03204d86d6645c4bbf219c9799286c8441dc2ca33fbb916c660a10",
+      "stdout_sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038",
+      "stderr_sha256": "b5e41cc5225b2992b97e511371a86917dc151367f246f825bcdefaffb6929219"
+    },
+    "s3-read-driver": {
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-world --test physical_flags_read_driver -- --nocapture",
+      "started_utc": "2026-11-08T03:17:45.008417+00:00",
+      "completed_utc": "2026-11-08T03:17:47.213161+00:00",
+      "results": [
+        {
+          "passed": 9,
+          "failed": 0
+        }
+      ],
+      "record_sha256": "e41cc290b6a33d3a8f2eefb9027cd4e192e994f0bd6866770be427dcee09e3e5",
+      "stdout_sha256": "936bb5e0fcb55a419ba52efd3c88dcd654fcd36a07df68363da01d6a348e0574",
+      "stderr_sha256": "0e1c319112808bb8bf2670b88328c59c584379f0bb17954b7a5821d4bda6fd08"
+    },
+    "s4-converter": {
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-dc --lib nr602_real_delegated_refusal -- --nocapture",
+      "started_utc": "2026-11-08T03:17:47.327863+00:00",
+      "completed_utc": "2026-11-08T03:17:52.988633+00:00",
+      "results": [
+        {
+          "passed": 1,
+          "failed": 0
+        }
+      ],
+      "record_sha256": "c316f57183e71e5b9c717e34305e8d4e1ceea58f0b87b1e7e763a3c79f365e1c",
+      "stdout_sha256": "0240fd508ca9a318577978bffa2a4868907064084641eee545b473af9490c2d6",
+      "stderr_sha256": "a0dae63c25cabf887baf5139ccd4c9ff506c6df0ce83abe6c4a81a34ff9498ac"
+    },
+    "s5-census": {
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-world --test host_callbacks every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not",
+      "started_utc": "2026-11-08T03:17:53.121983+00:00",
+      "completed_utc": "2026-11-08T03:17:54.868759+00:00",
+      "results": [
+        {
+          "passed": 1,
+          "failed": 0
+        }
+      ],
+      "record_sha256": "b32082b28517a11dcf18a5fea5ffe513c578c98aa128c7d0b2108ffdbfaca3c8",
+      "stdout_sha256": "3599260d82fc29974ea7d2c8811d72f91e230c68978f94487ceecfeeaaab6787",
+      "stderr_sha256": "732c2c8b36b969b88456b72205f8a0785f3077320836c7042804a14166d4a457"
+    }
+  },
+  "hygiene_problems": [],
+  "limits": "Diagnostic-only correction: actual MODEL_BRIDGE/call_model refused channel and exact reason/table, scripted boot/SCENE, real canonical refusal over existing tiny-format model root; no successfulEngineboot/native campaign. Nine existing Unix controls incl seven actual-Lua-report validators/five Python controls; all eight Lua controls remain on Windows/Wine, external Python aggregate Unix-only. Census exact66/2 with guards unchanged. Raw module.rs adds only cfg(test) declaration; production converter prefix/NUL unchanged3abf, whole rawfile differs. Runtime same old3abf91payloads; no rebuild/relabel. No native/retail/fullpack launch; V2materialized plan/preflight0 only. All10/NativeAcceptance1/Task49/D3/currentCI/full40all8/fourinputs/review/merge open as applicable."
+}

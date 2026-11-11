@@ -1,0 +1,8 @@
+{
+  "scope": "ONLY original sys normal_fire C test reused from old two-test group; old engine test superseded by fresh current engine control.",
+  "source_rows_exact": 3825,
+  "input_map_sha256": "045a99418dd6cd535d6d4c6c9deaea74a2a8307dc05b9aa507ee4a024bd3c348",
+  "receipt": "normal-fire-nq94f-s4-normal-controls.json",
+  "receipt_sha256": "793bd9fa8c494a0c91daa023b4c23c4dcf3ee1ccf5129593a2b3caad61b8232e",
+  "actual_exit": 0
+}

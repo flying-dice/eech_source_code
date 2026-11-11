@@ -1,0 +1,393 @@
+{
+  "schema": 1,
+  "review_date": "2026-11-05",
+  "reviewer_role": "sole independent Codex reviewer",
+  "review_type": "ONE combined new actual-evidence pass: Windows builds, retained ordinary short, ONE healthy default and first moving attempt; no broad source rereview",
+  "source": {
+    "compiled_runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "snapshot": "D:/EECH-Migration-Evidence/canonical-pose-production-ea2b23481",
+    "diagnostic_source": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "diagnostic_git_blob": "3015ac7ff49388ab4e58544dde67f9ec9617c1ed",
+    "diagnostic_sha256": "d289806870b4ee2e9c67bfc242c4920a033c87f3cd3281c8648229c6596958d5",
+    "diagnostic_bytes": 102821,
+    "external_literal_equals_committed_blob": true,
+    "source_review": {
+      "path": "R:/d3-evidence/independent-entity-canonical-pose-corrected-source-ea2b-20261105.json",
+      "sha256": "0a00c32fa7d607677451385574276389c8d2b59de425ff1a733e22436a021569",
+      "scope": "Reused as source clearance at its own identity; not relabeled as actual moving authority"
+    }
+  },
+  "decision": {
+    "status": "FINITE_DEFAULT_AND_SHORT_VERIFIED_MOVING_UNREACHED",
+    "findings": [],
+    "windows_profile_builds_verified": true,
+    "finite_ordinary_short_conformance_closed": true,
+    "finite_reached_default_canonical_pose_characterization_closed": true,
+    "first_moving_attempt_verified_unreached": true,
+    "moving_public_path_accepted": false,
+    "positive_changed_physical_authority_accepted": false,
+    "physical_pose_authority_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "independent_actual_checks": {
+    "direct_controller_and_outer_receipt_exits_joined": true,
+    "six_full_input_compare_stages_zero": true,
+    "all_three_pairs_full_manifest_bytes_literal_equal": true,
+    "input_manifests_each": {
+      "files": 1179,
+      "bytes": 102239559,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+    },
+    "windows_profiles": {
+      "ordinary": {
+        "exit": 0,
+        "payloads": 88,
+        "build_info_sha256": "89c2c86cf01ba053e5f711a8d58128693221e978e089f23d337683c7cf155cbf"
+      },
+      "hosted_weapon_fixture": {
+        "exit": 0,
+        "payloads": 88,
+        "build_info_sha256": "b6be1aea13711802a5a7bfe47880ad7ae643c85742ac46c9f3722c08a4e2ce98"
+      }
+    },
+    "all_176_current_profile_payload_hashes_independently_rehashed": true,
+    "three_runs_bound_to_those_exact_payload_seals": true,
+    "external_literal_rehashed_and_compared_to_Git": true,
+    "private_audit_raw_artifacts_rehashed": true,
+    "private_safe_summary_equals_separately_named_safe_projection": true,
+    "no_test_campaign_or_manifest_tool_rerun": true
+  },
+  "runs": [
+    {
+      "role": "ordinary-short",
+      "native_exit": 0,
+      "helper_exit": 0,
+      "outer_exit": 0,
+      "pre_post_full_inputs": [
+        0,
+        0
+      ],
+      "manifest_files": 1179,
+      "manifest_bytes": 102239559,
+      "pre_post_manifest_bytes_literal_equal": true,
+      "verified_payloads": 88,
+      "build_info_sha256": "89c2c86cf01ba053e5f711a8d58128693221e978e089f23d337683c7cf155cbf"
+    },
+    {
+      "role": "healthy",
+      "native_exit": 0,
+      "helper_exit": 0,
+      "outer_exit": 0,
+      "pre_post_full_inputs": [
+        0,
+        0
+      ],
+      "manifest_files": 1179,
+      "manifest_bytes": 102239559,
+      "pre_post_manifest_bytes_literal_equal": true,
+      "verified_payloads": 88,
+      "build_info_sha256": "b6be1aea13711802a5a7bfe47880ad7ae643c85742ac46c9f3722c08a4e2ce98"
+    },
+    {
+      "role": "moving_control",
+      "native_exit": 1,
+      "helper_exit": 1,
+      "outer_exit": 1,
+      "pre_post_full_inputs": [
+        0,
+        0
+      ],
+      "manifest_files": 1179,
+      "manifest_bytes": 102239559,
+      "pre_post_manifest_bytes_literal_equal": true,
+      "verified_payloads": 88,
+      "build_info_sha256": "b6be1aea13711802a5a7bfe47880ad7ae643c85742ac46c9f3722c08a4e2ce98"
+    }
+  ],
+  "ordinary_short": {
+    "profile": "ordinary",
+    "retained_arguments": "Lebanon retail campaign; hours=0.001, record=1, record_every=10, observe_every=1, observe_supply=1, explicit ACMI/observation paths; unchanged retained scenario",
+    "three_COMPLETE_files_compared_literally_including_line_endings": true,
+    "baseline": "R:/d3-evidence/model-reference-profile-recording-80fd62ea4-20261030",
+    "files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "literal_complete_equal": true
+      }
+    ],
+    "native_wall_seconds": 9.961623,
+    "performance_scope": "One elapsed observation, not a benchmark or a performance improvement claim",
+    "not_claimed": "Full40/all8/full Task49 shipping, visual/Tacview acceptance or all physical branches"
+  },
+  "healthy_default": {
+    "json_rows": 7,
+    "json_sha256": "23f4afc4909424a4c0c84e8fb379b86244003c6f32b2a1f2bb7aba3efb33b303",
+    "mode": "control",
+    "profile": "hosted",
+    "native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "same_retained_default_parameters": {
+      "seed": 1,
+      "warmup_seconds": 30,
+      "frame_ms": 100,
+      "settle_seconds": 120
+    },
+    "pose": {
+      "observations": 9252,
+      "stage0_offers": 6091,
+      "stage1_attitude_comparisons": 3161,
+      "recorded_offers": 6091,
+      "held_motion_offers": 6091,
+      "held_motion_differences": 0,
+      "no_held_motion_offers": 0,
+      "position_differences": 0,
+      "attitude_differences": 0,
+      "aircraft_motion_differences": 0,
+      "recorded_kind_offer_counts": {
+        "1": 6091
+      },
+      "no_id": 0,
+      "unrecorded": 0,
+      "retired": 0,
+      "unknown": 0,
+      "dead": 0,
+      "formula_equal": 3727,
+      "formula_different": 2364
+    },
+    "offer_denominator": "Repeated stage-0 observations, not unique mobiles. Stage-1 observations are a separate repeated attitude denominator; no unique ID catalogue is published.",
+    "authority": {
+      "candidate_mobile_named": 430,
+      "candidate_mobile_unnamed": 0,
+      "stationary_queries": 279,
+      "moving_queries": 0,
+      "candidate_need_updated": 0,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "cohort_size": 1,
+      "cohort_complete": true,
+      "cohort_pending": 0,
+      "terminal_outcome": "hit_land",
+      "terminal_steps": 6,
+      "selection_launch_terminal_joins_verified_privately": true,
+      "configured_VIEW_scope": "Global to the war; no camera or unique-weapon attribution is inferred"
+    },
+    "parent_comparison": {
+      "parent_runtime": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+      "old_run_repeated": false,
+      "common_authority_fields": 117,
+      "selected_physical_fields": 20,
+      "all_selected_physical_fields_equal": true,
+      "complete_physical_signature_literal_equal": true,
+      "only_common_different_names": [
+        "pose_fact_motion_held",
+        "pose_fact_motion_not_held",
+        "pose_histogram",
+        "pose_pre_histogram"
+      ],
+      "motion_held_old_new": [
+        0,
+        6091
+      ],
+      "motion_not_held_old_new": [
+        6091,
+        0
+      ],
+      "whole_JSONL_files_not_claimed_equal": true
+    },
+    "meaning": "The reached default offers now have canonical held vectors that match the mirror and retain the prior physical outcome. This does not by itself distinguish which representation the solver consumed; the earlier provider canonical-versus-discarded-word control is separate evidence."
+  },
+  "first_moving_attempt": {
+    "mode": "moving_control",
+    "profile": "hosted",
+    "json_rows": 8,
+    "json_sha256": "094683ae7dc35b7a1c7e1991d37eda3258ed33f3b4af1ec39405fd7dbe64b91b",
+    "native_helper_outer_exits": [
+      1,
+      1,
+      1
+    ],
+    "pre_post_compare_exits": [
+      0,
+      0
+    ],
+    "verified_payloads": 88,
+    "same_parameters": {
+      "seed": 1,
+      "warmup_seconds": 30,
+      "frame_ms": 100,
+      "settle_seconds": 120
+    },
+    "moving_target_selection_verified": {
+      "actual_last_host_move_in_final_warmup_frame": true,
+      "finite_motion_squared_norm_above_one": true,
+      "selected_launched_and_named_target_identity_join_verified_privately": true
+    },
+    "actual_query_coverage": {
+      "target_questions": 0,
+      "target_need_updated": 0,
+      "target_test": 0,
+      "global_moving_queries": 0
+    },
+    "actual_outcome": {
+      "cohort_size": 1,
+      "ended": 1,
+      "pending": 0,
+      "terminal_outcome": "hit_land",
+      "steps": 6,
+      "request_faults": 0,
+      "reply_faults": 0,
+      "anonymous_mobile_questions": 0
+    },
+    "classification": "UNREACHED; NOT a positive moving or changed-physical authority proof",
+    "failure_verified": "The actual native log reports moving_control UNREACHED because the target was never asked need_updated in zero target questions. Selection of a moving entity did not establish projectile contact/query reachability.",
+    "changed_terrain_B_or_Original_runs_claimed": false,
+    "disposition": "Preserve the failed attempt. Establish the missing real caller/query-contact precondition through a materially justified bounded witness, retaining strict target NeedUpdated/test criteria. No seed/warmup/distance tuning, weakened criteria or repeated unchanged experiment is authorized by this review."
+  },
+  "limitations_and_required_next_gates": [
+    "A positive actual moving target query, NeedUpdated and target test are still required; this first attempt reaches none.",
+    "A successful changed physical effect and any planned Original moving comparison have not run and are not accepted.",
+    "Only kind-1 living AA/routed offers were observed. No claim covers unreached aircraft/ship/person/dead/wreck, no-ID/unrecorded/retired or arbitrary future writers.",
+    "Player flight dynamics, pack/unpack, other physical writers, Core-origin lifecycle adoption and remaining backing/identity/roster synchronization remain required.",
+    "Mirror/record coherence alone is not consumption authority, and global counters are not per-weapon attribution.",
+    "No new full caller-FPU claim, full pack, shipping/delivery or whole Task49/D3 acceptance.",
+    "All prior source, observer, TREE, Candidate, SCAN and Task50/52 closures stay at their own identities; they were not re-reviewed here."
+  ],
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/canonical-pose-ea2b-windows-20261105-completion.json",
+      "bytes": 30676,
+      "sha256": "507317c2a21f0530bf73f4a4f018e819becdef3fd0917fd43aae9db2119eabb5"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-ordinary-short-comparison-ea2b-20261105.json",
+      "bytes": 1746,
+      "sha256": "99c43b9cc2f01c4e3f70527f0661117dd754d0864a7828670b35b2bedb35492a"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-safe-first-actual-facts-ea2b-20261105.json",
+      "bytes": 4299,
+      "sha256": "86ed8a28ed50341253056d07ffca81ed540d7a7f9ab13c2a4601ced11cb656e5"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-moving-unreached-safe-facts-ea2b-20261105.json",
+      "bytes": 1635,
+      "sha256": "f886499ac1680bb69866279e64b36b4e5b9c2af20de1c659562f3386c7681014"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-private-first-actual-audit-ea2b-20261105.json",
+      "bytes": 17643,
+      "sha256": "f11acfe80b7052d521a040edfab454bc4b4b764387dc291e8f25a15c1bfee92a"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-authority-ea2b23481-literal.lua",
+      "bytes": 102821,
+      "sha256": "d289806870b4ee2e9c67bfc242c4920a033c87f3cd3281c8648229c6596958d5"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-ordinary-short-ea2b23481-20261105/controller.json",
+      "bytes": 3982,
+      "sha256": "a6cf597c59ffb6635d9421269d1fe1cb887bb90c570c57e297ab4d126c54ee1b"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-ordinary-short-ea2b23481-20261105/pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-ordinary-short-ea2b23481-20261105/post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-ordinary-short-ea2b23481-20261105/native.log",
+      "bytes": 43134,
+      "sha256": "0fc5ced9d369cf72c4aca46b70f84fce357fde395813d1ba917ea314e9c6843a"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-ordinary-short-ea2b23481-20261105-completion.json",
+      "bytes": 1715,
+      "sha256": "e4728a7fde066f7220f42d06e80811debf93b341eaaf84473e554d53558c69ee"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-healthy-ea2b23481-20261105/controller.json",
+      "bytes": 4203,
+      "sha256": "92d4906354845865967d0530bb564b5678540443dcb6d4192912dabb5ef3da01"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-healthy-ea2b23481-20261105/pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-healthy-ea2b23481-20261105/post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-healthy-ea2b23481-20261105/native.log",
+      "bytes": 41297,
+      "sha256": "a666f76b7454ffc1ef9641dac7b7303b4c1f8aae6b75718c07885161dab7e0e9"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-healthy-ea2b23481-20261105/model.jsonl",
+      "bytes": 4406,
+      "sha256": "23f4afc4909424a4c0c84e8fb379b86244003c6f32b2a1f2bb7aba3efb33b303"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-healthy-ea2b23481-20261105-completion.json",
+      "bytes": 1736,
+      "sha256": "b44b9c904f5801cd58461f5f69dd3e6639a46c4d3aeba1cbec8cfe10407c4c21"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-moving_control-ea2b23481-20261105/controller.json",
+      "bytes": 4331,
+      "sha256": "a4e2e6461bb8489e057d8595d3b72d2931590c687cfda0b83742d50633e3f3ab"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-moving_control-ea2b23481-20261105/pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-moving_control-ea2b23481-20261105/post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-moving_control-ea2b23481-20261105/native.log",
+      "bytes": 45950,
+      "sha256": "eaef759034291c08df52111d0c159311eb49b0e477c80fb99b9f278e67a8cdbd"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-moving_control-ea2b23481-20261105/model.jsonl",
+      "bytes": 4601,
+      "sha256": "094683ae7dc35b7a1c7e1991d37eda3258ed33f3b4af1ec39405fd7dbe64b91b"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-moving_control-ea2b23481-20261105-completion.json",
+      "bytes": 1917,
+      "sha256": "30954484477142f3dbb55e314bb159a71314cfc3a412503af377df793be22a80"
+    }
+  ],
+  "publication_safety": "Only aggregate counts, hashes, paths and outcome labels are included. Full private audit, raw cohorts, vectors, coordinates and semantic-ID suffixes are intentionally not copied. The private audit is referenced by hash only.",
+  "review_operations": "Read-only actual/raw/controller/build/payload and literal-output joins plus this new report write. No source edits, native/build/test reruns, agents, cache/VM operations or external tracking writes."
+}

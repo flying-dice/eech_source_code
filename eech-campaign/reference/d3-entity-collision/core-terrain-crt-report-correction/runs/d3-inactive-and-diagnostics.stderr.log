@@ -1,0 +1,13 @@
+info: downloading component rustfmt
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.67s
+     Running tests/core_terrain_crt_driver.rs (/target/t/debug/deps/core_terrain_crt_driver-fd8a90b44668fc35)
+
+thread 'complete_report_requires_each_boundary_and_full_site_skin_phase_contract' (168) panicked at crates/eech-world/tests/core_terrain_crt_driver.rs:162:13:
+phase_count: expected observer site count exceeds phase ordinal window, got runtime error: [string "crates/eech-world/tests/core_terrain_crt_dr..."]:126: observer site last phase/count
+stack traceback:
+	[C]: in ?
+	[C]: in function 'assert'
+	[string "crates/eech-world/tests/core_terrain_crt_dr..."]:126: in main chunk
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-world --test core_terrain_crt_driver`

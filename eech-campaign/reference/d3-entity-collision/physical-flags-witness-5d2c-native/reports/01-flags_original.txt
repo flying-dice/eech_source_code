@@ -1,0 +1,4 @@
+pf-witness-identity schema=1 mode=flags_original profile=original-solver scenario=lebanon_retail seed=1 frame_ms=100 hours=0.001 campaign=LEBANON.CHC map=..\common\maps\map5 paired=0
+pf-witness-counts frames=35 attempts_group=0 attempts_set=0 attempts_read=0 attempts_reset=0 answered_group=0 answered_set=0 answered_read=0 answered_reset=0 accepted_group=0 accepted_set=0 accepted_read=0 accepted_reset=0 altered=0 changed_accepted=0 keys_issued=0 reads_zero=0 reads_mask=0 reads_consumable=0 resets_cleared=0 oracle_sets=0 oracle_reads=0 oracle_resets=0 oracle_mismatches=0
+pf-witness-oracle sets=0 reads=0 resets=0 mismatches=0
+pf-witness-verdict mode=flags_original status=PASS detail=the original-solver profile consumed its own legacy words: no flag question reached the host in 35 frames

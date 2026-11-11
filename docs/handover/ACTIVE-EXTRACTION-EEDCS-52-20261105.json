@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "epic": "EEDCS-21",
+  "task": "EEDCS-52",
+  "pr": 112,
+  "authority": [
+    "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
+    "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
+  ],
+  "phase": "reviewed-full-shipping-ready-for-normal-delivery",
+  "preparation_batches_without_cutover": 0,
+  "preparation_limit": 2,
+  "next_production_change": "Physical target-point initializer/getter extraction and complete shipping are independently closed. Task50 delivered873a. Finish exact final metadata CI, verified ordinary-source merge scope and normal PR112 delivery; whole-D3 hierarchy/host identities remain required under the active Task49 record.",
+  "ready_evidence": [
+    "Original seven case shapes CLOSED2f/C500/5e+ca (1ef9/315d/d04b), numeric prototypes0cb7/00098 CLOSED at their finite keyframe0 input scope; no live-pose or production acceptance inferred from prototypes.",
+    "RNG/input group CLOSED25f64cd4 for originalC1c30/checkerebcb; both initializer passes and intervening draws/reseeds characterized, not globalfuture RNG proof.",
+    "Initializer production9b/c37 finite review95f97d0 CLOSED; all three host offsets reach real guidance consumer, explicitOriginal capabilityRED, no dummyconstructor/RNGpadding.",
+    "Getter production811, correctedfixturefc and literal absenceLuac707 finite reviewa1d6b37c CLOSED;13 correctedcontrols+one validhostABSENT actual,28fullinputchecks,84payloads. Chain8 explicitbound/per-refused-row preflight/normal-return cleanup only.",
+    "Ordinary811 exact retained short Lebanon actual0; all3 COMPLETE Tacview/observations/metrics literal baselineequal, two manifests0 and84payloads. Full40/all8 still open. Evidence reuse by exact ordinary/fixture/Lua source-scope proofs, no native relabel.",
+    "Pinned DCS declaration mapping/receipt reviewed4bd013c9 (documentation only). Legacyinstance/hierarchy/liveplacement and hostidentity integration remain REQUIRED whole-D3 work; no nativeDCS or universalanimatedpoint claim.",
+    "5Nov independent full-shipping review3fdf: original ordinary811 runner0/launchertrue/accepted40/all8COMPLETE literal/four final inputs0/all84payloads unchanged. Safe literal report and receipts in full-pack-acceptance-20261105. Task50 normalmerge873a delivered; final Task52 CI/merge pending."
+  ],
+  "blockers": [
+    {
+      "id": "rng-evidence",
+      "status": "closed",
+      "blocks_cutover": true,
+      "evidence": "Independent final 25f64cd419d3e420bbd8398545229a1c19ff6355f8b7a69a0295c691d70915de: original-C1c30/checkerebcb; 6 actuals, 12 inputs, 84 payloads, consecutive trace/reseed checks clear.",
+      "missing_fact": "Resolved for the finite reference-profile trace; the production initializer keeps its caller/seed policy and adds no dummy constructor or random padding.",
+      "next_fix": "None."
+    },
+    {
+      "id": "comparer-honesty",
+      "status": "closed",
+      "blocks_cutover": false,
+      "evidence": "Repaired in 9b916ac650 (branch-3 comparer requires a known case label and a well-formed offset or counts the row as missing its input); same independent reviewer cleared comparer P2.",
+      "missing_fact": "None.",
+      "next_fix": "None."
+    },
+    {
+      "id": "fixture-path-bounds",
+      "status": "closed",
+      "blocks_cutover": false,
+      "evidence": "Independent source review of 8118389a96/cc98114: eech_model_host_fixture.c tp_row's bounded legacy-selection walk sets inside=0 for an out-of-range positive host offset but only stores legacy_same=0 and continues; the later mutate loop and tp_pose_text walk the same offsets unchecked, before the production world-chain bounds guard. Fixture/diagnostic code only; no physical-kernel blocker identified. CLOSED against corrected fc6388ffc4: the same independent reviewer cleared the corrected source and joined the native late-OOB actual (queries_chain_offset_late: coherent unmutated call first, two REFUSED rows before sentinel/mutation/getter/pose read, per REFUSED row only; native/controller/pre-post 0, 84 payloads).",
+      "missing_fact": "None for the finite fixture-path witness.",
+      "next_fix": "None."
+    },
+    {
+      "id": "six-row-witness-honesty",
+      "status": "closed",
+      "blocks_cutover": false,
+      "evidence": "Independent source review: judge_queries in model-authority.lua requires six parsed rows but not the exact six unique case names in order; parse_rows ignores non-matching lines; event.scene is not joined to row.scene; the VP-write judgement is not the full expected meaning. CLOSED against corrected fc6388ffc4: the same reviewer cleared the corrected source (exact six named rows, joins, whole viewpoint verdict, measured restoration) and joined the 13 native actuals (reference found 4/absent 0/fixed 4/fallback 4) with no production-kernel blocker.",
+      "missing_fact": "None for the finite six-row witness.",
+      "next_fix": "None."
+    },
+    {
+      "id": "final-combined-query-review",
+      "status": "closed",
+      "blocks_cutover": false,
+      "evidence": "Final same-reviewer source/actual report a1d6b37c; literal independent-review.json in live-query-authority-811-fc-c707-20261103. P1/P2+13 controls+one c707 ABSENT+ordinary811 short independently joined.",
+      "missing_fact": "None for finite source/actual or ordinary fullshipping3fdf. Task50 is delivered873a. Final Task52 metadata CI and normal merge remain delivery gates; required whole-D3 hierarchy/collision work remains separate and open.",
+      "next_fix": "None; do not repeat closed source/actual review without new material."
+    }
+  ],
+  "next_action": "review",
+  "acceptance": [
+    {
+      "gate": "Production physical offset initialization uses host data and old solver path is absent",
+      "complete": true
+    },
+    {
+      "gate": "Changed/withheld host authority and direct guidance consumer exercised",
+      "complete": true
+    },
+    {
+      "gate": "Established scenario and required complete byte-identical regression pass",
+      "complete": true
+    },
+    {
+      "gate": "Current independent review/checks and normal merge; Task50 dependency delivered",
+      "complete": false
+    },
+    {
+      "gate": "Complete all Task52 physical target-point queries and offset consumers, not merely the initializer increment",
+      "complete": true
+    }
+  ],
+  "runtime_checkpoint": "R:/d3-evidence/D3-CURRENT.json",
+  "do_not_restart": "Both original full packs are COMPLETE with actual0 and accepted40/all8. Their consumed roots/raws/payloads remain preserved; do not restart old PIDs or rerun wars for metadata.",
+  "scope_limit": "Whole D3 remains open. Do not start D4/D5 or resume the historical TypeScript port. Task52 stays stacked on unaccepted Task50/PR110 1fb; the ordinary 8118389a96 and Task50 bce full40/all8 packs are ACTIVE per Root and must not be stopped, restarted or touched; prefixes are PARTIAL only."
+}

@@ -1,0 +1,39 @@
+{
+  "scope": "Git CRLF-to-LF publication only for newly authored scripts and safe summary; no original acceptance output normalized",
+  "source_commit": "754dda36ed2f5c60f2994650d33fc25749b340b1",
+  "native_red_and_green_policy": "Run EXACT retained private CRLF scripts for RED/GREEN comparison; published LF copies are separately identified",
+  "files": [
+    {
+      "private": "R:\\d3-evidence\\tree-geometry-one-shot-control-20261029.lua",
+      "repository": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "private_raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "git_lf_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+      "decoded_text_equal": true,
+      "raw_private_bytes_unchanged": true
+    },
+    {
+      "private": "R:\\d3-evidence\\tree-geometry-refused-probe-control-20261029.lua",
+      "repository": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "private_raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "git_lf_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+      "decoded_text_equal": true,
+      "raw_private_bytes_unchanged": true
+    },
+    {
+      "private": "R:\\d3-evidence\\tree-geometry-conversion-refused-control-20261029.lua",
+      "repository": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "private_raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "git_lf_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+      "decoded_text_equal": true,
+      "raw_private_bytes_unchanged": true
+    },
+    {
+      "private": "R:\\d3-evidence\\tree-geometry-original-537c36faf-first-measurements.json",
+      "repository": "eech-campaign/reference/d3-collision-characterization/tree-geometry-original-537c36faf-first-measurements.json",
+      "private_raw_sha256": "903c4f2dea34cfeae95ea72f90aad7855f8737cfd835446ec9de370bea5de92c",
+      "git_lf_sha256": "778ed12edf49351aff629f9452dfce8829619dcbdfe7240f0723d5acf442a174",
+      "decoded_text_equal": true,
+      "raw_private_bytes_unchanged": true
+    }
+  ]
+}

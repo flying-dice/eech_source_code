@@ -1,0 +1,8 @@
+{
+  "context": "D3 physical flag extraction, sole key-fix lane, 7 November 2026",
+  "observed_failure": "flags-keyfix-d26-collision-hosted actual_exit 0 represented a deliberate missing-identity refusal, zero flag expectations, not successful hosted collision behavior. Root caught this by reading the direct stdout and test source before accepting the batch.",
+  "control_implemented": "Root feedback1916 requires a separate real positive hosted consumer with genuine existing host registration/physical record and the same physical segments/destructive raw-word scenarios as Original. The no-identity refusal remains a negative; no changed expectation, fake solver or weakened identity guard. Author read this feedback at 19:19:45 UTC and proceeded through the existing group-roster/Movers path before PRE/freeze.",
+  "acceptance_rule": "For a required positive consumer, inspect direct nonzero branch expectations and actual relevant host traffic/outcome in addition to numeric process exit. A green expected-refusal case cannot substitute. Existing Original15 and key85 remain at their true scope; whole public native path remains unrun.",
+  "supervision_limit": "Root supervision notes printed by an external helper are invisible when an author shell redirects stdout to /dev/null. Explicit full feedback reads before freeze/stop remain necessary; this actor did read the notes before PRE. Do not modify a sealed helper or fabricate prior read times to repair transport.",
+  "handover": "Retain this learning and Root-physical-flags-key-fix-feedback-20261107-1916.json at the next sole-author metadata checkpoint. No additional review fleet, campaign replay or optional preparation required. All ten D3 requirements unchanged."
+}

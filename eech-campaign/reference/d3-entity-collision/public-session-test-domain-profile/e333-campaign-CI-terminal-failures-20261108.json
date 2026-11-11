@@ -1,0 +1,18 @@
+{
+  "source": "e333fa14bc73529d51fa597ac229272546fc96ea",
+  "run_id": 42481658357,
+  "observed_utc": "2026-11-08T12:54:19.460565+00:00",
+  "raw_log": "R:\\d3-evidence\\e333-campaign-CI-failed-20261108.log",
+  "raw_sha256": "d0e670c0277dec9bd3eadcf49305ea95a34f9903fb68a49396e26745deb869fe",
+  "failed_platform_jobs": 5,
+  "identical_failure_lines": [
+    "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)\tTest\t2026-11-08T12:49:06.1984970Z driver consumes an absent actual public userdata method: wpn_events",
+    "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)\tTest\t2026-11-08T12:48:53.5566657Z driver consumes an absent actual public userdata method: wpn_events",
+    "test (x86_64-unknown-linux-gnu)\tTest\t2026-11-08T12:49:24.7896083Z driver consumes an absent actual public userdata method: wpn_events",
+    "windows-cross\tTest under Wine\t2026-11-08T12:48:53.5031035Z driver consumes an absent actual public userdata method: wpn_events",
+    "test (i686-unknown-linux-gnu)\tTest\t2026-11-08T12:48:57.2260578Z driver consumes an absent actual public userdata method: wpn_events"
+  ],
+  "classification": "New cfg(test)-only facade test wrongly expects observer-feature method wpn_events in ordinary builds. All five failures retained; no product API exposure authorized.",
+  "unaffected_jobs": "evidence-selftest,dcs-probe-tools,TS verify,historical loss all success at current readback",
+  "acceptance": false
+}

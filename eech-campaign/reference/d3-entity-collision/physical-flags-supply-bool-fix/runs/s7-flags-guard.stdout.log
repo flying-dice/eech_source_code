@@ -1,0 +1,12 @@
+
+running 7 tests
+test the_collision_pass_through_source_is_the_one_the_collision_control_ran_and_the_hosted_path_reads_the_word_once_when_the_host_asks ... ok
+test the_supply_arrival_descriptor_normalises_only_its_own_value_to_the_boolean_the_rust_side_requires ... ok
+test the_getter_the_setter_and_the_reset_are_the_source_the_characterisation_ran ... ok
+test the_consumer_source_is_the_one_the_real_consumer_control_ran ... ok
+test the_supply_control_seam_exists_only_behind_its_feature_and_the_consumer_reads_the_getter_once_before_it_asks_the_host ... ok
+test the_hosted_build_holds_no_flag_array_and_every_access_goes_to_the_host ... ok
+test every_writer_and_reader_of_the_three_words_is_the_known_census ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.92s
+

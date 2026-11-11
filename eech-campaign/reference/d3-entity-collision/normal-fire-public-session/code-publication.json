@@ -1,0 +1,20 @@
+{
+  "CODE": "b2a3806a0baf51b498b54a150e5d7aa71c32c62e",
+  "source_rows": 4020,
+  "raw_equals_Git": 4017,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "source_fingerprint": "b18998dee3a1a266b2b485b634b30ab9b58b2aa7c2046cb8dcfca0695a49afa2",
+  "post_POST_metadata": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "manifest.json",
+    "code-publication.json",
+    "publication-manifest.json"
+  ],
+  "raw_log_qualification": "Literal CRLF/EOF retained; not normalized to satisfy source whitespace check.",
+  "scope": "UNREVIEWED source/controller; Root agent completion separate; no native/cutover/all10 closure"
+}

@@ -1,0 +1,468 @@
+{
+  "utc": "2026-11-08T12:41:39.028118+00:00",
+  "source_before": "b50203d48cb46be1dbe52e062b0516d0afa587e4",
+  "source_rows": 4023,
+  "source_fingerprint": "69ecd8b8f48a93600e666d95653f3e6b222bba321befb57e048d5704e4153086",
+  "readers": {
+    "run-normal-fire-pfb502-direct-20261108.py": "59f523105d84272edf328a19d91cb0d0499a0f618af108a81d06afff48d7966b",
+    "check-normal-fire-pfb502-linux-20261108.sh": "cfa0fe76698bde546eb7c694695b3f90d34f72c9d59109b3cdef2c7e7c88ea9c",
+    "run-pfb502-final-20261108.py": "76ede0e0f8ab9a2ddb0b0200bad6387d41f0ce0a1d14c24743c7e4057f24ca4b",
+    "pfb502-proof-20261108.py": "f34c3d7d1c919f9eb1cd23cef33a85be03c25a4ea413aac7915a0096ee303cf5",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+    "pfb502-fixed-query-analysis-20261108.py": "9007ddf78db02a181fa09c39bfebe915b7a2c3be8abba8a299f9bf9cd63a410d"
+  },
+  "extras_count": 29,
+  "direct_exits": {
+    "s1-profile-census": 0,
+    "s2-python": 0,
+    "s3-fmt": 0,
+    "s4-world-clippy": 0,
+    "s5-actual-facade": 0,
+    "s6-session-lua": 0
+  },
+  "Rust_tests": 3,
+  "Python_tests": 12,
+  "Lua_semantic_faults": 25,
+  "before_output_reference_faults": 27,
+  "before_effect_prefix_faults": 4,
+  "actual_reference_FlagStore_calls": 16,
+  "ACK_faults": 3,
+  "ACK_failure_before_UNREACHED": 3,
+  "synthetic_healthy_B_pairs": 2,
+  "underreach_controls": 2,
+  "old_diagnostic_RED_exit": 101,
+  "actual_userdata_methods": 3,
+  "real_serde_mode_tags": 6,
+  "distinct_candidate_real_FlagStore_healthy_B": 2,
+  "candidate_registration_flag_pose_faults": 4,
+  "temporal_healthy_B": 4,
+  "temporal_wrong_late_identity_B": 2,
+  "late_only_UNREACHED": 1,
+  "numeric_outcomes": 21,
+  "report_schema": 2,
+  "fixed_raw_query_analysis": {
+    "utc": "2026-11-08T12:22:26.575816+00:00",
+    "raw": {
+      "path": "D:\\EECH-Migration-Evidence\\normal-query-capture-b502-20261108-runs\\01-healthy\\capture.txt.events",
+      "bytes": 110076923,
+      "sha256": "1fd73aa2f08338eeeabbcb3500137f884ede4762522233e2284261f26b706898"
+    },
+    "complete_EOF": true,
+    "consecutive_NF_records": 319569,
+    "last_tick_ms": 149900,
+    "fixed_queries": 26,
+    "old_stronger_predicate_counts": {
+      "live_host_motion_and_candidate_answers_missing": 2,
+      "old_same_birth_target_predicate": 24
+    },
+    "model_ops": {
+      "17": 5006,
+      "16": 2699,
+      "18": 28,
+      "15": 4
+    },
+    "safe_query_facts": [
+      {
+        "query": 1,
+        "selector": 0,
+        "tick": 147600,
+        "old_predicate_result": "live_host_motion_and_candidate_answers_missing",
+        "step_target_none": false,
+        "end_target_none": false,
+        "hit": 0,
+        "model_ops": {
+          "17": 253,
+          "16": 241,
+          "18": 9,
+          "15": 1
+        }
+      },
+      {
+        "query": 2,
+        "selector": 0,
+        "tick": 149400,
+        "old_predicate_result": "live_host_motion_and_candidate_answers_missing",
+        "step_target_none": false,
+        "end_target_none": false,
+        "hit": 0,
+        "model_ops": {
+          "17": 255,
+          "16": 245,
+          "18": 11,
+          "15": 3
+        }
+      },
+      {
+        "query": 3,
+        "selector": -1,
+        "tick": 149600,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 25,
+          "16": 11
+        }
+      },
+      {
+        "query": 4,
+        "selector": -1,
+        "tick": 149600,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 11,
+          "16": 4
+        }
+      },
+      {
+        "query": 5,
+        "selector": -1,
+        "tick": 149600,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 21,
+          "16": 9
+        }
+      },
+      {
+        "query": 6,
+        "selector": -1,
+        "tick": 149600,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 21,
+          "16": 9
+        }
+      },
+      {
+        "query": 7,
+        "selector": -1,
+        "tick": 149600,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 73,
+          "16": 35
+        }
+      },
+      {
+        "query": 8,
+        "selector": -1,
+        "tick": 149600,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 975,
+          "16": 486,
+          "18": 2
+        }
+      },
+      {
+        "query": 9,
+        "selector": -1,
+        "tick": 149700,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 23,
+          "16": 10
+        }
+      },
+      {
+        "query": 10,
+        "selector": -1,
+        "tick": 149700,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 11,
+          "16": 4
+        }
+      },
+      {
+        "query": 11,
+        "selector": -1,
+        "tick": 149700,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 21,
+          "16": 9
+        }
+      },
+      {
+        "query": 12,
+        "selector": -1,
+        "tick": 149700,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 21,
+          "16": 9
+        }
+      },
+      {
+        "query": 13,
+        "selector": -1,
+        "tick": 149700,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 73,
+          "16": 35
+        }
+      },
+      {
+        "query": 14,
+        "selector": -1,
+        "tick": 149700,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 975,
+          "16": 486,
+          "18": 2
+        }
+      },
+      {
+        "query": 15,
+        "selector": -1,
+        "tick": 149800,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 23,
+          "16": 10
+        }
+      },
+      {
+        "query": 16,
+        "selector": -1,
+        "tick": 149800,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 11,
+          "16": 4
+        }
+      },
+      {
+        "query": 17,
+        "selector": -1,
+        "tick": 149800,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 21,
+          "16": 9
+        }
+      },
+      {
+        "query": 18,
+        "selector": -1,
+        "tick": 149800,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 21,
+          "16": 9
+        }
+      },
+      {
+        "query": 19,
+        "selector": -1,
+        "tick": 149800,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 73,
+          "16": 35
+        }
+      },
+      {
+        "query": 20,
+        "selector": -1,
+        "tick": 149800,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 975,
+          "16": 486,
+          "18": 2
+        }
+      },
+      {
+        "query": 21,
+        "selector": -1,
+        "tick": 149900,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 23,
+          "16": 10
+        }
+      },
+      {
+        "query": 22,
+        "selector": -1,
+        "tick": 149900,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 11,
+          "16": 4
+        }
+      },
+      {
+        "query": 23,
+        "selector": -1,
+        "tick": 149900,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 21,
+          "16": 9
+        }
+      },
+      {
+        "query": 24,
+        "selector": -1,
+        "tick": 149900,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 21,
+          "16": 9
+        }
+      },
+      {
+        "query": 25,
+        "selector": -1,
+        "tick": 149900,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 73,
+          "16": 35
+        }
+      },
+      {
+        "query": 26,
+        "selector": -1,
+        "tick": 149900,
+        "old_predicate_result": "old_same_birth_target_predicate",
+        "step_target_none": true,
+        "end_target_none": true,
+        "hit": 0,
+        "model_ops": {
+          "17": 975,
+          "16": 486,
+          "18": 2
+        }
+      }
+    ],
+    "new_contract_missing_fact": "Actual registered moving routed candidate/NeedUpdated/READ/reask/TEST facts are absent from the retained C opcode stream for all26 queries; no inferred eligibility or new actor/window.",
+    "source_rationale": "wn_move scans get_line_of_sight_collision_entity(source,NULL,...), independent of birth/current target. Target already none at24 query step starts; raw lacks unlink cause. No source branch guessed.",
+    "scope": "Read-only existing26-record analysis, no native/default replay; old1500FAIL staysFAIL. No coordinates/poses/host identities published."
+  },
+  "reuse": {
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "prior_raw_map_sha256": "ef65bae49d091f82d159c9575fce7e1cb7a4448a22bf5afd8fc38ab9d4fd0479",
+    "whole_relevant_product_build_Cargo_static_rows": 3815,
+    "cfg_test_raw_exception": {
+      "path": "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+      "before_sha256": "16bc4fc41e4bccfad76acb0c06d4ac8284ea721f1a4a1fbf31cec68af21fd0b5",
+      "current_sha256": "04b93bcd813662ecb6de5ae8d7e63a798e06705e93dae2628b2eafe2ef646cde",
+      "cfg_test_importer": "eech-campaign/crates/eech-dc/src/module.rs",
+      "importer_raw_sha256": "d39bcab66d7324a4f3102b01f2c51b98de1b24dea641f90c68e048951ca0cfc1",
+      "production_excluded": true,
+      "old_test_body_literal_unchanged": true
+    },
+    "product_map_sha256": "0f8c5314764725d4d947cd5ba03241248f6c50cd38c6db1923569ea662357237",
+    "extra_producer_files": {
+      "eech-campaign/.cargo/config.toml": "19ecec09029c9181db4046ceef51e86fb10feadba3fb56e535e8eb6e700eafde",
+      "tools/generate_bitmap.py": "2cdb23ba3646286cd593fa1a9800d6f1458e8f3aca12055b16f6ed8b66f9d582"
+    },
+    "unchanged_prior_raw_rows": 4017,
+    "changed_prior_test_or_Lua_rows": [
+      "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+      "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-positive.txt",
+      "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-same-frame.txt",
+      "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua"
+    ],
+    "artifacts": {
+      "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "8e3bae602c1d66fb814306df52d9abc537d35e42e394a89172b424daffc753a0",
+      "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "0381bd8a3725bae9d35fa3f3148a24c692548fadc961c2a94abdf10a3a354ddf",
+      "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "2c23602c82ce5f864e2496acd0b3922e6ad83659671aab084b7c23f69685188c",
+      "eech-campaign/tools/normal_fire_capture.py": "ba73e22d56a75cf2584813869277c4cb9f48dbfda27577edcd6aee1c35f4fc12",
+      "eech-campaign/tools/normal_fire_capture_controller.py": "63cb77991bbc1243d0326513448b363a6e588a4f1f4714517f17952b488fa63a",
+      "eech-campaign/tools/test_normal_fire_capture.py": "71f34b940ae768488bc0228ce611847202086a20f8a20474a424bc5f6128e64e",
+      "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+      "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+      "eech-campaign/docs/d3-public-session-finalization.md": "aa1fdc4b197d827ddf4c2a643ca3e232c3a05e54ba73abf11a6055899d84173c"
+    },
+    "scope": "All3815 product/build/Cargo/static rows unchanged; one existing cfg(test)-excluded raw source exception is explicit. Exact2fc runtime retains its source identity and97 unchanged payloads, including unsafe unexecuted old Lua. Four corrected literals/validator/controller are separate. Accepted prior C controls reused at their original scope; retained C bytes are codec replay only."
+  },
+  "maps": {
+    "PRE": {
+      "path": "R:\\d3-evidence\\pfb502-inputmap-PRE-20261108.json",
+      "sha256": "fc62a76e14245ea7bafef1230884d044dd5eedcd23eb5412af0ce9c5565b4307"
+    },
+    "POST": {
+      "path": "R:\\d3-evidence\\pfb502-inputmap-POST-20261108.json",
+      "sha256": "fc62a76e14245ea7bafef1230884d044dd5eedcd23eb5412af0ce9c5565b4307"
+    }
+  },
+  "scope": "ONE public facade/scanned-candidate contract correction underlead210 UNREVIEWED; oldFAIL1500 remainsFAIL; runtime remains2fc. No native/build/root/cutover/all10 closure. Root records actual agent completion separately."
+}

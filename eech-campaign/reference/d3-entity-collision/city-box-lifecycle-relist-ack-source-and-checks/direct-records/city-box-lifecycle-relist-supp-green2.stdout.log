@@ -1,0 +1,9 @@
+
+running 4 tests
+test a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link ... ok
+test a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one ... ok
+test a_citys_list_name_survives_the_last_building_leaving_a_building_listed_again_and_a_second_relink ... ok
+test buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.03s
+

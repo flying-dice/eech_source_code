@@ -1,0 +1,5 @@
+info: downloading component clippy
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Checking mlua v0.10.5
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.86s

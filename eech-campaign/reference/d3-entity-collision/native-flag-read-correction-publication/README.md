@@ -1,0 +1,7 @@
+# Committed-byte publication (UNREVIEWED)
+
+Code: `04bf5b82c514932358552b2ff100136c25804b63`. Actual Git blob bytes join4004 source rows:4001 exact plus three inherited Lua CRLF/LF qualifications; all70 packet files literal. Final5 direct0; eleven Rust tests (nine Unix driver controls, actual converter1, existing census1), seven independently validated Lua-produced reports and five Python controls. Root materialized V2plan4ee21a2c and preflight0 are copy/read-only prerequisites, not native launch clearance. No Windows/native/retail execution or production semantic change.
+
+Diagnostic-only correction: actual MODEL_BRIDGE/call_model refused channel and exact reason/table, scripted boot/SCENE, real canonical refusal over existing tiny-format model root; no successfulEngineboot/native campaign. Nine existing Unix controls incl seven actual-Lua-report validators/five Python controls; all eight Lua controls remain on Windows/Wine, external Python aggregate Unix-only. Census exact66/2 with guards unchanged. Raw module.rs adds only cfg(test) declaration; production converter prefix/NUL unchanged3abf, whole rawfile differs. Runtime same old3abf91payloads; no rebuild/relabel. No native/retail/fullpack launch; V2materialized plan/preflight0 only. All10/NativeAcceptance1/Task49/D3/currentCI/full40all8/fourinputs/review/merge open as applicable.
+
+STATUS/card and this publication follow POST, no tested input changes. Raw log whitespace is retained literally. STOP for SAME source/controller review.

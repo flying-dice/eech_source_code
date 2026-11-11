@@ -1,0 +1,6 @@
+
+running 1 test
+test module::native_flag_read_refusal_check::public_normal_session_driver_consumes_only_registered_userdata_methods ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 75 filtered out; finished in 0.00s
+

@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T06:22:03.458149+00:00",
+  "reviewer": "SAME independent Task49 reviewer /root/d3_environment_review",
+  "source": {
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "commit": "d419afb575adac32b1d6fd1b2fe2706ffb5efcf1",
+    "source_before": "4951145adc10b8fbbbd26b672cf13e28755e4ed0",
+    "actual_HEAD_verified": true,
+    "full_status_clean_observed": true,
+    "clean_exact_upstream_bound_by_Root": true,
+    "scope": "NEW 115-line prerequisite plan and provenance only; no runtime/controller/test/build implementation or new case selected."
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-natural-moving-public-path-plan.md",
+      "bytes": 7980,
+      "sha256": "7b514149a6447fe077325f6371226a05ffe40f17e19b0604883d2b7affd78c65"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/D3-NATURAL-MOVING-PUBLIC-PATH-PLAN-FROZEN-20261108.json",
+      "bytes": 916,
+      "sha256": "15e9e7d41bd4ab6e228058b94f77a49da2162aba626de1bb3ec4ce0a37e7f2d5"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/source-identities.json",
+      "bytes": 2941,
+      "sha256": "b2fa88e934e43e46d47cb404f123d54879a13c50332a0ff88cb05d23b9059b85"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/prior-moving-unreached-safe-facts.json",
+      "bytes": 1635,
+      "sha256": "f886499ac1680bb69866279e64b36b4e5b9c2af20de1c659562f3386c7681014"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/natural-moving-public-path-plan/manifest.json",
+      "bytes": 1877,
+      "sha256": "56c9af4026520a19b4a790b90793034c2734dc8649db4f842be0def1d15a50ac"
+    },
+    {
+      "path": "R:/d3-evidence/natural-moving-plan-d419-Root-binding-20261108.json",
+      "bytes": 2526,
+      "sha256": "662b592bf0295e39c792e865d8beba379b79557091eecb96b86c1cecceff544c"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-natural-moving-public-path-20261108-completion.json",
+      "bytes": 1962,
+      "sha256": "44afc1201f4ee77a1c44a14e5fe5f85c71f52bf23017c96727c9e6aa53027c5c"
+    }
+  ],
+  "findings": [],
+  "mechanical_provenance": {
+    "basis": "Root immutable binding reused without replay; semantic source branches read independently.",
+    "interpreted_runtime_files_unchanged_raw_Git_literal": 13,
+    "manifest_entries": 12,
+    "packet_files_literal_Git": 13,
+    "safe_external_literal_copies": 7,
+    "author_completion": "Actual service FINAL/completed, not an OS PID or fabricated CLI exit.",
+    "new_tests_build_native_cache_calls": 0
+  },
+  "assessment": {
+    "correctness": [
+      "The missing-fact classification is source-supported. entity-authority.lua:2156-2159 retains vectors source/target/selected weapon; :2586-2603 selects a final-warmup engagement with a same-frame host-stepped routed target. This establishes desired engagement/motion, not a ready aligned package or a natural firing decision.",
+      "eech_wpn_fixture.c:1896-1967 checks live launcher/target domains, optionally changes/restores the target link, and calls launch_client_server_weapon directly at :1943. It does not invoke the rv_wpn.c family fire decision. rv_wpn.c:104-201 separately gates selected weapon, readiness, target, vectors, launch-angle error, burst/ready_to_fire and AI suppression. The plan correctly excludes direct launch as sufficient natural-fire evidence.",
+      "weapon.c:365-447 obtains launcher pose, selects a package, refreshes the instance pose and traverses heading/pitch then station/muzzle. :582-635 preserves pitch fallback, ammunition decrement even when no device pose is found, and conditional map-volume origin fallback. wn_creat.c:421-432 detaches before host_weapon_birth. The proposed matched Original missing-device/fallback control must preserve these branch-dependent effects rather than impose a universal refusal.",
+      "eech_wpn_fixture.c:984-990 birth records provide birth ordinal and launcher/target types, not selected launcher/target host identities or package identity. Current global counts, aim requests and birth types cannot establish the proposed exact natural cohort join.",
+      "weapon.c:1748-1780 and :2329-2360 support the separate required device/viewpoint boundary: host aim arithmetic still consumes Core package/device state, while current vector update and detachment traverse real hierarchy/world viewpoints. Task50/52 data and target points do not supply the entire hierarchy service."
+    ],
+    "clean_code_and_plan_precision": [
+      "The document is a bounded implementation direction, not invented runtime evidence. It explicitly names absent identity/correlation fields and leaves the new case, driver, controller, code freeze and launch review unimplemented.",
+      "It reuses the ea2b underreach as failed/UNREACHED evidence: no selected-target collision question, NEED_UPDATED or moving test occurred before the weapon terminal. It neither diagnoses hierarchy as the cause nor relabels the accepted extra READ proof as natural moving authority.",
+      "The first step resolves the earliest missing fact using current normal-fire/fixture/callback collaborators. It does not mandate a new hierarchy ABI, a second physics implementation, all-family coverage or another broad inventory."
+    ],
+    "boundary_safety": [
+      "Campaign engagement, package selection/fire policy, ammunition/accounting and campaign effects remain campaign responsibilities. Host-owned physical device presence and current-pose station/muzzle viewpoints remain separately required under D3G-08, subject to the declared DCS Core-ticked-unit disposition. Read-only correlation does not close that ownership requirement.",
+      "Read-only observability must forward actual calls/results unchanged and capture the values and ordering used by the real path. The plan gives no authority to set package angles, flags, target links or readiness to make the native encounter happen, nor to add a launch API.",
+      "The later two-run witness requires a fully validated healthy natural cohort first, then only the existing eligible terrain/ceiling input variation on the same target after common birth. Same-record host motion, lawful NEED_UPDATED, issued flag identity/store traffic, moving candidate and cohort terminals must join. Desired vectors, snapshots/global counters, a diagnostic READ or controlled query remain insufficient.",
+      "Malformed/reference/identity/continuation and unrelated native faults fail before clean UNREACHED. Absence of an eligible natural encounter stops before B; unchanged physical outcome is not positive authority. Existing seed, bounds and scenario remain fixed."
+    ]
+  },
+  "decision": {
+    "status": "ACCEPTED_BOUNDED_PREREQUISITE_IMPLEMENTATION_DIRECTION_ONLY",
+    "plan_accepted_at_stated_scope": true,
+    "new_runtime_code_approved": false,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "loader_removal_clearance": false,
+    "GenericNativeAcceptance1_closed": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "allowed_next_bounded_step": {
+    "purpose": "Implement read-only normal firing/readiness/package-to-actual station/muzzle-to-birth/cohort correlation at the existing fixture/public callback surfaces, before choosing a native case.",
+    "required_control": "One focused sociable actual normal firing/vector/device/detachment positive with real model and D2 collaborators, binding readiness/source/target/package, actual pose, birth and effects; matched Original absent-device/pitch/origin fallback behavior. Preserve relevant RNG/FPU/order and exact inputs/outputs without rerunning closed arithmetic matrices merely for prose.",
+    "review_boundary": "Actual implementation, affected portable controls/fmt/lint, clean immutable source/literal freeze and concrete Root materialization/controller/root/input/profile bindings require SAME changed-material and launch review before native execution. This report is not blanket approval of future code.",
+    "subsequent_natural_plan": "Healthy first at existing Lebanon seed1/frame100/declared30s warmup/120s settle bounds; no new case selected here. If healthy reach/cohort input eligibility is absent, retain evidence and stop without seed/window/actor/geometry search."
+  },
+  "preserved_limits": [
+    "No tests, builds, native campaigns, controller execution, cache access, Git/source mutation or nested delegation performed by this review; only this new external report is written.",
+    "Finite CRT acceptance965d2da8 and source/actual flag proofs retain their exact scopes; no closed proof replay or retrospective moving-failure diagnosis.",
+    "All ten D3 requirements, GenericNativeAcceptance1/blocks_cutover, natural moving, D3G-08 hierarchy/device/viewpoint responsibility, other services/consumers/DCS disposition, current full40/all8/four inputs/census/CI/formal review/normal merge remain open as applicable. Prep2 unchanged; no D4/D5/TypeScript.",
+    "Both original immutable fullpacks remain Root-owned and untouched; partial prefix equality is not completed acceptance.",
+    "No claim of a new DCS capability, animated joint support, universal absent-device behavior, all platform/FPU/lifetime authority, natural moving success or guaranteed changed physical outcome."
+  ]
+}

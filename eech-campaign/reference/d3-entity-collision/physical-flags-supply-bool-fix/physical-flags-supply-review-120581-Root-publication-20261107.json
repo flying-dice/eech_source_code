@@ -1,0 +1,25 @@
+{
+  "kind": "Root read-only immutable reviewed-characterization/lead-disposition publication proof",
+  "utc": "2026-11-07T22:42:35.969509+00:00",
+  "head": "120581ac4f14fe98be8b7bb8a524b682554234c2",
+  "parent": "4eec43115c14c9fa68d8658bac8dbe081b5c21e2",
+  "manifest_entries": 5,
+  "exact_committed_packet_coverage": true,
+  "external_literal_copies": [
+    "independent-physical-flags-supply-ae367-source-20261107.json",
+    "physical-flags-supply-4eec-publication-Root-20261107.json",
+    "physical-flags-supply-ae367-Root-binding-20261107.json",
+    "Root-supply-updated-boolean-disposition-20261107.json"
+  ],
+  "metadata_and_literal_evidence_only_delta": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-supply-reviewed/README.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-supply-reviewed/Root-supply-updated-boolean-disposition-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-supply-reviewed/independent-physical-flags-supply-ae367-source-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-supply-reviewed/manifest.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-supply-reviewed/physical-flags-supply-4eec-publication-Root-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-supply-reviewed/physical-flags-supply-ae367-Root-binding-20261107.json"
+  ],
+  "scope": "Author nowactive on newtinyfix ownsW/cache; this reader uses immutable120581 and its packet only, not currentWclean claim. Launcher asserted clean120581 atstart. Review867a7a finitecharaccepted; leadboolean-onlydecision explicit/notnewsourceacceptance; oldproofs/all10/currentfullshipping unchanged."
+}

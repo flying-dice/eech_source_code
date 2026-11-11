@@ -1,0 +1,18 @@
+{
+  "read": {
+    "Root-physical-flags-witness-feedback-20261107-2012.json": "read in full in earlier batches; not about this disposition",
+    "Root-physical-flags-witness-fix-feedback-20261107-2056.json": "read in full in an earlier batch; not about this disposition",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2148.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2150.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2154.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2201.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2205.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2215.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-physical-flags-supply-consumer-feedback-20261107-2222.json": "read in full in the characterisation batch (sdc5a)",
+    "Root-supply-boolean-fix-feedback-20261107-2242.json": "read in full in the boolean-correction batch (sb120)",
+    "Root-supply-boolean-fix-feedback-20261107-2243.json": "read in full in the boolean-correction batch (sb120)",
+    "Root-tacview-consumer-feedback-20261107-2349.json": "read in full early in this batch, before any helper edit beyond the derivation (the directory held no such file at the very start; the first listing after the family derivation found it): live authority and immutable publication verified, both original shipping jobs running; ask: publish the two new Root receipts literally in the bounded metadata packet with exact manifest entries, reconcile the tracked current-fullpack wording to running, all10 and NativeAcceptance1 remain OPEN. Done: supply-closed-packets-Root-publication-20261107.json and supply-boolean-b1b9-all9-CI-readback-20261107.json are packet literals; the card and STATUS wording is reconciled in the metadata commit",
+    "Root-tacview-consumer-feedback-20261107-2350.json": "read in full at the same time: the exact CI readback of b1b9a5d9e (all 3 workflow runs, all 9 jobs success; evidence for the prior checkpoint only; the new final commit needs its own readback, which is Root's); published as a literal with the receipt it names"
+  },
+  "note": "the whole directory is listed (never `tail -1`) at the start, before PRE, at the freeze and at the stop; the runner of this family prints every Root-tacview-consumer-feedback*.json it finds before each run."
+}

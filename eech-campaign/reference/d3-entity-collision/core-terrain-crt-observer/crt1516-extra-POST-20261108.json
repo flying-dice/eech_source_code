@@ -1,0 +1,19 @@
+{
+  "files": {
+    "eech-campaign/docs/d3-core-terrain-crt-capture-plan.md": "0616fe8dad025b43c923345b74638dcbc08aff5273a29ed40027916182068d10",
+    "eech-campaign/rustfmt.toml": "478e818c64a27dc341fffc827ee4b00c5aeef237ab8745efc9690f87ad245de9",
+    "crt1516-derive-helpers-20261108.py": "e8c4e019096955bb81cb5bcce1a246cafc491fb4543a49430ae41088fae2de59",
+    "crt1516-wire-observer-20261108.py": "8d0ccaf354e3e22287b86709a8811b215a71ea25f39f9c50f98935e9f16cc3fd",
+    "crt1516-bind-controls-20261108.py": "13c13aa79d503694768c4e849ec5fb15ad94172932e2998940047c21080882b9",
+    "run-core-crt-crt1516-direct-20261108.py": "c722372ed7891dca9217382867aba43229eec4290acd55aca3a6b3870d30ea24",
+    "check-core-crt-crt1516-linux-20261108.sh": "85a19c43c1b0720899676945237f5f37ad5d1169679305a0e4e7733a327f9a7c",
+    "run-crt1516-final-20261108.py": "ac6f5d22dbdcdedbbe39a6a01d421756b7a745b690ecf2646e8b08b239145249",
+    "crt1516-proof-20261108.py": "10f43aaf5395ff963c14649dcd22b7a8d040fcb7558ac4622c076eb28f82affb",
+    "sector-roster-inputmap-batched-20261106.py": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+    "independent-flag-boundary-disposition-1516-20261108.json": "400c7985f1833cf02a345128c8790b083a64f9fd598b67a7110c79fb6e19dd8f",
+    "flag-boundary-disposition-1516-Root-binding-20261108.json": "40592c8927bfad0c899c6165d18e32f1d6ab709e9e5cd3c40fbf5c738d087605",
+    "codex-d3-flag-supported-boundary-20261108-completion.json": "f73e3ca6119bc2bff73cf21899d7122ae4a9f75db4dec2501b92b16f15817ee7",
+    "codex-d3-core-crt-characterization-20261108-process.json": "84e14911a851e175a744dc31ba4ba1add5ad7517a24cea2acfdb15ffda5c4d2a"
+  },
+  "aggregate": "761c7285c777e69942bf7545ba2362d94d59afa2ec4d8a3bb8b308c6d02338d3"
+}

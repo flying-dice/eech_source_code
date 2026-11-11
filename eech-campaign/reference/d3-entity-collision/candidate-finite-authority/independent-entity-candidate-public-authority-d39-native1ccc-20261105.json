@@ -1,0 +1,593 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T13:23:03.423725+00:00",
+  "review": "Independent combined correctness, clean-code and boundary-safety review of the new Candidate authority witness and completed native evidence",
+  "source": {
+    "native_runtime_commit": "1ccc9e2ed86206a28b591fdfab1d4ca0192a6200",
+    "diagnostic_commit": "d39a14a95ed15280911c85e4490df683561e2d4b",
+    "metadata_commit": "41e2cdadd5f46f901e4ec77e5c268e31d7bd0d90",
+    "literal_git_blob": "0457417191de4f39973997fb5fa2e3656cde3085",
+    "literal_sha256": "473bc07c21d5dd687f778d398499ea03894bfa5af4fa6ca43ce5e85d970a1ad3",
+    "literal_bytes": 60040,
+    "compiled_shipping_inputs_unchanged_native_to_diagnostic": true,
+    "changed_paths_vs_native": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md",
+      "eech-campaign/reference/d3-entity-collision/entity-placement-correction-direct-gate-20261105.json",
+      "eech-campaign/reference/d3-entity-collision/independent-entity-candidate-correction-source-6db5-runtimefb316-20261105.json",
+      "eech-campaign/reference/d3-entity-collision/independent-entity-candidate-placement-source-9f25-runtime1ccc-20261105.json"
+    ],
+    "identity_rule": "Literal d39 diagnostic on sealed 1ccc ordinary/hosted/Original binaries; no binary is relabeled d39 or41e2. Closed source673 is reused, not rereviewed."
+  },
+  "decision": {
+    "status": "FINITE_PUBLIC_CANDIDATE_AUTHORITY_VERIFIED",
+    "findings": [],
+    "finite_public_candidate_authority_closed": true,
+    "finite_ordinary_short_conformance_closed": true,
+    "moving_candidate_native_authority_or_parity_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "witness_review": [
+    "Natural control delegates all model answers unchanged and now counts/classifies Candidate questions. Natural here means unchanged Candidate and narrowphase answers: the shared configured VIEW_WEAPON input remains globally active while armed, so this is not an uncontrolled camera/flight baseline.",
+    "candidate_real and candidate_skip hold the identical configured narrowphase-HIT response whenever a downstream question is asked. candidate_real retains real Candidate decisions; candidate_skip asks the real provider first but replaces each armed Candidate reply with a valid name-echoed skip. The physical comparison is between these paired runs, not between the skip variant and the distinct natural control.",
+    "The witness validates 44-word request grammar, scene0 naming and the seven reply states/pose shape, counts real replies separately from altered answers, and refuses zero reached Candidate questions. The native Core retains full state/identity validation. The test-only collaborator applies only the boundary rules needed by witness bookkeeping and is not represented as production C execution or a numeric oracle.",
+    "Candidate refusal modes count only their own anchored Engine-first-line marker with an actual armed alteration. Wrong-operation markers, merely quoted markers and failures without an alteration are rejected by focused controls. After poison, the witness makes no Engine reads and reports unread counters/pending membership as unknown -1.",
+    "The existing exclusive file owner, checked writes/flush/close, bounded clock/frame budget and frozen cohort/terminal checks remain. Launch/selected weapon/target identities and cohort membership were independently joined in the actual data; no selected host-ID suffix or raw identity is published here.",
+    "Original requires the actual collision fixture API and positive weapon caller/precision/view observations, but zero Candidate and narrowphase host questions. Its expected native/controller1 is capability RED, not API absence or UNREACHED, and does not prove an original narrowphase invocation count."
+  ],
+  "focused_actual_gate": {
+    "directory": "D:\\EECH-Migration-Evidence\\entity-candidate-witness-20261105-a",
+    "direct_steps": [
+      {
+        "name": "fmt_check",
+        "child_exit": 0
+      },
+      {
+        "name": "entity_authority",
+        "child_exit": 0
+      },
+      {
+        "name": "tree_authority",
+        "child_exit": 0
+      },
+      {
+        "name": "host_callbacks",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy_eech_world",
+        "child_exit": 0
+      }
+    ],
+    "container_exit": 0,
+    "entity_witness_tests": 21,
+    "unchanged_tree_witness_tests": 17,
+    "host_callback_tests": 82,
+    "log": {
+      "bytes": 18893,
+      "sha256": "0f878b056e07c231afca523c80dabe8a68ff456d5849b26a2bbc85d65c729a9a"
+    },
+    "source_receipts_literal_equal": true,
+    "source_receipt_sha256": "cef394684e3c3f201be38ecdffd47c3583045fc54fec27a9ac18ccad216fbd13",
+    "mutation_controls": {
+      "count": 5,
+      "cargo_entity_authority_exits": [
+        101,
+        101,
+        101,
+        101,
+        101
+      ],
+      "wrapper_container_exits": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restored_Lua_literal_equal": true,
+      "summary_sha256": "d4df9b517532e705d310551163798dc7ab96cc0859cfa282de1653e67dfc237d"
+    },
+    "scope": "Real Lua/scripted collaborators plus format/callback/strict gates only; native evidence below is separate."
+  },
+  "native_actuals": {
+    "healthy_plus_matrix_controls": 7,
+    "matrix_queue_exit": 0,
+    "matrix_completed_utc": "2026-11-05T13:19:30.477217+00:00",
+    "fresh_preparation_manifests": 6,
+    "fresh_preparation_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "full_pre_post_input_checks": 14,
+    "payloads_each": 88,
+    "results": [
+      {
+        "mode": "control",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_each_input_manifest": 1179,
+        "unchanged_payloads": 88,
+        "selection_launch_and_cohort_identity_joins_verified": true,
+        "raw_JSONL_bytes": 2376,
+        "raw_JSONL_sha256": "33876850558198a2c8cad870eb84c543d6d911ce19ac4d816d00e8264f094085",
+        "raw_controller_sha256": "43b8840944ab2c520a2cfdfebba9b27701e92581f41cf05d678541adfba6a3e8",
+        "observations": {
+          "candidate_before": 1499526,
+          "candidate_after": 70470,
+          "candidate_scene0": 68816,
+          "candidate_mobile": 430,
+          "candidate_skip": 35070,
+          "candidate_need_updated": 0,
+          "candidate_need_fixed": 34798,
+          "candidate_need_placement": 279,
+          "candidate_need_normal": 0,
+          "candidate_buildings": 44,
+          "candidate_test": 279,
+          "candidate_altered": 0,
+          "candidate_answered_skip": 0,
+          "entity_after": 279,
+          "stationary": 279,
+          "moving": 0,
+          "real_hit": 44,
+          "real_miss": 235,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": 6,
+          "contact_any_hits_delta": 0,
+          "precision_high_delta": 6,
+          "view_applied": 25,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "completed": true,
+          "duplicate_terminals": 0,
+          "foreign_terminals": 0,
+          "later_births": 0,
+          "failure_marker": "",
+          "fixture_api": false
+        },
+        "terminal_outcomes": [
+          {
+            "code": "hit_land",
+            "steps": 6
+          }
+        ]
+      },
+      {
+        "mode": "candidate_real",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_each_input_manifest": 1179,
+        "unchanged_payloads": 88,
+        "selection_launch_and_cohort_identity_joins_verified": true,
+        "raw_JSONL_bytes": 2503,
+        "raw_JSONL_sha256": "d5de40b3315095796501c9b47cf1e0cfde752e3035f119eb59ea0b500f646f86",
+        "raw_controller_sha256": "40d9c0e5e0f056b66ce2229c30e0a980f9d382ccf9d4fb9bd813ecdcafbd9770",
+        "observations": {
+          "candidate_before": 1499526,
+          "candidate_after": 55131,
+          "candidate_scene0": 54661,
+          "candidate_mobile": 198,
+          "candidate_skip": 27575,
+          "candidate_need_updated": 0,
+          "candidate_need_fixed": 27466,
+          "candidate_need_placement": 45,
+          "candidate_need_normal": 0,
+          "candidate_buildings": 0,
+          "candidate_test": 45,
+          "candidate_altered": 0,
+          "candidate_answered_skip": 0,
+          "entity_after": 45,
+          "stationary": 45,
+          "moving": 0,
+          "real_hit": 0,
+          "real_miss": 45,
+          "altered": 45,
+          "answered_hit": 45,
+          "answered_miss": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": 1,
+          "contact_any_hits_delta": 1,
+          "precision_high_delta": 1,
+          "view_applied": 3,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "completed": true,
+          "duplicate_terminals": 0,
+          "foreign_terminals": 0,
+          "later_births": 0,
+          "failure_marker": "",
+          "fixture_api": false
+        },
+        "terminal_outcomes": [
+          {
+            "code": "hit_target",
+            "steps": 1
+          }
+        ]
+      },
+      {
+        "mode": "candidate_skip",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_each_input_manifest": 1179,
+        "unchanged_payloads": 88,
+        "selection_launch_and_cohort_identity_joins_verified": true,
+        "raw_JSONL_bytes": 2635,
+        "raw_JSONL_sha256": "a83fe7f3e12570468202f5a290217fa355558864344a07c157b9c3496885550b",
+        "raw_controller_sha256": "c1c6e669737fa5f2c6cd2f903c2ca05a11aa94e16fa8758b8b80598a6a9b6601",
+        "observations": {
+          "candidate_before": 1499526,
+          "candidate_after": 55876,
+          "candidate_scene0": 55414,
+          "candidate_mobile": 462,
+          "candidate_skip": 289,
+          "candidate_need_updated": 0,
+          "candidate_need_fixed": 55414,
+          "candidate_need_placement": 173,
+          "candidate_need_normal": 0,
+          "candidate_buildings": 0,
+          "candidate_test": 0,
+          "candidate_altered": 55876,
+          "candidate_answered_skip": 55876,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "real_hit": 0,
+          "real_miss": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": 26,
+          "contact_any_hits_delta": 0,
+          "precision_high_delta": 46,
+          "view_applied": 145,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "completed": true,
+          "duplicate_terminals": 0,
+          "foreign_terminals": 0,
+          "later_births": 4,
+          "failure_marker": "",
+          "fixture_api": false
+        },
+        "terminal_outcomes": [
+          {
+            "code": "hit_land",
+            "steps": 6
+          }
+        ]
+      },
+      {
+        "mode": "withheld_candidate",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_each_input_manifest": 1179,
+        "unchanged_payloads": 88,
+        "selection_launch_and_cohort_identity_joins_verified": true,
+        "raw_JSONL_bytes": 2295,
+        "raw_JSONL_sha256": "07dab7882820cb9a18130eab8477a0f256782ab6f930e91e30ca989c022ae80a",
+        "raw_controller_sha256": "520b6a22cc110cfce26eeac3454e07d58ed32de1b7f8a13f5a1d5fc2edf27e26",
+        "observations": {
+          "candidate_before": 1499526,
+          "candidate_after": 1,
+          "candidate_scene0": 1,
+          "candidate_mobile": 0,
+          "candidate_skip": 0,
+          "candidate_need_updated": 0,
+          "candidate_need_fixed": 1,
+          "candidate_need_placement": 0,
+          "candidate_need_normal": 0,
+          "candidate_buildings": 0,
+          "candidate_test": 0,
+          "candidate_altered": 1,
+          "candidate_answered_skip": 0,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "real_hit": 0,
+          "real_miss": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": -1,
+          "contact_any_hits_delta": -1,
+          "precision_high_delta": -1,
+          "view_applied": 1,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "completed": false,
+          "duplicate_terminals": 0,
+          "foreign_terminals": 0,
+          "later_births": 0,
+          "failure_marker": "entity_candidate.callback",
+          "fixture_api": false
+        },
+        "terminal_outcomes": []
+      },
+      {
+        "mode": "bad_candidate_state",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_each_input_manifest": 1179,
+        "unchanged_payloads": 88,
+        "selection_launch_and_cohort_identity_joins_verified": true,
+        "raw_JSONL_bytes": 2313,
+        "raw_JSONL_sha256": "b8462d762f0aa8b1a5c218a64b452893f8f2bab9ca5edff75bf9d9f2afc1818f",
+        "raw_controller_sha256": "9b8812dbd443461c22e2cad0c09e8a145e7e3de7c699cf714828c8417890beb9",
+        "observations": {
+          "candidate_before": 1499526,
+          "candidate_after": 1,
+          "candidate_scene0": 1,
+          "candidate_mobile": 0,
+          "candidate_skip": 0,
+          "candidate_need_updated": 0,
+          "candidate_need_fixed": 1,
+          "candidate_need_placement": 0,
+          "candidate_need_normal": 0,
+          "candidate_buildings": 0,
+          "candidate_test": 0,
+          "candidate_altered": 1,
+          "candidate_answered_skip": 0,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "real_hit": 0,
+          "real_miss": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": -1,
+          "contact_any_hits_delta": -1,
+          "precision_high_delta": -1,
+          "view_applied": 1,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "completed": false,
+          "duplicate_terminals": 0,
+          "foreign_terminals": 0,
+          "later_births": 0,
+          "failure_marker": "entity_candidate.state",
+          "fixture_api": false
+        },
+        "terminal_outcomes": []
+      },
+      {
+        "mode": "bad_candidate_identity",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_each_input_manifest": 1179,
+        "unchanged_payloads": 88,
+        "selection_launch_and_cohort_identity_joins_verified": true,
+        "raw_JSONL_bytes": 2319,
+        "raw_JSONL_sha256": "4f81d2f22e1a2533eba2c8eba17376018c29cfd7aa106658087d7efcd6277ebd",
+        "raw_controller_sha256": "c9e8c3bed91b63e5e6ffd3aeee1ce0fb8d33ceeae1c50957fe5cb5d194f876f3",
+        "observations": {
+          "candidate_before": 1499526,
+          "candidate_after": 1,
+          "candidate_scene0": 1,
+          "candidate_mobile": 0,
+          "candidate_skip": 0,
+          "candidate_need_updated": 0,
+          "candidate_need_fixed": 1,
+          "candidate_need_placement": 0,
+          "candidate_need_normal": 0,
+          "candidate_buildings": 0,
+          "candidate_test": 0,
+          "candidate_altered": 1,
+          "candidate_answered_skip": 0,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "real_hit": 0,
+          "real_miss": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": -1,
+          "contact_any_hits_delta": -1,
+          "precision_high_delta": -1,
+          "view_applied": 1,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "completed": false,
+          "duplicate_terminals": 0,
+          "foreign_terminals": 0,
+          "later_births": 0,
+          "failure_marker": "entity_candidate.identity",
+          "fixture_api": false
+        },
+        "terminal_outcomes": []
+      },
+      {
+        "mode": "original-control",
+        "native_exit": 1,
+        "controller_exit": 1,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "files_each_input_manifest": 1179,
+        "unchanged_payloads": 88,
+        "selection_launch_and_cohort_identity_joins_verified": true,
+        "raw_JSONL_bytes": 2336,
+        "raw_JSONL_sha256": "29a6079e1acd158d65b136bda0bb9cd5484401c1146e63eb77dd12d6a0effaff",
+        "raw_controller_sha256": "9aef90952a29be6be7c7ad6a897425d3c1b9fd953fed52a46ac60ce9538b13b0",
+        "observations": {
+          "candidate_before": 0,
+          "candidate_after": 0,
+          "candidate_scene0": 0,
+          "candidate_mobile": 0,
+          "candidate_skip": 0,
+          "candidate_need_updated": 0,
+          "candidate_need_fixed": 0,
+          "candidate_need_placement": 0,
+          "candidate_need_normal": 0,
+          "candidate_buildings": 0,
+          "candidate_test": 0,
+          "candidate_altered": 0,
+          "candidate_answered_skip": 0,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "real_hit": 0,
+          "real_miss": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": 6,
+          "contact_any_hits_delta": 0,
+          "precision_high_delta": 6,
+          "view_applied": 25,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "completed": true,
+          "duplicate_terminals": 0,
+          "foreign_terminals": 0,
+          "later_births": 0,
+          "failure_marker": "",
+          "fixture_api": true
+        },
+        "terminal_outcomes": [
+          {
+            "code": "hit_land",
+            "steps": 6
+          }
+        ]
+      }
+    ]
+  },
+  "finite_effect_and_refusal_verification": {
+    "healthy": "70470 armed Candidate questions,279 stationary narrowphase questions,six actual weapon entity lookups; one complete case member, zero request/reply faults and no model answers altered.",
+    "paired_control": "55131 real Candidate questions and45 downstream stationary questions. The configured downstream hit is actually used: weapon entity hit delta1 and case outcome hit_target at one step.",
+    "paired_skip": "55876 Candidate answers changed to valid skips; downstream narrowphase questions0 and weapon entity hits0. One case member ends hit_land at six steps. Four later natural births are declared separately and do not enlarge the case cohort.",
+    "paired_same_configured_secondary_input_verified": true,
+    "paired_actual_physical_signature_differs": true,
+    "physical_comparison_rule": "Compare exact terminal type/code/steps/position/velocity/lifetime tuples with weapon ordinal excluded. Raw tuples stay private; this report publishes outcome codes/steps and verified booleans only.",
+    "three_named_refusals": [
+      "entity_candidate.callback",
+      "entity_candidate.state",
+      "entity_candidate.identity"
+    ],
+    "refusal_verification": "Each stops on its first altered armed Candidate question with zero downstream narrowphase questions, exact native wrapper/marker, and unread counter/pending values -1. No cleanup, restoration, campaign continuation or postfatal receiver-zero claim is made.",
+    "original": "Fixture API present, six actual entity-collision caller lookups, positive precision/view evidence and zero Candidate/narrowphase host questions; expected native/controller1. Complete case physical tuple is exactly equal to NATURAL healthy, not the configured paired control.",
+    "original_actual_physical_signature_equal_natural": true,
+    "all_native_narrowphase_moving_counts_zero": true,
+    "attribution": "All provider counts and configured VIEW are global to the armed war. Counts are questions/round trips, not distinct entities and not uniquely attributable to the case weapon."
+  },
+  "ordinary_short_and_builds": {
+    "native_source": "1ccc9e2ed86206a28b591fdfab1d4ca0192a6200",
+    "three_current_profiles_built_exit0": true,
+    "ordinary_hosted_Original_profile_seals_currently_verified": true,
+    "payloads_rehashed_each_profile": 88,
+    "ordinary_short_native_exit": 0,
+    "ordinary_short_controller_exit": 0,
+    "ordinary_short_pre_post_input_exits": [
+      0,
+      0
+    ],
+    "complete_literal_files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "complete_literal_equal": true
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "complete_literal_equal": true
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "complete_literal_equal": true
+      }
+    ],
+    "timing": {
+      "native_wall_seconds": 9.576414,
+      "previous_7ead_short_wall_seconds": 8.742922,
+      "ratio": 1.0953333450761655,
+      "qualification": "One elapsed short-run observation; concurrent build/system conditions may affect it. This is not a benchmark or a full-pack performance conclusion."
+    },
+    "scope": "Complete bounded ordinary recording with retained hours0.001 flags and all file endings; no normalization, visual/Tacview or full40/all8 claim."
+  },
+  "root_audit_binding": {
+    "path": "R:\\d3-evidence\\entity-candidate-public-authority-actual-audit-d39-native1ccc-20261105.json",
+    "bytes": 29596,
+    "sha256": "998a8ebe383ef6b8e8b89ce4ed75b29e240af590d50b5e8aa6211b28b93ec439",
+    "underlying_controller_JSONL_native_log_and_input_artifacts_rehashed": 35,
+    "hash_mismatches": 0,
+    "privacy": "Root audit retains raw physical tuples privately; it is not suitable for literal safe publication. This report is a bounded safe projection."
+  },
+  "documentation_qualification": {
+    "historical_literal_retained": true,
+    "qualification": "The unchanged top d39 comments that call radius-plus-ten/per-candidate broadphase Core-owned are stale. At runtime1ccc these decisions, classification and placement are Host-owned; sector-window/list enumeration, exclusions and backing roster/live state remain Core. Interpret the literal with this qualification and the closed source673 report.",
+    "publication_action": "Root has agreed to repeat this correction in safe README/STATUS/provider documentation while preserving the actual d39 literal and run hashes. No native rerun or baseline change is warranted for that prose correction."
+  },
+  "limits_and_next_required_work": [
+    "This closes the finite Candidate public handoff/effect/refusal increment. Native observations include staged fixed/placement/city decisions but no moving narrowphase and no armed NEED_UPDATED or NEED_NORMAL in the healthy sample. It is not exhaustive per-branch numeric parity of the whole collision query.",
+    "Enumeration/sector-window/list membership and ordering, physical roster and live-pose ownership, raw terrain/tree loaders, forest/cloud, hierarchy/device/rotor/smoke consumers, semantic host identities and complete DCS API/data mapping remain REQUIRED. No dormancy or unsupported-scope exclusion is inferred.",
+    "No new full public caller x87/MXCSR or RNG measurement is claimed. Existing component/source proofs remain at their own identities; no concrete new glue-FP blocker was found in this witness/evidence pass and no extra diagnostic programme is requested.",
+    "WholeTask49, current delivery/CI, eventual complete Task49 shipping pack and wholeD3 remain open. Root owns next required physical cutover and later full-pack validation; no repeated old sweep or separate full war per helper is required.",
+    "Closed source673, stationaryae1, TREE7ad and Task50/52 delivery/shipping results are reused without reopening or relabeling them.",
+    "The initial13:11 preflight stopped before literal/root/output writes because metadata advanced. The successful pinned attempt produced the captures above; no failed native run, restarted campaign or baseline alteration is invented from that setup-only stop."
+  ],
+  "review_operations": "Read exact new Git source, retained focused logs, sealed payloads, complete short files, controllers and private actual records; wrote this safe report only. No source edits, builds, tests, engine launches, reruns, restarts, cache/VM/process changes, nested agents or external application writes.",
+  "publication_safety": "Counts, SHA hashes, source/private path references, verified join booleans and terminal outcome codes/steps only. No retail coordinates, terminal vectors, cohort_signature strings, selected host-ID suffixes, raw geometry, model catalogue, allocation indices, pointers, recordings, transcripts, binaries or credentials."
+}

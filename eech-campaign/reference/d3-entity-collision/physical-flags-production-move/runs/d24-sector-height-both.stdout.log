@@ -1,0 +1,38 @@
+
+running 1 test
+sector height expectations made: 150
+test the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test every_file_that_writes_or_reads_the_height_is_in_the_engine_source_list ... ok
+test the_consumers_read_it_once_per_served_sector_or_before_the_hosted_movement_and_the_host_already_takes_it_as_a_fact ... ok
+test the_save_is_the_last_32_raw_bits_of_a_server_session_sector_record_and_the_sectors_are_unpacked_before_any_entity ... ok
+test the_box_top_is_the_hosts_in_every_profile_but_the_original_model_fixture_and_nine_fixed_families_can_raise_the_height ... ok
+test the_raise_is_a_fixed_entity_at_a_sector_list_link_by_position_y_plus_the_box_top_and_nothing_lowers_it ... ok
+test the_legacy_field_is_neither_read_nor_written_in_a_hosted_build_and_the_host_is_asked_at_exactly_the_getter_and_the_unpack ... ok
+test the_field_is_written_by_the_zero_fill_the_link_response_and_the_unpack_and_read_by_the_getter_and_the_pack_only ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.04s
+
+
+running 1 test
+sector height expectations made: 221
+test the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test every_file_that_writes_or_reads_the_height_is_in_the_engine_source_list ... ok
+test the_consumers_read_it_once_per_served_sector_or_before_the_hosted_movement_and_the_host_already_takes_it_as_a_fact ... ok
+test the_save_is_the_last_32_raw_bits_of_a_server_session_sector_record_and_the_sectors_are_unpacked_before_any_entity ... ok
+test the_raise_is_a_fixed_entity_at_a_sector_list_link_by_position_y_plus_the_box_top_and_nothing_lowers_it ... ok
+test the_box_top_is_the_hosts_in_every_profile_but_the_original_model_fixture_and_nine_fixed_families_can_raise_the_height ... ok
+test the_legacy_field_is_neither_read_nor_written_in_a_hosted_build_and_the_host_is_asked_at_exactly_the_getter_and_the_unpack ... ok
+test the_field_is_written_by_the_zero_fill_the_link_response_and_the_unpack_and_read_by_the_getter_and_the_pack_only ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.76s
+

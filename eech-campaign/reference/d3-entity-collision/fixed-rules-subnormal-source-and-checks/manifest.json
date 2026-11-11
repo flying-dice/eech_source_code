@@ -1,0 +1,121 @@
+{
+  "schema": "d3.task49.fixed-rules-subnormal.pack-manifest.v1",
+  "files": {
+    ".gitattributes": {
+      "size": 124,
+      "sha256": "7f7644bc8d960a176a5e50c98ab85a8e28a82472b3622eaaa8ed7cb7a5da3c25"
+    },
+    "README.md": {
+      "size": 4813,
+      "sha256": "505ced42da1753889eac800822406b69e53c422919f33ee937f3e46287e6265e"
+    },
+    "direct-records/subnormal-final-clippy-workspace.json": {
+      "size": 874,
+      "sha256": "2a3d03d4d902247a74135649e80ab8950669946dd7dc92df4c950e8b52c6ecd7"
+    },
+    "direct-records/subnormal-final-clippy-workspace.stderr.log": {
+      "size": 184,
+      "sha256": "a19fb826b9452cafcccef5531a9a228c38a4319b40a3382549515afd194e0f7d"
+    },
+    "direct-records/subnormal-final-clippy-workspace.stdout.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/subnormal-final-fmt-check.json": {
+      "size": 808,
+      "sha256": "f3c0909f3a8b46af718bf34fb92394c3f831e66689aa588ff188f8df2ae56b96"
+    },
+    "direct-records/subnormal-final-fmt-check.stderr.log": {
+      "size": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "direct-records/subnormal-final-fmt-check.stdout.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/subnormal-final-world-debug.json": {
+      "size": 937,
+      "sha256": "06a82aaeeaaf61b495a7cc3c28807ed4c1a4f3e92b3ea52818150e8eb952c675"
+    },
+    "direct-records/subnormal-final-world-debug.stderr.log": {
+      "size": 158090,
+      "sha256": "6da425787df0183d418d2e544a48c0f0be2bee17a5b7cb42fec9b99bc36d3962"
+    },
+    "direct-records/subnormal-final-world-debug.stdout.log": {
+      "size": 122914,
+      "sha256": "c966124a9fbc6c5b9bd731cef2d319432b9679b47553b359f1b6e0a8904b69fe"
+    },
+    "direct-records/subnormal-final-world-release.json": {
+      "size": 890,
+      "sha256": "c39202755171455289ab4ce8c8bd1078b667492b949978021a0741e7c426f172"
+    },
+    "direct-records/subnormal-final-world-release.stderr.log": {
+      "size": 156839,
+      "sha256": "1ae8c7bc9c388a5be825799fc6e33ec027cf42d322d8cd82efdc227899d1d59b"
+    },
+    "direct-records/subnormal-final-world-release.stdout.log": {
+      "size": 122914,
+      "sha256": "ac166964ce13768d93e57cba3056dad4e6d22889ca11c582674658c82a0463f0"
+    },
+    "direct-records/subnormal-green-roster-debug.json": {
+      "size": 959,
+      "sha256": "e41db38742a2f532756260e8ddd3f9e03ac2a458e6694873eedd411c92f7751f"
+    },
+    "direct-records/subnormal-green-roster-debug.stderr.log": {
+      "size": 308,
+      "sha256": "39c1f115295a3c36226e34ad30f351f2a556a6bb8f48460bb229195775b982fe"
+    },
+    "direct-records/subnormal-green-roster-debug.stdout.log": {
+      "size": 2021,
+      "sha256": "4cfb2efad1ae42a5d7f29782e1bb6b98be7958ea42913cea4b29b83c7d1ee587"
+    },
+    "direct-records/subnormal-pre-fmt-check-b.json": {
+      "size": 808,
+      "sha256": "cda850b0135303b1a6ed8de8cf95baeb2af40a1c47f3516525f305d845d1ea18"
+    },
+    "direct-records/subnormal-pre-fmt-check-b.stderr.log": {
+      "size": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "direct-records/subnormal-pre-fmt-check-b.stdout.log": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/subnormal-pre-fmt-check.json": {
+      "size": 808,
+      "sha256": "f293ccf03eb05722e3ac3a66c9e13cd69cda3897d91176b60ef7f3962dd17295"
+    },
+    "direct-records/subnormal-pre-fmt-check.stderr.log": {
+      "size": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "direct-records/subnormal-pre-fmt-check.stdout.log": {
+      "size": 1698,
+      "sha256": "4090b84e8a79da2210bdd3e6556a15bb452e263856e01f246fc704775e68b79d"
+    },
+    "direct-records/subnormal-red-870a-debug.json": {
+      "size": 962,
+      "sha256": "3251fbf1c20a558334efc6db0f199ce4e3905fb0f203d0a550d16742954d4cc4"
+    },
+    "direct-records/subnormal-red-870a-debug.stderr.log": {
+      "size": 384,
+      "sha256": "d42b6abd4d18f361689ef6743ad9e245e4b1542f4bf364ab4e1953eb3ede2e06"
+    },
+    "direct-records/subnormal-red-870a-debug.stdout.log": {
+      "size": 2976,
+      "sha256": "a43d7ab985e37e00b73dcb476dadc2a05b6aa034b0dfb8455a3fbdc2bdec8e47"
+    },
+    "fixed-rules-subnormal-CODE-FROZEN-20261106.json": {
+      "size": 21782,
+      "sha256": "74cb1d9c1a26d9ab757ab8435147c2cdba0511118798cf8013825d1c6c4c13d5"
+    },
+    "fixed-rules-subnormal-raw-binding-cd97e0b72-20261106.json": {
+      "size": 2171,
+      "sha256": "58a0e57eb750f69b31e8e02c4df6343ce012c2c14ef78dd6b9827ac1bbb940d3"
+    },
+    "independent-fixed-rules-correction-source-4fb81c673-20261106.json": {
+      "size": 20178,
+      "sha256": "d6b5df9fddca12305e43f44c46d7aec54ebd00734d449446b799453405983cb1"
+    }
+  }
+}

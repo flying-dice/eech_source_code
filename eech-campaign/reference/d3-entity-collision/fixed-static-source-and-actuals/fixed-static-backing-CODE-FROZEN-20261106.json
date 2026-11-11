@@ -1,0 +1,1085 @@
+{
+  "schema": 1,
+  "record": "fixed-static-backing-CODE-FROZEN",
+  "status": "UNREVIEWED CODE_FROZEN: production source for the REQUIRED fixed/static collision backing of the host's roster records; focused Linux checks only. NOT reviewed, NOT cleared for native, NO Windows/native/short/full40 run, NOT an acceptance of Task49/D3.",
+  "task": "EEDCS-49 / PR109 / Epic EEDCS-21; branch codex/d3-object-tree-collision",
+  "model": "claude-sonnet-5-5 (high), the sole fresh implementation lane; no agents, MCP, auth change, TypeScript, D4 or D5.",
+  "commits": {
+    "code_source": "95a10f8820349a9a0243035975d616b1d8447b0a",
+    "metadata": "fe46ab3ce84d3a427b8f99493ca9d87796adb310",
+    "parent": "87e9a45482c51292c7dd7d3b25157d085457b56e",
+    "metadata_over_code": "STATUS.md and docs/handover/ACTIVE-EXTRACTION.json only (git diff --name-only code..meta); no compiled or runtime input changed over the code source",
+    "pushed": "both pushed normally, no force; branch head is the metadata commit"
+  },
+  "scope_decisions": {
+    "kept_from_the_plan_and_verified": [
+      "Fixed family and registration verified from source: the entity types that call overload_fixed_functions: CITY_BUILDING, CITY, CRATER, OBJECT, PYLON, SCENIC, SEGMENT, SITE, SITE_UPDATABLE. A city is NOT held (its own position/box follow-on); the other eight are.",
+      "The host's roster Record is the owner (one property store): the Record already joins a building's sector and city-list placements by LINK and ends with the last placement."
+    ],
+    "corrected_or_not_accepted_from_the_plan": [
+      "INSERT payload NOT used: creation/child-before-sector order differs (a building lists in its city BEFORE its sector, cb_creat.c), so a separate FIXED_STATE report (phase 13) is stated at the end of both insertions and by every writer afterwards; a report for an entity that is not placed is a no-op.",
+      "The plan's claim that raw shape writes exist only in five kill_local and three static unpacks is incomplete: verified writers also include st_pack/su_pack (site/site updatable alive unpacks write the destroyed shape), sg_pack (bridge damaged shape AND a raw position.y write `pos->y = rest.landed_y`), sg_updt (per-frame falling segment `pos->y`), segment.c (repair writes shape and position.y) and su_dstry/st_dstry kills. The unknown post-insert position writers are exactly the three bridge-segment sites; no other raw position writer exists in entity/fixed.",
+      "The plan's 'stop reading Core in the fixed branches' NOT done: the original reads (MFCGSPHL, order and timing) are kept as MIRROR reads; the host decides from the record and only COMPARES the campaign's words bit for bit (a difference is a named refusal). Core never answers, repairs or initialises a record. The scene sent for the narrow phase is the campaign's mirror, verified equal to the record's shape by the same question's host join."
+    ]
+  },
+  "contract_moved": {
+    "fields_in_the_host_record": [
+      "position[3] (raw words)",
+      "heading (raw word)",
+      "shape (whole scene index)",
+      "collision_fixed flag (derived from sub type)",
+      "align flag (derived from sub type)"
+    ],
+    "ALIVE": "NOT moved: it is campaign/damage state, not a collision input; dead structures keep colliding with their destroyed shape (kill writes the shape, not a removal).",
+    "owner": "SectorRoster Record (crates/eech-world/src/roster.rs): enum FixedHold {Never, Held(FixedState), Withdrawn}; ends with the record's last placement; merged by link()/rejoin() (a state beats nothing, two different statements are refused).",
+    "campaign_side": "mb_hostplacemap.h place_fixed_state (reads the entity's own getters, keeps nothing) bound by mb_hostplace.c (place_fixed_family and place_fixed_read); the family list is guarded to equal the overload_fixed_functions census minus CITY.",
+    "wire": "ENTITY_SCAN phase 13 FIXED_STATE (0x41500000): facts position(0-2) type(3) heading(4) shape(5) collision(7) align(8) withdraw(9, host-only) phase(11), identity place = placement key; reply placed + the same key. Candidate questions of every non-mobile candidate carry the served placement key in the identity place (<=20 bytes, inside the 128 domain of ENTITY_CANDIDATE; FIXED_STATE is a non-NAME scan phase so the engine callback's 128-byte operation domain applies; NAME keeps its own 149).",
+    "decision": "entity_candidate_answer -> fixed_join (model_host.rs): classify words by integer ops FIRST (classify_candidate_words; fixed_event classifies every word before the roster is looked at), then join the key (live, kind of the branch: sector entry or city child), then per stage: flags/position/shape/heading/align compared bit for bit and the record's words substituted; Never+fixed-flag/of-city, Withdrawn, a bad key or a mirror difference refuse by name; a city is skipped by the join (its own box/position are declared follow-ons).",
+    "no_competing_store": "Mobiles keep canonical Movers untouched. D2 bridge fall/rest/kill kernels (eech_cmb_bridge) are pure functions of the words the campaign sends; no host-held bridge position exists. The campaign writes the host-decided y to Core and the funnel then states the resulting position to the record (one owner for the record's copy; D2 remains the decider of the value).",
+    "not_issued_or_adopted": "No legacy NAME is requested or issued by the join; no eager object id; no query-time Core adoption; no approximate geometry; no restore refusal; no campaign policy in the host."
+  },
+  "writer_dispositions": [
+    {
+      "writer": "creators ob/cb/py/sn/sg/st/su/cr *_creat.c (attributes through raw setters, default shape resolved BEFORE the first insertion; building: city list first, sector second)",
+      "disposition": "unplaced during construction (no-op); the insertion funnel states the state (place_insert/place_child_insert end); source-guarded (shape resolved before insert; city list before sector for buildings)"
+    },
+    {
+      "writer": "relink: fx_vec3d.c set_local_vec3d crossing a sector edge",
+      "disposition": "delete + raw write + insert: the new insertion states it under the new key (a new record)"
+    },
+    {
+      "writer": "fx_vec3d.c same-sector position write",
+      "disposition": "campaign_place_fixed_state after the write"
+    },
+    {
+      "writer": "fx_float.c heading setter (pylon.c:159 after insertion; attributes before)",
+      "disposition": "funnel after the write; no-op while unplaced"
+    },
+    {
+      "writer": "fx_int.c sub type setter (flags derive from it) and shape setter (fixed.c restore; br_msgs.c bridge damaged shape)",
+      "disposition": "funnel after each write (ALIVE states nothing)"
+    },
+    {
+      "writer": "ob/cb/py/sn/st/su _dstry.c kill_local raw destroyed shape (six)",
+      "disposition": "funnel after the raw write; entity stays placed"
+    },
+    {
+      "writer": "cb/py/sn/st/su _pack.c session alive/damaged unpack raw shape (five)",
+      "disposition": "funnel after the raw write"
+    },
+    {
+      "writer": "sg_pack.c unpack: raw position.y rest write and raw damaged shape",
+      "disposition": "funnel after each (newly found writers)"
+    },
+    {
+      "writer": "sg_updt.c falling segment pos->y (dropped/landed)",
+      "disposition": "funnel after the step's writes (newly found writer)"
+    },
+    {
+      "writer": "segment.c repair_local_segment_entity (alive, shape, position.y)",
+      "disposition": "funnel after the writes"
+    },
+    {
+      "writer": "fx_pack.c unpack_fixed_data (position, sub type, shape, heading) via ob_pack.c / cr_pack.c",
+      "disposition": "writes an UNPLACED entity; inserted afterwards (source-guarded order); the insertion states it. No other pack file calls it"
+    },
+    {
+      "writer": "set_local_entity_raw_* setters",
+      "disposition": "only en_attrs.c (creator attribute application) uses them, before insertion (source-guarded)"
+    },
+    {
+      "writer": "entity/fixed census: every assignment to shape, sub type, heading, position/height outside creators",
+      "disposition": "guarded: each is in a function that calls the funnel, or is one of the two named exemptions (unpack_fixed_data, the raw vec3d setter); city files excluded by design"
+    },
+    {
+      "writer": "anything outside entity/fixed that casts entity data to a fixed struct",
+      "disposition": "none found (grep of the whole aphavoc source)"
+    },
+    {
+      "writer": "release / boot",
+      "disposition": "release removes the placements (record ends, state ends); boot RESET clears the roster"
+    }
+  ],
+  "what_moved": "The collision state of eight fixed entity types behind the roster record; the staged candidate join; the writers' funnel; the host-only withdrawal; the driver witness and its mode.",
+  "what_remains_REQUIRED_not_hidden": [
+    "the CITY's own position and bounding box (ct_vec3d.c, popread writers): city NEED_FIXED still reads Core; declared follow-on",
+    "terrain face normal for aligned structures and the shared UPDATED getter / terrain effects",
+    "raw tree/forest/cloud loader RNG, needed hierarchy/subobjects/viewpoints/devices/muzzles/rotor/smoke, remaining services",
+    "DCS needed-only calls and the geometry workarounds; the campaign's mirror reads of the fixed fields are still Core reads (compared, not decided)",
+    "natural moving integration; independent review; the three Windows profiles; the ordinary short; native controls; current Task49 full40/all8 (the older 3475 pack stays ACTIVE/PARTIAL, untouched, never claimed passed or restarted); CI; normal merge; whole D3 final census/acceptance",
+    "boot cost: one extra host question per fixed-family insertion (two for a building) is unmeasured; Root's native actuals will show it"
+  ],
+  "all_ten_D3_requirements": "R:/d3-evidence/D3-REQUIREMENTS.json (10, all preserved; this source is ONE production slice of the fixed/static/live physical backing requirement, not its completion)",
+  "prechange_characterisation_on_parent_87e9": [
+    {
+      "label": "fixedstatic-pre-c-dialogue-guards",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:07:39.076301+00:00",
+      "completed_utc": "2026-11-06T05:07:50.835595+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 1,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 4,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 7,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "c7e5fda41fe8226e437cfd320fb5e6d579d74dde1838709a58e8123ce320067f",
+      "stderr_sha256": "a895e6ca99b1e6248cd9d9bc83134efd4cb253c9a243c0c33cdcbde4f41b1a35",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-pre-c-dialogue-guards.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-pre-c-dialogue-guards.stderr.log"
+    },
+    {
+      "label": "fixedstatic-pre-world-authority-roster",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:07:50.913042+00:00",
+      "completed_utc": "2026-11-06T05:07:53.570353+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 65,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 17,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "c06304b3a29a7f594170a7e5e7cb96eebc73e85246add23413a7071e3b90d8ed",
+      "stderr_sha256": "b1be6ea9a683e3008de2c255d4182f630366395f53e0becb6292cb32f15c5da5",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-pre-world-authority-roster.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-pre-world-authority-roster.stderr.log"
+    },
+    {
+      "label": "fixedstatic-pre-world-model-target-point",
+      "command": "cargo test --release --locked -p eech-world --test model_target_point --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:10:00.907013+00:00",
+      "completed_utc": "2026-11-06T05:10:02.358960+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 33,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "a57676c2a195a86ab2e86a4fe82cf554eec4a7ca4035a04ef49bbd101e539d6f",
+      "stderr_sha256": "33731b965a10f0a4c3a4ef0f337d20847d6e239cdf3b5f4f5132671cb967f617",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-pre-world-model-target-point.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-pre-world-model-target-point.stderr.log"
+    },
+    {
+      "label": "fixedstatic-pre-engine-callback",
+      "command": "cargo test --release --locked -p eech-engine --lib the_model_callback --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:10:02.436966+00:00",
+      "completed_utc": "2026-11-06T05:11:08.496869+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 13,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "97090148ff3ad2f99e51b593f3aafd8bb1e6d4190c015ba30fed8d7e9208a57d",
+      "stderr_sha256": "6664a00b99206da1796e833282efd8f4fa760733e18016ab5f58691f0668b6bf",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-pre-engine-callback.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-pre-engine-callback.stderr.log"
+    }
+  ],
+  "prechange_note": "Four existing groups all exit 0 on the unchanged source: C control (559 expectations per the prior frozen record; the test asserts >= 559) and guards 5/4/7; driver 65, roster host 17, candidate host 13, pose host 5; provider/model_target_point 33; engine callback 13. The characterisation (placed fixed candidate reads MFCGSPHL in order, kill/restore/heading changes reach the narrow phase scene and facts, building offers) is the first section of the new C control and passes on the old source and the new.",
+  "meaningful_RED_on_unchanged_production_with_test_only_edits": [
+    {
+      "label": "fixedstatic-red-c-dialogue",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue -- --nocapture",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T05:16:52.945461+00:00",
+      "completed_utc": "2026-11-06T05:18:03.704369+00:00",
+      "test_results_in_order": [
+        {
+          "result": "FAILED",
+          "passed": 0,
+          "failed": 1
+        }
+      ],
+      "stdout_sha256": "27bd15ead02bbe25a3f4b14436fb18c70f455bb536b6d87717a3f5ec163bb7a5",
+      "stderr_sha256": "45f0c2b47998e8a17510f14fa39c9c30450ec00b2e54438dc633cbf46831ca65",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-red-c-dialogue.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-red-c-dialogue.stderr.log"
+    },
+    {
+      "label": "fixedstatic-red-world-model-target-point",
+      "command": "cargo test --release --locked -p eech-world --test model_target_point --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T05:18:03.788551+00:00",
+      "completed_utc": "2026-11-06T05:18:07.215742+00:00",
+      "test_results_in_order": [
+        {
+          "result": "FAILED",
+          "passed": 33,
+          "failed": 6
+        }
+      ],
+      "stdout_sha256": "143d10d94950731ed0904e8e8bad12449a0fee5ea189be113b87636049956add",
+      "stderr_sha256": "d159b9ed46c4081bd457f5cd75252c16ef39aae5b6573688d591463baddc077f",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-red-world-model-target-point.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-red-world-model-target-point.stderr.log"
+    }
+  ],
+  "RED_detail": {
+    "c_control": "7 behavioural expectations failed (lines 3262, 3263, 3272, 3282, 3285, 3287, 3299 of the check: the FIXED_STATE report after an insertion, the report's words, and the placement key carried by the staged questions); every characterisation expectation of the new section passed; no compile error.",
+    "provider": "6 new tests failed (report held by the record, mirror refusal, missing/withdrawn state refusal, key kinds, malformed report, lifecycle); the first failure reads `fact 6 of an entity scan question must be a whole number within 1..16777216`, the unchanged provider treating phase 13 as no known phase; 33 existing tests passed.",
+    "not_applicable": "No RED for the pure writer funnel calls (source guards are the evidence) and none for the Rust roster unit tests (new API: would be compile errors, a setup accident)"
+  },
+  "intermediate_actual_runs_preserved_not_hidden": [
+    {
+      "label": "fixedstatic-green1-c-dialogue",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:27:53.666509+00:00",
+      "completed_utc": "2026-11-06T05:29:05.348442+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 1,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "a933709ab03f21a5fe46fa8d84821cb690386204791e2aa49791ab5de577cda2",
+      "stderr_sha256": "f3d33f44810eae2eda5d4c467561ffaea7b7d2e19d6b39aad0c0e2329570df7e",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green1-c-dialogue.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green1-c-dialogue.stderr.log"
+    },
+    {
+      "label": "fixedstatic-green1-world-lib-roster",
+      "command": "cargo test --release --locked -p eech-world --lib roster --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:29:05.438659+00:00",
+      "completed_utc": "2026-11-06T05:29:16.441584+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 10,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "42ccdeb795674df15b062468b06400762e51aaa0a7bd1e0ea1896b148f8e29cf",
+      "stderr_sha256": "ae08f16ed201841073027299f6f15d362a1958535eac80f27bd9ca7d1422228c",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green1-world-lib-roster.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green1-world-lib-roster.stderr.log"
+    },
+    {
+      "label": "fixedstatic-green1-world-model-target-point",
+      "command": "cargo test --release --locked -p eech-world --test model_target_point --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T05:29:16.528974+00:00",
+      "completed_utc": "2026-11-06T05:29:26.174761+00:00",
+      "test_results_in_order": [
+        {
+          "result": "FAILED",
+          "passed": 38,
+          "failed": 1
+        }
+      ],
+      "stdout_sha256": "f78d4021abfd280f54975ab00e961dcbda1a3041462994bad4ce24c9f31c055e",
+      "stderr_sha256": "8881e0319b4964f189a56f2c467f618b06f3f07618846701107c062b5be63b28",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green1-world-model-target-point.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green1-world-model-target-point.stderr.log"
+    },
+    {
+      "label": "fixedstatic-green2-world-authority",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test model_target_point --test entity_roster_host --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T05:34:37.856325+00:00",
+      "completed_utc": "2026-11-06T05:34:44.348827+00:00",
+      "test_results_in_order": [
+        {
+          "result": "FAILED",
+          "passed": 55,
+          "failed": 10
+        },
+        {
+          "result": "ok",
+          "passed": 17,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 39,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "88fd8a2b1809df978c0a885ece691f1896f2151c12a8a66bf644fb7d3ddfa46a",
+      "stderr_sha256": "48add9263bb09768d574f2181a4e13bc5ac0c62fd913a0df972994f9fc7b551c",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green2-world-authority.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green2-world-authority.stderr.log"
+    },
+    {
+      "label": "fixedstatic-green3-world-authority",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T05:38:00.567083+00:00",
+      "completed_utc": "2026-11-06T05:38:06.812357+00:00",
+      "test_results_in_order": [
+        {
+          "result": "FAILED",
+          "passed": 66,
+          "failed": 2
+        }
+      ],
+      "stdout_sha256": "0a5741cd276d909e4b699fbd54a3db3def7340d80523ba9a98322d7832818a6d",
+      "stderr_sha256": "bd37573d302add4d8c6e9475a34ece6fdbce1c2579353939894c7f3601ea3f53",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green3-world-authority.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green3-world-authority.stderr.log"
+    },
+    {
+      "label": "fixedstatic-green4-c-dialogue-guards",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T05:40:21.430118+00:00",
+      "completed_utc": "2026-11-06T05:40:33.857249+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 1,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 4,
+          "failed": 0
+        },
+        {
+          "result": "FAILED",
+          "passed": 9,
+          "failed": 2
+        }
+      ],
+      "stdout_sha256": "60201f69ac7663a53c731263cd4fcc5c0c8ffd0e42c05c628b584321727c99dd",
+      "stderr_sha256": "427fdd830a1e8ecd7206a642c02e56455e4eb76772cfd99e3b2e5925756392a3",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green4-c-dialogue-guards.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green4-c-dialogue-guards.stderr.log"
+    },
+    {
+      "label": "fixedstatic-green4-world",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:40:33.935750+00:00",
+      "completed_utc": "2026-11-06T05:40:40.682083+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 361,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 68,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 17,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 39,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "ee48c7cfdac98d50bf088aeac0b381fded3b0ff94d3f41a9692f11da74685039",
+      "stderr_sha256": "6f2cc9606e405bcb4713f322d4ac6415be107d0464599307b248003e32bf0d13",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green4-world.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green4-world.stderr.log"
+    },
+    {
+      "label": "fixedstatic-green5-model-target-point",
+      "command": "cargo test --release --locked -p eech-world --test model_target_point --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:43:38.692122+00:00",
+      "completed_utc": "2026-11-06T05:43:48.614793+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 41,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "0ba7ffd33cd891930fbdcd52bccef3399527055d097da5e46a8539238cd91b26",
+      "stderr_sha256": "46073a3955960250573c5518bc34479a4077fd962b5a65a1f46379321cf52424",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green5-model-target-point.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-green5-model-target-point.stderr.log"
+    },
+    {
+      "label": "fixedstatic-fmt-check1",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+      "actual_exit": 1,
+      "started_utc": "2026-11-06T05:41:24.276848+00:00",
+      "completed_utc": "2026-11-06T05:41:28.422791+00:00",
+      "test_results_in_order": [],
+      "stdout_sha256": "eb617c1110e96054e00d0aa99af0822d2dd3161fa4ce033f2258f2c96beac5d2",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-fmt-check1.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-fmt-check1.stderr.log"
+    },
+    {
+      "label": "fixedstatic-fmt-write",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:41:33.644223+00:00",
+      "completed_utc": "2026-11-06T05:41:37.384887+00:00",
+      "test_results_in_order": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-fmt-write.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-fmt-write.stderr.log"
+    },
+    {
+      "label": "fixedstatic-fmt-check2",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:41:37.479814+00:00",
+      "completed_utc": "2026-11-06T05:41:41.280237+00:00",
+      "test_results_in_order": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-fmt-check2.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-fmt-check2.stderr.log"
+    },
+    {
+      "label": "fixedstatic-fmt-write2",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:43:34.904013+00:00",
+      "completed_utc": "2026-11-06T05:43:38.595708+00:00",
+      "test_results_in_order": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-fmt-write2.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic-fmt-write2.stderr.log"
+    }
+  ],
+  "intermediate_explanations": {
+    "green1_model_target_point": "1 old test failed: the entry of a fixed candidate changed (it now names a placement); updated with the same scenarios and assertions plus a roster whose records hold the state each stage states (preserved original skip-without-model assertion). 6 new tests passed.",
+    "green2_authority": "10 driver tests failed: the scripted engine's non-mobile candidate questions carried no placement key; the fixture now names the roster key (a request grammar change, explained); the phase used as an invalid phase became 0x41600000.",
+    "green3_authority": "the 2 new driver tests failed for fixture reasons (control mode demands a mobile candidate: the paired scan_real mode is used as the city tests do; the host-side withdrawal inside ask_model needed the mode in the altering table).",
+    "green4_guards": "2 new source guards failed for guard-logic mistakes (ordering searched the first funnel; the function text contained its own `static`), corrected; no production change.",
+    "fmt_check1": "exit 1: rustfmt diffs of my new test code only; formatted with cargo fmt."
+  },
+  "final_checks_on_the_frozen_tree": [
+    {
+      "label": "fixedstatic2-final-fmt-check",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:50:29.914952+00:00",
+      "completed_utc": "2026-11-06T05:50:33.742506+00:00",
+      "test_results_in_order": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-fmt-check.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-fmt-check.stderr.log"
+    },
+    {
+      "label": "fixedstatic2-final-check",
+      "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:50:33.829630+00:00",
+      "completed_utc": "2026-11-06T05:50:39.759950+00:00",
+      "test_results_in_order": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "9e47d54f296ef3800625d987f51b0bdfc4397e80267a8341f5fa41e2235e104e",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-check.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-check.stderr.log"
+    },
+    {
+      "label": "fixedstatic2-final-c-dialogue-guards",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:50:39.849382+00:00",
+      "completed_utc": "2026-11-06T05:50:52.563769+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 1,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 4,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 11,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "5faae71532b63cb08ace3746e62da5d6b73b66565b8199f97f254dd3489a2fe8",
+      "stderr_sha256": "5e2c23b6eb99d4f4a9adfa9d53ad8c016b549de994872f0066ebf1bc1c26cb64",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-c-dialogue-guards.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-c-dialogue-guards.stderr.log"
+    },
+    {
+      "label": "fixedstatic2-final-world",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:50:52.652795+00:00",
+      "completed_utc": "2026-11-06T05:51:07.969146+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 361,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 68,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 17,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 41,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "9419050b9f6dce10eff25369e174abe786780aecac2c67c6a827970505f206d8",
+      "stderr_sha256": "21992a20592c808c3a0b99d576a2c1887b5341f4748e71b5d2b4bb12629ff349",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-world.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-world.stderr.log"
+    },
+    {
+      "label": "fixedstatic2-final-engine-callback",
+      "command": "cargo test --release --locked -p eech-engine --lib the_model_callback --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T05:51:08.066935+00:00",
+      "completed_utc": "2026-11-06T05:51:11.415555+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 13,
+          "failed": 0
+        }
+      ],
+      "stdout_sha256": "79647e4f03ce9c6c90be44cc9564e2160becc6dd3efc2c6e4fc8c0ce05eef19a",
+      "stderr_sha256": "767b09631e2ccfd7c297435ba298ee467424628e9e49c8f692fe8dc3d12218f5",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-engine-callback.stdout.log",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-engine-callback.stderr.log"
+    }
+  ],
+  "final_counts": {
+    "c_control_expectations": 597,
+    "source_guards_roster/host/pose_lifecycle": "11/5/4 (roster guard 7 + 4 new)",
+    "driver_entity_authority": 68,
+    "provider_model_target_point": 41,
+    "roster_host": 17,
+    "candidate_host": 13,
+    "pose_host": 5,
+    "eech_world_lib": 361,
+    "engine_callback_filter": 13,
+    "fmt_and_four_crate_check": "exit 0 each"
+  },
+  "test_environment": "One owner Linux cache eech-linux-d3-collision-driver-5416adb3b-20261029, image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51 via run-sector-roster-focused-direct-20261106.py (separate raw streams; actual child exit, no trailing echo); every command one explicitly scoped Cargo child; nothing pruned or restarted.",
+  "input_maps": {
+    "qfixedstatic2-20261106-inputmap-before-final": {
+      "file": "R:\\d3-evidence\\qfixedstatic2-20261106-inputmap-before-final.json",
+      "file_sha256": "f81e5716af99bc49cde1b06f6b7b4bd0edf1b8b6334b8d2d5cd6bd1b3e76c8d9",
+      "fingerprint_of_raw_sha256_map": "b8aa852cc1dac5ec4f85292ecef1af30b27740c3d9258700c29deca96c1dfc04",
+      "file_count": 3952,
+      "changed_from_head_count": 36,
+      "head_sha": "87e9a45482c51292c7dd7d3b25157d085457b56e"
+    },
+    "qfixedstatic2-20261106-inputmap-after-final": {
+      "file": "R:\\d3-evidence\\qfixedstatic2-20261106-inputmap-after-final.json",
+      "file_sha256": "f81e5716af99bc49cde1b06f6b7b4bd0edf1b8b6334b8d2d5cd6bd1b3e76c8d9",
+      "fingerprint_of_raw_sha256_map": "b8aa852cc1dac5ec4f85292ecef1af30b27740c3d9258700c29deca96c1dfc04",
+      "file_count": 3952,
+      "changed_from_head_count": 36,
+      "head_sha": "87e9a45482c51292c7dd7d3b25157d085457b56e"
+    },
+    "qfixedstatic-20261106-inputmap-before-final": {
+      "file": "R:\\d3-evidence\\qfixedstatic-20261106-inputmap-before-final.json",
+      "file_sha256": "d9247edda05dc6e7dd086f28dc2451c1d0664caabf794fd25e09bcf3869c71ba",
+      "fingerprint_of_raw_sha256_map": "ffb61513b771bb6e711fd373231b314a647392ff8b5252e6462be4d9af026aea",
+      "file_count": 3952,
+      "changed_from_head_count": 36,
+      "head_sha": "87e9a45482c51292c7dd7d3b25157d085457b56e"
+    },
+    "qfixedstatic-20261106-inputmap-after-final": {
+      "file": "R:\\d3-evidence\\qfixedstatic-20261106-inputmap-after-final.json",
+      "file_sha256": "d9247edda05dc6e7dd086f28dc2451c1d0664caabf794fd25e09bcf3869c71ba",
+      "fingerprint_of_raw_sha256_map": "ffb61513b771bb6e711fd373231b314a647392ff8b5252e6462be4d9af026aea",
+      "file_count": 3952,
+      "changed_from_head_count": 36,
+      "head_sha": "87e9a45482c51292c7dd7d3b25157d085457b56e"
+    }
+  },
+  "map_stability": "qfixedstatic2 before/after literally equal (cmp), fingerprint b8aa852c...; the earlier qfixedstatic pair (fingerprint ffb61513...) is SUPERSEDED: it predates the last two edits (the roster-before-classification reorder in fixed_event and the driver's served-placement join) and is kept only as history.",
+  "join_to_git": {
+    "changed_git_blobs_by_this_source": [
+      {
+        "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+        "parent_blob": "0f72e7187668f15b35a1d49e71f478b3911e831d",
+        "code_commit_blob": "155bde1cfd5e62f5d872e8a7da943678d8418bad",
+        "raw_working_tree_git_blob_at_map_time": "155bde1cfd5e62f5d872e8a7da943678d8418bad",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/cbuild/cb_dstry.c",
+        "parent_blob": "fa6e31c98c565f569c3c9ad13b7dfbda13757b8e",
+        "code_commit_blob": "48c08b724b1b2a2b363f9199c92f8188f7d158bf",
+        "raw_working_tree_git_blob_at_map_time": "48c08b724b1b2a2b363f9199c92f8188f7d158bf",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/cbuild/cb_pack.c",
+        "parent_blob": "50953fbd3b76337ac86d52704a6af977d3e0b51c",
+        "code_commit_blob": "bed34289eba210a11f595d7f041ec41975327a98",
+        "raw_working_tree_git_blob_at_map_time": "bed34289eba210a11f595d7f041ec41975327a98",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/fx_float.c",
+        "parent_blob": "4b5aaff15bc575b344dc656a17951fc689159e46",
+        "code_commit_blob": "6db1ecf76048e5c17c402963cf04d9217075cef5",
+        "raw_working_tree_git_blob_at_map_time": "6db1ecf76048e5c17c402963cf04d9217075cef5",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/fx_int.c",
+        "parent_blob": "6686628641d4985b01169ec6d66fa3aea6a6e8f9",
+        "code_commit_blob": "8c0b0b7cf46af69e4028d583ae5c48f204b0eac8",
+        "raw_working_tree_git_blob_at_map_time": "8c0b0b7cf46af69e4028d583ae5c48f204b0eac8",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/fx_vec3d.c",
+        "parent_blob": "c96add73fe5f316241cc91833c1ee9ad2b5b6408",
+        "code_commit_blob": "37ad1705ea433c7d7828b9fdafb18db5b34a3546",
+        "raw_working_tree_git_blob_at_map_time": "37ad1705ea433c7d7828b9fdafb18db5b34a3546",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/object/ob_dstry.c",
+        "parent_blob": "e788e2b39859347126c74268a71b61642f3fbce0",
+        "code_commit_blob": "6083010b556f750de4b98cbb0fec99502bcea5f1",
+        "raw_working_tree_git_blob_at_map_time": "6083010b556f750de4b98cbb0fec99502bcea5f1",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/pylon/py_dstry.c",
+        "parent_blob": "68a0dd93c5de5e73ce1304bdb2f09cf2840e9605",
+        "code_commit_blob": "3d682fa942452f256edf330afe0adeea900fc2b3",
+        "raw_working_tree_git_blob_at_map_time": "3d682fa942452f256edf330afe0adeea900fc2b3",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/pylon/py_pack.c",
+        "parent_blob": "af538afe524c627e39fbc83af1c4a1ef4734b1ba",
+        "code_commit_blob": "76121cb100273d2a14eb9bb3a5c8737d9cbba1fd",
+        "raw_working_tree_git_blob_at_map_time": "76121cb100273d2a14eb9bb3a5c8737d9cbba1fd",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/scenic/sn_dstry.c",
+        "parent_blob": "2eb2471958d2c610434897a3c4f02b0290636709",
+        "code_commit_blob": "b7f7a9f15f67959839a3697621718de9d611a374",
+        "raw_working_tree_git_blob_at_map_time": "b7f7a9f15f67959839a3697621718de9d611a374",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/scenic/sn_pack.c",
+        "parent_blob": "1388882f4c267bae7ae335016d0bfc14877b98e2",
+        "code_commit_blob": "74ec244fc27701ac91f0e0a906321deec941dfb7",
+        "raw_working_tree_git_blob_at_map_time": "74ec244fc27701ac91f0e0a906321deec941dfb7",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/segment/segment.c",
+        "parent_blob": "f7d4c2275820c3c8b4c2f173249da93928ec00a1",
+        "code_commit_blob": "6fff786727b2a8cb38f7cb4d70fff7ed3fd97965",
+        "raw_working_tree_git_blob_at_map_time": "6fff786727b2a8cb38f7cb4d70fff7ed3fd97965",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/segment/sg_pack.c",
+        "parent_blob": "dda617bc54bca82b9ffaf7ecfa2dc4778b9ce107",
+        "code_commit_blob": "16c61b70ea5ad0ddd8a4f054208ec18e769b43e5",
+        "raw_working_tree_git_blob_at_map_time": "16c61b70ea5ad0ddd8a4f054208ec18e769b43e5",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/segment/sg_updt.c",
+        "parent_blob": "97950be1d6593866b3f906c2bb6f2d86d490c689",
+        "code_commit_blob": "bb35c3b5c23ed03cade845cd24e71e64eefd3ba4",
+        "raw_working_tree_git_blob_at_map_time": "bb35c3b5c23ed03cade845cd24e71e64eefd3ba4",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/site/st_dstry.c",
+        "parent_blob": "aed37835474eb279ec1bd8c69ac5422bd4d7fec9",
+        "code_commit_blob": "b896b1a574bc00f6a7656e2ec300fc63fa73ca41",
+        "raw_working_tree_git_blob_at_map_time": "b896b1a574bc00f6a7656e2ec300fc63fa73ca41",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/site/st_pack.c",
+        "parent_blob": "27e1d0f3892c169445722eaa7bf9755203a569a2",
+        "code_commit_blob": "9d2cb3c8054512049bb97f9233a8a6fb432c1b01",
+        "raw_working_tree_git_blob_at_map_time": "9d2cb3c8054512049bb97f9233a8a6fb432c1b01",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/siteupdt/su_dstry.c",
+        "parent_blob": "3babb6ad730ce9ea53fd9f07237d17c9f15164d1",
+        "code_commit_blob": "ff766e982a3f848fe2e451615ae7c49b1c386137",
+        "raw_working_tree_git_blob_at_map_time": "ff766e982a3f848fe2e451615ae7c49b1c386137",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/siteupdt/su_pack.c",
+        "parent_blob": "3d53fbdadd610315b120ad0ed2f02687413f183e",
+        "code_commit_blob": "498665076d7caa8efebaa6296a9a1b7c157d75f7",
+        "raw_working_tree_git_blob_at_map_time": "498665076d7caa8efebaa6296a9a1b7c157d75f7",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+        "parent_blob": "6a0b21b81f8c0d2fd07d438717544b084115b208",
+        "code_commit_blob": "9081207e3960dbd3aed9c50ddce9b37a6ab1f321",
+        "raw_working_tree_git_blob_at_map_time": "9081207e3960dbd3aed9c50ddce9b37a6ab1f321",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+        "parent_blob": "bc56529f422b998ddacbc361b55d8788d2f87eb7",
+        "code_commit_blob": "73204a583bd96d6d2ba924cc56e21f10c548aef2",
+        "raw_working_tree_git_blob_at_map_time": "73204a583bd96d6d2ba924cc56e21f10c548aef2",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+        "parent_blob": "f0405d4c664e34e500837cd7a99b564e313f1e23",
+        "code_commit_blob": "184aefa7e2b8fc7a6e073c572814596d7306ccf6",
+        "raw_working_tree_git_blob_at_map_time": "184aefa7e2b8fc7a6e073c572814596d7306ccf6",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+        "parent_blob": "a237f163e15d6db2c2e15082741ce18897f696ba",
+        "code_commit_blob": "7fe9fae65721d90c9923d4c091454935f980220f",
+        "raw_working_tree_git_blob_at_map_time": "7fe9fae65721d90c9923d4c091454935f980220f",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplace.c",
+        "parent_blob": "8987150a5cbdd4c6bca6ff1353680f671fb159e1",
+        "code_commit_blob": "1d0eee4cff89202f2efa38da0ba7fd62cd4a3949",
+        "raw_working_tree_git_blob_at_map_time": "1d0eee4cff89202f2efa38da0ba7fd62cd4a3949",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplace.h",
+        "parent_blob": "27e7a29bf68489dad46410048140e67d9a933a42",
+        "code_commit_blob": "7fd0ee22a541742f4ca657d3985195f1c380581a",
+        "raw_working_tree_git_blob_at_map_time": "7fd0ee22a541742f4ca657d3985195f1c380581a",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+        "parent_blob": "365860ef215f1e5bf43e160b65a7a3adc844259a",
+        "code_commit_blob": "9c3af76940cb3a77ca9145455533f31426483b3f",
+        "raw_working_tree_git_blob_at_map_time": "9c3af76940cb3a77ca9145455533f31426483b3f",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+        "parent_blob": "284dad427449923a0394257f3bc73e346c7c3b7f",
+        "code_commit_blob": "55c76d89a73ca97868b1ecb82f6ec868289c63c5",
+        "raw_working_tree_git_blob_at_map_time": "55c76d89a73ca97868b1ecb82f6ec868289c63c5",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+        "parent_blob": "2f0b0b351195bd687e65c3aa4a76a7f23e42d307",
+        "code_commit_blob": "dfcd64a16787cb2d1c9b1082ab9ec64de5c63875",
+        "raw_working_tree_git_blob_at_map_time": "dfcd64a16787cb2d1c9b1082ab9ec64de5c63875",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+        "parent_blob": "4462093c0c416a162558a80cc6bd32e242d6b7b9",
+        "code_commit_blob": "0773112c281fb6056ce99dee3569238a182c4325",
+        "raw_working_tree_git_blob_at_map_time": "0773112c281fb6056ce99dee3569238a182c4325",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "parent_blob": "2da488f4e3400bb6c2de0877e662759cfe968115",
+        "code_commit_blob": "4c0fe00059d0601468490ba8e297f0b86c806dc7",
+        "raw_working_tree_git_blob_at_map_time": "4c0fe00059d0601468490ba8e297f0b86c806dc7",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "parent_blob": "2d5a3f052c64c4c390ae37d863dc99de63ac3012",
+        "code_commit_blob": "48536c180f1738753e25daed56d6cb5481f8490d",
+        "raw_working_tree_git_blob_at_map_time": "48536c180f1738753e25daed56d6cb5481f8490d",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/roster.rs",
+        "parent_blob": "2fe3111ca676facabea71ea71ba46f678ff2588c",
+        "code_commit_blob": "132f640b28d11aa21384ac993dcec0c9cc5e1d33",
+        "raw_working_tree_git_blob_at_map_time": "132f640b28d11aa21384ac993dcec0c9cc5e1d33",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "parent_blob": "8a5c937c1dad863ffd48a0f6e795c0711a1e1c1a",
+        "code_commit_blob": "9cc3b012450dd977b2db31aaa80fcda27e96373e",
+        "raw_working_tree_git_blob_at_map_time": "9cc3b012450dd977b2db31aaa80fcda27e96373e",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+        "parent_blob": "51b907410dbeae630d4abb84e0a43c99aa6afdd9",
+        "code_commit_blob": "a8b090aec4273d6decebaf87c6f48172f80dde1f",
+        "raw_working_tree_git_blob_at_map_time": "a8b090aec4273d6decebaf87c6f48172f80dde1f",
+        "raw_equals_committed_blob": true,
+        "git_filter_would_rewrite_identity": true,
+        "changed_by_this_source": true
+      }
+    ],
+    "changed_count": 33,
+    "raw_vs_filter_qualifications": {
+      "unchanged_files_whose_raw_bytes_differ_from_their_committed_blob_but_the_git_filter_identity_is_unchanged": [
+        {
+          "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+          "parent_blob": "41780e08e6f192c4f90d27052f61beadf5a8ae40",
+          "code_commit_blob": "41780e08e6f192c4f90d27052f61beadf5a8ae40",
+          "raw_working_tree_git_blob_at_map_time": "41780e08e6f192c4f90d27052f61beadf5a8ae40",
+          "raw_equals_committed_blob": true,
+          "git_filter_would_rewrite_identity": false,
+          "changed_by_this_source": false
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+          "parent_blob": "ec7dd360f70821a2213efe82db9f93ad46f20ee0",
+          "code_commit_blob": "ec7dd360f70821a2213efe82db9f93ad46f20ee0",
+          "raw_working_tree_git_blob_at_map_time": "ec7dd360f70821a2213efe82db9f93ad46f20ee0",
+          "raw_equals_committed_blob": true,
+          "git_filter_would_rewrite_identity": false,
+          "changed_by_this_source": false
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+          "parent_blob": "fb767e110002096f637c48c4e65d48ff5c6168fc",
+          "code_commit_blob": "fb767e110002096f637c48c4e65d48ff5c6168fc",
+          "raw_working_tree_git_blob_at_map_time": "fb767e110002096f637c48c4e65d48ff5c6168fc",
+          "raw_equals_committed_blob": true,
+          "git_filter_would_rewrite_identity": false,
+          "changed_by_this_source": false
+        }
+      ],
+      "all_files_in_the_map_whose_raw_and_git_filtered_identity_disagree": [
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ],
+      "meaning": "Those are the pre-existing raw-vs-filter qualifications of the selected input set (seven files, three of them listed as changed-from-head only because the raw working-tree bytes differ from the blob; their committed blobs are unchanged). The 33 changed files are LF text whose raw git blob equals the committed blob."
+    },
+    "git_status_after_commit": "clean"
+  },
+  "ONE_distinguishing_native_control_plan": {
+    "name": "withdrawn_fixed_state (entity-authority.lua, existing real public host Lua -> module -> provider route and driver guards; no separate witness source)",
+    "not_run": "NOT run by this lane; Root runs it only after the SAME independent review and the Windows profiles. Roots prepared by Root: fixed-static-native-roots-20261106/{short,healthy,withdrawn-fixed-state}.",
+    "healthy_match": "the same hosted binary and scenario with --arg=mode=control --arg=profile=hosted: the report row must show fixed_stated >= 1, candidate_keyed >= 1 and fixed_joined >= 1 (a real eligible canonical lookup answered by the real provider) with request_faults 0 / reply_faults 0. The natural control's verdict does not require fixed_joined (reported only); an absent prerequisite is the negative's UNREACHED.",
+    "negative": "--arg=mode=withdrawn_fixed_state: at the first ACTUAL staged question of a non-mobile candidate whose key the provider acknowledged a FIXED_STATE for, whose join needed the state (building under a city, or an ordinary fixed candidate with fixed facts read, the collision-fixed mirror set, not a city nor a direct city building) and whose REAL answer is need_placement, BEFORE that answer is handed on the host calls the SAME provider's FIXED_STATE question with the host-only withdrawal word for that placement's key (answer `removed`): only the record's fixed state goes; the placement, Core, the current question and its real reply are unchanged and delegated once. The campaign's next question of the same candidate (placement stage, same key) is then refused by the real provider: [model-provider:entity_candidate.refused] [candidate.fixed] the host withdrew the fixed physical state of this placement.",
+    "credit_conditions": "fixed_joined >= 1 (the healthy lookup preceded the negative in the same run), fixed_withdrawn == 1 (acknowledged removed), fixed_withdrawn_next == placement (same key, placement_given), failure line contains [candidate.fixed] and `withdrew`, request_faults 0 and reply_faults 1 with first_fault `candidate reply: result refused`, no answer or request altered (altered/candidate_altered/scan_altered 0), nothing asked after the fatal, the placement still standing (no roster remove).",
+    "unreached": "UNREACHED (never a pass) when no staged question of a held fixed placement was answered need_placement; no actor, time or geometry search; an engine stop elsewhere is UNREACHED or a named failure, not credit.",
+    "old_core_backed_path": "cannot establish this: it never asks the host for fixed state (no FIXED_STATE, no key) so the control is UNREACHED/absent against it.",
+    "driver_counters": "fixed_before/fixed_after (lifetime before the launch vs the armed window), fixed_total, fixed_stated, fixed_held_lifetime (keys held at the end, both windows), fixed_joined (armed, answered over a held state), candidate_keyed/unkeyed (a keyless non-mobile question and a key that is not the entry the host last served are request faults).",
+    "driver_tests": "entity_authority.rs: healthy paired control counts the reports apart and the three staged questions; withdrawn mode credited exactly; UNREACHED for no need_placement / no held state / engine stop before; request faults (unkeyed, not-last-served key, stray fact, withdraw word, no/bad key) and reply faults (other key echo, other state) never a pass. Limitation: the scripted candidate states a withdrawn state's refusal in the provider's own words reading the REAL roster (the real provider's refusal text is pinned in model_target_point.rs); the native run asks the real provider."
+  },
+  "limitations_and_unavailable": [
+    "UNAVAILABLE: Windows builds, ordinary short comparison, native healthy/withdrawn runs, retail geometry; therefore no claim about native boot cost, a missed writer at runtime or byte-identical recordings. A missed writer would surface as a named mirror refusal at the first scan hitting that candidate (not a silent divergence).",
+    "REPORTED not reproduced: none relied on. INFERRED from source: the writer census (guarded) and that no code outside entity/fixed casts to the fixed structs.",
+    "The new report domain also validates position y and heading finiteness at insertion (INSERT validated only x and z): a structure with a non-finite or >1e9 y would now stop the engine at its insertion instead of at its first candidate question.",
+    "Windows COFF audit: two new public place wrappers (campaign_place_fixed_state, campaign_place_key) in mb_hostplace.h; derive ALL wrappers from the actual header."
+  ],
+  "open_gates_kept_explicit": [
+    "independent SAME-reviewer review of this exact material (gate text prepared by Root)",
+    "three Windows profiles",
+    "ordinary short byte comparison",
+    "healthy + withdrawn native",
+    "current full40/all8",
+    "CI",
+    "final review",
+    "normal merge",
+    "whole D3 / Task49 acceptance",
+    "D4/D5/TypeScript unstarted",
+    "accepted baselines, inputs, tolerances and configuration unchanged"
+  ],
+  "next_bounded_action": "Root: the SAME independent reviewer reviews this exact frozen material once; then immutable source/maps/selected gates, the three Windows profiles, the ordinary short plus the healthy and the one withdrawn-fixed-state native run. Next production dependency after clearance: the city's own position/box.",
+  "superseded_first_final_chain": {
+    "note": "An earlier complete chain (all exit 0, same counts) ran BEFORE the last two source edits (fixed_event classifies every word before it looks at the roster; the driver joins a non-mobile candidate to the placement the host last served, with a new driver test). Kept as history; the checks and maps of this record are the fixedstatic2 chain on the committed bytes.",
+    "runs": [
+      {
+        "label": "fixedstatic-final-fmt-check",
+        "actual_exit": 0,
+        "stdout": "R:/d3-evidence/sector-roster-direct-fixedstatic-final-fmt-check.stdout.log"
+      },
+      {
+        "label": "fixedstatic-final-check",
+        "actual_exit": 0,
+        "stdout": "R:/d3-evidence/sector-roster-direct-fixedstatic-final-check.stdout.log"
+      },
+      {
+        "label": "fixedstatic-final-c-dialogue-guards",
+        "actual_exit": 0,
+        "stdout": "R:/d3-evidence/sector-roster-direct-fixedstatic-final-c-dialogue-guards.stdout.log"
+      },
+      {
+        "label": "fixedstatic-final-world",
+        "actual_exit": 0,
+        "stdout": "R:/d3-evidence/sector-roster-direct-fixedstatic-final-world.stdout.log"
+      },
+      {
+        "label": "fixedstatic-final-engine-callback",
+        "actual_exit": 0,
+        "stdout": "R:/d3-evidence/sector-roster-direct-fixedstatic-final-engine-callback.stdout.log"
+      }
+    ]
+  }
+}

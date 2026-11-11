@@ -65,3 +65,13 @@ older heading once said "current". A fresh context reads the active card, that s
 and the runtime checkpoint, and opens an older entry only for the evidence of the next
 unmet gate. When the state changes, replace the top summary and demote it to history
 instead of adding a second "current" heading.
+
+Before each new batch, inspect ALL open card findings and run the guard with the
+actual intended action (`characterize`, `production-cutover`, or `deliver`). A
+successful generic `validate`/`check` does not establish cutover eligibility. A
+finite slice's success cannot close an earlier whole-run regression finding or
+silently override `blocks_cutover`; a next-action shorthand never outranks that
+gate. Bounded characterization may continue within the two-batch limit while an
+existing run progresses. Preserve the original failure and require actual complete
+corrected evidence/review to close its finding; final-current delivery regression
+remains a separate requirement.

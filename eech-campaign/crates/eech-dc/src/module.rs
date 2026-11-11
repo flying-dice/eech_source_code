@@ -1,15 +1,15 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, EnvProvider, EnvReply,
-    EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor,
-    ModelAnimation, ModelAnswer, ModelObject, ModelObjectFacts, ModelOrder, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode, ModelScene,
-    ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side,
-    SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures, EECH_ENV_AMBIENT,
-    EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD,
-    EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_ROTOR_SOUND, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE,
-    EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_ROTOR_ACTIONS, EECH_ROTOR_CHANNELS,
-    EECH_ROTOR_PLAYER_AI, EECH_ROTOR_PLAYER_LOCAL, EECH_ROTOR_PLAYER_REMOTE, EECH_SOUND_SAMPLES,
+    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, CandidateDecision, Engine, EngineConfig, EngineError,
+    EnvProvider, EnvReply, EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor,
+    MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject, ModelObjectFacts, ModelOrder, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode,
+    ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, PoseClass, ScanDecision, SenseMessage, SenseReason, SenseReply,
+    SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, TreeEnd, TreeStep,
+    VehiclePose, WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM,
+    EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_ROTOR_SOUND, EECH_ENV_SOUND_LIFETIME_INIT,
+    EECH_ENV_SOUND_LIFETIME_UPDATE, EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_ROTOR_ACTIONS,
+    EECH_ROTOR_CHANNELS, EECH_ROTOR_PLAYER_AI, EECH_ROTOR_PLAYER_LOCAL, EECH_ROTOR_PLAYER_REMOTE, EECH_SOUND_SAMPLES,
 };
 use eech_engine::{SoundBackendProvider, SoundBackendReply, SoundBackendRequest, SOUND_BACKEND_PHASE_INITIALISE};
 use eech_engine::{SoundCatalogueEntry, SoundCatalogueProvider, SoundCatalogueReply, SoundCatalogueRequest};
@@ -536,6 +536,49 @@ return function (op, winter, hint, min_x, min_z, max_x, max_z, x, y, z, bx, by, 
 end
 "#;
 
+/// The tree segment operations of the same provider (EEDCS-49, D3): `tree_begin` (get_line_of_sight_collision_tree) and `tree_terrain`, the campaign's answer to the elevation the host asked for.
+/// The campaign hands the provider
+///
+///   { op = "tree_begin", winter, old = "0x..,0x..,0x..", new = "...", point = "...", normal = "...", ignore_forest_edge_trees = boolean, skip_tree_top_test = boolean }
+///   { op = "tree_terrain", winter, elevation = "0x.." }
+///
+/// Every float is its 32-bit PATTERN as `0x` and eight hexadecimal digits (three comma separated for a position): the caller's own point and normal buffers may hold anything (a signed
+/// zero, a NaN) and a miss gives them back as the original leaves them, so no number is converted anywhere on the way, and Lua never sees a float it could round or normalise. It reads back
+///
+///   { state = "need_terrain", end = "old" | "new", x = "0x..", z = "0x.." }   the host needs the campaign's terrain elevation at (x, z) for that end of the segment
+///   { state = "done", hit = boolean, point = "0x..,0x..,0x..", normal = "0x..,0x..,0x.." }   the final intercept point and face normal, as the original leaves them
+///
+/// The shape is checked here, before anything reaches the engine. Markers: `<op>.callback` (the provider raised) and `<op>.answer` (not a table, or a field of the wrong shape).
+const TREE_BRIDGE: &str = r#"
+local provider = ...
+local function word (v) return type (v) == 'string' and string.find (v, '^0x%x%x%x%x%x%x%x%x$') ~= nil end
+local function triple (v) return type (v) == 'string' and string.find (v, '^0x%x%x%x%x%x%x%x%x,0x%x%x%x%x%x%x%x%x,0x%x%x%x%x%x%x%x%x$') ~= nil end
+return function (op, winter, old, new, point, normal, ignore, skip, elevation)
+	local request = { op = op, winter = winter }
+	if op == 'tree_begin' then
+		request.old, request.new, request.point, request.normal = old, new, point, normal
+		request.ignore_forest_edge_trees, request.skip_tree_top_test = ignore, skip
+	else
+		request.elevation = elevation
+	end
+	local ok, answer = pcall (provider, request)
+	if not ok then return op .. '.callback', tostring (answer) end
+	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
+	local state = answer.state
+	if state == 'need_terrain' then
+		local e = answer['end']
+		if e ~= 'old' and e ~= 'new' then return op .. '.answer', 'end must be old or new' end
+		if not word (answer.x) or not word (answer.z) then return op .. '.answer', 'x and z must each be 0x and eight hexadecimal digits' end
+		return nil, 'need_terrain ' .. e .. ' ' .. answer.x .. ' ' .. answer.z
+	elseif state == 'done' then
+		if type (answer.hit) ~= 'boolean' then return op .. '.answer', 'hit must be a boolean' end
+		if not triple (answer.point) or not triple (answer.normal) then return op .. '.answer', 'point and normal must each be three words, 0x and eight hexadecimal digits, comma separated' end
+		return nil, 'done ' .. (answer.hit and '1' or '0') .. ' ' .. answer.point .. ' ' .. answer.normal
+	end
+	return op .. '.answer', 'state must be need_terrain or done, got ' .. tostring (state)
+end
+"#;
+
 /// The number of EECH terrain types the provider's `type` is checked against (`TERRAIN_TYPE_LAST`), and the longest hint, mirrored from the C side.
 const TERRAIN_TYPE_COUNT: i64 = 62;
 const TERRAIN_HINT_MAX: i64 = 127;
@@ -545,12 +588,99 @@ fn terrain_provider(lua: &Lua, function: LuaFunction) -> LuaResult<TerrainProvid
     let build: LuaFunction = lua.load(TERRAIN_BRIDGE).set_name("eech terrain bridge").into_function()?;
     let bridge: LuaFunction = build.call((function.clone(), TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
     let ground_build: LuaFunction = lua.load(GROUND_BRIDGE).set_name("eech ground bridge").into_function()?;
-    let ground: LuaFunction = ground_build.call((function, TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
+    let ground: LuaFunction = ground_build.call((function.clone(), TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
+    let tree_build: LuaFunction = lua.load(TREE_BRIDGE).set_name("eech tree bridge").into_function()?;
+    let tree: LuaFunction = tree_build.call(function)?;
     let lua = lua.clone();
     Ok(Box::new(move |query| match query {
         TerrainQuery::GroundAbove { .. } | TerrainQuery::GroundBelow { .. } | TerrainQuery::GroundImpact { .. } => call_ground(&ground, query),
+        TerrainQuery::TreeBegin { .. } | TerrainQuery::TreeTerrain { .. } => call_tree(&tree, query),
         query => call_terrain(&lua, &bridge, query),
     }))
+}
+
+/// A float pattern as the provider receives it: `0x` and eight hexadecimal digits.
+fn tree_word_text(word: u32) -> String {
+    format!("0x{word:08x}")
+}
+
+fn tree_words_text(words: &[u32; 3]) -> String {
+    format!("{},{},{}", tree_word_text(words[0]), tree_word_text(words[1]), tree_word_text(words[2]))
+}
+
+fn tree_word(token: &str, marker: &str) -> Result<u32, String> {
+    token
+        .strip_prefix("0x")
+        .filter(|digits| digits.len() == 8)
+        .and_then(|digits| u32::from_str_radix(digits, 16).ok())
+        .ok_or_else(|| format!("[terrain-provider:{marker}] the tree bridge returned a word that is not 0x and eight hexadecimal digits"))
+}
+
+fn tree_words(text: &str, marker: &str) -> Result<[u32; 3], String> {
+    let parts: Vec<&str> = text.split(',').collect();
+    match parts[..] {
+        [x, y, z] => Ok([tree_word(x, marker)?, tree_word(y, marker)?, tree_word(z, marker)?]),
+        _ => Err(format!(
+            "[terrain-provider:{marker}] the tree bridge returned a position that is not three words"
+        )),
+    }
+}
+
+/// The tree questions (EEDCS-49, D3) through the tree bridge: patterns in, patterns out.
+fn call_tree(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswer, String> {
+    let (op, winter, old, new, point, normal, ignore, skip, elevation) = match &query {
+        TerrainQuery::TreeBegin {
+            old,
+            new,
+            point,
+            normal,
+            ignore_forest_edge_trees,
+            skip_tree_top_test,
+            winter,
+        } => (
+            "tree_begin",
+            *winter,
+            Some(tree_words_text(old)),
+            Some(tree_words_text(new)),
+            Some(tree_words_text(point)),
+            Some(tree_words_text(normal)),
+            Some(*ignore_forest_edge_trees),
+            Some(*skip_tree_top_test),
+            None,
+        ),
+        TerrainQuery::TreeTerrain { elevation, winter } => ("tree_terrain", *winter, None, None, None, None, None, None, Some(tree_word_text(*elevation))),
+        _ => return Err("[terrain-provider:tree.callback] a non-tree question reached the tree bridge".to_string()),
+    };
+    let (marker, text): (Option<String>, Option<String>) = bridge
+        .call((op, winter, old, new, point, normal, ignore, skip, elevation))
+        .map_err(|error| format!("[terrain-provider:{op}.callback] {error}"))?;
+    if let Some(marker) = marker {
+        return Err(format!("[terrain-provider:{marker}] {}", text.unwrap_or_default()));
+    }
+    let text = text.ok_or_else(|| format!("[terrain-provider:{op}.answer] the tree bridge returned nothing"))?;
+    let marker = format!("{op}.answer");
+    let parts: Vec<&str> = text.split(' ').collect();
+    match parts[..] {
+        ["need_terrain", end, x, z] => Ok(TerrainAnswer::Tree(TreeStep::NeedTerrain {
+            end: match end {
+                "old" => TreeEnd::Old,
+                "new" => TreeEnd::New,
+                _ => return Err(format!("[terrain-provider:{marker}] the tree bridge returned an unknown end")),
+            },
+            x: tree_word(x, &marker)?,
+            z: tree_word(z, &marker)?,
+        })),
+        ["done", hit, point, normal] => Ok(TerrainAnswer::Tree(TreeStep::Done {
+            hit: match hit {
+                "0" => false,
+                "1" => true,
+                _ => return Err(format!("[terrain-provider:{marker}] the tree bridge returned a hit that is neither 0 nor 1")),
+            },
+            point: tree_words(point, &marker)?,
+            normal: tree_words(normal, &marker)?,
+        })),
+        _ => Err(format!("[terrain-provider:{marker}] the tree bridge returned an answer of an unknown shape")),
+    }
 }
 
 /// The `N` numbers of an answer's text as the nearest `f32`s; a malformed text is a refusal under `marker`.
@@ -625,6 +755,10 @@ fn call_terrain(lua: &Lua, bridge: &LuaFunction, query: TerrainQuery) -> Result<
         // the ground questions go to the ground bridge (`terrain_provider`), never here
         TerrainQuery::GroundAbove { .. } | TerrainQuery::GroundBelow { .. } | TerrainQuery::GroundImpact { .. } => {
             return Err("[terrain-provider:point.callback] a ground question reached the point bridge".to_string())
+        }
+        // and the tree questions to the tree bridge
+        TerrainQuery::TreeBegin { .. } | TerrainQuery::TreeTerrain { .. } => {
+            return Err("[terrain-provider:point.callback] a tree question reached the point bridge".to_string())
         }
     };
     let (marker, text, kind, hint_out, stored): BridgeAnswer = bridge
@@ -3039,6 +3173,39 @@ impl LuaUserData for LuaEngine {
                 .map_err(lua_error)?;
             los_trace_table(lua, &trace)
         });
+        // TEST-ONLY (feature `collision-fixture`, EEDCS-49): the probe of the original object and tree collision queries against the loaded world; not part of the shipping
+        // module. It needs no host callbacks: neither query asks one. The seed is a whole number; the case counts are checked again by the engine wrapper. The engine refuses it
+        // unless every floating-point exception is masked (x87 and SSE), which it only reads.
+        //
+        // The arguments are converted HERE, from the raw argument list, with the same conversions the typed tuple (u32, i32, i32) used (`FromLuaMulti`), so that a conversion refusal is
+        // inside the method: a probe that was entered consumes any arming of the controlled geometry witness (`collision_geometry_arm`) whatever refuses it, and the next probe is
+        // never unexpectedly controlled. Nothing is borrowed across the conversion (it can run Lua metamethods); the engine call clears the arming itself on its own refusals.
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_probe", |lua, this, arguments: mlua::MultiValue| {
+            let result: mlua::Result<String> = (|| {
+                let (seed, entity_cases, tree_cases): (u32, i32, i32) = mlua::FromLuaMulti::from_lua_multi(arguments, lua)?;
+                this.engine.collision_probe(seed, entity_cases, tree_cases).map_err(lua_error)
+            })();
+            if result.is_err() {
+                let _ = this.engine.collision_geometry_arm(false);
+            }
+            result
+        });
+        // TEST-ONLY (feature `collision-fixture`, EEDCS-49): the optional private tree-query transcript of the collision probe (arm, then read the state and facts or a chunk of records);
+        // not part of the shipping module.
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_trace_arm", |_, this, on: bool| {
+            this.engine.collision_trace_arm(on).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `collision-fixture`, EEDCS-49): arms the controlled forest geometry witness for the NEXT collision_probe only (consumed by it); not part of the shipping module.
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_geometry_arm", |_, this, on: bool| {
+            this.engine.collision_geometry_arm(on).map_err(lua_error)
+        });
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_trace_read", |_, this, (kind, offset, count): (i32, i32, i32)| {
+            this.engine.collision_trace_read(kind, offset, count).map_err(lua_error)
+        });
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace", |_, this, ()| this.engine.aim_trace().map_err(lua_error));
@@ -3353,6 +3520,18 @@ impl LuaUserData for LuaEngine {
         methods.add_method("wpn_case_kind", |_, this, host_id: String| {
             this.engine.wpn_case_kind(&host_id).map_err(lua_error)
         });
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3): the controlled moving entity query case (latch three finite segments about one routed vehicle, then ask the production entity
+        // query for them); not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_moving_query_prepare", |_, this, host_id: String| {
+            this.engine.wpn_moving_query_prepare(&host_id).map_err(lua_error)
+        });
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_moving_query_run", |_, this, ()| this.engine.wpn_moving_query_run().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): drives one real bound city through the campaign's shared drain, empty relink and restore, relist services with the
+        // production entity query before and after; terminal, never followed by a physical run; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_city_lifecycle", |_, this, ()| this.engine.wpn_city_lifecycle().map_err(lua_error));
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): one physical launch attempt through the campaign's own launch call, given the same complete host callbacks as a frame; not
         // part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
@@ -3443,11 +3622,37 @@ impl LuaUserData for LuaEngine {
         methods.add_method("ground_probe", |_, this, (seed, points, impacts): (u32, i32, i32)| {
             this.engine.ground_probe(seed, points, impacts).map_err(lua_error)
         });
+        // TEST-ONLY (feature `sector-height-observer`, EEDCS-49 D3): the read-only report of the sector tallest-structure observer; not part of the shipping module.
+        #[cfg(feature = "sector-height-observer")]
+        methods.add_method("sector_height_summary", |_, this, ()| this.engine.sector_height_summary().map_err(lua_error));
+        #[cfg(feature = "sector-height-observer")]
+        methods.add_method("sector_height_event", |_, this, index: i32| {
+            this.engine.sector_height_event(index).map_err(lua_error)
+        });
+        #[cfg(feature = "sector-height-observer")]
+        methods.add_method("sector_height_clearance", |_, this, index: i32| {
+            this.engine.sector_height_clearance(index).map_err(lua_error)
+        });
+        #[cfg(feature = "sector-height-observer")]
+        methods.add_method("sector_height_scan", |_, this, index: i32| {
+            this.engine.sector_height_scan(index).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `sector-height-witness`, EEDCS-49 D3, ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1): the campaign's own server-session save of the live session (the original store_session); the name is checked
+        // before the engine is entered, and nothing is overwritten, rotated or deleted. Not part of the shipping module.
+        #[cfg(feature = "sector-height-witness")]
+        methods.add_method("sector_height_witness_save", |_, this, name: String| {
+            this.engine.sector_height_witness_save(&name).map_err(lua_error)
+        });
         // TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): what the ORIGINAL airfield route parser read and produced during the campaign load; not part of the shipping module.
         #[cfg(feature = "route-fixture")]
         methods.add_method("route_summary", |_, this, ()| this.engine.route_summary().map_err(lua_error));
         #[cfg(feature = "route-fixture")]
         methods.add_method("route_call", |_, this, index: i32| this.engine.route_call(index).map_err(lua_error));
+        // TEST-ONLY Core CRT observer, not a shipping capability.
+        #[cfg(feature = "core-terrain-crt-observer")]
+        methods.add_method("core_terrain_crt_summary", |_, this, ()| {
+            this.engine.core_terrain_crt_summary().map_err(lua_error)
+        });
         // TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): what the ORIGINAL target-point query, its callers and the boot census of the offset table did; not part of the shipping module.
         #[cfg(feature = "target-point-fixture")]
         methods.add_method("target_point_summary", |_, this, ()| this.engine.target_point_summary().map_err(lua_error));
@@ -3693,6 +3898,51 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///   "target_point_fixed"  a shape index (never 0) and, in the sixth place, three bit patterns (the entity position the original copied) and, only when the cached host offset has a horizontal
 ///                 part, a fourth (the heading). Returns `{ result = "fixed", p = {three}, name = text }` or `{ result = "refused", reason }` (a heading needed and not given is a refusal).
 ///
+///   "entity_collision"  a scene index (never 0) and, in the sixth place (the text), 18 (a STATIONARY candidate) or 22 (a MOVING one) comma-separated bit patterns: the segment's old end (3)
+///                 and new end (3), then the candidate's position (3) and attitude (9, row-major), or its old position (3), new position (3), attitude (9) and speed (1). The caller's
+///                 intercept point and normal are OUTPUTS of the original and do not cross. Returns `{ result = "hit" or "miss", p = {six}, mask = n, name = text }`: whether the segment meets the
+///                 scene's collision triangles (its bounding box without lines when it has none) at that pose; `mask` (0..63: bits 0 to 2 the intercept point, bits 3 to 5 the normal) says which
+///                 components the original's arithmetic assigned (it assigns the whole normal first and the whole point only after a plane crossing, so a miss can have assigned the normal or
+///                 both) and `p` holds their computed words as bit patterns (zero for the others), or `{ result = "refused", reason }`. `name` is the scene's compiled name (an echo).
+///
+///   "entity_candidate"  what the host decides about ONE candidate of the entity scan (EEDCS-49, D3, third slice): a scene index (0 until the campaign has read the candidate's shape: a
+///                 candidate skipped before that, a city and a city building have none) and, in the sixth place (the text), 44 comma-separated bit patterns, the FACTS the campaign has read
+///                 from the entity it is visiting, in this order: the segment's old end (3) and new end (3), the collision-test-mobile flag, the collision-test-fixed flag, the entity is a
+///                 city, the entity is a city building, the candidate is a building listed under a city whose box was met, the city has a first building (each exactly 0 or 1), the sector's
+///                 tallest structure height, the position (3), the motion vector (3), the frame time, the UPDATED answer (0 not asked, 1 false, 2 true), the heading, the align-with-terrain
+///                 flag, the terrain face normal given (0 or 1), that normal (3), the attitude (9, row-major), the city's bounding box min (3) and max (3), the fixed facts were read (0 or 1)
+///                 and the placement facts were read (0 or 1). FOR A MOBILE candidate of a sector list (never a building listed under a city) the text carries, after the 44 patterns, one space and the candidate's semantic HOST IDENTITY (1 to 128 bytes): the host decides the
+///                 candidate's position, motion vector and attitude from ITS OWN canonical record of that identity and never from facts 13 to 18 and 27 to 35, and refuses by name a mobile candidate it holds no record of. The facts are STAGED: the host asks for what a branch needs only when the original branch reached it. Returns `{ result, name = text }`
+///                 and, for `test`, `p`: `result` is `skip` (nothing more to do for the candidate), `need_updated` (the campaign performs its UPDATED getter, which has an effect of its own, and
+///                 asks again with fact 20 filled in), `need_fixed` (the campaign reads the fixed flag and what the fixed branch reads, and asks again with facts 7 to 9, 11, the scene, the
+///                 position, the city box and fact 42 filled in), `need_placement` (the campaign reads the attitude of a mobile candidate, or the heading and align flag of a fixed one, and
+///                 asks again with fact 43 filled in), `need_normal` (the campaign asks the terrain for the face normal at the candidate's position and asks again with facts 23 to 26 filled in),
+///                 `buildings` (a city's box is met; its buildings are offered one by one in the campaign's list order), `test` with `p` the 12 (stationary: position (3), attitude (9)) or 16
+///                 (moving: old position (3), new position (3), attitude (9), speed) floats of the narrow phase's pose, which the campaign then sends with `entity_collision`, or `refused` with
+///                 `reason` (a scene the branch needs and cannot use is refused here, never defaulted). `name` is the scene's compiled name (an echo; empty for scene 0).
+///
+///   "entity_scan"  the ENUMERATION of the entity scan (EEDCS-49, D3, fourth slice): scene 0 and, in the sixth place (the text), 16 comma-separated bit patterns, the FACTS: the segment's old end (3) and new
+///                 end (3), the sector side length, the world map's min x, min z, max x and max z, the PHASE (0 begin, 1 an entry is served, 2 the cursor's list has no more entries, 3 the offered entry's
+///                 decisions are finished), the cursor sector x and z the host last gave, the served entry is the source or the target (0 or 1) and the offered entry hit (0 or 1). The host decides the sector window,
+///                 the traversal (x outer, z inner, each list from its TAIL), the exclusions and the first-hit end, and (EEDCS-49, sixth slice) WHICH entities stand in each sector and in what order: the host's
+///                 own roster, which the campaign keeps informed with events of this same question. After the 16 patterns the text may carry a space and an identity: the key of the entry the campaign is standing at
+///                 (the phases 1 and 3), a roster event's subject (below), or a hosted mobile's semantic host identity. The roster events are the phase fact 4 (an entity was inserted into a sector's list: facts 0 to 2
+///                 the position, fact 3 the entity's type, fact 6 the sector side length; answered `placed` with the key the host issued as `name`), 5 (an entity leaves its list, the identity naming its key;
+///                 answered `removed`) and 6 (a new boot; answered `cleared`). Returns `{ result }` and, for `first`, `p` (two bit patterns: the sector x and z, whole numbers): `first` (serve the TAIL of that
+///                 sector's list: its key is `name`, empty for an empty list), `next` (serve what follows the entry the campaign is standing at: `name` is its key, empty at the end of the list), `offer` (offer the
+///                 current entry for its decisions and report whether it hit), `done_none` (the scan ends, no hit), `done_hit` (it ends with the entry offered last), `placed`, `removed`, `cleared`, or `refused` with
+///                 `reason` (an ended, unknown or misplaced key is refused by name, never skipped and never the end of a list). `name` is a decimal key of at most 20 digits and only `first`, `next` and `placed`
+///                 carry one, and so does a `removed` that names the record a city's box keeps (phases 5 and 8 alone: a roster key, and for a child removal the list it was asked about). Phase 15 (a city's bounding-box expansion, Task49: the identity place is the city's sector key, one space and the building's key, every other fact zero) is answered `expanded` with `p` the six bit patterns of the box the host built (minimum then maximum) and `name` the city's key.
+///
+///   "entity_pose"  an OBSERVATION of a mobile candidate's pose (EEDCS-49, D3, fifth slice): scene 0, `depth` the stage (0 the offer: the position and motion vector the original read for every mobile
+///                 candidate; 1 the placement: those and the attitude, read when the broad phase passed), `kind` the entity's type, `definition` whether it is alive (0 or 1) and, in the sixth place (the text),
+///                 15 comma-separated bit patterns (the position (3), the motion vector (3), the attitude (9), zero for the words of a stage that was not read), then, when the roster has an identity for the
+///                 candidate, a space and its semantic HOST IDENTITY (the text of the identity `bind_mobile` issued: the roster's whole domain of 1 to 128 bytes). Returns `{ result, kind, difference }`: `result` is `recorded` (the host keeps a movement
+///                 record of the identity), `unrecorded` (it issued the identity to a member it keeps no record for), `retired`, `unknown` (it never issued it, or keeps no movers) or `no_id` (the candidate had
+///                 none), `kind` the record's kind (0 none, 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing aircraft, 5 helicopter) and `difference` the bits (0..31) of how the words compare with the record:
+///                 1 position, 2 attitude (the placement stage only), 4 motion against a held vector (never together with 8), 8 no held motion vector, 16 motion not bit for bit the product, rounded toward zero and computed in integers, of the record's attitude row 2 and its speed (also set when an operand is not finite). The campaign refuses by marker an offer-stage reply with bit 2 and any reply with bits 4 and 8. NOTHING DECIDES FROM THE ANSWER: it is
+///                 recorded and its shape is checked, and a candidate is offered, tested and skipped exactly as without it. `refused` stops the engine with the reason.
+///
 ///   "object_table"  no scene, no depth. Returns `{ result = "table", objects = n }`: how many objects the host's common database holds (the campaign's room for custom objects is its own).
 ///   "object"     a scene index, a cursor (`depth`, never negative: the approximation or the sub-object) and, in the fourth place, the ROLE the object has in the scene (0 main, 1
 ///                 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object). Returns `{ result = "object", name = text, counts = {six whole numbers within 0..65535:
@@ -3867,6 +4117,105 @@ return function(op, scene, depth, kind, definition, key)
 		end
 		return 'chain', concat(parts, ' '), nil, nil, nil, nil, nil, name
 	end
+	if op == 'entity_collision' then
+		local name, result = a.name, a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if type(name) ~= 'string' or #name > 127 or find(name, ' ', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		if result ~= 'hit' and result ~= 'miss' then return nil, 'result must be hit, miss or refused' end
+		local p, why = list(a.p, 6)
+		if not p then return nil, 'p ' .. why end
+		local mask = ranged(a.mask, 63)
+		if not mask then return nil, 'mask must be a whole number within 0..63' end
+		return result, p, mask, nil, nil, nil, nil, name
+	end
+	if op == 'entity_candidate' then
+		local name, result = a.name, a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if type(name) ~= 'string' or #name > 127 or find(name, ' ', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		if result == 'skip' or result == 'need_updated' or result == 'need_normal' or result == 'buildings' or result == 'need_fixed' or result == 'need_placement' then
+			if a.p ~= nil then return nil, 'p is only for test' end
+			return result, nil, nil, nil, nil, nil, nil, name
+		end
+		if result ~= 'test' then return nil, 'result must be skip, need_updated, need_normal, need_fixed, need_placement, buildings, test or refused' end
+		local given = a.p
+		local count = type(given) == 'string' and (#given + 1) / 11 or type(given) == 'table' and #given or nil
+		if count ~= 12 and count ~= 16 then return nil, 'p must be 12 or 16 floats' end
+		local p, why = list(given, count)
+		if not p then return nil, 'p ' .. why end
+		return 'test', p, nil, nil, nil, nil, nil, name
+	end
+	if op == 'entity_pose' then
+		local result = a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if result ~= 'recorded' and result ~= 'unrecorded' and result ~= 'retired' and result ~= 'unknown' and result ~= 'no_id' then
+			return nil, 'result must be recorded, unrecorded, retired, unknown, no_id or refused'
+		end
+		local record_kind = ranged(a.kind, 5)
+		if not record_kind then return nil, 'kind must be a whole number within 0..5' end
+		local difference = ranged(a.difference, 31)
+		if not difference then return nil, 'difference must be a whole number within 0..31' end
+		return result, record_kind, difference
+	end
+	if op == 'entity_scan' then
+		local result = a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		local key = a.name
+		if key == nil then key = '' end
+		if type(key) ~= 'string' or #key > 127 or find(key, ' ', 1, true) or find(key, ' ', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL or a space' end
+		if result == 'first' then
+			local p, why = list(a.p, 2)
+			if not p then return nil, 'p ' .. why end
+			return 'first', p, nil, nil, nil, nil, nil, key
+		end
+		if result == 'expanded' then
+			local p, why = list(a.p, 6)
+			if not p then return nil, 'p ' .. why end
+			return 'expanded', p, nil, nil, nil, nil, nil, key
+		end
+		-- a sector's high-water height (phases 17 and 18): the sector's x, z and the word, as three BIT PATTERNS only (a number would be a float, and the word is raw: never a number here), and no placement name
+		if result == 'height' or result == 'restored' then
+			if type(a.p) ~= 'string' then return nil, 'p must be three bit patterns, the sector x, z and the word' end
+			local p, why = list(a.p, 3)
+			if not p then return nil, 'p ' .. why end
+			if key ~= '' then return nil, 'name is only for first, next and placed' end
+			return result, p, nil, nil, nil, nil, nil, key
+		end
+		-- the physical flag store (phases 19 to 22): three BIT PATTERNS only (a number would be a float, and a read's raw word is the lane's mask, 0x80000000 for lane 31: never a number here); only a group's answer names a key
+		if result == 'flag_group' or result == 'flag_set' or result == 'flag_read' or result == 'flag_reset' then
+			if type(a.p) ~= 'string' then return nil, 'p must be three bit patterns' end
+			local p, why = list(a.p, 3)
+			if not p then return nil, 'p ' .. why end
+			if result ~= 'flag_group' and key ~= '' then return nil, 'name is only for a flag group' end
+			return result, p, nil, nil, nil, nil, nil, key
+		end
+		if result == 'next' or result == 'placed' then
+			if a.p ~= nil then return nil, 'p is only for first' end
+			return result, nil, nil, nil, nil, nil, nil, key
+		end
+		-- a removal of a city's placement or of its last building may name the record the host keeps for the box it built: the answer carries it as its name (the Rust side checks the phase and the relation to the question)
+		if result == 'removed' then
+			if a.p ~= nil then return nil, 'p is only for first' end
+			return 'removed', nil, nil, nil, nil, nil, nil, key
+		end
+		if result == 'offer' or result == 'done_none' or result == 'done_hit' or result == 'cleared' then
+			if a.p ~= nil then return nil, 'p is only for first' end
+			if key ~= '' then return nil, 'name is only for first, next and placed' end
+			return result
+		end
+		return nil, 'result must be first, expanded, height, restored, flag_group, flag_set, flag_read, flag_reset, next, offer, done_none, done_hit, placed, removed, cleared or refused'
+	end
 	if op == 'target_point_world' or op == 'target_point_fixed' then
 		local name, result = a.name, a.result
 		if result == 'refused' then
@@ -3937,23 +4286,38 @@ end
 
 /// One bit pattern (`0x` and eight hexadecimal digits) as the finite float it names.
 fn model_hex(text: &str, what: &str, operation: &str) -> Result<f32, String> {
+    let number = model_bits(text, what, operation)?;
+    if number.is_finite() {
+        Ok(number)
+    } else {
+        Err(format!("[model-provider:{operation}.answer] {what}: not finite"))
+    }
+}
+
+/// One bit pattern (`0x` and eight hexadecimal digits) as the float it names, whatever the pattern: a word the campaign handed to the host and the host gives back untouched (the intercept
+/// point and normal of an entity collision question) is the caller's own, and the original left such a word as it found it, a non-finite one included.
+fn model_bits(text: &str, what: &str, operation: &str) -> Result<f32, String> {
     let malformed = |why: &str| format!("[model-provider:{operation}.answer] {what}: {why}");
     let digits = text
         .strip_prefix("0x")
         .filter(|digits| digits.len() == 8 && digits.bytes().all(|byte| byte.is_ascii_hexdigit()))
         .ok_or_else(|| malformed("a bit pattern is 0x and eight hexadecimal digits"))?;
     let bits = u32::from_str_radix(digits, 16).map_err(|_| malformed("not a bit pattern"))?;
-    let number = f32::from_bits(bits);
-    if number.is_finite() {
-        Ok(number)
-    } else {
-        Err(malformed("not finite"))
-    }
+    Ok(f32::from_bits(bits))
 }
 
 /// Exactly N floats from the bridge's text for a list: `n:` and N numbers at 17 digits separated by spaces, or `s:` and N bit patterns separated by commas. Nothing is
 /// collected: the N slots are filled one token at a time and a further token is an error, so no input can make this allocate more than N floats.
 fn bridged_floats<const N: usize>(pair: &str, what: &str, operation: &str) -> Result<[f32; N], String> {
+    bridged_list(pair, what, operation, false)
+}
+
+/// As `bridged_floats`, but every bit pattern of the `s:` form is accepted, the non-finite ones too (see `model_bits`). The `n:` form is numbers and stays finite.
+fn bridged_words<const N: usize>(pair: &str, what: &str, operation: &str) -> Result<[f32; N], String> {
+    bridged_list(pair, what, operation, true)
+}
+
+fn bridged_list<const N: usize>(pair: &str, what: &str, operation: &str, any_bits: bool) -> Result<[f32; N], String> {
     let malformed = |why: &str| format!("[model-provider:{operation}.answer] {what}: {why}");
     let mut out = [0.0_f32; N];
     match pair.split_once(':') {
@@ -3973,7 +4337,12 @@ fn bridged_floats<const N: usize>(pair: &str, what: &str, operation: &str) -> Re
         Some(("s", patterns)) => {
             let mut parts = patterns.split(',');
             for slot in out.iter_mut() {
-                *slot = model_hex(parts.next().ok_or_else(|| malformed("too few bit patterns"))?, what, operation)?;
+                let pattern = parts.next().ok_or_else(|| malformed("too few bit patterns"))?;
+                *slot = if any_bits {
+                    model_bits(pattern, what, operation)?
+                } else {
+                    model_hex(pattern, what, operation)?
+                };
             }
             if parts.next().is_some() {
                 return Err(malformed("more bit patterns than expected"));
@@ -3994,6 +4363,36 @@ fn pose_text(pose: &[u32]) -> String {
     pose.iter().map(|bits| format!("0x{bits:08x}")).collect::<Vec<_>>().join(",")
 }
 
+/// The fact of an entity-scan question that carries its phase (`CAMPAIGN_SCAN_PHASE`), and the two phases whose removal the host may answer with the name of a record it keeps (a city's box that outlives its
+/// sector placement): a roster REMOVE of the city's placement (5) and the CHILD_REMOVE of its last building (8). The release of the city (16, a private acknowledgement) and every other event name none.
+const SCAN_PHASE_FACT: usize = 11;
+const SCAN_PHASE_REMOVE: f32 = 5.0;
+const SCAN_PHASE_CHILD_REMOVE: f32 = 8.0;
+
+/// The name a removal carries is a record the host retains, legitimate only in its declared domain: a roster key (one to twenty decimal digits without a leading zero, as the campaign reads one), asked at the
+/// phase of a REMOVE or a CHILD_REMOVE, and for a CHILD_REMOVE the key of the list the removal was asked about (the first word of its identity place, `<list> <child>`). The phase is the whole number the
+/// campaign sent, compared bit for bit: a neighbouring float, a negative zero, a non-finite word or no phase at all is none of them. The campaign checks the same again before it keeps the name.
+fn check_retained_record(facts: &[u32], identity: &str, key: &str, operation: &str) -> Result<(), String> {
+    let phase = facts.get(SCAN_PHASE_FACT).copied();
+    if phase != Some(SCAN_PHASE_REMOVE.to_bits()) && phase != Some(SCAN_PHASE_CHILD_REMOVE.to_bits()) {
+        return Err(format!(
+            "[model-provider:{operation}.answer] name is only for first, next, placed and the removal of a city's record at the phase of a roster removal or of a city child removal"
+        ));
+    }
+    let is_roster_key = (1..=20).contains(&key.len()) && !key.starts_with('0') && key.bytes().all(|byte| byte.is_ascii_digit());
+    if !is_roster_key {
+        return Err(format!(
+            "[model-provider:{operation}.answer] the retained record's name is not a roster key: one to twenty decimal digits without a leading zero"
+        ));
+    }
+    if phase == Some(SCAN_PHASE_CHILD_REMOVE.to_bits()) && identity.split_once(' ').map(|(list, _)| list) != Some(key) {
+        return Err(format!(
+            "[model-provider:{operation}.answer] the record named for a city child removal names another list than the one it was asked about"
+        ));
+    }
+    Ok(())
+}
+
 fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, String> {
     let (operation, scene, depth, kind, definition, key) = match query.clone() {
         ModelQuery::Catalogue => ("catalogue", None, None, None, None, None),
@@ -4007,6 +4406,56 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         // the campaign's current placement crosses as exact bit patterns in the text place
         ModelQuery::TargetPointWorld { scene, pose } => ("target_point_world", Some(scene), None, None, None, Some(pose_text(&pose))),
         ModelQuery::TargetPointFixed { scene, pose } => ("target_point_fixed", Some(scene), None, None, None, Some(pose_text(&pose))),
+        // the segment and the candidate's pose cross as exact bit patterns in the text place (18 floats: stationary, 22: moving); the caller's intercept point and normal are outputs and do not cross
+        ModelQuery::EntityCollision { scene, pose } => ("entity_collision", Some(scene), None, None, None, Some(pose_text(&pose))),
+        // the facts of one candidate of the entity scan cross as exact bit patterns in the text place (44 floats); the scene is 0 until the campaign has read the shape
+        // a mobile candidate's semantic host identity follows the facts after one space (the facts are 44 fixed-width patterns); the host decides that candidate's pose from its own record of it
+        ModelQuery::EntityCandidate { scene, facts, host_id } => (
+            "entity_candidate",
+            Some(scene),
+            None,
+            None,
+            None,
+            Some(if host_id.is_empty() {
+                pose_text(&facts)
+            } else {
+                format!("{} {host_id}", pose_text(&facts))
+            }),
+        ),
+        // the facts of the enumeration cross as exact bit patterns in the text place (16 floats); the scene is 0
+        // the identity, when there is one, follows the facts after a single space: a key of the host's roster (the entry the campaign is standing at, or a removal) or a hosted mobile's semantic identity (an insertion)
+        ModelQuery::EntityScan { facts, identity } => (
+            "entity_scan",
+            Some(0),
+            None,
+            None,
+            None,
+            Some(if identity.is_empty() {
+                pose_text(&facts)
+            } else {
+                format!("{} {identity}", pose_text(&facts))
+            }),
+        ),
+        // the words of an observation cross as exact bit patterns in the text place (15 floats), followed, when the candidate has one, by a space and its host identity; the stage, the entity's type and its
+        // alive flag are the depth, kind and definition places
+        ModelQuery::EntityPose {
+            stage,
+            entity_type,
+            alive,
+            host_id,
+            words,
+        } => (
+            "entity_pose",
+            Some(0),
+            Some(stage),
+            Some(entity_type),
+            Some(alive),
+            Some(if host_id.is_empty() {
+                pose_text(&words)
+            } else {
+                format!("{} {host_id}", pose_text(&words))
+            }),
+        ),
         // the fourth place carries the role the object has in the scene
         ModelQuery::Object {
             scene,
@@ -4213,16 +4662,142 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             scene_name: g.ok_or_else(missing)?,
             offsets: None,
         }),
+        (ModelQuery::EntityCollision { .. }, "hit" | "miss") => Ok(ModelAnswer::EntityCollision {
+            scene_name: g.ok_or_else(missing)?,
+            hit: tag == "hit",
+            write_mask: b
+                .ok_or_else(missing)?
+                .parse::<u32>()
+                .map_err(|_| format!("[model-provider:{operation}.answer] the write mask is out of range"))?,
+            words: bridged_words::<6>(&a.ok_or_else(missing)?, "p", operation)?,
+        }),
+        (ModelQuery::EntityCandidate { .. }, "skip" | "need_updated" | "need_normal" | "need_fixed" | "need_placement" | "buildings") => {
+            Ok(ModelAnswer::EntityCandidate {
+                scene_name: g.ok_or_else(missing)?,
+                decision: match tag.as_str() {
+                    "skip" => CandidateDecision::Skip,
+                    "need_updated" => CandidateDecision::NeedUpdated,
+                    "need_normal" => CandidateDecision::NeedNormal,
+                    "need_fixed" => CandidateDecision::NeedFixed,
+                    "need_placement" => CandidateDecision::NeedPlacement,
+                    _ => CandidateDecision::Buildings,
+                },
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "expanded") => {
+            let words = bridged_floats::<6>(&a.ok_or_else(missing)?, "p", operation)?;
+            Ok(ModelAnswer::EntityScan {
+                decision: ScanDecision::Expanded(words),
+                key: g.unwrap_or_default(),
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "height" | "restored") => {
+            let words = bridged_words::<3>(&a.ok_or_else(missing)?, "p", operation)?;
+            Ok(ModelAnswer::EntityScan {
+                decision: if tag == "height" {
+                    ScanDecision::Height(words)
+                } else {
+                    ScanDecision::Restored(words)
+                },
+                key: g.unwrap_or_default(),
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "flag_group" | "flag_set" | "flag_read" | "flag_reset") => {
+            // the physical flag store (phases 19 to 22): three words kept as the bits they came in (a read's raw word is never normalised); a group's answer is the host's key
+            let words = bridged_words::<3>(&a.ok_or_else(missing)?, "p", operation)?;
+            Ok(ModelAnswer::EntityScan {
+                decision: match tag.as_str() {
+                    "flag_group" => ScanDecision::FlagGroup(words),
+                    "flag_set" => ScanDecision::FlagSet(words),
+                    "flag_read" => ScanDecision::FlagRead(words),
+                    _ => ScanDecision::FlagReset(words),
+                },
+                key: g.unwrap_or_default(),
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "first") => {
+            let cursor = bridged_floats::<2>(&a.ok_or_else(missing)?, "p", operation)?;
+            Ok(ModelAnswer::EntityScan {
+                decision: ScanDecision::First(cursor),
+                key: g.unwrap_or_default(),
+            })
+        }
+        (ModelQuery::EntityScan { facts, identity }, "removed") => {
+            let key = g.unwrap_or_default();
+            if !key.is_empty() {
+                check_retained_record(&facts, &identity, &key, operation)?;
+            }
+            Ok(ModelAnswer::EntityScan {
+                decision: ScanDecision::Removed,
+                key,
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "next" | "offer" | "done_none" | "done_hit" | "placed" | "cleared") => Ok(ModelAnswer::EntityScan {
+            decision: match tag.as_str() {
+                "next" => ScanDecision::Next,
+                "offer" => ScanDecision::Offer,
+                "done_none" => ScanDecision::DoneNone,
+                "placed" => ScanDecision::Placed,
+                "cleared" => ScanDecision::Cleared,
+                _ => ScanDecision::DoneHit,
+            },
+            key: g.unwrap_or_default(),
+        }),
+        (ModelQuery::EntityCandidate { .. }, "test") => {
+            // the bridge has already checked that the list holds exactly 12 or 16 floats; the count is read from the text and bounded again here
+            let text = a.ok_or_else(missing)?;
+            let count = text.split_once(':').map_or(0, |(_, rest)| rest.split([' ', ',']).count());
+            let pose = match count {
+                12 => bridged_floats::<12>(&text, "p", operation)?.to_vec(),
+                16 => bridged_floats::<16>(&text, "p", operation)?.to_vec(),
+                other => return Err(format!("[model-provider:{operation}.answer] a candidate pose has 12 or 16 floats, not {other}")),
+            };
+            Ok(ModelAnswer::EntityCandidate {
+                scene_name: g.ok_or_else(missing)?,
+                decision: CandidateDecision::Test(pose),
+            })
+        }
         (ModelQuery::TargetPointWorld { .. }, "world") | (ModelQuery::TargetPointFixed { .. }, "fixed") => Ok(ModelAnswer::TargetPointPosition {
             scene_name: g.ok_or_else(missing)?,
             position: bridged_floats::<3>(&a.ok_or_else(missing)?, "p", operation)?,
         }),
-        (ModelQuery::TargetPointChain { scene } | ModelQuery::TargetPointWorld { scene, .. } | ModelQuery::TargetPointFixed { scene, .. }, "refused") => {
-            Err(format!(
-                "[model-provider:{operation}.refused] the host cannot answer for scene {scene}: {}",
-                a.unwrap_or_default()
-            ))
+        (ModelQuery::EntityPose { .. }, "recorded" | "unrecorded" | "retired" | "unknown" | "no_id") => {
+            let number = |text: Option<String>, what: &str| -> Result<u32, String> {
+                text.ok_or_else(missing)?
+                    .parse::<u32>()
+                    .map_err(|_| format!("[model-provider:{operation}.answer] {what} is out of range"))
+            };
+            Ok(ModelAnswer::EntityPose {
+                class: match tag.as_str() {
+                    "recorded" => PoseClass::Recorded,
+                    "unrecorded" => PoseClass::Unrecorded,
+                    "retired" => PoseClass::Retired,
+                    "unknown" => PoseClass::Unknown,
+                    _ => PoseClass::NoId,
+                },
+                kind: number(a, "kind")?,
+                difference: number(b, "difference")?,
+            })
         }
+        (ModelQuery::EntityPose { .. }, "refused") => Err(format!(
+            "[model-provider:{operation}.refused] the host cannot observe the candidate: {}",
+            a.unwrap_or_default()
+        )),
+        (ModelQuery::EntityScan { .. }, "refused") => Err(format!(
+            "[model-provider:{operation}.refused] the host cannot answer the entity scan: {}",
+            a.unwrap_or_default()
+        )),
+        (
+            ModelQuery::TargetPointChain { scene }
+            | ModelQuery::TargetPointWorld { scene, .. }
+            | ModelQuery::TargetPointFixed { scene, .. }
+            | ModelQuery::EntityCollision { scene, .. }
+            | ModelQuery::EntityCandidate { scene, .. },
+            "refused",
+        ) => Err(format!(
+            "[model-provider:{operation}.refused] the host cannot answer for scene {scene}: {}",
+            a.unwrap_or_default()
+        )),
         (ModelQuery::RouteNode { scene, kind, index } | ModelQuery::RouteFace { scene, kind, index }, "refused") => Err(format!(
             "[model-provider:{operation}.refused] the host cannot answer for scene {scene} kind {kind} cursor {index}: {}",
             a.unwrap_or_default()
@@ -5262,6 +5837,1002 @@ mod tests {
     }
 
     #[test]
+    fn an_entity_collision_question_carries_only_the_segment_and_the_pose_and_the_computed_words_and_the_write_mask_come_back_exactly() -> Test {
+        let lua = Lua::new();
+        // the provider answers a hit that assigned everything for a stationary pose (18 words) and a miss that assigned only the normal for a moving one (22). It hands back words of
+        // the pose it received (words 6 to 11, which are candidate words here: the outputs of the original are NOT part of the question) so that a negative zero, a subnormal, a
+        // signalling NaN pattern and an infinity must survive both crossings; the unassigned point words are zero
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_collision' and depth == nil and kind == nil and definition == nil)
+               local words = {}
+               for word in key:gmatch ('[^,]+') do words[#words + 1] = word end
+               local given = {}
+               for i = 7, 12 do given[#given + 1] = words[i] end
+               if #words == 18 then
+                 return { result = 'hit', mask = 63, name = 'CANDIDATE', p = table.concat (given, ',') }
+               end
+               given[1], given[2], given[3] = '0x00000000', '0x00000000', '0x00000000'
+               return { result = 'miss', mask = 56, name = 'CANDIDATE', p = table.concat (given, ',') }
+             end",
+        )?;
+        let weird = [-0.0_f32, f32::from_bits(1), 1234.5, f32::from_bits(0x7fa0_0001), f32::INFINITY, -1.0];
+        let pose = |count: usize| -> Vec<u32> {
+            let mut words: Vec<u32> = (0..6).map(|i| (i as f32 + 0.25).to_bits()).collect();
+            words.extend(weird.map(f32::to_bits));
+            words.extend((0..count - 12).map(|i| (i as f32 + 0.5).to_bits()));
+            words
+        };
+        let ModelAnswer::EntityCollision {
+            scene_name,
+            hit,
+            write_mask,
+            words,
+        } = ask(&mut provider, ModelQuery::EntityCollision { scene: 7, pose: pose(18) })?
+        else {
+            return Err("not an entity collision answer".into());
+        };
+        assert_eq!((scene_name.as_str(), hit, write_mask), ("CANDIDATE", true, 63));
+        assert_eq!(bits(words), bits(weird));
+        let ModelAnswer::EntityCollision { hit, write_mask, words, .. } = ask(&mut provider, ModelQuery::EntityCollision { scene: 7, pose: pose(22) })? else {
+            return Err("not an entity collision answer".into());
+        };
+        assert_eq!(
+            (hit, write_mask),
+            (false, 56),
+            "a miss that assigned only the normal is not read as a hit or as a full write"
+        );
+        assert_eq!(bits(words), bits([0.0, 0.0, 0.0, weird[3], weird[4], weird[5]]));
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_candidate_question_carries_the_facts_by_bit_pattern_and_every_decision_comes_back_with_its_state_and_exact_pose() -> Test {
+        let lua = Lua::new();
+        // the scene picks the decision: 1 skip, 2 need_updated, 3 need_normal, 4 buildings (a city: no name), 5 a test with the first 12 facts as the pose, 6 a test with the first 16, 7 need_fixed, 8 need_placement
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_candidate' and depth == nil and kind == nil and definition == nil)
+               local words = {}
+               for word in key:gmatch ('[^,]+') do words[#words + 1] = word end
+               assert (#words == 44, 'the facts are 44 patterns')
+               local function first (n) return table.concat (words, ',', 1, n) end
+               local names = { 'skip', 'need_updated', 'need_normal', 'buildings' }
+               if scene >= 1 and scene <= 4 then return { result = names[scene], name = scene == 4 and '' or 'CANDIDATE' } end
+               if scene == 7 then return { result = 'need_fixed', name = '' } end
+               if scene == 8 then return { result = 'need_placement', name = 'CANDIDATE' } end
+               return { result = 'test', name = 'CANDIDATE', p = first (scene == 5 and 12 or 16) }
+             end",
+        )?;
+        // finite words with a negative zero and a subnormal, which must survive both crossings
+        let facts: Vec<u32> = [-0.0_f32, f32::from_bits(1), 1234.5, -1.0, 0.0, 2.5]
+            .iter()
+            .cycle()
+            .take(44)
+            .map(|float| float.to_bits())
+            .collect();
+        let decide = |provider: &mut ModelProvider, scene: i32| {
+            ask(
+                provider,
+                ModelQuery::EntityCandidate {
+                    scene,
+                    facts: facts.clone(),
+                    host_id: String::new(),
+                },
+            )
+        };
+        for (scene, expected) in [
+            (1, CandidateDecision::Skip),
+            (2, CandidateDecision::NeedUpdated),
+            (3, CandidateDecision::NeedNormal),
+            (4, CandidateDecision::Buildings),
+            (7, CandidateDecision::NeedFixed),
+            (8, CandidateDecision::NeedPlacement),
+        ] {
+            let ModelAnswer::EntityCandidate { decision, scene_name } = decide(&mut provider, scene)? else {
+                return Err("not an entity candidate decision".into());
+            };
+            assert_eq!(decision, expected);
+            assert_eq!(
+                scene_name,
+                if scene == 4 || scene == 7 { "" } else { "CANDIDATE" },
+                "the scene's name, and none for a city or before a shape was read"
+            );
+        }
+        for (scene, count) in [(5, 12_usize), (6, 16)] {
+            let ModelAnswer::EntityCandidate {
+                decision: CandidateDecision::Test(pose),
+                ..
+            } = decide(&mut provider, scene)?
+            else {
+                return Err("not a test decision".into());
+            };
+            assert_eq!(pose.len(), count);
+            assert_eq!(
+                pose.iter().map(|float| float.to_bits()).collect::<Vec<u32>>(),
+                facts.iter().take(count).copied().collect::<Vec<u32>>(),
+                "the pose crosses exactly: a negative zero and a subnormal included"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_scan_question_carries_the_facts_by_bit_pattern_and_every_decision_comes_back_with_its_state_and_cursor() -> Test {
+        let lua = Lua::new();
+        // the first fact's pattern picks the decision: 1 first (sector 2, 3), 2 next, 3 offer, 4 done_none, 5 done_hit
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_scan' and scene == 0 and depth == nil and kind == nil and definition == nil)
+               local words = {}
+               for word in key:gmatch ('[^,]+') do words[#words + 1] = word end
+               assert (#words == 16, 'the facts are 16 patterns')
+               local pick = tonumber (words[1]:sub (-1))
+               if pick == 1 then return { result = 'first', p = '0x40000000,0x40400000' } end
+               local names = { [2] = 'next', [3] = 'offer', [4] = 'done_none', [5] = 'done_hit' }
+               return { result = names[pick] }
+             end",
+        )?;
+        let ask_with = |provider: &mut ModelProvider, pick: u32| {
+            let facts: Vec<u32> = std::iter::once(pick).chain((1..16).map(|at| 0x3f80_0000 + at)).collect();
+            ask(
+                provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
+        };
+        assert_eq!(
+            ask_with(&mut provider, 1)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::First([2.0, 3.0]),
+                key: String::new()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 2)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Next,
+                key: String::new()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 3)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Offer,
+                key: String::new()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 4)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::DoneNone,
+                key: String::new()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 5)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::DoneHit,
+                key: String::new()
+            }
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_scan_question_carries_a_roster_key_or_identity_after_the_facts_and_the_key_comes_back_in_the_name() -> Test {
+        let lua = Lua::new();
+        // the identity place after the 16 patterns picks the answer: `first` serves the key 77, `next` the key in the place plus one, an insertion answers the key it issued, a removal and a reset answer none
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local words, identity = key:match ('^([^ ]+) ?(.*)$')
+               local pick = tonumber (words:match ('0x[0-9a-f]+'):sub (-1))
+               if pick == 1 then return { result = 'first', p = '0x40000000,0x40400000', name = '77' } end
+               if pick == 2 then return { result = 'next', name = tostring (tonumber (identity) + 1) } end
+               if pick == 4 then return { result = 'placed', name = '9001' } end
+               if pick == 5 then assert (identity == '9001'); return { result = 'removed' } end
+               if pick == 6 then return { result = 'cleared' } end
+               if pick == 7 then return { result = 'offer', name = '5' } end
+               if pick == 8 then return { result = 'next', name = 'two words' } end
+             end",
+        )?;
+        let ask_with = |provider: &mut ModelProvider, pick: u32, identity: &str| {
+            let facts: Vec<u32> = std::iter::once(pick).chain((1..16).map(|at| 0x3f80_0000 + at)).collect();
+            ask(
+                provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: identity.to_string(),
+                },
+            )
+        };
+        assert_eq!(
+            ask_with(&mut provider, 1, "")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::First([2.0, 3.0]),
+                key: "77".into()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 2, "41")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Next,
+                key: "42".into()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 4, "eech-world:7")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Placed,
+                key: "9001".into()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 5, "9001")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Removed,
+                key: String::new()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 6, "")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Cleared,
+                key: String::new()
+            }
+        );
+        // a name that belongs to no answer of its kind, or that is not one token, is a malformed answer
+        for pick in [7, 8] {
+            let Err(error) = ask_with(&mut provider, pick, "") else {
+                return Err(format!("pick {pick}: a malformed key was accepted").into());
+            };
+            assert!(error.contains("name"), "pick {pick}: {error}");
+        }
+        Ok(())
+    }
+
+    /// the question of a roster or city event as the engine sends it: sixteen words, all zero but the phase (fact 11), and the identity place after them
+    fn scan_event(phase: f32, identity: &str) -> ModelQuery {
+        let mut facts = [0_u32; 16];
+        facts[11] = phase.to_bits();
+        ModelQuery::EntityScan {
+            facts: facts.to_vec(),
+            identity: identity.to_string(),
+        }
+    }
+
+    /// what the provider answers: the Lua table the REAL provider (`host.model`) would return, handed through the REAL bridge
+    fn scan_answer(lua: &Lua, provider: &mut ModelProvider, query: ModelQuery, answer: &str) -> Result<ModelAnswer, String> {
+        lua.load(format!("ANSWER = {answer}")).exec().map_err(|error| error.to_string())?;
+        ask(provider, query)
+    }
+
+    fn removal_provider(lua: &Lua) -> Result<ModelProvider, Box<dyn std::error::Error>> {
+        model_under_test(lua, "return function () return ANSWER end")
+    }
+
+    fn removed(key: &str) -> ModelAnswer {
+        ModelAnswer::EntityScan {
+            decision: ScanDecision::Removed,
+            key: key.to_string(),
+        }
+    }
+
+    #[test]
+    fn a_removal_names_the_record_the_host_retains_for_a_citys_box_only_in_the_two_removal_phases_that_declare_it() -> Test {
+        let lua = Lua::new();
+        let mut provider = removal_provider(&lua)?;
+        // the roster REMOVE (5) of a city placement names its identity place (the placement's key) and is answered with the record's key; the CHILD_REMOVE (8) of the last building names "<list> <child>" and is
+        // answered with the list's own key. The key must come back whole: a bridge that let the name pass and returned none would hand the campaign a plain removal
+        assert_eq!(
+            scan_answer(&lua, &mut provider, scan_event(5.0, "7"), "{ result = 'removed', name = '11193' }")?,
+            removed("11193")
+        );
+        assert_eq!(
+            scan_answer(
+                &lua,
+                &mut provider,
+                scan_event(5.0, "7"),
+                "{ result = 'removed', name = '18446744073709551615' }"
+            )?,
+            removed("18446744073709551615")
+        );
+        assert_eq!(
+            scan_answer(&lua, &mut provider, scan_event(8.0, "11193 7"), "{ result = 'removed', name = '11193' }")?,
+            removed("11193")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_plain_removal_and_the_release_of_a_city_come_back_without_a_name() -> Test {
+        let lua = Lua::new();
+        let mut provider = removal_provider(&lua)?;
+        for (phase, identity) in [(5.0, "7"), (8.0, "11193 7"), (16.0, "11193")] {
+            assert_eq!(
+                scan_answer(&lua, &mut provider, scan_event(phase, identity), "{ result = 'removed' }")?,
+                removed(""),
+                "phase {phase}"
+            );
+            assert_eq!(
+                scan_answer(&lua, &mut provider, scan_event(phase, identity), "{ result = 'removed', name = '' }")?,
+                removed(""),
+                "phase {phase}: an empty name is none"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_name_on_a_removal_outside_its_declared_domain_is_a_malformed_answer() -> Test {
+        let lua = Lua::new();
+        let mut provider = removal_provider(&lua)?;
+        // the private RELEASE acknowledgement (16) and every other event name no record on a removal; a removal answered at the wrong phase never gets a name through
+        for (phase, identity) in [
+            (0.0, ""),
+            (1.0, "7"),
+            (2.0, "7"),
+            (3.0, "7"),
+            (4.0, "eech-world:7"),
+            (6.0, ""),
+            (7.0, "11193 eech-world:7"),
+            (9.0, "11193"),
+            (10.0, "11193 7"),
+            (11.0, "11193 7"),
+            (12.0, "11193 eech-world:7"),
+            (13.0, "11193"),
+            (14.0, "7"),
+            (15.0, "7 8"),
+            (16.0, "11193"),
+            (17.0, "11193"),
+        ] {
+            let Err(error) = scan_answer(&lua, &mut provider, scan_event(phase, identity), "{ result = 'removed', name = '11193' }") else {
+                return Err(format!("phase {phase}: a name on a removal was accepted").into());
+            };
+            assert!(error.contains("entity_scan.answer") && error.contains("name"), "phase {phase}: {error}");
+        }
+        // a phase that is not exactly the whole number 5 or 8 (a neighbouring float, a negative zero, a non-finite word, no phase at all) is no removal phase
+        for bits in [
+            0x40a0_0001,
+            0x409f_ffff,
+            0x8000_0000,
+            0x7fc0_0000,
+            0x7f80_0000,
+            0x4100_0001,
+            0x40a0_0000 | 0x8000_0000,
+        ] {
+            let mut facts = [0_u32; 16];
+            facts[11] = bits;
+            let query = ModelQuery::EntityScan {
+                facts: facts.to_vec(),
+                identity: "11193 7".to_string(),
+            };
+            let Err(error) = scan_answer(&lua, &mut provider, query, "{ result = 'removed', name = '11193' }") else {
+                return Err(format!("phase bits {bits:#010x}: a name on a removal was accepted").into());
+            };
+            assert!(error.contains("name"), "phase bits {bits:#010x}: {error}");
+        }
+        let short = ModelQuery::EntityScan {
+            facts: vec![0_u32; 11],
+            identity: "11193 7".to_string(),
+        };
+        let Err(error) = scan_answer(&lua, &mut provider, short, "{ result = 'removed', name = '11193' }") else {
+            return Err("a name on a removal that states no phase was accepted".into());
+        };
+        assert!(error.contains("name"), "{error}");
+        // the other results stay without a name wherever they are asked: the retaining answer is the removal's alone
+        for result in ["cleared", "offer", "done_none", "done_hit"] {
+            for phase in [5.0, 6.0, 8.0, 16.0] {
+                let Err(error) = scan_answer(
+                    &lua,
+                    &mut provider,
+                    scan_event(phase, "11193 7"),
+                    &format!("{{ result = '{result}', name = '11193' }}"),
+                ) else {
+                    return Err(format!("{result} at phase {phase}: a name was accepted").into());
+                };
+                assert!(error.contains("name is only for"), "{result} at phase {phase}: {error}");
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_retained_record_name_is_a_roster_key_and_a_city_child_removal_names_the_list_it_was_asked_about() -> Test {
+        let lua = Lua::new();
+        let mut provider = removal_provider(&lua)?;
+        // a roster key is one to twenty decimal digits without a leading zero, as the campaign's own check reads it; a name of any other shape, of the wrong type or with a tail is no key
+        for name in [
+            "'0'",
+            "'0123'",
+            "'1x'",
+            "'x1'",
+            "'11193 '",
+            "' 11193'",
+            "'11193\\n'",
+            "'+5'",
+            "'5.0'",
+            "'-5'",
+            "'123456789012345678901'",
+            "'1,2'",
+            "'0x1'",
+            "'@1'",
+            "11193",
+            "true",
+            "{}",
+        ] {
+            let Err(error) = scan_answer(&lua, &mut provider, scan_event(5.0, "7"), &format!("{{ result = 'removed', name = {name} }}")) else {
+                return Err(format!("name {name}: a malformed retained name was accepted").into());
+            };
+            assert!(error.contains("entity_scan.answer") && error.contains("name"), "name {name}: {error}");
+        }
+        // valid-looking wrong relations of a CHILD_REMOVE: the key of another list, the child's own key, a key of the list's digits plus a digit, and an identity place that holds no child at all
+        for (identity, name) in [
+            ("11193 7", "11194"),
+            ("11193 7", "7"),
+            ("11193 7", "111937"),
+            ("11193 7", "1119"),
+            ("11193", "11193"),
+            ("", "11193"),
+        ] {
+            let Err(error) = scan_answer(
+                &lua,
+                &mut provider,
+                scan_event(8.0, identity),
+                &format!("{{ result = 'removed', name = '{name}' }}"),
+            ) else {
+                return Err(format!("{identity:?} naming {name}: another list was accepted").into());
+            };
+            assert!(
+                error.contains("entity_scan.answer") && error.contains("names another list"),
+                "{identity:?} naming {name}: {error}"
+            );
+        }
+        // a cursor is only for `first`: a retained removal carrying one is as malformed as a plain one
+        for phase in [5.0, 8.0] {
+            let Err(error) = scan_answer(
+                &lua,
+                &mut provider,
+                scan_event(phase, "11193 7"),
+                "{ result = 'removed', name = '11193', p = '0x40000000,0x40400000' }",
+            ) else {
+                return Err(format!("phase {phase}: a cursor on a removal was accepted").into());
+            };
+            assert!(error.contains("p is only for first"), "phase {phase}: {error}");
+        }
+        // the unchanged domains: a refusal still stops the engine with the host's reason whatever it names, and a wrong result is never read as a removal
+        let Err(error) = scan_answer(
+            &lua,
+            &mut provider,
+            scan_event(5.0, "7"),
+            "{ result = 'refused', reason = 'no', name = '11193' }",
+        ) else {
+            return Err("a refusal was accepted".into());
+        };
+        assert!(error.contains("entity_scan.refused"), "{error}");
+        let Err(error) = scan_answer(&lua, &mut provider, scan_event(5.0, "7"), "{ result = 'remove', name = '11193' }") else {
+            return Err("an unknown result was accepted".into());
+        };
+        assert!(error.contains("result must be"), "{error}");
+        Ok(())
+    }
+
+    #[test]
+    fn an_expanded_scan_answer_carries_six_bit_patterns_and_the_citys_key_and_a_short_or_non_finite_list_is_refused() -> Test {
+        let lua = Lua::new();
+        // phase 15: the box the host built, minimum then maximum, as bit patterns (a signed zero and the inverted box's magnitudes keep their bits); a list of five, one with a non-finite word and a
+        // number table with a missing element are malformed answers of their own marker, never a box
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local pick = tonumber (key:match ('0x[0-9a-f]+'):sub (-1))
+               if pick == 1 then return { result = 'expanded', name = '17', p = '0x80000000,0x49742400,0xc9742400,0x00000001,0x40600000,0xc0880000' } end
+               if pick == 2 then return { result = 'expanded', name = '17', p = '0x00000000,0x49742400,0xc9742400,0x00000001,0x40600000' } end
+               if pick == 3 then return { result = 'expanded', name = '17', p = '0x00000000,0x49742400,0xc9742400,0x00000001,0x40600000,0x7f800000' } end
+               if pick == 4 then return { result = 'expanded', name = '17', p = { 1, 2, 3, 4, 5 } } end
+               if pick == 5 then return { result = 'expanded', name = '17' } end
+             end",
+        )?;
+        let mut ask_pick = |pick: u32| {
+            let facts: Vec<u32> = std::iter::once(0x3f80_0000 + pick).chain((1..16).map(|_| 0)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: "17 18".to_string(),
+                },
+            )
+        };
+        assert_eq!(
+            ask_pick(1)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Expanded([-0.0, 1.0e6, -1.0e6, f32::from_bits(1), 3.5, -4.25]),
+                key: "17".into()
+            }
+        );
+        if let ModelAnswer::EntityScan {
+            decision: ScanDecision::Expanded(words),
+            ..
+        } = ask_pick(1)?
+        {
+            assert_eq!(words[0].to_bits(), 0x8000_0000, "the signed zero keeps its bit");
+        }
+        for pick in [2, 3, 4, 5] {
+            let Err(error) = ask_pick(pick) else {
+                return Err(format!("pick {pick}: a malformed box was accepted").into());
+            };
+            assert!(error.contains("entity_scan"), "pick {pick}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_sector_height_answer_carries_three_bit_patterns_and_every_raw_word_comes_back_exactly_and_a_number_or_a_short_list_or_a_name_is_refused() -> Test {
+        let lua = Lua::new();
+        // the provider picks its answer by the last digit of the first fact: the sector and the word are bit patterns, never numbers (the word is raw)
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_scan' and scene == 0)
+               local pick = tonumber (key:sub (10, 10))
+               if pick == 1 then return { result = 'height', p = '0x40a00000,0x41100000,0x7fc0f00d' } end
+               if pick == 2 then return { result = 'restored', p = '0x40a00000,0x41100000,0xff800000' } end
+               if pick == 3 then return { result = 'height', p = { 5, 9, 1.5 } } end
+               if pick == 4 then return { result = 'height', p = '0x40a00000,0x41100000' } end
+               if pick == 5 then return { result = 'height', name = '12', p = '0x40a00000,0x41100000,0x3f800000' } end
+               if pick == 6 then return { result = 'height' } end
+               if pick == 7 then return { result = 'restored', p = '0x40a00000,0x41100000,0x80000000' } end
+               if pick == 8 then return { result = 'height', p = '0x40a00000,0x41100000,0x3f800000,0x00000000' } end
+             end",
+        )?;
+        let mut ask_pick = |pick: u32| {
+            let facts: Vec<u32> = std::iter::once(0x3f80_0000 + pick).chain((1..16).map(|_| 0)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
+        };
+        let words_of = |answer: ModelAnswer| match answer {
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Height(words) | ScanDecision::Restored(words),
+                ..
+            } => Some(words.map(f32::to_bits)),
+            _ => None,
+        };
+        // a quiet NaN with a payload, a negative infinity and a negative zero keep every bit
+        assert_eq!(words_of(ask_pick(1)?), Some([0x40a0_0000, 0x4110_0000, 0x7fc0_f00d]));
+        assert!(matches!(
+            ask_pick(1)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Height(_),
+                ..
+            }
+        ));
+        assert_eq!(words_of(ask_pick(2)?), Some([0x40a0_0000, 0x4110_0000, 0xff80_0000]));
+        assert!(matches!(
+            ask_pick(2)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Restored(_),
+                ..
+            }
+        ));
+        assert_eq!(words_of(ask_pick(7)?), Some([0x40a0_0000, 0x4110_0000, 0x8000_0000]));
+        for pick in [3, 4, 5, 6, 8] {
+            let Err(error) = ask_pick(pick) else {
+                return Err(format!("pick {pick}: a malformed sector height answer was accepted").into());
+            };
+            assert!(error.contains("entity_scan"), "pick {pick}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_physical_flag_answer_carries_three_bit_patterns_and_a_groups_key_and_every_raw_word_comes_back_exactly_and_a_number_or_a_short_list_is_refused() -> Test
+    {
+        let lua = Lua::new();
+        // the provider picks its answer by the last digit of the first fact: the three words are bit patterns, never numbers (a read's raw word is the lane's mask: 0x80000000 for lane 31, and it is never normalised)
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_scan' and scene == 0)
+               local pick = tonumber (key:sub (10, 10))
+               if pick == 1 then return { result = 'flag_group', name = 'f12', p = '0x3f800000,0x00000000,0x00000000' } end
+               if pick == 2 then return { result = 'flag_set', p = '0x40000000,0x41f80000,0x80000000' } end
+               if pick == 3 then return { result = 'flag_read', p = '0x40000000,0x41f80000,0x80000000' } end
+               if pick == 4 then return { result = 'flag_reset', p = '0x40000000,0x40e00000,0x00000000' } end
+               if pick == 5 then return { result = 'flag_read', p = { 2, 31, 1 } } end
+               if pick == 6 then return { result = 'flag_read', p = '0x40000000,0x41f80000' } end
+               if pick == 7 then return { result = 'flag_set', p = '0x40000000,0x41f80000,0x80000000,0x00000000' } end
+               if pick == 8 then return { result = 'flag_set' } end
+             end",
+        )?;
+        let mut ask_pick = |pick: u32| {
+            let facts: Vec<u32> = std::iter::once(0x3f80_0000 + pick).chain((1..16).map(|_| 0)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
+        };
+        let shape = |answer: ModelAnswer| match answer {
+            ModelAnswer::EntityScan { decision, key } => match decision {
+                ScanDecision::FlagGroup(words) => Some(("group", words.map(f32::to_bits), key)),
+                ScanDecision::FlagSet(words) => Some(("set", words.map(f32::to_bits), key)),
+                ScanDecision::FlagRead(words) => Some(("read", words.map(f32::to_bits), key)),
+                ScanDecision::FlagReset(words) => Some(("reset", words.map(f32::to_bits), key)),
+                _ => None,
+            },
+            _ => None,
+        };
+        assert_eq!(shape(ask_pick(1)?), Some(("group", [0x3f80_0000, 0, 0], "f12".to_string())));
+        assert_eq!(shape(ask_pick(2)?), Some(("set", [0x4000_0000, 0x41f8_0000, 0x8000_0000], String::new())));
+        // a negative zero as a word keeps its bit: the raw mask of lane 31 is never converted
+        assert_eq!(shape(ask_pick(3)?), Some(("read", [0x4000_0000, 0x41f8_0000, 0x8000_0000], String::new())));
+        assert_eq!(shape(ask_pick(4)?), Some(("reset", [0x4000_0000, 0x40e0_0000, 0], String::new())));
+        for pick in [5, 6, 7, 8] {
+            let Err(error) = ask_pick(pick) else {
+                return Err(format!("pick {pick}: a malformed flag answer was accepted").into());
+            };
+            assert!(error.contains("entity_scan"), "pick {pick}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn the_adapter_keeps_the_generic_name_domain_for_a_flag_group_key_whose_20_byte_bound_the_campaigns_c_decides() -> Test {
+        // ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1: a malformed public Host reply can name a flag group with up to 127 bytes, and the adapter must neither truncate nor narrow it (the other families keep their domain); the campaign's C refuses
+        // everything outside the flag key's own domain before it writes a byte (tests/physical_flags_identity.rs). 20, 21 and 127 bytes pass the adapter as given; a name with a space and one beyond 127 bytes are the adapter's own refusals.
+        let lua = Lua::new();
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local length = tonumber (key:sub (9, 10), 16)
+               local name = length == 0 and 'f1 1' or ('f' .. string.rep ('1', length - 1))
+               return { result = 'flag_group', name = name, p = '0x3f800000,0x00000000,0x00000000' }
+             end",
+        )?;
+        let mut ask_length = |length: u32| {
+            // the provider reads the length from the last two hex digits of the first fact
+            let facts: Vec<u32> = std::iter::once(0x3f80_0000 + length).chain((1..16).map(|_| 0)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
+        };
+        for length in [20u32, 21, 127] {
+            let answer = ask_length(length)?;
+            let ModelAnswer::EntityScan {
+                decision: ScanDecision::FlagGroup(_),
+                key,
+            } = answer
+            else {
+                return Err(format!("{length} bytes: not a flag group answer").into());
+            };
+            assert_eq!(
+                (key.len(), key.starts_with('f')),
+                (length as usize, true),
+                "{length} bytes cross the adapter as given"
+            );
+        }
+        for length in [0u32, 128] {
+            let Err(error) = ask_length(length) else {
+                return Err(format!("{length}: a name outside the generic domain was accepted").into());
+            };
+            assert!(error.contains("entity_scan"), "{length}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn the_real_host_providers_flag_store_answers_through_this_bridge_what_the_campaign_asks_and_refuses_what_it_must() -> Test {
+        // the REAL provider (`host.model`, eech-world) over the REAL store, behind THIS bridge's request encoding and its reply parse: the questions are the campaign's own (phases 19 to 22), the answers come back as the decisions
+        // the native callback carries, bit for bit, and a refusal is the bridge's named error. A scripted provider is not involved.
+        let lua = Lua::new();
+        let host = lua.create_table()?;
+        host.set("args", lua.create_table()?)?;
+        eech_world::model_host::register(&lua, &host)?;
+        lua.globals().set("host", host)?;
+        lua.set_app_data(eech_world::movement::SharedMovers(std::rc::Rc::new(std::cell::RefCell::new(
+            eech_world::movement::Movers::default(),
+        ))));
+        lua.set_app_data(eech_world::roster::SharedRoster(std::rc::Rc::new(std::cell::RefCell::new(
+            eech_world::roster::SectorRoster::default(),
+        ))));
+        let mut provider = model_under_test(&lua, "return host.model")?;
+        let mut flag = |phase: f32, array: f32, lane: f32, eligible: f32, identity: &str| {
+            let facts: Vec<u32> = (0..16)
+                .map(|at| match at {
+                    0 => eligible.to_bits(),
+                    11 => phase.to_bits(),
+                    12 => array.to_bits(),
+                    13 => lane.to_bits(),
+                    _ => 0,
+                })
+                .collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: identity.to_string(),
+                },
+            )
+        };
+        let words = |answer: ModelAnswer| match answer {
+            ModelAnswer::EntityScan { decision, key } => match decision {
+                ScanDecision::FlagGroup(w) => Some(("group", w.map(f32::to_bits), key)),
+                ScanDecision::FlagSet(w) => Some(("set", w.map(f32::to_bits), key)),
+                ScanDecision::FlagRead(w) => Some(("read", w.map(f32::to_bits), key)),
+                ScanDecision::FlagReset(w) => Some(("reset", w.map(f32::to_bits), key)),
+                _ => None,
+            },
+            _ => None,
+        };
+        // POSITIVE FIRST: a group is opened (the key is the host's), lane 31 of UPDATED is set, its read answers the raw mask 0x80000000, the second lane of the word reads 0 and destroys it, a reset of an eligible group clears the word
+        assert_eq!(words(flag(19.0, 0.0, 0.0, 1.0, "")?), Some(("group", [0x3f80_0000, 0, 0], "f1".to_string())));
+        assert_eq!(
+            words(flag(20.0, 0.0, 31.0, 0.0, "f1")?),
+            Some(("set", [0, 0x41f8_0000, 0x8000_0000], String::new()))
+        );
+        assert_eq!(
+            words(flag(21.0, 0.0, 31.0, 0.0, "f1")?),
+            Some(("read", [0, 0x41f8_0000, 0x8000_0000], String::new()))
+        );
+        assert_eq!(words(flag(21.0, 0.0, 30.0, 0.0, "f1")?), Some(("read", [0, 0x41f0_0000, 0], String::new())));
+        assert_eq!(words(flag(21.0, 0.0, 31.0, 0.0, "f1")?), Some(("read", [0, 0x41f8_0000, 0], String::new())));
+        assert_eq!(words(flag(20.0, 0.0, 5.0, 0.0, "f1")?), Some(("set", [0, 0x40a0_0000, 0x20], String::new())));
+        let Some(("reset", [array, cleared, 0], _)) = words(flag(22.0, 0.0, 0.0, 0.0, "")?) else {
+            return Err("a reset was not answered as a reset".into());
+        };
+        assert_eq!((array, f32::from_bits(cleared)), (0, 1.0));
+        assert_eq!(
+            words(flag(21.0, 0.0, 5.0, 0.0, "f1")?),
+            Some(("read", [0, 0x40a0_0000, 0], String::new())),
+            "the reset cleared the word"
+        );
+        // the matched REFUSALS (the same question with one field changed): a group the host never issued, a roster-style key, a lane outside the word, an array outside the three
+        for (label, phase, array, lane, identity) in [
+            ("a group the host never issued", 21.0, 0.0, 5.0, "f9"),
+            ("a roster-style key", 21.0, 0.0, 5.0, "1"),
+            ("a lane outside the word", 21.0, 0.0, 32.0, "f1"),
+            ("an array outside the three", 20.0, 3.0, 5.0, "f1"),
+            ("no key at all", 21.0, 0.0, 5.0, ""),
+        ] {
+            let Err(error) = flag(phase, array, lane, 0.0, identity) else {
+                return Err(format!("{label}: a refused question was answered").into());
+            };
+            assert!(error.contains("flag."), "{label}: {error}");
+        }
+        // and the corrected question is answered: nothing was left changed by the refusals
+        assert_eq!(words(flag(21.0, 0.0, 5.0, 0.0, "f1")?), Some(("read", [0, 0x40a0_0000, 0], String::new())));
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_pose_question_carries_the_words_by_bit_pattern_and_the_identity_and_every_class_comes_back() -> Test {
+        let lua = Lua::new();
+        // the stage, the entity's type and the alive flag are the numbers; the text is the 15 patterns, then (when there is one) a space and the identity, which may hold any text. The provider picks the
+        // class by the last digit of the first pattern, and answers the kind and difference it was given in the second and third
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_pose' and scene == 0 and depth == 1 and kind == 4 and definition == 1)
+               local patterns, rest = key:sub (1, 164), key:sub (165)
+               local words = {}
+               for word in patterns:gmatch ('[^,]+') do words[#words + 1] = word end
+               assert (#words == 15, 'the words are 15 patterns')
+               assert (words[15] == '0x7fa0000e', 'the last word arrives as sent')
+               local pick = tonumber (words[1]:sub (-1))
+               local names = { [1] = 'recorded', [2] = 'unrecorded', [3] = 'retired', [4] = 'unknown', [5] = 'no_id' }
+               if rest ~= '' then assert (rest:sub (1, 1) == ' ' and rest:sub (2) == 'eech world:id', 'the identity follows one space') end
+               return { result = names[pick], kind = pick == 1 and 5 or 0, difference = pick == 1 and 21 or 0 }
+             end",
+        )?;
+        let mut ask_pose = |pick: u32, host_id: &str| {
+            let words: Vec<u32> = std::iter::once(0x7fa0_0000 + pick).chain((1..15).map(|at| 0x7fa0_0000 + at)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityPose {
+                    stage: 1,
+                    entity_type: 4,
+                    alive: 1,
+                    host_id: host_id.to_string(),
+                    words,
+                },
+            )
+        };
+        assert_eq!(
+            ask_pose(1, "eech world:id")?,
+            ModelAnswer::EntityPose {
+                class: PoseClass::Recorded,
+                kind: 5,
+                difference: 21
+            }
+        );
+        for (pick, class) in [
+            (2, PoseClass::Unrecorded),
+            (3, PoseClass::Retired),
+            (4, PoseClass::Unknown),
+            (5, PoseClass::NoId),
+        ] {
+            assert_eq!(
+                ask_pose(pick, if pick == 5 { "" } else { "eech world:id" })?,
+                ModelAnswer::EntityPose { class, kind: 0, difference: 0 }
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_pose_answer_that_is_refused_malformed_or_out_of_range_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // the last digit of the first pattern picks the answer: 1 a refusal, 2 an unknown result, 3 a kind of 6, 4 a difference of 32, 5 no kind, 6 a fractional difference, 7 a negative kind
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local pick = tonumber (key:match ('^0x%x%x%x%x%x%x%x(%x)'))
+               if pick == 1 then return { result = 'refused', reason = 'no movers' } end
+               if pick == 2 then return { result = 'perhaps', kind = 0, difference = 0 } end
+               if pick == 3 then return { result = 'recorded', kind = 6, difference = 0 } end
+               if pick == 4 then return { result = 'recorded', kind = 1, difference = 32 } end
+               if pick == 5 then return { result = 'recorded', difference = 0 } end
+               if pick == 6 then return { result = 'recorded', kind = 1, difference = 0.5 } end
+               return { result = 'recorded', kind = -1, difference = 0 }
+             end",
+        )?;
+        let mut decide = |pick: u32| {
+            let words: Vec<u32> = std::iter::once(pick).chain(std::iter::repeat_n(0, 14)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityPose {
+                    stage: 0,
+                    entity_type: 4,
+                    alive: 1,
+                    host_id: "eech-world:1".to_string(),
+                    words,
+                },
+            )
+        };
+        let refused = decide(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:entity_pose.refused]") && refused.contains("no movers"),
+            "{refused}"
+        );
+        for pick in 2..=7 {
+            let error = decide(pick).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:entity_pose.answer]"), "answer {pick}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_scan_answer_that_is_refused_malformed_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // the scene... carries nothing here: the first fact's last digit picks the answer: 1 a refusal, 2 first without a cursor, 3 first with one pattern, 4 next that carries a cursor, 5 an unknown result,
+        // 6 first with a non-finite cursor
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local pick = tonumber (key:match ('^0x%x%x%x%x%x%x%x(%x)'))
+               if pick == 1 then return { result = 'refused', reason = 'no host' } end
+               if pick == 2 then return { result = 'first' } end
+               if pick == 3 then return { result = 'first', p = '0x40000000' } end
+               if pick == 4 then return { result = 'next', p = '0x40000000,0x40000000' } end
+               if pick == 5 then return { result = 'perhaps' } end
+               return { result = 'first', p = '0x7f800000,0x40000000' }
+             end",
+        )?;
+        let mut decide = |pick: u32| {
+            let facts: Vec<u32> = std::iter::once(pick).chain(std::iter::repeat_n(0, 15)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
+        };
+        let refused = decide(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:entity_scan.refused]") && refused.contains("no host"),
+            "{refused}"
+        );
+        for pick in 2..=6 {
+            let error = decide(pick).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:entity_scan.answer]"), "answer {pick}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_candidate_answer_that_is_refused_malformed_unnamed_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // the scene picks the answer: 1 a refusal, 2 a skip that carries a pose, 3 a test of 13 floats, 4 an unknown result, 5 an unnamed skip, 6 a test with a non-finite float,
+        // 7 a test with no pose, 8 a name with a NUL
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene)
+               local zeros = function (n) return string.rep ('0x00000000,', n):sub (1, -2) end
+               if scene == 1 then return { result = 'refused', reason = 'no such model' } end
+               if scene == 2 then return { result = 'skip', name = 'CANDIDATE', p = zeros (12) } end
+               if scene == 3 then return { result = 'test', name = 'CANDIDATE', p = zeros (13) } end
+               if scene == 4 then return { result = 'perhaps', name = 'CANDIDATE' } end
+               if scene == 5 then return { result = 'skip' } end
+               if scene == 6 then return { result = 'test', name = 'CANDIDATE', p = '0x7f800000,' .. zeros (11) } end
+               if scene == 7 then return { result = 'test', name = 'CANDIDATE' } end
+               return { result = 'skip', name = 'A\\0B' }
+             end",
+        )?;
+        let mut decide = |scene: i32| {
+            ask(
+                &mut provider,
+                ModelQuery::EntityCandidate {
+                    scene,
+                    facts: vec![0; 44],
+                    host_id: String::new(),
+                },
+            )
+        };
+        let refused = decide(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:entity_candidate.refused]") && refused.contains("no such model"),
+            "{refused}"
+        );
+        for scene in [2, 3, 4, 5, 6, 7, 8] {
+            let error = decide(scene).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:entity_candidate.answer]"), "scene {scene}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_collision_answer_that_is_refused_short_unnamed_masked_out_of_range_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // each answer is chosen by the scene: 1 refused, 2 five words, 3 no name, 4 a name with a NUL, 5 the answer of a target point question, 6 no mask, 7 mask 64, 8 mask 1.5,
+        // 9 mask -1, 10 a mask that is not a number
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene)
+               local n = 'SCENE'
+               if scene == 1 then return { result = 'refused', reason = 'no such model' } end
+               if scene == 2 then return { result = 'hit', mask = 63, name = n, p = { 1, 2, 3, 4, 5 } } end
+               if scene == 3 then return { result = 'miss', mask = 56, p = { 0, 0, 0, 4, 5, 6 } } end
+               if scene == 4 then return { result = 'hit', mask = 63, name = 'A\0B', p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 5 then return { result = 'world', mask = 63, name = n, p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 6 then return { result = 'miss', name = n, p = { 0, 0, 0, 4, 5, 6 } } end
+               if scene == 7 then return { result = 'hit', mask = 64, name = n, p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 8 then return { result = 'hit', mask = 1.5, name = n, p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 9 then return { result = 'hit', mask = -1, name = n, p = { 1, 2, 3, 4, 5, 6 } } end
+               return { result = 'hit', mask = 0 / 0, name = n, p = { 1, 2, 3, 4, 5, 6 } }
+             end",
+        )?;
+        let mut collide = |scene: i32| ask(&mut provider, ModelQuery::EntityCollision { scene, pose: vec![0; 18] });
+        let refused = collide(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:entity_collision.refused]") && refused.contains("no such model"),
+            "{refused}"
+        );
+        for scene in 2..=10 {
+            let error = collide(scene).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:entity_collision.answer]"), "scene {scene}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
     fn a_target_point_pose_reaches_the_provider_as_exact_bits_and_the_position_comes_back_as_exact_bits() -> Test {
         let lua = Lua::new();
         // the provider hands back the first three words of the pose it received (the root position of a world question, the base of a fixed one): a negative zero, a subnormal and an
@@ -5789,6 +7360,99 @@ mod tests {
             !error.contains('\n') || error.lines().next().is_some_and(|line| line.contains(marker)),
             "{error}"
         );
+    }
+
+    fn tree_begin() -> TerrainQuery {
+        TerrainQuery::TreeBegin {
+            old: [1.0f32.to_bits(), 2.0f32.to_bits(), 3.0f32.to_bits()],
+            new: [(-0.0f32).to_bits(), 5.0f32.to_bits(), 6.0f32.to_bits()],
+            point: [0x7fa0_0001, 0x8000_0000, 0],
+            normal: [0xffc0_0123, 1, 0x8000_0001],
+            ignore_forest_edge_trees: true,
+            skip_tree_top_test: false,
+            winter: true,
+        }
+    }
+
+    #[test]
+    fn a_tree_question_reaches_the_provider_as_bit_patterns_and_its_answers_reach_the_campaign_as_bit_patterns() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        // the request carries the four position triples as patterns, the two flags as booleans and the season; nothing is a Lua number
+        let mut provider = terrain_of(
+            &lua,
+            "assert (r.op == 'tree_begin' and r.winter == true and r.old == '0x3f800000,0x40000000,0x40400000' and r.new == '0x80000000,0x40a00000,0x40c00000'
+                     and r.point == '0x7fa00001,0x80000000,0x00000000' and r.normal == '0xffc00123,0x00000001,0x80000001'
+                     and r.ignore_forest_edge_trees == true and r.skip_tree_top_test == false and r.elevation == nil)
+             return { state = 'need_terrain', ['end'] = 'new', x = '0x7f800001', z = '0x80000000' }",
+        )?;
+        assert_eq!(
+            provider(tree_begin())?,
+            TerrainAnswer::Tree(TreeStep::NeedTerrain {
+                end: TreeEnd::New,
+                x: 0x7f80_0001,
+                z: 0x8000_0000
+            })
+        );
+        let mut provider = terrain_of(
+            &lua,
+            "assert (r.op == 'tree_terrain' and r.winter == false and r.elevation == '0x41200000' and r.old == nil)
+             return { state = 'done', hit = true, point = '0x7fa00001,0x80000000,0x00000007', normal = '0xffc00123,0x00000008,0x80000001' }",
+        )?;
+        assert_eq!(
+            provider(TerrainQuery::TreeTerrain {
+                elevation: 0x4120_0000,
+                winter: false
+            })?,
+            TerrainAnswer::Tree(TreeStep::Done {
+                hit: true,
+                point: [0x7fa0_0001, 0x8000_0000, 7],
+                normal: [0xffc0_0123, 8, 0x8000_0001]
+            })
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_tree_answer_that_is_not_a_well_formed_step_is_refused_with_its_marker() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let ok_point = "'0x00000000,0x00000000,0x00000000'";
+        let cases: Vec<(String, &str)> = vec![
+            ("error ('the tree host is gone')".into(), "tree_begin.callback"),
+            ("return 3".into(), "tree_begin.answer"),
+            ("return { state = 'waiting' }".into(), "tree_begin.answer"),
+            (
+                "return { state = 'need_terrain', ['end'] = 'middle', x = '0x00000000', z = '0x00000000' }".into(),
+                "tree_begin.answer",
+            ),
+            (
+                "return { state = 'need_terrain', ['end'] = 'old', x = 1.5, z = '0x00000000' }".into(),
+                "tree_begin.answer",
+            ),
+            (
+                "return { state = 'need_terrain', ['end'] = 'old', x = '0x0000000', z = '0x00000000' }".into(),
+                "tree_begin.answer",
+            ),
+            (
+                format!("return {{ state = 'done', hit = 1, point = {ok_point}, normal = {ok_point} }}"),
+                "tree_begin.answer",
+            ),
+            (
+                format!("return {{ state = 'done', hit = false, point = '0x00000000,0x00000000', normal = {ok_point} }}"),
+                "tree_begin.answer",
+            ),
+            (
+                format!("return {{ state = 'done', hit = false, point = {ok_point}, normal = 0 }}"),
+                "tree_begin.answer",
+            ),
+        ];
+        for (source, marker) in cases {
+            let mut provider = terrain_of(&lua, &source)?;
+            refused(&mut provider, tree_begin(), marker);
+        }
+        // the same shape rules hold for the answer to a terrain elevation, under its own marker
+        let mut provider = terrain_of(&lua, "return { state = 'maybe' }")?;
+        refused(&mut provider, TerrainQuery::TreeTerrain { elevation: 0, winter: false }, "tree_terrain.answer");
+        Ok(())
     }
 
     #[test]
@@ -7545,3 +9209,7 @@ mod tests {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "native_flag_read_refusal_check.rs"]
+mod native_flag_read_refusal_check;

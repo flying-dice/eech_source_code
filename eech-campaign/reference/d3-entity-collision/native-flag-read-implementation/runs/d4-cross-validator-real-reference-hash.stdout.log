@@ -1,0 +1,25 @@
+
+running 1 test
+Python report validator read_probe_control: actual_exit=Some(0)
+Python report validator read_changed: actual_exit=Some(0)
+Python report validator read_withheld: actual_exit=Some(0)
+Python report validator read_malformed: actual_exit=Some(0)
+Python report validator read_wrong_state: actual_exit=Some(0)
+Python report validator read_wrong_array: actual_exit=Some(0)
+Python report validator read_wrong_word: actual_exit=Some(0)
+Python controller offline actual_exit=Some(0)
+test_full_bundle_inventory_and_every_one_of_91_bytes_are_required (__main__.Controls.test_full_bundle_inventory_and_every_one_of_91_bytes_are_required) ... ok
+test_manifest_paths_do_not_escape_and_relative_write_targets_are_refused (__main__.Controls.test_manifest_paths_do_not_escape_and_relative_write_targets_are_refused) ... ok
+test_real_lua_positive_and_every_new_record_join (__main__.Controls.test_real_lua_positive_and_every_new_record_join) ... ok
+test_reference_hash_checked_before_child_work_even_for_plausible_edit (__main__.Controls.test_reference_hash_checked_before_child_work_even_for_plausible_edit) ... ok
+test_unmaterialized_plan_refuses_before_any_path_or_process_action (__main__.Controls.test_unmaterialized_plan_refuses_before_any_path_or_process_action) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.050s
+
+OK
+
+test nr395_independent_python_validator_and_controller_offline_controls_use_actual_lua_reports ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 1.05s
+

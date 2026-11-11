@@ -1,0 +1,125 @@
+{
+  "kind": "Root READ_ONLY c328 actual-source/direct-check binding; not review/cutover acceptance",
+  "utc": "2026-11-07T16:00:18.219938+00:00",
+  "code": "c328d8bfbbdeb9ff6f5e17d38a72dadef1097f18",
+  "whole_input_rows": 3980,
+  "all_raw_PRE_POST_current_equal": true,
+  "all_actual_Git_blobs_joined": true,
+  "inherited_raw_vs_Git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "scope": "Inherited uncompiled test Lua only; raw CRLF / actual Git LF explicitly dual-bound, no file normalization",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "Git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "scope": "Inherited uncompiled test Lua only; raw CRLF / actual Git LF explicitly dual-bound, no file normalization",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "Git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "scope": "Inherited uncompiled test Lua only; raw CRLF / actual Git LF explicitly dual-bound, no file normalization",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "Git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+    }
+  ],
+  "all22extras_PRE_POST_current_equal": true,
+  "all_readers_and_freeze_scripts_current_equal": true,
+  "final_children": [
+    {
+      "label": "f1-fmt-check",
+      "actual_exit": 0,
+      "selected_instances": 0,
+      "result_rows": 0
+    },
+    {
+      "label": "f2-clippy-engine-sys-default",
+      "actual_exit": 0,
+      "selected_instances": 0,
+      "result_rows": 0
+    },
+    {
+      "label": "f3-clippy-engine-sys-flags-feature",
+      "actual_exit": 0,
+      "selected_instances": 0,
+      "result_rows": 0
+    },
+    {
+      "label": "f4-engine-sys-default",
+      "actual_exit": 0,
+      "selected_instances": 48,
+      "result_rows": 10
+    },
+    {
+      "label": "f5-flags-control-and-guard",
+      "actual_exit": 0,
+      "selected_instances": 4,
+      "result_rows": 2
+    }
+  ],
+  "source_diff": [
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/docs/d3-physical-flags-contract.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/.gitattributes",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/D3-PHYSICAL-FLAGS-CHARACTERIZATION-CODE-FROZEN-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/README.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/inputmaps-compare.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/join-vs-reference.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/manifest.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f1-fmt-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f1-fmt-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f1-fmt-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f2-clippy-engine-sys-default.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f2-clippy-engine-sys-default.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f2-clippy-engine-sys-default.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f3-clippy-engine-sys-flags-feature.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f3-clippy-engine-sys-flags-feature.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f3-clippy-engine-sys-flags-feature.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f4-engine-sys-default.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f4-engine-sys-default.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f4-engine-sys-default.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f5-flags-control-and-guard.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f5-flags-control-and-guard.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/f5-flags-control-and-guard.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/hwflags-final-set-20261107.progress",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/hwflags-final-set-lease-after-20261107.txt",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/hwflags-final-set-lease-before-20261107.txt",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p1-flags-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p1-flags-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p1-flags-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p2-flags-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p2-flags-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p2-flags-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p3-flags-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p3-flags-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p3-flags-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p4-flags-check-and-guard.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p4-flags-check-and-guard.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p4-flags-check-and-guard.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p5-fmt-apply.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p5-fmt-apply.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p5-fmt-apply.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p6-clippy-engine-sys-feature.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p6-clippy-engine-sys-feature.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/runs/p6-clippy-engine-sys-feature.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/check-physical-flags-linux-20261107.sh",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/freeze-hwflags-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/hwflags-extra-identity-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/hwflags-feedback-files-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/hwflags-join-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/hwflags-retained-dev-runs-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/run-hwflags-final-set-20261107.sh",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/run-physical-flags-direct-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/sector-roster-inputmap-batched-20261106.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-characterization/scripts/sho-compare-maps-20261107.py"
+  ],
+  "known_required_open": "Real immediate-consumer bodies, real nonempty update ordering, Tacview reset path, complete raw flag store move, current shipping40/all8, wholeheight/all10/Task49/D3. Source-only census does not meet consumer gate. Guard results before metadata registration never authorize cutover.",
+  "receipt_label_erratum": "Sealed freeze.volume is copied old height-reference name, not actual fresh physical-flags cache. Actual sealed execution helper uses physical-flags9d. Frozen native_identity1b89 is stale contextual label; no flags native ran, active protected shipping true764. Root feedback1558 requires immutable qualified erratum; no reader/test/native replay.",
+  "freeze_sha256": "442ab9d47cddcec742ff58632551d46d5ef43cdfff1e02eaa024263abe07a90a"
+}

@@ -1,0 +1,234 @@
+{
+  "schema": "independent-finite-characterization-source-review/v1",
+  "reviewed_utc": "2026-11-08T01:19:43.457798+00:00",
+  "scope": "Only new motion-response flag-role disposition, gated directC collaborator fixture, Rust runner, source guard/cache refactor and new evidence. Correctness, clean code and boundary safety reviewed together; no tests/builds/native/cache/source mutation or delegation.",
+  "source": {
+    "commit": "fda05b65109ea19bc1d10f022555297670495b94",
+    "parent": "33295557b72406f90127f7bed5626d0adab4cc07",
+    "metadata_commit": "58b25db9cbbc8b349384ad3bf08f4b34125c5060",
+    "observed_HEAD_exact_full_clean": true,
+    "reviewed_changed_blobs": [
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+        "git_blob": "ea22086060530a873000814445c6db57030219b1",
+        "sha256": "7cab38d5fbb8a9a2d99ed83befdef6f624950fedfb69935a5a216e64cfa925ff"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+        "git_blob": "f878f1b2fb29cb6c5b39dacbce6101648a6eacf2",
+        "sha256": "9242ff02e4e1bd143688a2552aaa2c01376d0b6dff44207a474cc6c6cda3b318"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "git_blob": "d12621a9e894a4676a10dc8963b5e0e086c89f3f",
+        "sha256": "5219e9145b0f4776296bfff11eb1085bb6cdde6004df94baef36af8bec320597"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_motion_check.c",
+        "git_blob": "11b2b3da2539dc00d4a118d52a329d403b715b19",
+        "sha256": "6402a66312f020a36b27ba5d0d2138a60b230220846c89ede4779a9edb8d2b13"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_motion.rs",
+        "git_blob": "759fed27d1298da88b3b42f32b95883d7fa6259c",
+        "sha256": "08e2d0082e2f724d209fb60a1edd2125abb0728288abfb238263bc22ff201ada"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+        "git_blob": "64f2c569bcec111a02d8c7c12cfab1c71f9fc215",
+        "sha256": "525598d74f586ba392367620c9b1952a45ff87568ce70d1ca34e71d8788865a7"
+      },
+      {
+        "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+        "git_blob": "beaa8c08c2e79c5463b03b48d92bf40ca45b8052",
+        "sha256": "46ed181b43ed3666d4e2f7cc091a2a5550a7e547974479f3c28fc55223cb7dd1"
+      }
+    ]
+  },
+  "evidence": {
+    "freeze": {
+      "path": "R:/d3-evidence/D3-MOTION-RESPONSE-FLAGS-FROZEN-20261108.json",
+      "bytes": 28508,
+      "sha256": "a5f8b795fef427e0f53da01130fe04b93a5f2fe429bce585cb478fb3c12f6274"
+    },
+    "source_binding": {
+      "path": "R:/d3-evidence/motion-flags-fda05-Root-binding-20261108.json",
+      "bytes": 4209,
+      "sha256": "0ca01604c57e8ed2675160792621e7caf4e0ce91d24c093c249456e6c0d122aa"
+    },
+    "publication_binding": {
+      "path": "R:/d3-evidence/motion-flags-58b25-Root-publication-20261108.json",
+      "bytes": 23678,
+      "sha256": "ab82242995698341cd6d57d1f66782f9a6fd405eefc8671473634ed897209f86"
+    },
+    "typed_service_completion": {
+      "path": "R:/d3-evidence/codex-d3-motion-flags-fallback-20261108-completion.json",
+      "bytes": 1869,
+      "sha256": "b729b3515e5b9e93ea51c6d9e6523a4205e2ab2e1bdaa9bf3f7086208c6ead0f"
+    },
+    "prior_auth_failure_checkpoint": {
+      "path": "R:/d3-evidence/mfr332-claude-auth-expired-checkpoint-20261108.json",
+      "bytes": 3593,
+      "sha256": "633d2b718047bf8d2c4183b8a6ca13a13a9992bfc90914692eb00aedd466ec46"
+    }
+  },
+  "findings": [],
+  "decision": {
+    "status": "ACCEPTED_FINITE_CHARACTERIZATION",
+    "direct_guided_response_to_flag_store_characterization_accepted": true,
+    "current_supported_source_role_disposition_accepted": true,
+    "native_launch_clearance": false,
+    "production_cutover_clearance": false,
+    "GenericNativeAcceptanceRow": "OPEN",
+    "whole_flags_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "assessment": [
+    {
+      "topic": "Real path and environment",
+      "result": "Fixture calls actual campaign_movement_helicopter_guided_begin/end entries, including host identity/step filling/ask_host validation, apply guard, real scalar/position setters and real flag setter. Movement answer is scripted environment; no copied movement solver or campaign decision override. Hosted words are served by the real eech-world FlagStore via declared test provider; Original uses original arrays. This is direct API/body collaboration, not message-table dispatch, shipped movement Rust boundary, Engineboot or native campaign."
+    },
+    {
+      "topic": "Positive and negative effects",
+      "result": "Healthy begin applies answered speed, sets only MOVED lane once and reads no flag; answered not-moved still applies speed but sets nothing. End applies position and sets ROTATED once; not-rotated sets none. Combined cycle sets both words, no reads; high lane retains signed raw bit31. Response-set neighboring bits show original destructive inspection-read effect, and OR preserves a prepared neighbor bit. Invalid moved/rotated booleans refuse by real answer validation before flag mutation; unbound member refuses before movement callback. No test reset scenario is claimed."
+    },
+    {
+      "topic": "Current roles",
+      "result": "Inspected six rv_hostmv set sites support two called guided helicopter setters, two currently uncalled nonguided helicopter APIs and two per-entity logging-bit-gated vehicle/fixed-wing setters. Current ship/weapon source census names no UPDATED/MOVED/ROTATED word access. Guided callers and original movement preprocessor branches match source disposition. This is source-supported current configuration/census, not universal future reachability or arbitrary host/DCS disposition."
+    },
+    {
+      "topic": "Boundary isolation and lifetimes",
+      "result": "Feature is empty/nondefault, explicitly required by one test and forwards only its named C define. Whole fixture body is gated; mb_hostmodel raw change expands only existing test-helper gate/comment. Private test pool/raw records, manual same-sector parent, roster bind callback, scripted physical results and direct delta/comms setup are declared. Normal close restores named arrays/tables/world globals and removes hosts, but dedicated-process state and omitted initializer tables are explicit limits. Trapped fatal tests restore test poison/fatal context for observation; they do not authorize public-engine continuation after poison or prove production atomicity/whole FPU state."
+    },
+    {
+      "topic": "Guard and clean code",
+      "result": "New six-site roles/feature checks are bounded source-pattern guards. Seven role queries reuse one in-memory comment-stripped source walk rather than rereading the whole tree; prior accepted Tacview predicate body is unchanged. Text scanning and column-zero function/name heuristics are not a preprocessed whole-program call graph. No new abstraction, public ABI or second authoritative world is introduced."
+    }
+  ],
+  "checks": {
+    "final_commands": [
+      {
+        "label": "s1-fmt-check",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s2-clippy-default",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s3-clippy-motion-hosted",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s4-clippy-motion-original",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "selected_targets": {}
+      },
+      {
+        "label": "s5-motion-hosted",
+        "actual_exit": 0,
+        "selected_test_instances": 1,
+        "selected_targets": {
+          "physical_flags_motion": 1
+        }
+      },
+      {
+        "label": "s6-motion-original",
+        "actual_exit": 0,
+        "selected_test_instances": 1,
+        "selected_targets": {
+          "physical_flags_motion": 1
+        }
+      },
+      {
+        "label": "s7-flags-guard",
+        "actual_exit": 0,
+        "selected_test_instances": 10,
+        "selected_targets": {
+          "physical_flags_guard": 10
+        }
+      },
+      {
+        "label": "s8-flags-controls-hosted",
+        "actual_exit": 0,
+        "selected_test_instances": 3,
+        "selected_targets": {
+          "physical_flags": 1,
+          "physical_flags_consumer": 1,
+          "physical_flags_collision": 1
+        }
+      },
+      {
+        "label": "s9-flags-controls-original",
+        "actual_exit": 0,
+        "selected_test_instances": 3,
+        "selected_targets": {
+          "physical_flags": 1,
+          "physical_flags_consumer": 1,
+          "physical_flags_collision": 1
+        }
+      },
+      {
+        "label": "s10-build-dc",
+        "actual_exit": 0,
+        "selected_test_instances": 0,
+        "selected_targets": {}
+      }
+    ],
+    "selected_Rust_instances": 18,
+    "motion_tests": {
+      "hosted": 1,
+      "Original": 1
+    },
+    "guard_tests": 10,
+    "unchanged_existing_controls_each_profile": 3,
+    "existing_C_expectations_reused_at_test_scope": {
+      "raw": 199,
+      "guide": 56,
+      "collision_hosted": 16,
+      "collision_original": 15
+    },
+    "hosted_diagnostic_traffic": {
+      "groups": 6,
+      "sets": 10,
+      "explicit_inspection_reads": 4,
+      "resets": 0,
+      "fresh_bindings": 11
+    },
+    "positive_begin_SET_READ": [
+      1,
+      0
+    ],
+    "interpretation": "Counted calls exclude explicit later inspections; the four READs are test getter observations, not motion consumers. Zero RESET means no reset coverage. Diagnostic counts are not protocol requirements. Broad every-operation wording in a test comment is interpreted with these explicit assertions/contract limits, not as nonzero reset evidence."
+  },
+  "provenance": {
+    "PRE_utc": "2026-11-08T01:03:22.5973908Z",
+    "POST_utc": "2026-11-08T01:10:40.5423003Z",
+    "source_rows": 3997,
+    "raw_literal_Git_rows": 3994,
+    "three_inherited_uncompiled_Lua_CRLF_GitLF_qualifications": true,
+    "extras": 35,
+    "PRE_readers": 11,
+    "all_final_direct_children_actual0": true,
+    "outer_direct_runner_actual0": "Root reports actual session20931; direct children individually bound, not inferred from service completion.",
+    "typed_author": "GPT6.1SolHigh service completed, observed FINAL/list_agents status; no fabricated OS PID or CLI numeric0. Earlier Claude OAuth failure actual1/resulttrue and partial source checkpoint are preserved; no authentication change or impersonation.",
+    "development_failures": "d1 flat-attitude indexing was setup/compile failure, not semantic RED. Developer working-tree GREENs remain at those identities; actual final PRE/POST follows guard cache refactor and formatting. Characterization may correctly pass without manufactured product RED.",
+    "publication": "89 exact main manifest entries plus manifest itself90tracked,87 external byte comparisons; five metadata files are actualGit=current, STATUS/card plus3 separate postPOST publication files. Reader/raw logs retained; whitespace-check status limitation is qualified rather than promoted to runtime proof."
+  },
+  "limits": [
+    "Raw mb_hostmodel.c, Cargo/build inputs and new fixture files changed: feature-off equivalence is source/preprocessor scope, not all watched raw inputs equal old3abf or a new Windows binary. Default Linux DC build passes at its own source; no Windows/native/default/fullpack result forfda05 is claimed.",
+    "Manual bootstrap/sector/list relation/private roster identity and supplied host answer are fixture collaborators. No real creation/relink/address-reuse/replacement/session lifetime, full globals/FPU preservation, actual shipped movement converter or natural campaign reachability proof.",
+    "Finite response-driven SET effects do not close public native READ/changed-answer authority, other consumer obligations, DCS needs, NativeAcceptance1 or all ten D3 requirements. No need to manufacture active Tacview or other unreachable caller merely to increase counts.",
+    "Prior accepted raw/Tacview/supply/default/finite native proofs retain original identities/scopes and are not re-reviewed. Both immutable original fullpacks are untouched; prefix equality remains partial, and final current40/all8/fourinputs/CI/review/census/normal merge/wholeheight/Task49/D3 remain required.",
+    "Root owns canonical row disposition/publication; reviewer wrote only this external report. No formal review approval, merge or new implementation design authorized."
+  ]
+}

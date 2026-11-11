@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T09:07:46.086626+00:00",
+  "reviewer": "SAME independent Task49 reviewer /root/d3_environment_review",
+  "source": {
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "accepted_before": "94fe4309eedddc634b37fa9294b93263866e6ea7",
+    "accepted_before_review_sha256": "6726e42e03699b77a104a8ad99625f595a37eb4ba67af0f0d67f18910b2f9d51",
+    "combined_public_session_code": "b2a380 + a384 evidence as bound by final freeze",
+    "code_commit": "f88d6a3b04b72797e33425de569321b7c50aeca7",
+    "metadata_HEAD": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "actual_HEAD_and_full_clean_status_observed": true,
+    "upstream_and_author_terminal": "Root bound clean/pushed and actual FINAL; cache lease released. No fabricated author OS exit/PID."
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/normal-fire-f88d6-2fcf69-Root-binding-20261108.json",
+      "bytes": 2183,
+      "sha256": "c26972b275ede5f6df121eda8e8ad285b48bc4fd2c5c464505befb5b0123b8b3"
+    },
+    {
+      "path": "R:/d3-evidence/D3-NORMAL-FIRE-QUERY-ISOLATION-FROZEN-20261108.json",
+      "bytes": 3982,
+      "sha256": "e5a4a7f1bad9736dfcaa9662beee24eb96ab6fe81351da80733f4a5ac01182b8"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-native-normal-fire-capture-20261108-completion.json",
+      "bytes": 1970,
+      "sha256": "8ea8a6522bad958035a9b6d554cfa7fdfa856913753990a2a75a41a5a9423f3e"
+    },
+    {
+      "path": "R:/d3-evidence/isoA384-final-completion-20261108.json",
+      "bytes": 934,
+      "sha256": "41fe0bf89c00d8e86324fb38471698fed7bcc73d27eb04555e38127c006d99c8"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-normal-fire-public-session.md",
+      "bytes": 7411,
+      "sha256": "bf3006b3df2a230bc3a0d39456d57e4910b6a6f7a6c69523345a9eaf9c613ef9"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/docs/d3-normal-fire-test-isolation.md",
+      "bytes": 2041,
+      "sha256": "ad1734b06a77d88004fda843891484bfc99980db58348d2fd9f480b2d92d693e"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+      "bytes": 13215,
+      "sha256": "e9b98225a4990b93c597711d00e2885e253488782cd628599d0beeaa86807dd1"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua",
+      "bytes": 9569,
+      "sha256": "e70ef15ba7528154632904c4be4fdc1843178ed06d272e8ccccc1468bed6a996"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua",
+      "bytes": 12929,
+      "sha256": "3d223ab0572601cf57eac0a89f12615cc78cfaff2f30395e112588ede1a8a192"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/normal_fire_capture.py",
+      "bytes": 10116,
+      "sha256": "14ae587ae11929b9f80c9e5b623e7913cd83a0189d18a1a5fda34aec2b71ce9c"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/normal_fire_capture_controller.py",
+      "bytes": 10808,
+      "sha256": "ea6a361e2a27b8c0ec43ce10221cc5b9324a220c7961d51c508a2c71fbf21129"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/crates/eech-world/tests/normal_fire_session.rs",
+      "bytes": 9888,
+      "sha256": "b6e3dc21b34dfedb7f638012884c163856f919fe40b89326c68d6b5c030526de"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/tools/test_normal_fire_capture.py",
+      "bytes": 6966,
+      "sha256": "1dd7ebaff996bec6083cb6e70edae60eb64fbe1caf4659409571227e7d426f12"
+    }
+  ],
+  "findings": [
+    {
+      "id": "ENV-NORMAL-FIRE-HEALTHY-REFERENCE-COMPLETE-1",
+      "severity": "P2",
+      "status": "OPEN",
+      "classification": "Diagnostic source/controller pre-effect proof defect; no production solver defect asserted.",
+      "title": "Healthy reference gates accept malformed selected C evidence and unjoined model-event sequence.",
+      "evidence": [
+        "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua:84-100",
+        "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua:43-46",
+        "eech-campaign/tools/normal_fire_capture.py:102-124",
+        "eech-campaign/tools/normal_fire_capture_controller.py:83-87"
+      ],
+      "source_proven_counterexamples": [
+        "Starting with the coherent synthetic healthy report, change only the hex-encoded selected detach.devices or detach.ammo_after value to a nonnumeric token, preserving its field/order. N.event parses field schema plus seq/tick only; neither K.validate nor the independent Python validator validates those detach domains/effects. Both healthy gates can still accept PASS and unlock B.",
+        "Change only a normal_model evidence seq to duplicate another event or place it outside query/query_end. The Lua gate parses the integer but never joins it to the event envelope; Python does not validate model seq at all. Call ordinals/op roles can remain coherent while the purported C stream order is impossible.",
+        "Selected step_end launcher/target/weapon and several selected event physical/domain fields are not validated as a full event contract. These omissions belong to the same incomplete-reference group, not separate findings."
+      ],
+      "impact": "A malformed or internally impossible healthy report can pass the complete-positive gate before child root/output/boot/provider creation. Strict framing and a PASS marker do not supply the claimed semantic correlation.",
+      "minimum_correction": [
+        "Use the source-supported event semantics for every selected excerpt in both Lua and Python gates: canonical positive identities/indices and actual integer/raw-word domains; detach package/ammunition/device/station/conditional flash/fallback consistency; step/query/end fields and legitimate retarget/loss policy at the stated selected-cohort scope. Reuse the live collector contract where applicable rather than treating its schema-only event parser as semantic validation.",
+        "Validate model evidence sequence as the complete source-supported interval inside query/query_end, without duplicate/out-of-envelope sequences, and retain whole cohort/frame/query/op/call relationships and applicable count bounds. Do not require detach and final host birth pose equality, since real D2 may change launch state.",
+        "Keep both validators aligned on the supported domains and perform the complete healthy check before any B side effect. Preserve the existing full-report hash and artifact/setup checks."
+      ],
+      "required_focused_controls": "Coherent supported positive FIRST in both validators and full-driver pre-effect gate, then single-field detach-domain/effect damage, step-end identity damage and model-sequence duplicate/out-of-envelope damage. Each must reject for its semantic cause with zero B output/root/prepare/boot/provider effect, not from a changed setup/schema hash. No new C/math/native experiment is required for this Lua/Python fix."
+    },
+    {
+      "id": "ENV-NORMAL-FIRE-PRE-EFFECT-COHORT-1",
+      "severity": "P2",
+      "status": "OPEN",
+      "classification": "Diagnostic intervention-causality defect; physical result not yet run.",
+      "title": "B may lift the target before the supposedly common normal birth in its own birth frame.",
+      "evidence": [
+        "eech-campaign/crates/eech-world/lua/normal-fire-session.lua:71-85",
+        "eech-campaign/crates/eech-world/lua/normal-fire-session.lua:138-140",
+        "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua:66",
+        "eech-campaign/tools/normal_fire_capture.py:85",
+        "eech-campaign/tools/normal_fire_capture.py:125-129",
+        "eech-campaign/crates/eech-world/tests/normal_fire_session.rs:102-140"
+      ],
+      "source_proven_counterexample": "Both validators allow birth_frame==frame. The current coherent full-driver stand-in performs target move at frame301 before making the normal-fire/detach/birth stream available from that frame, and B changes that move. The B pre-effect gate checks only registration/base/ceiling/frame; it has no already-observed matching birth/launch prefix. Final comparison checks identity ordinals and pose/position differences, not an unchanged common birth/launch prefix.",
+      "impact": "The terrain change may alter target geometry used by launch selection, aim, detachment or birth before the observed weapon exists. Matching later ordinals/types/host identities cannot attribute the physical difference solely to the selected already-born weapon querying a changed moving target.",
+      "minimum_correction": [
+        "Require the selected normal cohort and relevant launch/birth prefix to exist and match the validated healthy reference BEFORE the single target-move input intervention. Registration alone is insufficient.",
+        "An explicit narrower earlier-frame-birth gate is acceptable: retain honest UNREACHED when the first eligible query has only a same-frame unseen birth, without selecting another actor/window. Bind the actual already-observed live fire/detach/birth context and preserved relevant pre-effect inputs/outputs; compare the common prefix in final paired validation too.",
+        "Keep the original one-shot 500m terrain/ceiling checks and exactly-once unchanged delegate calls, and retain actual same-record moving candidate/pose effect. No package/readiness/view/flag/launch forcing or clock/window search."
+      ],
+      "required_focused_controls": "Coherent earlier-observed common-cohort positive FIRST; same-frame move-before-birth negative must stop before changing/delegating altered input; single-field damaged common birth/launch prefix and wrong live cohort must stop before effect. Preserve clean UNREACHED and native/fault precedence. A synthetic earlier-frame stand-in is transport evidence only; it is not a new native reach claim."
+    },
+    {
+      "id": "ENV-NORMAL-FIRE-FLAG-RESET-ORACLE-1",
+      "severity": "P2",
+      "status": "OPEN",
+      "classification": "New diagnostic transcript oracle contradicts accepted production flag semantics.",
+      "title": "Session oracle clears ineligible flag groups and ignores the RESET cleared-count ACK.",
+      "evidence": [
+        "eech-campaign/crates/eech-world/lua/normal-fire-session.lua:42-53",
+        "eech-campaign/crates/eech-world/src/flags.rs:5-10",
+        "eech-campaign/crates/eech-world/src/flags.rs:113-123",
+        "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua:487-509"
+      ],
+      "source_proven_counterexample": "GROUP validates but discards the eligibility word. RESET then clears every observed group in the array and checks only result/array/tail, not reply word2 (groups cleared). For a lawful GROUP eligible=false followed by SET, RESET and READ, actual FlagStore preserves the high-word bit while this oracle expects zero; conversely a malformed cleared-count reply is not diagnosed by the new oracle.",
+      "impact": "A valid original quarter-reset history can become a false diagnostic fault, while a wrong RESET acknowledgement escapes the claimed transcript validation. Reset eligibility is an existing real contract, not a boolean-normalization choice or future lifetime feature.",
+      "minimum_correction": "Retain actual GROUP reset eligibility per issued key; reset only eligible groups in the named array, preserve all ineligible/other-array words and existing destructive READ semantics, count precisely the eligible groups cleared, and validate the complete RESET ACK including its raw whole cleared-count word. Reuse the semantic behavior of the accepted witness oracle; do not change FlagStore, Core flags or baseline.",
+      "required_focused_controls": "Positive FIRST over eligible and ineligible groups with sets in multiple arrays, real destructive reads and reset: eligible word clears, high-word/ineligible bit survives, other arrays survive, exact cleared count matches. Then single-field wrong count/eligibility/array ACK failures, including failure-before-UNREACHED. These are focused new driver/oracle controls, not a request to replay the accepted raw C matrices."
+    }
+  ],
+  "accepted_new_facts": [
+    "The additive C hooks attach existing normal-born weapon ordinals to actual weapon_movement and COLLISION lookup intervals. All real model-provider funnel entries increment the same process-lifetime ordinal, including boot traffic; query records bind the consecutive before/after interval, op and calling weapon. Default macros remain argument-unevaluated and NF-stripped ordinary bodies retain the accepted source. No production solver/request ABI/fire decision changes are identified.",
+    "New hooks use synchronous private stack contexts, pure roster identity lookup/raw-word copies/integer formatting, preserve errno and introduce no host/renderer/RNG query. Fatal unwind remains poisoned; no recovery/reset/epoch semantics added. New selected hook-only four-rounding controls extend the prior finite FPU/status/shared-RNG evidence, not whole-program/all-platform guarantees.",
+    "Fully delivered normal capture storage is reused without resetting sequence/overflow latches. Context/overflow/truncation remains explicit failure. Literal none is valid ineligible C identity; malformed identities fail, and selection requires canonical registered identities.",
+    "Real private normal birth now executes real D2 movement with the explicitly synthetic accepted motor-domain fixture and declared camera relation for the private precision paths. This is not retail-effective GWUT, native view forcing or natural campaign reach. The separately manually registered hosted query has zero normal-birth credit.",
+    "The query-isolation correction is sound: new normal_fire_query.rs is a distinct full Cargo integration executable, active only in HOST_ENTITY profiles; the legacy fixture remains in its own executable. Both unfiltered executables actually pass independently (3 new and 16 legacy C expectations). No production counter reset, order dependency or serial test filter is used to align the fresh Lua provider with persistent C ordinal.",
+    "The generic controller defaults to read-only preflight, requires a later exact materialized plan plus explicit SAME launch receipt, derives the full three-runtime-plus-all-Lua bundle set and binds input/artifact/reference hashes. No concrete bundle/healthy root/plan or native case was created here. Its B gates depend on validators affected by the findings; no controller launch is cleared."
+  ],
+  "mechanical_and_actual_checks": {
+    "Root_binding_reused_without_replay": true,
+    "source_rows": 4021,
+    "raw_Git_literal": 4018,
+    "inherited_uncompiled_Lua_CRLF_GitLF_qualifications": 3,
+    "PRE_POST_literal_equal": true,
+    "stable_extras": 24,
+    "stable_readers": 5,
+    "prior_unchanged_rows": 4017,
+    "nine_Lua_controller_artifacts_unchanged": true,
+    "final_isolation_direct_exits": {
+      "s1-fmt": 0,
+      "s2-hosted-clippy": 0,
+      "s3-coexistence": 0
+    },
+    "original_isolation_outer_actual_exit": 0,
+    "original_isolation_outer_session": 44401,
+    "unfiltered_test_executables": 2,
+    "new_hosted_C_expectations": 3,
+    "legacy_C_expectations": 16,
+    "actual_hosted_provider_entries": 3041,
+    "actual_hosted_query_interval": [
+      3030,
+      3041
+    ],
+    "reused_nqt2_final_direct_commands": 9,
+    "reused_nqt2_direct_and_outer_actual_exits": 0,
+    "packets": {
+      "normal-fire-public-session": {
+        "publication_entries": 67,
+        "literal_files": 68
+      },
+      "normal-fire-query-isolation": {
+        "publication_entries": 34,
+        "literal_files": 35
+      }
+    },
+    "scope": "Mechanical identity/evidence joins accepted; passing focused checks do not waive the source-derived proof findings. All counterexamples in this report are static branch analysis, not executed experiments."
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED_LUA_PROOF_GATES; COMPILED_OBSERVER_AND_QUERY_ISOLATION_ACCEPTED_AT_BUILD_ONLY_SCOPE",
+    "bounded_prerequisite_source_accepted": false,
+    "compiled_observer_source_accepted_at_stated_scope": true,
+    "query_test_process_isolation_accepted": true,
+    "windows_build_clearance": true,
+    "windows_build_clearance_is_conditional_build_only": true,
+    "native_controller_launch_clearance": false,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "loader_removal_clearance": false,
+    "natural_moving_accepted": false,
+    "GenericNativeAcceptance1_closed": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "conditional_build_scope": [
+    "Root may compile only a distinct exact clean frozen f88d6/2fc source snapshot with normal-fire-correlation explicitly enabled, retaining actual producer/image/toolchain, staged source, COFF/feature/private-export/profile proof and derived complete payload identities. This does not accept the bundled current Lua driver/validators for execution.",
+    "One cache owner remains mandatory. If the next correction is Lua/tests/docs only, reuse of that compiled result requires an exact whole relevant C/Rust product/build/Cargo input join, a separately Git-bound corrected literal/artifact set and truthful old build identity. Do not relabel binaries as newly compiled source.",
+    "Root may instead serialize source correction before building. Any compiled-product/build change requires its own affected source/check/build identity. No native smoke/capture or current default/conformance execution is authorized by build-only clearance."
+  ],
+  "required_next_gate": "ONE consolidated same-lane Lua/validator/oracle correction with coherent positives and focused single-field controls for all three findings, timed final inputs and clean freeze; SAME changed-material closure. Only afterward can Root materialize the exact observer build/profile/literals/root/baselines and concrete controller plan for separate bounded launch review. No new seed/window/actor hunt or optional framework.",
+  "limits": [
+    "Healthy first remains mandatory at Lebanon seed1/100ms/30+120 seconds (1500 frames). UNREACHED cannot authorize B. No current code/controller/plan/native acceptance or physical authority is inferred from synthetic Lua/Python reports or private C/Rust collaborators.",
+    "Earlier 6726/36b2/965/flag/default/source proofs retain their exact finite scopes; no old closed experiment replay. Runtime checkpoint still held pre-publication transient state; current exact HEAD/Root final binding are explicit, and parent owns canonical reconciliation.",
+    "Current exact-head CI is queried separately by Root; no all-green claim is made here and CI cannot waive these diagnostic source findings. Both immutable fullpacks and original process identities remain untouched; partial prefix equality is not completed acceptance.",
+    "All ten D3 requirements, GenericNative1/blocks_cutover, D3G-08 hierarchy/device ownership, other consumers/lifetimes/FPU/DCS, whole height, current full40/all8/four inputs/census/current CI/formal review/normal merge/Task49/D3/delivery remain open as applicable. No D4/D5/TypeScript or formal GitHub self-approval."
+  ],
+  "reviewer_actions": "Read-only source/retained evidence inspection; wrote only this unique external JSON. No tests/build/cache/native/controller/Git/source mutation or nested agents."
+}

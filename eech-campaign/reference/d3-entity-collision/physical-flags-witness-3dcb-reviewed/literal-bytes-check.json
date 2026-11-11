@@ -1,0 +1,42 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the working bytes and the external sealed files, no field normalisation",
+  "files": {
+    "independent-physical-flags-public-witness-3dcb-source-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 16998,
+      "sha256": "8a8114e233c5f5f137cf92af46ae1b1430f610606fc285c3f711ff51a03602da"
+    },
+    "physical-flags-witfix-3dcb-Root-binding-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 14621,
+      "sha256": "4c2a954b66360df352ad58251fd041ebc72ed7b9e2a6b8c155ce936cb90ade05"
+    },
+    "physical-flags-witfix-6fce-publication-Root-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 4940,
+      "sha256": "e2a1cc472080b42b193da69f1654c07f12363292b9746644639d130dd20489ac"
+    },
+    "hwcr-namespace-recovery-Root-binding-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "git_index_blob_bytes_equal_external_file": true,
+      "bytes": 2995,
+      "sha256": "57115c4ace2d23cef76734193a27ee7ee28cfad6ac13b9f2728e793bccd481a5"
+    },
+    "README.md": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "git_index_blob_bytes_equal_external_file": null,
+      "bytes": 3134,
+      "sha256": "11603ec7fb4dc6eaf879cba6759a79aa0570667514c5de58a70e0399c5904ebf"
+    },
+    ".gitattributes": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "git_index_blob_bytes_equal_external_file": null,
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    }
+  },
+  "problems": []
+}

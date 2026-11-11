@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "diagnosis-addendum.json",
+      "bytes": 4355,
+      "sha256": "106195f541607fa497b0d8b83bd09a3178b78334498f4ab91590f15b5d2194bd"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "bytes": 829,
+      "sha256": "e57e0284dfcf3851d94da081e96bf5cbeaec56c5c75dd8dea3cf45ef76803a86"
+    },
+    {
+      "path": "README.md",
+      "bytes": 902,
+      "sha256": "03799a9a03d404b834e4cc2e26ea50fc97abf93982eab8ab1f981a4d736f72a5"
+    },
+    {
+      "path": "Root-height-native-load-binary-size-cause-20261107.json",
+      "bytes": 1316,
+      "sha256": "3dbf5688b0f53284028600836fcfe7fc3c8e3b5ab21b4c6db611f5ca8de25b90"
+    },
+    {
+      "path": "Root-height-native-load-restore-order-constraint-20261107.json",
+      "bytes": 1597,
+      "sha256": "8a7070dedf7cd6f2634c4aadc252d709aea11300f81bfb76c932e5465c13c2b5"
+    },
+    {
+      "path": "Root-height-native-load-reviewer-constraints-20261107.json",
+      "bytes": 1076,
+      "sha256": "76343e63d669a35db3df5fb2702eb8ee79a877573cd7b1d140af407f4650d1e2"
+    }
+  ],
+  "scope": "Literal same-reviewer constraint records and a diagnosis addendum; not a native result, fix claim or acceptance."
+}

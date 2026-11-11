@@ -1,0 +1,5 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.50s
+     Running tests/entity_roster_host.rs (/target/x86_64-unknown-linux-gnu/debug/deps/entity_roster_host-3d62517439d722ea)
+error: test failed, to rerun pass `-p eech-world --test entity_roster_host`

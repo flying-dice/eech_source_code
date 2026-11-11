@@ -1,0 +1,5 @@
+{
+  "before_sha256": "5b0a45e57e5d018f4dfbb184f2564314f94507fa11f14d27bb887daf903e8252",
+  "after_sha256": "a2bb190a2008a76e26e472de3ab9576389d47cc4f2e2571a294ddb81c78d0e6a",
+  "scope": "Comment-only correction of inherited batch label and an old receipt date changed during initial filename derivation. Actual image/volume/assertions/mounts/commands unchanged. Original helper bytes retained; developer identities not retroactively sealed."
+}

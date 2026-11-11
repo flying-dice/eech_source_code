@@ -1,0 +1,164 @@
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_funnel.rs:40:
+ /// the insert order of the staged en_list.c, and every other relation of the staged hooks that the C control reproduces
+ fn staged_order() -> bool {
+     let list = staged("aphavoc/source/entity/system/en_funcs/en_list.c", EN_LIST);
+-    let (hook, place, link) = (at(&list, "eech_sho_sector_insert (en, parent)"), at(&list, "campaign_place_insert (en);"), at(&list, "ENTITY_MESSAGE_LINK_CHILD, parent, en, type"));
++    let (hook, place, link) = (
++        at(&list, "eech_sho_sector_insert (en, parent)"),
++        at(&list, "campaign_place_insert (en);"),
++        at(&list, "ENTITY_MESSAGE_LINK_CHILD, parent, en, type"),
++    );
+     assert!(place < link && hook < link, "the insert hook must stand before LINK_CHILD");
+     let (place_remove, remove_hook) = (at(&list, "campaign_place_remove (en);"), at(&list, "eech_sho_sector_remove (en)"));
+-    assert!(place_remove < remove_hook, "the removal hook follows the roster's removal, while the entity is still listed (before UNLINK_CHILD)");
++    assert!(
++        place_remove < remove_hook,
++        "the removal hook follows the roster's removal, while the entity is still listed (before UNLINK_CHILD)"
++    );
+     assert!(remove_hook < at(&list, "ENTITY_MESSAGE_UNLINK_CHILD, parent, en, type"));
+     let sector = staged("aphavoc/source/entity/special/sector/sc_msgs.c", SC_MSGS);
+-    let (begin, raise, end) = (at(&sector, "eech_sho_link_begin (receiver"), at(&sector, "if (height > raw->tallest_structure_height)"), at(&sector, "eech_sho_link_end (receiver"));
++    let (begin, raise, end) = (
++        at(&sector, "eech_sho_link_begin (receiver"),
++        at(&sector, "if (height > raw->tallest_structure_height)"),
++        at(&sector, "eech_sho_link_end (receiver"),
++    );
+     assert!(begin < raise && raise < end, "the link hooks surround the original raise");
+     let heap = staged("aphavoc/source/entity/system/en_main/en_heap.c", EN_HEAP);
+-    assert!(at(&heap, "campaign_place_release_entity (en);") < at(&heap, "eech_sho_entity_release (en)"), "the release hook follows the placement map's release");
++    assert!(
++        at(&heap, "campaign_place_release_entity (en);") < at(&heap, "eech_sho_entity_release (en)"),
++        "the release hook follows the placement map's release"
++    );
+     // the statement hooks stand before the host's statement and pass the SECTOR-placement relationship of the key the map itself chooses
+     let map = staged("aphavoc/source/entity/mobile/mb_hostplacemap.h", PLACEMAP);
+-    let key = at(&map, "key = place_key_of_slot [slot][0] ? place_key_of_slot [slot] : place_child_of_slot [slot];");
+-    for (hook, call) in [("eech_sho_statement_city (en, place_key_of_slot [slot][0] != 0, key, city)", "campaign_model_entity_city_state (key, city);"),
+-                         ("eech_sho_statement_fixed (en, CAMPAIGN_PLACE_TYPE (en), place_key_of_slot [slot][0] != 0, key, state)", "campaign_model_entity_fixed (CAMPAIGN_PLACE_TYPE (en), key, state);")] {
+-        assert!(key < at(&map, hook) && at(&map, hook) < at(&map, call), "{hook} must stand between the key choice and the host statement");
++    let key = at(
++        &map,
++        "key = place_key_of_slot [slot][0] ? place_key_of_slot [slot] : place_child_of_slot [slot];",
++    );
++    for (hook, call) in [
++        (
++            "eech_sho_statement_city (en, place_key_of_slot [slot][0] != 0, key, city)",
++            "campaign_model_entity_city_state (key, city);",
++        ),
++        (
++            "eech_sho_statement_fixed (en, CAMPAIGN_PLACE_TYPE (en), place_key_of_slot [slot][0] != 0, key, state)",
++            "campaign_model_entity_fixed (CAMPAIGN_PLACE_TYPE (en), key, state);",
++        ),
++    ] {
++        assert!(
++            key < at(&map, hook) && at(&map, hook) < at(&map, call),
++            "{hook} must stand between the key choice and the host statement"
++        );
+     }
+     hook < place
+ }
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_funnel.rs:113:
+ 
+     let report = summary();
+     let join = line_of(&report, "sho-join");
+-    assert_eq!(number(join, "stmt_unjoined"), 0, "the first state statement of a placement met no observer record (the insert hook stands after the nested call): {join}\n{report}");
++    assert_eq!(
++        number(join, "stmt_unjoined"),
++        0,
++        "the first state statement of a placement met no observer record (the insert hook stands after the nested call): {join}\n{report}"
++    );
+     assert!(report.contains("sho-complete value=1"), "the real funnel sequence must be whole:\n{report}");
+     assert_eq!((number(join, "links_joined"), number(join, "links_unjoined")), (6, 0), "{join}");
+-    assert_eq!((number(join, "stmt_joined"), number(join, "stmt_child"), number(join, "stmt_child_unexpected")), (9, 1, 0), "{join}");
+-    assert_eq!((number(join, "double_insert"), number(join, "remove_unjoined"), number(join, "stmt_type_mismatch")), (0, 0, 0), "{join}");
++    assert_eq!(
++        (number(join, "stmt_joined"), number(join, "stmt_child"), number(join, "stmt_child_unexpected")),
++        (9, 1, 0),
++        "{join}"
++    );
++    assert_eq!(
++        (
++            number(join, "double_insert"),
++            number(join, "remove_unjoined"),
++            number(join, "stmt_type_mismatch")
++        ),
++        (0, 0, 0),
++        "{join}"
++    );
+     let counts = line_of(&report, "sho-counts");
+-    assert_eq!((number(counts, "inserts_total"), number(counts, "removes_recorded"), number(counts, "released_open")), (6, 1, 1), "{counts}");
++    assert_eq!(
++        (
++            number(counts, "inserts_total"),
++            number(counts, "removes_recorded"),
++            number(counts, "released_open")
++        ),
++        (6, 1, 1),
++        "{counts}"
++    );
+ 
+     // the rows: the callback order of ONE placement is INSERT, the nested statement, LINK; two same-family records of one sector stay apart; the building's child-stage statement carries no record
+     // and its sector-stage statement carries the building's
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_funnel.rs:130:
+             Ok(r) => r,
+             Err(e) => panic!("event {i}: {e:?}"),
+         };
+-        by_ent.entry(number(&row, "ent")).or_default().push(format!("{}:{}", field(&row, "kind"), field(&row, "rec")));
++        by_ent
++            .entry(number(&row, "ent"))
++            .or_default()
++            .push(format!("{}:{}", field(&row, "kind"), field(&row, "rec")));
+     }
+     let kinds = |ent: u64| by_ent.get(&ent).cloned().unwrap_or_default();
+-    assert_eq!(kinds(1), ["insert:1", "stmt_fixed:1", "link:1", "stmt_fixed:1", "remove:1", "insert:5", "stmt_fixed:5", "link:5"], "{by_ent:?}");
+-    assert_eq!(kinds(2), ["insert:2", "stmt_fixed:2", "link:2", "stmt_fixed:2", "release:2", "insert:6", "stmt_fixed:6", "link:6"], "interleaved same-family records must stay apart: {by_ent:?}");
++    assert_eq!(
++        kinds(1),
++        [
++            "insert:1",
++            "stmt_fixed:1",
++            "link:1",
++            "stmt_fixed:1",
++            "remove:1",
++            "insert:5",
++            "stmt_fixed:5",
++            "link:5"
++        ],
++        "{by_ent:?}"
++    );
++    assert_eq!(
++        kinds(2),
++        [
++            "insert:2",
++            "stmt_fixed:2",
++            "link:2",
++            "stmt_fixed:2",
++            "release:2",
++            "insert:6",
++            "stmt_fixed:6",
++            "link:6"
++        ],
++        "interleaved same-family records must stay apart: {by_ent:?}"
++    );
+     assert_eq!(kinds(3), ["insert:3", "stmt_city:3", "link:3"], "{by_ent:?}");
+-    assert_eq!(kinds(4), ["stmt_fixed:0", "insert:4", "stmt_fixed:4", "link:4", "stmt_fixed:4"], "only the sector-stage statement of a city building joins its sector record: {by_ent:?}");
++    assert_eq!(
++        kinds(4),
++        ["stmt_fixed:0", "insert:4", "stmt_fixed:4", "link:4", "stmt_fixed:4"],
++        "only the sector-stage statement of a city building joins its sector record: {by_ent:?}"
++    );
+ 
+     // ---- genuinely unjoined: a placement the observer never saw, and a later restatement of it, are still refused and break completeness
+     run(18, hook_first);
+Diff in /src/eech-campaign/crates/eech-engine/tests/sector_height_funnel.rs:143:
+     run(19, hook_first);
+     let after = summary();
+     let join = line_of(&after, "sho-join");
+-    assert!(after.contains("sho-complete value=0"), "an unjoined placement must make the report incomplete:\n{after}");
++    assert!(
++        after.contains("sho-complete value=0"),
++        "an unjoined placement must make the report incomplete:\n{after}"
++    );
+     assert_eq!(number(join, "stmt_unjoined"), 2, "{join}");
+     assert_eq!(number(join, "links_unjoined"), 1, "{join}");
+ }

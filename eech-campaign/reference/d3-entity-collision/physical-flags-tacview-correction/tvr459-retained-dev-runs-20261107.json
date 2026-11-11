@@ -1,0 +1,5 @@
+{
+  "r1-red-old-predicate": {"actual_exit": 101, "why": "RED, on the OLD predicate (the nearest preceding `if (` line contains tacview_is_logging ()), with the new negatives and the macro pin already in the test: 7 of the 8 guard tests passed; the Tacview guard failed at its intended assertion `NEGATIVE: the same read immediately AFTER the closing brace of the logging block` (the old predicate accepts it), while the macro pin and all nine real reads still passed. A genuine failing assertion on the old guard, not a compile or setup failure and not a product RED"},
+  "g1-green-brace-aware": {"actual_exit": 0, "why": "GREEN after the predicate became real block membership (brace matching) and the resets (hosted and original memset) were checked by it: 8 of 8 guard tests; repeated in the final set s3 after the formatter"},
+  "d1-fmt-apply": {"actual_exit": 0, "why": "cargo fmt -p eech-engine-sys applied after the guard edit (rustup component add rustfmt in the same ephemeral container); git status afterwards showed only this batch's two files modified (the guard test and the contract)"}
+}

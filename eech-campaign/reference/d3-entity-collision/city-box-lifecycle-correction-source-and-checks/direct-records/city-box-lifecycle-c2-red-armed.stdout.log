@@ -1,0 +1,20 @@
+
+running 1 test
+test a_released_city_drains_after_the_launch_without_a_fault_and_is_never_continued ... FAILED
+
+failures:
+
+---- a_released_city_drains_after_the_launch_without_a_fault_and_is_never_continued stdout ----
+
+thread 'a_released_city_drains_after_the_launch_without_a_fault_and_is_never_continued' (152) panicked at crates/eech-world/tests/entity_authority.rs:5843:5:
+assertion `left == right` failed: {"altered_request":0,"box_max":"","box_min":"","buildings":-1,"completed":false,"consumed_after":0,"consumed_before":0,"continuation_links":0,"empty_key_changed":-1,"empty_keyed":-1,"event":"city_lifecycle_authority","expansions_answered_in_window":0,"expansions_in_window":0,"failure_line":"","failure_marker":"","first_fault":"scan request: the city event names the placement 1, which has ended","frames":1,"host_keyed":-1,"intervened":0,"intervention":"none","list_order_restored":-1,"mirror_box_equal":-1,"mode":"city_box_lifecycle","natural_weapon_engagement":"not_claimed_terminal_witness","profile":"hosted","query_after_hit":-1,"query_after_kind":"","query_before_hit":-1,"query_before_kind":"","query_equal":-1,"releases_in_window":1,"reply_faults":0,"request_faults":1,"restored_key_changed":-1,"restored_keyed":-1,"retained_answers":0,"unreached":"no_bound_city_with_a_built_box_and_buildings"}
+  left: (1, 0)
+ right: (0, 0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_released_city_drains_after_the_launch_without_a_fault_and_is_never_continued
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.01s
+

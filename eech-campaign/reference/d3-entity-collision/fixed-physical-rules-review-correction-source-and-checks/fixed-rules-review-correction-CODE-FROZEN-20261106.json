@@ -1,0 +1,460 @@
+{
+  "schema": "d3.task49.fixed-rules-review-correction.code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN: source and Linux checks only. No SourceClearance, no native actual, no Windows/Wine run, no review, no acceptance is claimed.",
+  "scope": "ONE correction lane over d2f5027c9 / bfce56e3c9: the same reviewer's P2 ENV-FIXED-RULES-RESTATEMENT-ACK-1, the two current-CI FPU failures and the other failing CI profiles (inspected, not assumed identical), the two latent workspace clippy errors in eech-dc tests, and the evidence/metadata corrections of the review. The physical rules, the fixed/CITY Host records, the original math, the constructor finite proof and every C/sys/extractor input are unchanged.",
+  "producer": {
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "lane": "fresh compact correction lane; no subagents, no nested agents, no MCP/auth change, no model fallback, no Windows/native/retail call, no cache cleanup/restart, no merge or self-clearance"
+  },
+  "identity": {
+    "code": "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453",
+    "code_parent": "bfce56e3c9e56352c1f2c6beb6c53d930dbee649",
+    "meta_commit": null,
+    "reviewed_source_under_correction": "d2f5027c9154841c32f70ed87747b9d908e08e48",
+    "reviewed_source_parent": "90b38189601bacf57684e944a3d0f35b5ad0e69e",
+    "branch": "codex/d3-object-tree-collision",
+    "review_report": {
+      "path": "R:/d3-evidence/independent-fixed-physical-rules-source-d2f5027c9-20261106.json",
+      "bytes": 29459,
+      "sha256": "18b2faf80a7bd43905e7e078d63aaabbe1312817b9537f100ccaefac851c7c10",
+      "decision": "CHANGES_REQUIRED",
+      "native_launch_clearance": false,
+      "finding": "ENV-FIXED-RULES-RESTATEMENT-ACK-1 (P2)",
+      "sha256_verified": "18b2faf80a7bd43905e7e078d63aaabbe1312817b9537f100ccaefac851c7c10"
+    },
+    "note": "meta_commit stays the tracked null placeholder in this repository copy; Root's external copy names the metadata commit",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "bytes": 470297,
+        "sha256": "7abb75cbf089da45b2959ec8a8d52d5fd0d2fa9143da858ba70d2adb40476794"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 219125,
+        "sha256": "a0cf8021022a0a077778a7ad843b2a445e08fce0f4c3e544760d9e9222d1e470"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+        "bytes": 31540,
+        "sha256": "c8b4bdfcef986e25f0e9a4fa8023cb32a9d483bb0cc31ab3dcbffd2df8cc766f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "bytes": 303452,
+        "sha256": "f9a1f2ec6c59ff3a774f370c969bf7077c56fbb10d297e0660821c981b88ab01"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+        "bytes": 184703,
+        "sha256": "045a96ca95aeae94f014bf441d8702f2fdeb585e48352bbf5a4e46a13789d79c"
+      },
+      {
+        "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+        "bytes": 98847,
+        "sha256": "49bfcde958a5ce3db05d6a6535b8ea0e7e73a921e7ccbda57740506b44a02c57"
+      }
+    ]
+  },
+  "sequencing": {
+    "order_followed": "1. reproduce/characterise on the clean unchanged bfce tree (FPU RED, then the untracked flag-location control); 2. write the damaged-ACK control and run it RED against the unchanged bfce Lua; 3. implement all corrections; 4. GREEN, formatting, lint; 5. one frozen source, final checks, input maps before and after, raw Git binding.",
+    "no_post_green_production_restore": true,
+    "stable_profile": "Every debug run uses the CI command shape `cargo test --locked --target x86_64-unknown-linux-gnu` in the one image/cache; release runs use `--release --locked` in the same cache. The EECH_C_OPT=2 profile was run last, on the final bytes.",
+    "honest_ordering_notes": [
+      "The scan classifier's production edit (entity_host.rs) was made BEFORE the damaged-ACK RED run. The ACK RED therefore ran in a working tree whose scan path was already corrected; the production Lua and the ACK path under test were still exactly bfce56e3c's (the FPU and ACK changes are in disjoint code).",
+      "The differential unit test of the new raw scan classifier passes on the corrected code and was not run RED: it is a characterisation of an equivalence (integer classifier against the established floating one over a 200,000-word corpus), not a new capability. The RED of the behaviour is the retained actual CI failure and its local debug reproduction.",
+      "The i686 compile failure and the two clippy errors are REDs supplied by the retained CI log and the retained clippy record; neither could be reproduced locally (the image has no 32-bit libc; the clippy record is the parent's own, kept literally). Their GREEN is the static proof and the workspace lint gate below.",
+      "A formatting difference in the new classifier was found by `cargo fmt --check` (exit 1, retained) after the first GREEN runs and corrected; the debug workspace run, the workspace clippy and the release world run were REPEATED on the final bytes."
+    ]
+  },
+  "dispositions": [
+    {
+      "item": 1,
+      "id": "ENV-FIXED-RULES-RESTATEMENT-ACK-1",
+      "disposition": "CORRECTED (source) - awaiting the same reviewer",
+      "change": "lua/entity-authority.lua: the host's changed_fixed_rule restatement is credited only if scan.fixed.reply_problem(acknowledged, {kind='fixed', key=<current placement>}) is nil, i.e. the campaign's own fixed-report reply contract (a table, not refused, result placed, no cursor, the placement's key). A damaged acknowledgement sets rule_changed = -1, counts one reply fault with the named first fault, and the verdict names the acknowledgement before any unrelated failure line. Eligibility is still counted before the mutation; the same-provider/same-key restatement, the unmodified next question and the named collision-fixed mirror refusal are unchanged; wrong-live-key, boot and unacknowledged-fatal classification and the no-postfatal-API rule are untouched.",
+      "red": "ack-red-bfce-lua-debug: exit 101 - the damaged acknowledgement (placed, the same key, plus a cursor) was credited (fixed_rule_changed 1, first_fault 'candidate reply: result refused', i.e. a success that went on to the expected mirror refusal) against the expected -1 and the acknowledgement fault. The positive control in the same test passed first.",
+      "green": "a_restatement_acknowledged_with_a_cursor_beside_placed_and_the_same_key_is_never_credited_as_a_change passes in the debug and release runs; changing_the_physical_rule_of_a_served_placement_makes_the_next_unmodified_question_refused_by_the_mirror_difference (positive, real-state restatement/refusal) still passes.",
+      "control_shape": "the scripted driver's real fixed log shows two acknowledged `placed` answers for the one placement; only the second (the restatement: sub type word UNKNOWN, no withdrawal word) carries a cursor via the new bad_real_fixed = 'restatement_cursor' fixture mode, so the initial report is acknowledged exactly as before; request_faults 0, eligible 1, changed -1."
+    },
+    {
+      "item": 2,
+      "id": "ENV-CI-DEBUG-SCAN-FPU-1",
+      "disposition": "REPRODUCED, EXACT CAUSE PROVED, CORRECTED (source) - current CI pending",
+      "diagnosis": {
+        "failing_tests": [
+          "the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words (tests/entity_roster_host.rs:416)",
+          "the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged (tests/entity_roster_host.rs:878)"
+        ],
+        "symptom": "after the case 'a signaling phase' (word 11 = 0x7fa00001) the caller's state is MXCSR 8065 / raised flags 1 against expected 8064 / 0 (Nearest, raised=false); masks, control word and rounding unchanged.",
+        "reproduction": "fpu-red-bfce-debug-a: the CI-equivalent debug command on the clean unchanged bfce tree, exit 101, the same two tests, the same two panic lines and the same state tuples as the CI logs.",
+        "location": "A signaling-NaN PHASE word is not an entity-scan phase, so it falls through the host's integer classification of the other malformed words (roster word_whole/word_truncated, which is why every other malformed case passes) to the scan kernel's named refusal: entity_host::scan_step converted all sixteen words to f32 and ran the FLOATING check_scan_facts, whose first test is `!value.is_finite()` on the signaling NaN. The message the tests expect ('fact 11') is that very refusal.",
+        "mechanism_proved_at_flag_level": "fpu-diag-debug / fpu-diag-release (an untracked temporary test, source retained in direct-records/fpu-diag-test-source.rs.txt, deleted after): on 0x7fa00001 with the flags cleared, from_bits alone leaves 0 and the integer exponent test leaves 0 in both builds; f32::is_finite raises the invalid flag in the DEBUG build (flags=1) and not in release (flags=0); f32::is_nan raises it in both. is_finite is the comparison `abs() < INFINITY`, which an ordering compare on a signaling NaN signals unless the optimizer turns it into a bit test. The optimizer-folding explanation of the release result is INFERRED from that outcome; no disassembly was read.",
+        "why_release_passed": "every earlier local check, including the accepted release chain, used `--release`; CI's required job is debug.",
+        "parent_current_distinction": "NOT introduced by d2f5027c9 or by this review: `git diff 90b381896 d2f5027c9 -- eech-campaign/crates/eech-world/src/entity_host.rs eech-campaign/crates/eech-world/tests/entity_roster_host.rs` is empty; check_scan_facts/scan_step were last changed at 8b8523082 (5 Nov 2026), and the retained probe sector-roster-direct-city-probe-roster-baseline (6 Nov 09:25 UTC, before the rules cut, debug, exit 101) shows the identical state tuples. It was a latent debug-only defect of the finite scan cut that release-only local gates could not see; whether an earlier CI run on this branch reached the test step was not established and is not claimed. The earlier lane's note that debug runs are 'not comparable' is superseded: CI requires debug, and the defect is real production behaviour (an unoptimized build touches the caller's flags).",
+        "other_profiles_inspected": [
+          {
+            "job": "x86_64 EECH_C_OPT=2 (127959728431)",
+            "result": "the SAME two tests, the same panic lines and state tuples (log inspected): same cause"
+          },
+          {
+            "job": "Windows cross/Wine (127959728238)",
+            "result": "the SAME two tests at the same lines with MXCSR 8065 against 8064 and flags 1 against 0; the x87 control word differs from Linux (639, equal on both sides of the comparison) (log inspected). Not run here (no Windows/Wine call); the fix is architecture-independent Rust source, so the same cause is inferred, not shown"
+          },
+          {
+            "job": "i686 (127959728721)",
+            "result": "DIFFERENT cause: a COMPILE error, E0433 'cannot find module or crate fpu' (14 sites, model_target_point.rs:2923-2943 and 2994-3028), in the two city-box tests added by f06db8570 that use the x86_64-only inline-assembly helper without the #[cfg(target_arch = \"x86_64\")] their three sibling tests carry. It is unrelated to the scan FPU flag. The test target never compiled there, so no test ran"
+          },
+          {
+            "job": "i686 with EECH_ORIGINAL_STACK_ATTRIBUTES=1 (127959728611)",
+            "result": "not inspected (in progress, log not retrievable); NOT assumed to equal the i686 job"
+          }
+        ]
+      },
+      "minimal_green": "entity_host::classify_scan_words: the established floating domains of check_scan_facts (length, finite, the whole-number facts 6/11/12/13/14/15 and their ranges, the 1e9 magnitude of the rest) in the same order with the same messages, over the words as they arrive and by integer operations only (the exponent test and the roster's own word_whole). scan_step runs it before any word becomes a float; check_scan_facts stays as the second, now only-finite, check exactly as check_candidate_words precedes check_candidate_facts. A differential test pins the equivalence word for word over a 200,000-word corpus plus the wrong lengths.",
+      "not_done": [
+        "no flag is cleared before an assertion",
+        "no whole-state equality, tolerance or test is weakened, skipped, ignored or whitelisted",
+        "no FP/compiler/profile/scenario setting changed, debug not replaced by release, no baseline re-recorded",
+        "no integer-first classification or caller-state check changed: pre-raised flags and the four rounding modes are still exercised by the unchanged tests"
+      ],
+      "i686_correction": "the same #[cfg(target_arch = \"x86_64\")] on the two tests, as their siblings. DISCLOSED: those two tests (the city-box bit-for-bit comparison over every caller rounding mode, and the caller-state hand-back) do not run on i686 at all - they need the x86_64 helper - so i686 city-box parity is NOT claimed by them. Verified statically that every test using fpu:: is now gated (5 of 5) and the 14 error sites are exactly the two tests' uses; an i686 compile could not be run (no 32-bit libc in the pinned image: cc-rs fails on bits/libc-header-start.h, final-i686-check)."
+    },
+    {
+      "item": 3,
+      "id": "ci-lints-latent-eech-dc-expect-err",
+      "disposition": "CORRECTED (source, test-only) - current CI pending",
+      "change": "eech-dc/src/module.rs: the two `expect_err` uses (formerly 5978 and 6025) become the file's own `let Err(error) = ... else { return Err(format!(...).into()) }` idiom; assertions and behaviour unchanged. The file holds literal control bytes inside Lua raw strings: edited byte-exactly (diff is exactly the two hunks).",
+      "gate": "the workflow's own commands, run in the one image: `cargo clippy --locked --all-targets -- -D warnings` (WORKSPACE, no -p) exit 0 on both the first-GREEN bytes and the final bytes, and `cargo fmt --check` exit 0 on the final bytes (its earlier exit 1 is retained). A four-crate pass is not used as the gate."
+    },
+    {
+      "item": 4,
+      "id": "evidence-and-current-metadata",
+      "disposition": "RECORDED in this report, the new pack, the card and STATUS; the d2f/bfce pack and the 18b review are preserved literally",
+      "chronology_erratum": {
+        "statement": "The d2f freeze key `red_before_production_edit` is chronologically false for the controlled provider and guard parent restores. Implementation edits began 13:37; the provider RED ran at 13:45 and the source-guard RED at 14:20, both AFTER the initial GREEN, by temporarily restoring the parent's production files. They are genuine controlled old-source checks, not characterisation before production edits. The original report and pack are NOT rewritten.",
+        "new_wire_vs_old_city_bypass": "The 27/28 provider failures at 90b38189 mostly exercise the MISSING new subtype wire capability (a new contract); they are not 27 independent defects. The old CITY Core-false bypass (a city the campaign calls not fixed was skipped on Core's word) is pinned separately by its own specific provider cases.",
+        "compiler_red": "the old no-host eech-sys build failure (four implicit list-hook declarations) is a compiler RED, not a semantic behaviour RED."
+      },
+      "four_added_diagnostic_fields": {
+        "fields": [
+          "fixed_rule_eligible",
+          "fixed_rule_changed",
+          "fixed_rule_changed_next",
+          "fixed_rule_changed_cause"
+        ],
+        "statement": "These are emitted by EVERY mode's authority row, the healthy control included (zero/empty there); the d2f freeze text calling them new-mode-only is corrected. A native comparison declares ALL FOUR as added fields and requires every existing shared field, the complete physical terminal and the default recordings to be exact; no allowed difference is widened and no output normalised. Declared in docs/d3-entity-collision-provider.md and the Lua header."
+      },
+      "needed_physical_data": "The default-shape and ground-radar-clutter columns of fixed_database were OUTSIDE this finite cut. They are NOT declared campaign-owned here: their actual callers, DCS disposition and Host/Core ownership remain part of the needed-consumer census/disposition. IDENTIFY_FIXED campaign policy stays Core. The six draw files' direct align_with_terrain reads stay an unproved needed-census disposition (fixed-draw-align-direct-reads-final-census)."
+    }
+  ],
+  "reused_unaffected_checks": {
+    "basis": "Git tree identity of every input between the reviewed d2f5027c9 and this code commit 4fb81c673: aphavoc, modules, eech-campaign/crates/eech-engine-sys, crates/eech-sys, crates/eech-engine, eech-core-ts/c-reference, eech-campaign/Cargo.toml and Cargo.lock are the SAME tree ids; eech-world's Cargo.toml and build.rs are the same; only eech-world/src/entity_host.rs differs in src. No C input, no extractor, no native-sys source changed.",
+    "tree_ids": {
+      "aphavoc": "19b02698c59cfd2e27c377b68dbb79ca9e3c5c49",
+      "modules": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+      "eech-campaign/crates/eech-engine-sys": "00899a43872414218b03463a8d45937d2f6614a4",
+      "eech-campaign/crates/eech-sys": "b3715c36c440c8fc0976230e0fbeb2ebdee93d2c",
+      "eech-campaign/crates/eech-engine": "09ed68d80ff651c0be69918015c460d4999d8292",
+      "eech-core-ts/c-reference": "f847a19e3880bbd1ecafd9bca44598dbd7e64a86",
+      "eech-campaign/Cargo.toml": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "eech-campaign/Cargo.lock": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3"
+    },
+    "reused_from_the_d2f_freeze_not_rerun": [
+      {
+        "label": "rules-final-enginesys",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-engine-sys --features entity-dialogue-check",
+        "actual_exit": 0,
+        "passed": 30,
+        "receipt_sha256": "580c1b17c86ecf45a2ea24c8a2030d9eb2acc8c244a28ec72e8c5ff52a4a8fa9",
+        "stdout_sha256": "097f43b37fe2348fdf8710d2a50ffb650c2e0b64dc81e4fbce7fa67105129756",
+        "stderr_sha256": "aa9e9b50d1fe33d0f9651e90012ccdf430887959d775384a30a6061a3e9dc2f5"
+      },
+      {
+        "label": "rules-final-feature-collision",
+        "command": "cargo check --release --locked -p eech-engine-sys --features collision-fixture",
+        "actual_exit": 0,
+        "passed": 0,
+        "receipt_sha256": "25a005e7cfcb08cd2e4447cd2f546072005ae4e029608d82a17b8e257002d39e",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "d10b609d6eae94ecdd5e26e7a8a5668f212ef745d655a0b7546fab78b2e7451e"
+      },
+      {
+        "label": "rules-final-feature-modelhost",
+        "command": "cargo check --release --locked -p eech-engine-sys --features model-host-fixture",
+        "actual_exit": 0,
+        "passed": 0,
+        "receipt_sha256": "a1fc0781638781bd6c0b9361b089ff3f012b48d35b7ebb2bd923f9e957669b13",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "2170b70c5a0e2f09eb067afd9463474e13a7fe4a164a3d114a4801755f019637"
+      },
+      {
+        "label": "rules-final-feature-model",
+        "command": "cargo check --release --locked -p eech-engine-sys --features model-fixture",
+        "actual_exit": 0,
+        "passed": 0,
+        "receipt_sha256": "53a6fd900b14b86ec1c9925a11d637f70234f7f6902441165fa28d5d6e0b964b",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "d10b609d6eae94ecdd5e26e7a8a5668f212ef745d655a0b7546fab78b2e7451e"
+      }
+    ],
+    "rerun_because_inputs_changed": [
+      "eech-world: every test in debug (whole workspace) and release (whole crate); eech-dc: its tests in the debug workspace run and strict workspace clippy (module.rs changed, test-only); eech-engine and eech-sys: in the debug workspace run (unchanged inputs, run anyway as CI does)."
+    ]
+  },
+  "required_lifecycle_and_scope": {
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION": "OPEN and untouched. It is the REQUIRED next CITY production before any claim that CITY physics is done: an actual empty-CITY relink/restore must retain/authorize the Host-built box without Core's mirror as the sole surviving copy. It is NOT jumped over by sector height.",
+    "all_ten_D3_requirements_preserved": true,
+    "open_unchanged": [
+      "sector spatial height/hints/writers, effectful UPDATED/shared terrain, raw tree/FOREST/CLOUD RNG, needed hierarchy/devices/services, DCS data/caller mapping, natural moving integration, the current final 40/all8 and final inputs, current CI, normal merge, final census",
+      "D4/D5/TypeScript port unstarted"
+    ],
+    "f734_fullpack": "The established f734 ordinary full pack (four ORIGINAL natives/source/bin/roots/config/seed 1/frame 100/3h/tolerances/priority/affinity; latest 2577.77/2565.79 partial literal baseline prefixes) was not touched; partial prefixes are not d2f/current/final acceptance. All prior native roots are CONSUMED; Root prepares fresh ones only after the SAME corrected-source clearance."
+  },
+  "current_ci_and_fullpack_status": {
+    "current_CI": "PENDING on the corrected head. Local CI-equivalent debug (default and EECH_C_OPT=2), release, workspace clippy and fmt passed; the Windows/Wine and i686 profiles were not run locally. The previous head's campaign run 42237739479 failed (profiles above); no CI success is claimed here.",
+    "native": "No native or Windows launch. The corrected executable difference is Lua/Rust/test only; Root decides what a native comparison needs after the same reviewer's clearance. Healthy control: only the four declared added diagnostics may differ."
+  },
+  "limitations": [
+    "Other modules' float classification of campaign words (aim, cmb, flight, los) was not audited for the same unoptimized-signaling pattern; the whole debug workspace passes, which is the evidence only.",
+    "The release-folding explanation is inferred (no disassembly).",
+    "The i686 and Windows/Wine profiles were not executed; the i686 correction is gated and statically checked only, and the two gated tests do not run on i686.",
+    "Local debug runs used `--no-fail-fast`, which CI does not; it can only add information (CI's run stopped at the first failing binary, so later targets had not run there).",
+    "The EECH_C_OPT=2 workspace run is a local equivalent of CI job 127959728431, not that job."
+  ],
+  "next_action": {
+    "same_reviewer": "ONE pass over only the changes of 4fb81c673 over bfce56e3c9 and these actuals (the ACK contract and its control, the scan classifier and its differential, the i686 gate, the two lint sites, the declared fields/chronology metadata). Closed d2f/constructor/numeric evidence is not replayed.",
+    "root": "Push/observe the current CI of the corrected head; only after the SAME reviewer's clearance prepare fresh roots for the ordinary short, one healthy control (zero faults, exact shared fields and terminal, four declared added fields) and ONE real changed_fixed_rule witness.",
+    "next_production": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION (empty-CITY relink/restore), then sector height/hints and the rest of the open list."
+  },
+  "created_utc": "2026-11-06T15:48:25.445Z",
+  "checks": {
+    "fpu-red-bfce-debug-a": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_roster_host",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T15:10:15.046186+00:00",
+      "completed_utc": "2026-11-06T15:10:30.012398+00:00",
+      "receipt_sha256": "99154163e94d83f678e67a75f67d52f503deb32628b5adbedb3047855ed1b67d",
+      "result_rows": 1,
+      "passed": 15,
+      "failed": 2,
+      "stdout_sha256": "e3818eccf1f48dc534639ebedcb65f86e4aef9fcf48294bc600afdf39cee17fa",
+      "stderr_sha256": "72c96d07f402065ebb1f9ed92bab20d4182583bc5307f6c2b76f93e0a1473fe3"
+    },
+    "fpu-diag-debug": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test zz_fpu_diag_untracked -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:11:58.342730+00:00",
+      "completed_utc": "2026-11-06T15:12:00.620557+00:00",
+      "receipt_sha256": "75a5e2c3cc6182df44ddc1c776a050bea90ee320227b93a0514a61cb9b4ffd3e",
+      "result_rows": 1,
+      "passed": 1,
+      "failed": 0,
+      "stdout_sha256": "bb6f5ae75c06f749c7f69fa24c998b0653428e2ce2b1b3eb0e85ef4f6531920e",
+      "stderr_sha256": "7ee8f4cddfb19ab74ce7997c8489588a79e9d309685b43f6c06a7f3d6f787fb5"
+    },
+    "fpu-diag-release": {
+      "command": "cargo test --release --locked --target x86_64-unknown-linux-gnu -p eech-world --test zz_fpu_diag_untracked -- --nocapture",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:12:00.762398+00:00",
+      "completed_utc": "2026-11-06T15:12:15.310825+00:00",
+      "receipt_sha256": "2bfadf2282a4df83c5a334552b1da651c8f4c4c91d005b1c6d9d92280b570a48",
+      "result_rows": 1,
+      "passed": 1,
+      "failed": 0,
+      "stdout_sha256": "76df91ea6012ea611bf6ae59ddf2ee9ca56d542beb7c597f9fe8b7407f2a104e",
+      "stderr_sha256": "64d3a35ba5cc7b2edd92e6de40cb1e64e9387c762495ac59e07b99003a1c0424"
+    },
+    "ack-red-bfce-lua-debug": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority -- a_restatement_acknowledged changing_the_physical_rule",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T15:14:06.079901+00:00",
+      "completed_utc": "2026-11-06T15:14:10.482955+00:00",
+      "receipt_sha256": "049cef84b32466513a6d32a3ddf9bb52ebb227bf522344aab3d823612b7212de",
+      "result_rows": 1,
+      "passed": 1,
+      "failed": 1,
+      "stdout_sha256": "31001ba117b179b977a88ff896f3c47ccf29e16f7c20eb3332f5122c6322459a",
+      "stderr_sha256": "0e9468a2eb1f6fa4ab8cecb901d7d33c5ab4f536990c858c62005c074728bca8"
+    },
+    "green-fpu-roster-debug": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_roster_host",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:16:31.494688+00:00",
+      "completed_utc": "2026-11-06T15:16:33.027877+00:00",
+      "receipt_sha256": "f6760aabed4559ee206f17fed250bbbe502d552bda3d1325a3876a069293858a",
+      "result_rows": 1,
+      "passed": 17,
+      "failed": 0,
+      "stdout_sha256": "dd128b4162d79cda6c7423b13e95e0180f74dee804cfe62a499adea07b851ba4",
+      "stderr_sha256": "5ef711f60f4b5819fc4708eae4b1225ce62c16a48d3aeca8513022d75dbac6e0"
+    },
+    "green-workspace-debug": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:16:37.573911+00:00",
+      "completed_utc": "2026-11-06T15:25:02.822462+00:00",
+      "receipt_sha256": "dc1342e959083a011567df4f4bf731219f1b997c431b69a3cd3f184ed6c3063f",
+      "result_rows": 79,
+      "passed": 1410,
+      "failed": 0,
+      "stdout_sha256": "69515422704795867ac82f4fbefceaac178aa06b4fd91d82aa8683530020ebab",
+      "stderr_sha256": "b96ae29d3bf86d405f9d3e225b7410f641a74be76813f2e2dec19a9965ebcf3a"
+    },
+    "green-clippy-workspace": {
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:25:12.504723+00:00",
+      "completed_utc": "2026-11-06T15:32:01.951201+00:00",
+      "receipt_sha256": "4d2d0ba6e0937a5623cc1af07dbc48e3d2662b7ec09ed3dc418c26c12cd5a1ff",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "33cd9cb60329fc7cc62825d244a84fe53383a6d5d56f20b2cf7022075bc096b5"
+    },
+    "green-fmt-check": {
+      "command": "cargo fmt --check",
+      "actual_exit": 1,
+      "started_utc": "2026-11-06T15:32:07.044341+00:00",
+      "completed_utc": "2026-11-06T15:32:11.586453+00:00",
+      "receipt_sha256": "6f8eb46589a6d36b20d49621b3bd3869dcd78c1c72727ac52adf6d6db461981a",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "bc9195be8e33c8f64eccd7f809bf1944663738e7e51f4475ab513a3de913c9dc",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "final-fmt-check": {
+      "command": "cargo fmt --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:32:25.959861+00:00",
+      "completed_utc": "2026-11-06T15:32:30.432008+00:00",
+      "receipt_sha256": "58d09a0ef604e664e3a363d20c8faff5e4754bf3b1b04ae5bef6759ebb646e2a",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "final-copt2-roster-debug": {
+      "command": "env EECH_C_OPT=2 cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_roster_host",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:32:30.565640+00:00",
+      "completed_utc": "2026-11-06T15:32:36.961748+00:00",
+      "receipt_sha256": "c75d655efbdd5a075178b9958cf23f8db67834323600370cec37e6733b08e123",
+      "result_rows": 1,
+      "passed": 17,
+      "failed": 0,
+      "stdout_sha256": "537b652cc73220a8b633b7f6c094a2b93e5aad9eae320d7f2074a2a866262bf7",
+      "stderr_sha256": "82998989410a437cd6dd00fc50edd3d60f8e6e4fb30d470e9c1aaa432c793454"
+    },
+    "final-copt2-workspace-debug": {
+      "command": "env EECH_C_OPT=2 cargo test --locked --target x86_64-unknown-linux-gnu --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:37:28.180908+00:00",
+      "completed_utc": "2026-11-06T15:45:05.971971+00:00",
+      "receipt_sha256": "11b1590549f3d20450efafbe5572a3d08fa275eb7d286d3c317c59c44e3927d3",
+      "result_rows": 79,
+      "passed": 1410,
+      "failed": 0,
+      "stdout_sha256": "5f07095ce7c657dcd6aa11034522095be012d424aa13f24b5a8076b9002e97b0",
+      "stderr_sha256": "67d65699d1110ef73f2bfac53cae85bb53bb42dc5feb220b2e0f78896a8169a4"
+    },
+    "final-i686-check": {
+      "command": "cargo check --locked --target i686-unknown-linux-gnu -p eech-world --test model_target_point",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T15:32:40.921878+00:00",
+      "completed_utc": "2026-11-06T15:32:42.571981+00:00",
+      "receipt_sha256": "cdd6a5fc316621aa7a5b28d5f19a08d52ee360c90da0deb5b3696b5700caf65e",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ddb41c011e1403c3886611298bca218d55804a28a9e0dc37557cb95105d554d3"
+    },
+    "final-workspace-debug": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:33:30.543726+00:00",
+      "completed_utc": "2026-11-06T15:34:33.574636+00:00",
+      "receipt_sha256": "1e1df7ba423ac71a2867a117f4c82b94d2d003de827dbdad5a753eadcefbfed1",
+      "result_rows": 79,
+      "passed": 1410,
+      "failed": 0,
+      "stdout_sha256": "735841f3dd026932b81f2e24b45b0fc2b5ba7f5b693aa287db6e9d302812264d",
+      "stderr_sha256": "927a713ee05ac54573cab89f5b7f296521ae6ca377779234ff8069b6e5175e1c"
+    },
+    "final-clippy-workspace": {
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:34:33.655006+00:00",
+      "completed_utc": "2026-11-06T15:34:41.392116+00:00",
+      "receipt_sha256": "b700f766ea980ec0ba9f2333985f6d0c68883895bc47e761f434662b662f3658",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "d0e59df73776a5e25246380f53fd4693b6fbfc5a2fb514f3de72a0149ddbfcd6"
+    },
+    "final-world-release": {
+      "command": "cargo test --release --locked --no-fail-fast -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T15:34:41.483134+00:00",
+      "completed_utc": "2026-11-06T15:35:46.254742+00:00",
+      "receipt_sha256": "bd0b87fd7536d9f22530e560b63d451e741160fbf590f6719c01848c8b6b2639",
+      "result_rows": 55,
+      "passed": 1172,
+      "failed": 0,
+      "stdout_sha256": "27919af1da7329bbae6186ca052a92e2b5d184754313fb7e86a5e92907ba2d5c",
+      "stderr_sha256": "88ffa75753b04af60b02ea3016d746b5ca7616d330ee99a4203e3cc6d2dc5998"
+    }
+  },
+  "maps": {
+    "before": {
+      "file": "fixed-rules-correction-inputmap-before-20261106.json",
+      "bytes": 2029640,
+      "sha256": "ba4fd4fd7f7d69e0c811f0bab8283514900d9e29cb35f9cf17bee104057f9c81"
+    },
+    "after": {
+      "file": "fixed-rules-correction-inputmap-after-20261106.json",
+      "bytes": 2029640,
+      "sha256": "ba4fd4fd7f7d69e0c811f0bab8283514900d9e29cb35f9cf17bee104057f9c81"
+    },
+    "literal_equal": true,
+    "files": 3953,
+    "raw_binding": "fixed-rules-correction-raw-binding-4fb81c673-20261106.json",
+    "raw_binding_sha256": "89157b48c13bf3d949e21ca07a28fab2a8f3b0a166fbcd28c62e6b22f7f09146"
+  },
+  "ci_evidence_raw": {
+    "ci-bfce-x64-decoded-20261106.log": {
+      "bytes": 174868,
+      "sha256": "c0f97c6c10bd65ffd150fb8274fdff21ab07ecc04d0289164dc2298255a31a83"
+    },
+    "ci-bfce-windows-decoded-20261106.log": {
+      "bytes": 184124,
+      "sha256": "d6fd870182de2cdad4c6cbbc9425ea2b594a7fe45738dbb0a089c7a63bef7ab5"
+    },
+    "ci-bfce-job-127959728431-decoded-20261106.log": {
+      "bytes": 174777,
+      "sha256": "f2d5a661c3053f04431a8219a0d698b543b4a8689bdd1abbc0dedb09fcfa6c38"
+    },
+    "ci-bfce-job-127959728721-decoded-20261106.log": {
+      "bytes": 66500,
+      "sha256": "e95b11ddb90bc1ea2844dacc40899d38ade484f84e5306240cc0b3857c32d754"
+    },
+    "ci-bfce-opt2-decoded-20261106.log": {
+      "bytes": 174909,
+      "sha256": "0d45da1887bd9ad0d8b88823264ce874952a1ffd8c3e895f9d3c39f5d367a2d2"
+    },
+    "ci-bfce-i686-decoded-20261106.log": {
+      "bytes": 66632,
+      "sha256": "3ff6bc069e5f138520e6f6d61d677ee17fa05baa5ee8a1f18bf2f31a901d74c9"
+    },
+    "fixed-rules-bfce-CI-and-review-correction-input-20261106.json": {
+      "bytes": 1552,
+      "sha256": "0f208b1e8d713e8c55ac44bdaf9481f479869cdcdb70e57146affa2ecc6bbcfd"
+    }
+  }
+}

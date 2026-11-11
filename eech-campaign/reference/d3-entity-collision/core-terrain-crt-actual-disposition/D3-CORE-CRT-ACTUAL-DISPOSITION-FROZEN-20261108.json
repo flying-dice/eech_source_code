@@ -1,0 +1,20 @@
+{
+  "utc": "2026-11-08T05:54:04.960246+00:00",
+  "source_before": "599958ce961111f01c946245572a3757d8fe4ea0",
+  "document": {
+    "path": "eech-campaign/docs/d3-core-terrain-crt-actual-disposition.md",
+    "lines": 119,
+    "sha256": "ce43484c537b0e632e54523b139558eebbba62b9683e999e4a0b3d58f305e48c"
+  },
+  "interpreted_sources": 38,
+  "source_rows_raw_equals_Git": true,
+  "literal_evidence_copies": 12,
+  "private_raw_originals_verified": 35,
+  "new_tests_build_native_cache_calls": 0,
+  "runtime_source_changes": false,
+  "helper": {
+    "private_path": "R:\\d3-evidence\\cda599-publish-20261108.py",
+    "sha256": "1a085635acae0b42456be9d750322a7fed6e9ece80e907e549e90249c942a125"
+  },
+  "scope": "UNREVIEWED finite actual/source disposition, not Host runtime-zero/fulltrace/reload/removal/all-D3 acceptance; Root completion separate."
+}

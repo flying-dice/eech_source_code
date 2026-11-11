@@ -1,0 +1,22 @@
+
+running 1 test
+test the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal ... FAILED
+
+failures:
+
+---- the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal stdout ----
+
+thread 'the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal' (3909) panicked at crates/eech-engine-sys/tests/entity_dialogue.rs:23:5:
+assertion `left == right` failed: the dialogue disagreed with its expectations:
+FAIL line 3657: city_link_asks == 2 && strcmp (city_last_link, link) == 0
+
+  left: 1
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+

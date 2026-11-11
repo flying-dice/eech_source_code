@@ -1,0 +1,11 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+error[E0133]: call to unsafe function `CStr::from_ptr` is unsafe and requires unsafe function or block
+   --> crates/eech-engine-sys/tests/support/lua_provider.rs:118:20
+    |
+118 |     let identity = CStr::from_ptr(request.host_id.as_ptr()).to_str().map_err(|_| "[test-bridge] an identity that is not text".to_st...
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ call to unsafe function
+    |
+    = note: consult the function's documentation for information on how to avoid undefined behavior
+
+For more information about this error, try `rustc --explain E0133`.
+error: could not compile `eech-engine-sys` (test "physical_flags_collision") due to 1 previous error

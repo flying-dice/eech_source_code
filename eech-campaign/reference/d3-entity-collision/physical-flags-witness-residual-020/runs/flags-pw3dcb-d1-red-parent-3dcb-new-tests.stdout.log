@@ -1,0 +1,147 @@
+
+running 30 tests
+test a_host_asked_for_a_flag_in_the_original_profile_is_a_failure_not_that_profile ... ok
+test a_malformed_question_is_a_request_fault_passed_through_unaltered_and_never_a_pass ... ok
+test a_fatal_before_the_eligible_intervention_is_a_failure_even_with_the_modes_own_marker ... ok
+test a_campaign_that_ignores_the_changed_answer_is_a_failure_not_a_pass ... ok
+test a_fatal_in_another_entry_than_the_one_that_made_the_altered_answer_is_not_credited ... ok
+test an_event_never_reached_is_unreached_never_a_pass ... ok
+test a_changed_host_answer_is_carried_by_the_campaign_into_its_next_candidate_question ... ok
+test a_host_that_loses_a_set_or_miscounts_a_reset_or_repeats_a_key_is_named_even_when_every_reply_is_well_formed ... ok
+test an_intervention_is_never_made_on_a_step_whose_trajectory_differs_from_the_controls ... ok
+test a_fatal_before_or_after_the_valid_changed_answer_is_a_failure ... ok
+test an_event_the_control_never_reached_refuses_every_mode_that_intervenes_there_before_any_boot ... ok
+test the_engine_is_given_wrapped_terrain_and_environment_callables_and_every_function_slot_is_the_known_finite_set ... FAILED
+test a_consumable_read_after_an_earlier_plain_read_keeps_two_valid_first_event_rows ... ok
+test the_oracle_keeps_the_destructive_read_semantics_a_word_mates_read_destroys_a_bit_and_the_reads_own_is_kept ... ok
+test the_original_profile_characterisation_comes_first_and_the_host_is_never_asked ... ok
+test the_report_is_created_exclusively_and_never_overwritten ... ok
+test the_module_reads_exactly_the_ten_function_slots_plus_two_that_default_to_the_environment_function ... ok
+test the_flag_pattern_helpers_of_both_public_drivers_are_exact_under_the_reference_round_toward_zero_profile ... ok
+test an_original_report_must_be_the_hosts_never_asked_and_of_the_same_setup ... ok
+test the_wrapped_provider_callables_forward_every_argument_and_every_result_exactly_once_and_leave_errors_unchanged ... ok
+test a_group_set_reset_only_control_unlocks_only_the_cases_its_positive_reached ... ok
+test the_duplicate_key_is_made_at_the_second_group_after_a_healthy_first_one_and_a_key_of_21_bytes_at_the_first ... ok
+test the_healthy_control_counts_attempts_answered_and_accepted_apart_adds_no_question_and_the_oracle_agrees_with_the_real_store ... ok
+test a_damaged_original_report_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_pairs ... ok
+test an_intervention_accepts_only_a_whole_successful_paired_control_of_the_same_setup_and_checks_it_before_any_side_effect ... ok
+test distinct_base_events_cannot_share_one_transaction_ordinal_and_only_the_first_read_and_its_consumable_tag_may ... FAILED
+test a_damaged_paired_control_is_refused_for_its_own_field_before_any_effect_and_the_genuine_one_still_unlocks_its_cases ... ok
+test each_refusal_mode_is_credited_only_when_the_campaign_stops_at_its_marker_after_the_one_eligible_intervention ... ok
+test a_refusal_made_during_boot_is_captured_at_the_boot_entry_and_credited_only_for_an_immediate_stop ... FAILED
+test a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards ... FAILED
+
+failures:
+
+---- the_engine_is_given_wrapped_terrain_and_environment_callables_and_every_function_slot_is_the_known_finite_set stdout ----
+
+thread 'the_engine_is_given_wrapped_terrain_and_environment_callables_and_every_function_slot_is_the_known_finite_set' (162) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:1409:5:
+assertion `left == right` failed: the engine's function slots, then the ones that are still the host's raw function
+  left: "aim,bind_mobile,environment,line_of_sight,model,move_vehicle,observe_loss,sense,supply_reached,terrain|environment,terrain"
+ right: "aim,bind_mobile,environment,line_of_sight,model,move_vehicle,observe_loss,sense,supply_reached,terrain|"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- distinct_base_events_cannot_share_one_transaction_ordinal_and_only_the_first_read_and_its_consumable_tag_may stdout ----
+
+thread 'distinct_base_events_cannot_share_one_transaction_ordinal_and_only_the_first_read_and_its_consumable_tag_may' (159) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:1390:5:
+4 equal-ordinal references were not refused:
+[
+    "the reviewer's counterexample: the first GROUP edited to the first RESET's ordinal 1 and prefix (set_withheld): expected a refusal naming the ordinal relationship before any effect, got None (report true, asked 3)",
+    "the first SET and the second GROUP sharing one tuple (group_duplicate_key): expected a refusal naming the ordinal relationship before any effect, got Some(\"runtime error: physical-flags-witness: FAILURE: the trajectory of the first group_second differs from the control's (ordinal: control 3, this run 5): no intervention was made on another step\") (report true, asked 6)",
+    "the first RESET and the first SET sharing one tuple (set_withheld): expected a refusal naming the ordinal relationship before any effect, got Some(\"runtime error: physical-flags-witness: the control report's first-event row set has before_group 0: a set or a read names a key a group opened before\") (report false, asked 0)",
+    "the read_consumable tag BEFORE its read at the shared ordinal (read_changed): expected a refusal naming the ordinal relationship before any effect, got None (report true, asked 11)",
+]
+
+---- a_refusal_made_during_boot_is_captured_at_the_boot_entry_and_credited_only_for_an_immediate_stop stdout ----
+
+thread 'a_refusal_made_during_boot_is_captured_at_the_boot_entry_and_credited_only_for_an_immediate_stop' (153) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:1329:5:
+30 boot-time cases were credited or mis-judged:
+[
+    "group_withheld during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_withheld status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.callback immediately, in its entry boot",
+    "group_withheld during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_withheld status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.callback immediately, in its entry boot",
+    "group_malformed during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_malformed status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.answer immediately, in its entry boot",
+    "group_malformed during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_malformed status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.answer immediately, in its entry boot",
+    "group_wrong_state during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_state status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.state immediately, in its entry boot",
+    "group_wrong_state during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_state status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.state immediately, in its entry boot",
+    "group_bad_key during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_bad_key status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.key immediately, in its entry boot",
+    "group_bad_key during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_bad_key status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.key immediately, in its entry boot",
+    "group_duplicate_key during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_duplicate_key status=PASS detail=the engine refused the single fault made at group ordinal 5 at flag.key immediately, in its entry boot",
+    "group_duplicate_key during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_duplicate_key status=PASS detail=the engine refused the single fault made at group ordinal 5 at flag.key immediately, in its entry boot",
+    "group_wrong_eligibility during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_eligibility status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.answer immediately, in its entry boot",
+    "group_wrong_eligibility during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_eligibility status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.answer immediately, in its entry boot",
+    "set_withheld during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_withheld status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.callback immediately, in its entry boot",
+    "set_withheld during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_withheld status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.callback immediately, in its entry boot",
+    "set_malformed during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_malformed status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.answer immediately, in its entry boot",
+    "set_malformed during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_malformed status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.answer immediately, in its entry boot",
+    "set_wrong_state during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_state status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.state immediately, in its entry boot",
+    "set_wrong_state during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_state status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.state immediately, in its entry boot",
+    "set_wrong_lane during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_lane status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.answer immediately, in its entry boot",
+    "set_wrong_lane during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_lane status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.answer immediately, in its entry boot",
+    "set_wrong_word during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_word status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.word immediately, in its entry boot",
+    "set_wrong_word during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_word status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.word immediately, in its entry boot",
+    "reset_withheld during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_withheld status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.callback immediately, in its entry boot",
+    "reset_withheld during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_withheld status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.callback immediately, in its entry boot",
+    "reset_malformed during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_malformed status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.answer immediately, in its entry boot",
+    "reset_malformed during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_malformed status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.answer immediately, in its entry boot",
+    "reset_wrong_state during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_state status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.state immediately, in its entry boot",
+    "reset_wrong_state during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_state status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.state immediately, in its entry boot",
+    "reset_wrong_array during boot ignoring (terrain): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_array status=PASS detail=the engine refused the single fault made at reset ordinal 1 at flag.answer immediately, in its entry boot",
+    "reset_wrong_array during boot ignoring (environment): expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_array status=PASS detail=the engine refused the single fault made at reset ordinal 1 at flag.answer immediately, in its entry boot",
+]
+
+---- a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards stdout ----
+
+thread 'a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards' (141) panicked at crates/eech-world/tests/physical_flags_witness_driver.rs:1285:5:
+40 ignored faults were credited or mis-judged:
+[
+    "group_withheld ignoring (terrain) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_withheld status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.callback immediately, in its entry frame:1",
+    "group_withheld ignoring (environment) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_withheld status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.callback immediately, in its entry frame:1",
+    "group_malformed ignoring (terrain) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_malformed status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.answer immediately, in its entry frame:1",
+    "group_malformed ignoring (environment) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_malformed status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.answer immediately, in its entry frame:1",
+    "group_wrong_state ignoring (terrain) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_state status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.state immediately, in its entry frame:1",
+    "group_wrong_state ignoring (environment) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_state status=PASS detail=the engine refused the single fault made at group ordinal 2 at entity_scan.state immediately, in its entry frame:1",
+    "group_bad_key ignoring (terrain) to a flag.key: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_bad_key status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.key immediately, in its entry frame:1",
+    "group_bad_key ignoring (environment) to a flag.key: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_bad_key status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.key immediately, in its entry frame:1",
+    "group_duplicate_key ignoring (terrain) to a flag.key: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_duplicate_key status=PASS detail=the engine refused the single fault made at group ordinal 5 at flag.key immediately, in its entry frame:1",
+    "group_duplicate_key ignoring (environment) to a flag.key: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_duplicate_key status=PASS detail=the engine refused the single fault made at group ordinal 5 at flag.key immediately, in its entry frame:1",
+    "group_wrong_eligibility ignoring (terrain) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_eligibility status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.answer immediately, in its entry frame:1",
+    "group_wrong_eligibility ignoring (environment) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=group_wrong_eligibility status=PASS detail=the engine refused the single fault made at group ordinal 2 at flag.answer immediately, in its entry frame:1",
+    "set_withheld ignoring (terrain) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_withheld status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.callback immediately, in its entry frame:1",
+    "set_withheld ignoring (environment) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_withheld status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.callback immediately, in its entry frame:1",
+    "set_malformed ignoring (terrain) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_malformed status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.answer immediately, in its entry frame:1",
+    "set_malformed ignoring (environment) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_malformed status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.answer immediately, in its entry frame:1",
+    "set_wrong_state ignoring (terrain) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_state status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.state immediately, in its entry frame:1",
+    "set_wrong_state ignoring (environment) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_state status=PASS detail=the engine refused the single fault made at set ordinal 3 at entity_scan.state immediately, in its entry frame:1",
+    "set_wrong_lane ignoring (terrain) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_lane status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.answer immediately, in its entry frame:1",
+    "set_wrong_lane ignoring (environment) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_lane status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.answer immediately, in its entry frame:1",
+    "set_wrong_word ignoring (terrain) to a flag.word: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_word status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.word immediately, in its entry frame:1",
+    "set_wrong_word ignoring (environment) to a flag.word: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=set_wrong_word status=PASS detail=the engine refused the single fault made at set ordinal 3 at flag.word immediately, in its entry frame:1",
+    "read_withheld ignoring (terrain) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_withheld status=PASS detail=the engine refused the single fault made at read ordinal 11 at entity_scan.callback immediately, in its entry frame:2",
+    "read_withheld ignoring (environment) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_withheld status=PASS detail=the engine refused the single fault made at read ordinal 11 at entity_scan.callback immediately, in its entry frame:2",
+    "read_malformed ignoring (terrain) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_malformed status=PASS detail=the engine refused the single fault made at read ordinal 11 at entity_scan.answer immediately, in its entry frame:2",
+    "read_malformed ignoring (environment) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_malformed status=PASS detail=the engine refused the single fault made at read ordinal 11 at entity_scan.answer immediately, in its entry frame:2",
+    "read_wrong_state ignoring (terrain) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_wrong_state status=PASS detail=the engine refused the single fault made at read ordinal 11 at entity_scan.state immediately, in its entry frame:2",
+    "read_wrong_state ignoring (environment) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_wrong_state status=PASS detail=the engine refused the single fault made at read ordinal 11 at entity_scan.state immediately, in its entry frame:2",
+    "read_wrong_array ignoring (terrain) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_wrong_array status=PASS detail=the engine refused the single fault made at read ordinal 11 at flag.answer immediately, in its entry frame:2",
+    "read_wrong_array ignoring (environment) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_wrong_array status=PASS detail=the engine refused the single fault made at read ordinal 11 at flag.answer immediately, in its entry frame:2",
+    "read_wrong_word ignoring (terrain) to a flag.word: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_wrong_word status=PASS detail=the engine refused the single fault made at read ordinal 11 at flag.word immediately, in its entry frame:2",
+    "read_wrong_word ignoring (environment) to a flag.word: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=read_wrong_word status=PASS detail=the engine refused the single fault made at read ordinal 11 at flag.word immediately, in its entry frame:2",
+    "reset_withheld ignoring (terrain) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_withheld status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.callback immediately, in its entry frame:1",
+    "reset_withheld ignoring (environment) to a entity_scan.callback: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_withheld status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.callback immediately, in its entry frame:1",
+    "reset_malformed ignoring (terrain) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_malformed status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.answer immediately, in its entry frame:1",
+    "reset_malformed ignoring (environment) to a entity_scan.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_malformed status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.answer immediately, in its entry frame:1",
+    "reset_wrong_state ignoring (terrain) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_state status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.state immediately, in its entry frame:1",
+    "reset_wrong_state ignoring (environment) to a entity_scan.state: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_state status=PASS detail=the engine refused the single fault made at reset ordinal 1 at entity_scan.state immediately, in its entry frame:1",
+    "reset_wrong_array ignoring (terrain) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_array status=PASS detail=the engine refused the single fault made at reset ordinal 1 at flag.answer immediately, in its entry frame:1",
+    "reset_wrong_array ignoring (environment) to a flag.answer: expected FAILURE naming followed the altered answer, got pf-witness-verdict mode=reset_wrong_array status=PASS detail=the engine refused the single fault made at reset ordinal 1 at flag.answer immediately, in its entry frame:1",
+]
+
+
+failures:
+    a_campaign_that_ignores_the_injected_fault_is_never_credited_whatever_it_raises_afterwards
+    a_refusal_made_during_boot_is_captured_at_the_boot_entry_and_credited_only_for_an_immediate_stop
+    distinct_base_events_cannot_share_one_transaction_ordinal_and_only_the_first_read_and_its_consumable_tag_may
+    the_engine_is_given_wrapped_terrain_and_environment_callables_and_every_function_slot_is_the_known_finite_set
+
+test result: FAILED. 26 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+

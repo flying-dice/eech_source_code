@@ -1,0 +1,16 @@
+{
+  "command": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\test_normal_fire_capture.py"
+  ],
+  "controller_pid": 5896,
+  "started_utc": "2026-11-11T00:34:26.574156+00:00",
+  "state": "terminal",
+  "pid": 13276,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-11T00:34:27.187069+00:00"
+}

@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "R:\d3-evidence\freeze-hwfix-20261107.py", line 77, in <module>
+    for record_path in sorted(EXT.glob("sector-height-witness-*.json"), key=lambda p: (p.name[len("sector-height-witness-")], int(re.match(r"[xy](\d+)", p.name[len("sector-height-witness-"):]).group(1)), p.name)):
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "R:\d3-evidence\freeze-hwfix-20261107.py", line 77, in <lambda>
+    for record_path in sorted(EXT.glob("sector-height-witness-*.json"), key=lambda p: (p.name[len("sector-height-witness-")], int(re.match(r"[xy](\d+)", p.name[len("sector-height-witness-"):]).group(1)), p.name)):
+                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'group'

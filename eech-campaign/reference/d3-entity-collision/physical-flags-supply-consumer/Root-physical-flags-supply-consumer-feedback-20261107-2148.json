@@ -1,0 +1,7 @@
+{
+  "kind": "Root supplementary publication identity; no new implementation scope",
+  "publication": "physical-flags-5d2c-reviewed-packets-Root-publication-20261107.json",
+  "sha256": "a71e55202aa4a8adb91b08b18b0a86b35174a8331529275ab5d93185caff87ca",
+  "proof": "Read-only actualGit join: source review checkpoint7b985 has6 exactmanifestentries/5externalcopies; finiteactual checkpointc5a3ed has26 exactmanifestentries/25externalcopies. Metadata/literal evidence only, no source/runtime delta. All actuals/source/controller scopes unchanged.",
+  "instruction": "May publish this literal supplemental receipt with the next bounded checkpoint. Include any helper used by your final checks in PRE identities; do not replay old experiments for this publication. Continue the single actual supply-descriptor consumer batch. Root watches original764; no cache or W writes by Root during your lease."
+}

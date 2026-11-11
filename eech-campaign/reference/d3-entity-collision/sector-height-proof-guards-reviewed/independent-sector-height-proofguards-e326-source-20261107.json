@@ -1,0 +1,154 @@
+{
+  "kind": "independent_changed_material_source_review",
+  "sealed_utc": "2026-11-07T09:27:10.200941+00:00",
+  "source": {
+    "commit": "e326a35724feb0566491c51d84d587995e2f9de8",
+    "metadata_commit": "c4c9d0f1771860cda60dcd418245a7e5f21e2079",
+    "registration_commit": "fe1bf67239164e10c7e70676e6014faba6c73551",
+    "prior_correction_commit": "5aae2256f02ca3d79e762d71c9b79c20dc34856b",
+    "production_source_reused": "0be1dd8465d9bf38da69cd3b303206cf5a64574d",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "observed_clean_HEAD": "c4c9d0f1771860cda60dcd418245a7e5f21e2079",
+    "changed_paths": [
+      "docs/governance/D3-FIVE-WHYS-20261102.md",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs",
+      "eech-campaign/docs/d3-sector-height-production-contract.md"
+    ],
+    "metadata_delta": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ]
+  },
+  "scope": "Same reviewer; only the two 409a diagnostic corrections, affected Lua/Rust tests, current contract and evidence/provenance. Correctness, clean code and boundary safety reviewed together. Closed production C/kernel/FFI/non-test Rust and numeric/matrix reviews were not repeated.",
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_BOUNDED_NATIVE_VALIDATION",
+    "findings": [],
+    "closed_ids": [
+      "ENV-SECTOR-HEIGHT-SCOPED-REPORT-COMPLETE-1",
+      "ENV-SECTOR-HEIGHT-REFUSAL-INTERVENTION-1",
+      "ENV-SECTOR-HEIGHT-PUBLIC-PROOF-PLAN-1"
+    ],
+    "native_launch_clearance": true,
+    "clearance_is_conditional": true,
+    "sector_height_native_authority_accepted": false,
+    "M5_guarded_clearance_accepted": false,
+    "M6_native_Core_save_restore_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "finding_dispositions": [
+    {
+      "id": "ENV-SECTOR-HEIGHT-SCOPED-REPORT-COMPLETE-1",
+      "status": "CLOSED_SOURCE",
+      "evidence": [
+        "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua:75",
+        "eech-campaign/crates/eech-world/lua/sector-height-baseline.lua:110",
+        "eech-campaign/crates/eech-world/tests/sector_height_baseline_driver.rs"
+      ],
+      "assessment": "The accepted original loader requires one identity, scan summary, tables line and supported whole terminal verdict, the verdict last and sector count consistent. The common validator checks required scoped integer/word domains, unique contiguous indices, unique sectors, declared count, per-row reads/change/word relationships and summed totals; duplicate key tokens no longer collapse. The live side is validated before comparison or SCAN_ONLY credit. Invalid accepted/live inputs have distinct non-pass statuses; clean absence alone is UNREACHED. The hosted scope correctly does not require original-link sho-complete, event, raise or session equality. Coherent positive-first accepted/live damage controls cover the reported false-pass paths."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-REFUSAL-INTERVENTION-1",
+      "status": "CLOSED_SOURCE",
+      "evidence": [
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua:2707",
+        "eech-campaign/crates/eech-world/tests/entity_authority.rs:5022"
+      ],
+      "assessment": "Every fatal before an actual height intervention is now failure, including the planned marker. Exactly one height intervention is required before the existing cause/fault/consumption checks can credit a refusal. The generic secondary-hit alteration sum cannot substitute for it. Each refusal has a coherent positive followed by an unrelated expected-marker fatal after a valid configured secondary hit and before intervention; that fatal is rejected. Clean no-eligible UNREACHED, malformed-request failure and actual-intervention wrong-marker controls remain. The changed-word mode still requires same-entry fact-12 consumption and the real named provider refusal; no poisoned-engine read is added."
+    },
+    {
+      "id": "ENV-SECTOR-HEIGHT-PUBLIC-PROOF-PLAN-1",
+      "status": "CLOSED_SOURCE_PLAN_ONLY",
+      "assessment": "The existing public drivers now provide an executable, bounded scoped baseline and eligible changed/refused input plan with guarded diagnostic acceptance. Restore-after-insertion and original-versus-hosted hook scope remain accurately qualified. This closes the source-plan gap; it does not prove Windows/native outcomes or close M5/M6."
+    }
+  ],
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-sector-height-PROOF-GUARDS-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 23047,
+      "sha256": "57e4524410fa26d92aacc7d4b96c8ae72315277af6699359e5cf8bb191330317"
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-proofguards-Root-binding-e326-20261107.json",
+      "bytes": 7047,
+      "sha256": "09f35a681442a4252ee61d812f43a4cbaafbf75d7084ab74be3a18a9de1058b0"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-sector-height-proof-guards-fix-20261107-completion.json",
+      "bytes": 1348,
+      "sha256": "595ed6961fa26dd22d057464a3ecf8d4bc9c9b41b5048bf25739e816293caea7"
+    },
+    {
+      "path": "R:/d3-evidence/independent-sector-height-proofplan-5aae-source-20261107.json",
+      "bytes": 24317,
+      "sha256": "409a2622b5314d82c02dc7710dcf3528f8390678e5b11162108847bcb83aa27b"
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-proofplan-Root-binding-5aae-20261107.json",
+      "bytes": 8164,
+      "sha256": "6ec510ae1c6c492e8cca6308aa14f98d84f4200de17692670af408b0533aaf2f"
+    },
+    {
+      "path": "R:/d3-evidence/sector-height-proofplan-3f-CI-readback-20261107.json",
+      "bytes": 17002,
+      "sha256": "bb46f014e64e3fc3b0d5100e1879b015eed60ed797418f4c5719424711af7ce3"
+    }
+  ],
+  "check_join": {
+    "Cargo_receipts_retained": 12,
+    "final_Cargo_children": 4,
+    "final_Cargo_actual_exits": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "final_passing_test_instances": 211,
+    "separate_read_only_Python_accepted_shape_audit_exit": 0,
+    "total_final_checks_including_read_only_audit": 5,
+    "PRE_utc": "2026-11-07T09:18:33Z",
+    "POST_utc": "2026-11-07T09:19:05Z",
+    "full_input_rows": 3971,
+    "PRE_POST_JSON_literal_equal": true,
+    "source_map_sha256": "49527770cab8a597e06733c42c4d7f38049b636ede061412f4c31025253d4b56",
+    "changed_source_paths_raw_Git_literal": 6,
+    "extra_rows_PRE_POST_current_literal": 14,
+    "author_actual_exit": 0,
+    "author_result_is_error": false,
+    "author_terminal_utc": "2026-11-07T09:21:27.829054+00:00",
+    "retained_RED_scope": "g1 old baseline rejects the new damaged-report groups; g7 restored previous verdict fails the exact unrelated-fatal control after its valid positive. Intermediate g3/g4/g5 failures and their qualifications remain preserved. These are retained controlled old-source checks, not a claim that every RED preceded implementation.",
+    "accepted_private_report_sha256": "ffa21b5120b8dd9b1b096cb899e5bd63ece3664033ddc1bb92ef81def7a7284a",
+    "accepted_shape_audit": "Independent Python port over retained report: two sectors, 63 reads, 27615 offers, 35 frames. It is not execution of the Lua loader or a new native run.",
+    "unaffected_reuse": "Original 0be sixteen-check and 5aae eleven-check chains retained only at exact unaffected source scope. No new C/kernel/ABI/non-test Rust changes in this correction.",
+    "reviewer_executed_checks": false
+  },
+  "publication_and_identity_qualifications": [
+    "3971 direct immutable Git-byte joins retain exactly three inherited test Lua raw-CRLF versus Git-LF differences; four legacy Core filter-only identities have literal raw/Git bytes. Inputs were not normalized.",
+    "This packet has 63 manifest entries: 62 are literal Git bytes. runs/shp3-real-accepted-shape-20261107.txt is original raw/current/private stdout 232 bytes SHA256 2e8256cc148483f0bcd6d7da3d9c6d5ada0cde57263f76d8e074baa4e866b299; committed Git is 230 bytes SHA256 b5c8bd944c6b91a919b0f86b4fd38b15eece8abe1419635d0834335cc0097bde, exactly CRLF-to-LF only. The frozen manifest row hashes the raw output, not this Git blob. The Root dual-identity qualification is sufficient for source/native clearance. At publication correct the Git-byte manifest entry or attach an explicit raw-versus-Git receipt, retaining both original evidence identities; do not call all 63 entries Git-literal or rewrite the original raw output. No source/test/native rerun is required for this metadata issue.",
+    "The old 5aae post-POST audit-reader edit remains qualified in its sealed report and Root binding. New audit readers are current and stable in both new extra maps; no retrospective replacement of the old evidence is inferred.",
+    "scan_whole describes the live hosted scoped scan. A valid live scan may retain scan_whole=1 while status=INVALID_ACCEPTED rejects the comparison and exits nonzero. Contract shorthand that every damaged input forces scan_whole=0 must be read with that distinction; correct that wording at publication. It does not reopen either false-pass finding.",
+    "Prior exact 3f all-nine CI is retained at its own identity. Current c4c CI was pending at this review; no current all-green or delivery claim is made."
+  ],
+  "bounded_native_clearance": {
+    "owner": "Root only",
+    "prerequisites": [
+      "Use a fresh exact reviewed-source immutable snapshot with longpaths configured before checkout, clean full status and actual source/raw identity binding. Do not relabel the idle 1cf5 or 3f snapshots as corrected source.",
+      "Bind actual ordinary/hosted/explicit Original and hosted observer build profiles, feature isolation/COFF/private exports and sealed payload identities as applicable; retain all real command, native/helper/outer exits and complete fresh pre/post input manifests.",
+      "Use the established finite ordinary short and three complete literal 80fd comparisons, then the hosted-scan baseline at unchanged lebanon_retail/hours0.001/frame100/seed1 against the exact retained accepted f01 report. Require native success and validated EQUAL_AT_SCOPE; no timing, actor, geometry, duration or baseline adjustment.",
+      "Use sector_height_control first; require an eligible FIRST/sector/served non-mobile join, complete height reply, same-entry fact-12 consumption, zero mismatches/faults and completed finite cohort under the explicitly configured secondary input. Only then run the matched wrong_word/withheld/malformed/wrong_state/wrong_sector modes on separate fresh roots and the same bound literal/runtime.",
+      "Negative credit requires exactly one actual eligible height intervention, expected cause/marker and fault counts; wrong_word also requires altered-word consumption. An unrelated fatal is failure, a clean missing prerequisite UNREACHED, and no engine/counter/physical reads occur after fatal. No real Core restore is credited from a Host-only phase18 query."
+    ],
+    "permits": "Only new exact-source Windows/profile/payload gates, unchanged finite short/scoped baseline and the declared finite public authority/refusal validation. Results require a subsequent same-reviewer actual-evidence join.",
+    "does_not_permit": "No automatic physical-height acceptance, full campaign rerun for observation, scope weakening, optional preparation programme or whole Task49/D3/delivery acceptance."
+  },
+  "remaining_required": [
+    "ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1 (real guarded fixed-wing consumer) and ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1 (native Core server save/load) remain OPEN and required; source/text/scripted boundaries do not close them.",
+    "All ten D3 requirements, remaining physical services/couplings and needed DCS/API/hierarchy/RNG dispositions, natural moving/engagement gaps, final current full40/all8/four inputs/current CI/review/normal merge/final census remain required.",
+    "Prep2 remains completed/STOP; no D4/D5/TypeScript work. Closed long-run Person P1/fullpack and prior finite proofs retain only their accepted source identities and scope."
+  ]
+}
