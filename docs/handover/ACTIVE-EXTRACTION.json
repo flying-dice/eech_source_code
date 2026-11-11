@@ -927,7 +927,8 @@
       "blocks_cutover": false,
       "evidence": "Exact23ec schema3 healthy capture COMPLETE1500 UNREACHED (Root binding ad1496399d88026906e09e8a84516e72b78ad81c39653840d0601296f5be5a56, SAME terminal 83510e4e7c040fef477911cd6048f4a318ae9eca8ca0fd54c39a223c222f487d findings[]): the completed routed MOVE receipt is present but all16 candidates reject code11 because the captured MOVE carried no terrain. rv_hostmv.c349-377 supplies terrain only for horizontal waypoint distance^2>1 AND guide terrain-follow!=NONE, so absent terrain is lawful and the schema3 +500m terrain counterfactual cannot be reached on that path. Retained raw has no MOVE prestate/dt, so actual displacement is UNKNOWN. Lead216 (ledger14548994 v216) replaces that counterfactual with a versioned schema4 ONE same-callback physical delta_seconds->0; source disposition R:/d3-evidence/zero-step-23ec-source-proposal-20261111.json SHA-256 5304b8e7068412b63360d58b1f0842ff068193b18d9fc191d2fe9da9982ed3c9.",
       "missing_fact": "A schema4 witness, validators and controller consuming ONE entire contract: healthy completed routed MOVE with finite dt>0, terrain absent, pre-speed>=0, complete finite consumed prestate with pre-position inside the actual map bounds, observed nonzero actual pre->post displacement, canonical registration and latest-writer receipt immutable at NEED; B clones ONLY dt=0 once at the SAME exact callback after the delivered identical earlier-frame birth prefix, and the genuine solver must return the exact pre-position, different from healthy, with the same-cohort NEED/READ/44-word reask/16-word moving TEST effect. Actual native reachability of a displacing terrain-absent candidate remains UNKNOWN.",
-      "next_fix": "Real movement/SharedMovers/model/FlagStore positive first, old schema3 gate RED (code11 on the lawful terrain-absent MOVE), schema4 healthy+zero-step GREEN, single-field refusals before effect/output, existing facade default/observer profile controls; one freeze/push and ONE independent review. No compiled production/API/build change and no native run in this batch."
+      "next_fix": "Real movement/SharedMovers/model/FlagStore positive first, old schema3 gate RED (code11 on the lawful terrain-absent MOVE), schema4 healthy+zero-step GREEN, single-field refusals before effect/output, existing facade default/observer profile controls; one freeze/push and ONE independent review. No compiled production/API/build change and no native run in this batch.",
+      "corrected_in_source": "594ef61368e2c5a9cbe6ed9f27cfdbad51ac7a94 UNREVIEWED: schema4 zero-step witness/validators/controller/tests; final six direct0, PRE/POST 4024 rows equal 5d701eba, 3815 product rows equal compiled 2fc, freeze 0570a18b. Status stays open until the independent reviewer confirms; native reachability UNKNOWN."
     }
   ],
   "next_action": "STOP for ONE independent correctness/clean-code/boundary review of the schema4 zero-step candidate (ENV-PUBLIC-SESSION-ZERO-STEP-DISPLACEMENT-1). Then Root decides a separately reviewed exact materialized native plan. No unreviewed native/consumed-root replay.",
@@ -1348,6 +1349,8 @@
     "native_launch": false,
     "native_reachability": "UNKNOWN",
     "status": "FROZEN_STOP_FOR_REVIEW",
-    "packet": "eech-campaign/reference/d3-entity-collision/zero-step-contract/"
+    "packet": "eech-campaign/reference/d3-entity-collision/zero-step-contract/",
+    "code_commit": "594ef61368e2c5a9cbe6ed9f27cfdbad51ac7a94",
+    "freeze_sha256": "0570a18b46f0d1c5cded780d7b3db02a4ce3ad158235c6895e653d6af71974dd"
   }
 }

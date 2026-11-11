@@ -1,0 +1,20 @@
+{
+  "CODE": "594ef61368e2c5a9cbe6ed9f27cfdbad51ac7a94",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "source_rows": 4024,
+  "raw_equals_Git": 4021,
+  "inherited_raw_filter_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "source_fingerprint": "5d701ebaa4a332bd9e88ff2389e5e00c090f708f5188b878da19c4246737ae75",
+  "post_POST_metadata": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "manifest.json",
+    "code-publication.json",
+    "publication-manifest.json"
+  ],
+  "scope": "UNREVIEWED schema4 zero-step contract; no binary relabel/native/cutover/all10 closure."
+}
