@@ -1,0 +1,57 @@
+{
+  "objective": "Complete D3",
+  "progress_source": "R:\\d3-evidence\\D3-CURRENT.json",
+  "historical_states": "R:\\d3-evidence\\handover-history\\20261102-2257\\D3-REQUIREMENTS.json",
+  "requirements": [
+    {
+      "id": 1,
+      "requirement": "Required physical terrain elevation, surface/type/normal and terrain geometry queries are supplied by host services or named data workarounds; native physical solvers leave campaign DLL",
+      "proof_needed": "Finite active source census, characterized original/candidate behavior, production compile/dispatch audit, actual public host authority/refusal witnesses"
+    },
+    {
+      "id": 2,
+      "requirement": "Required physical spatial/object/model/geometry query services move to host within D3; active required services are not deferred by old D5 comments",
+      "proof_needed": "Active consumer and compiled-symbol census, host implementation and public-path controlled cases, dormant-code disposition with evidence"
+    },
+    {
+      "id": 3,
+      "requirement": "Weather and environment services come from host",
+      "proof_needed": "Characterized real wind/weather/environment consumers; host source/dispatch and changed/missing-provider campaign effects"
+    },
+    {
+      "id": 4,
+      "requirement": "Host supplies required simulation time inputs; campaign geography, route planning, timer and scheduling semantics stay campaign-owned",
+      "proof_needed": "Actual source/dataflow audit and relevant public-host behavior under controlled time, unchanged equivalent-input campaigns"
+    },
+    {
+      "id": 5,
+      "requirement": "Document needed DCS API calls or explicit bounded data workarounds for the D3 services",
+      "proof_needed": "Verified source/API reference and reviewed integration mapping; no claim of live DCS M6 execution"
+    },
+    {
+      "id": 6,
+      "requirement": "Characterize existing behavior before each extraction; move behavior without altering accepted rules",
+      "proof_needed": "Named clean original/candidate revisions, actual test exits, retained raw evidence and investigated deltas, FPU/RNG/order and cache semantics"
+    },
+    {
+      "id": 7,
+      "requirement": "Established deterministic shipping regression preserved for delivered increments",
+      "proof_needed": "Actual original runner completion, exact accepted40 PASS, all8 complete Tacview/observation/metric files byte equal, all3 external plus internal copied input manifests, shipping/source identities unchanged"
+    },
+    {
+      "id": 8,
+      "requirement": "Each concrete extraction has simple live task, one implementation lane, one combined independent review of new changes, applicable current checks and normal delivered merge",
+      "proof_needed": "Actual task/PR/review/head/CI/merge-tree identities and acceptance"
+    },
+    {
+      "id": 9,
+      "requirement": "Whole D3 scope accepted only after full increment proves complete; keep STATUS, handover, evidence and live Jira/Confluence current; preserve all5 epic reports",
+      "proof_needed": "Whole-scope final audit, independently closed delivery, actual task/epic states and readback exact ledger preservation"
+    },
+    {
+      "id": 10,
+      "requirement": "Do not start D4/D5 before D3; do not resume historical TypeScript port or stale scope inventories",
+      "proof_needed": "Actual branch/task/source diff and live authority reconciliation"
+    }
+  ]
+}

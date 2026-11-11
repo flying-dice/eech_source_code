@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "R:\d3-evidence\zs4p-20261111\zs4p-proof-20261111.py", line 63, in <module>
+    fails = re.findall(r"\(field='(\w+)', report='(\w+)'\)\nAssertionError: ValueError not raised", redlog.replace('\r', '')); assert len(fails) == 9 and len(set(fails)) == 9, fails
+                                                                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: []

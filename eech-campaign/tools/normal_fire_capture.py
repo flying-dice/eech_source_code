@@ -199,7 +199,7 @@ def validate(raw, expected, healthy=None):
     check(f['target']==b['target']==s['birth_target'] and st['target']==s['step_target'] and se['target']==s['end_target'],'immutable target history')
     candidate_text=unhex(e['candidate']);check(candidate_text.startswith('normal-candidate '),'candidate evidence prefix')
     ce=tokens(candidate_text[17:],CANDIDATE_FIELDS)
-    equal=dict(call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',move_frame='move_frame',query_frame='query_frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose')
+    equal=dict(call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',latest='latest',move_frame='move_frame',prestate='prestate',delegated='delegated',query_frame='query_frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose')
     check(all(ce[k]==s[v] for k,v in equal.items()) and ce['mode']=='move','actual physical candidate evidence')
     test_request=words(ce['test_request'],44)
     check(n['scene']<=2147483647,'actual TEST scene native index domain')

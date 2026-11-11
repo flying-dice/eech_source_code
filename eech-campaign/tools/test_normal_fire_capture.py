@@ -8,6 +8,7 @@ import importlib.util
 import tempfile
 import unittest
 import re
+import sys
 from pathlib import Path
 
 HERE=Path(__file__).resolve().parent
@@ -67,6 +68,11 @@ def zero_step(h):
         w=s[key].split(',');w[13]='0x41000000';s[key]=','.join(w)
     w=s['pose'].split(',');w[0]='0x40c00000';s['pose']=','.join(w)
     return sync_candidate(b)
+
+def candidate_only(report,field,value):
+    """Change ONE field of the decoded actual-candidate evidence row only."""
+    bad=copy.deepcopy(report);ce=R.tokens(R.unhex(bad['evidence']['candidate'])[17:],R.CANDIDATE_FIELDS);ce[field]=value
+    bad['evidence']['candidate']=encoded('normal-candidate '+' '.join(k+'='+ce[k] for k in R.CANDIDATE_FIELDS.split()));return bad
 
 def damage_event(report,role,field,value):
     bad=copy.deepcopy(report);text=R.unhex(bad['evidence'][role]);token=next(x for x in text.split() if x.startswith(field+'='))
@@ -252,6 +258,32 @@ class Controls(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'consumed MOVE input'):R.validate(emit(bad),b['identity'],healthy)
         old=copy.deepcopy(b);old['identity']['mode']='terrain_lift'
         with self.assertRaisesRegex(ValueError,'mode'):R.validate(emit(old),old['identity'],healthy)
+
+    def test_schema4_candidate_receipt_only_mismatch_refused_before_child(self):
+        # Coherent positive FIRST; then ONLY the decoded actual-candidate field
+        # changes to another valid-domain value. Selection and every other
+        # record stay intact (no sync_candidate), so only the join can refuse.
+        h=fixture();healthy=R.validate(emit(h),h['identity']);b=zero_step(h);R.validate(emit(b),b['identity'],healthy)
+        values={'latest':'2','prestate':PRESTATE.replace(',2,1,100,',',3,1,100,',1),'delegated':'0.5'}
+        refused=0
+        with tempfile.TemporaryDirectory(prefix='zero-step-candidate-only-') as d:
+            p=Path(d)/'healthy.txt'
+            for field,value in values.items():
+                bad=candidate_only(h,field,value);bad_b=candidate_only(b,field,value)
+                self.assertNotEqual(R.tokens(R.unhex(bad['evidence']['candidate'])[17:],R.CANDIDATE_FIELDS)[field],bad['selection'][field])
+                self.assertEqual(bad['selection'],h['selection'])
+                p.write_bytes(emit(bad))
+                with self.subTest(field=field,report='healthy'):
+                    with self.assertRaisesRegex(ValueError,'actual physical candidate'):R.validate(emit(bad),h['identity'])
+                    refused+=1
+                with self.subTest(field=field,report='controller'):
+                    with self.assertRaisesRegex(ValueError,'actual physical candidate'):C.healthy_reference(p,C.sha(p),h['identity'])
+                    refused+=1
+                with self.subTest(field=field,report='zero_step'):
+                    with self.assertRaisesRegex(ValueError,'actual physical candidate'):R.validate(emit(bad_b),b['identity'],healthy)
+                    refused+=1
+                self.assertEqual([x.name for x in Path(d).iterdir()],['healthy.txt'])
+        print('candidate_receipt_only_refusals='+str(refused),file=sys.stderr)
 
     def test_schema4_healthy_eligibility_single_field_faults_before_child(self):
         f=fixture();R.validate(emit(f),f['identity'])

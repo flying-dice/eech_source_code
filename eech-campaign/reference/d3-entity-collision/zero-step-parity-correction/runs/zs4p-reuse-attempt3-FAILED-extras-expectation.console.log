@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "R:\d3-evidence\zs4p-20261111\zs4p-proof-20261111.py", line 58, in <module>
+    out = E / 'zs4p-reuse-20261111.json'; assert not out.exists(); dump(out, reuse()); print(out.read_text()); sys.exit()
+                                                                             ^^^^^^^
+  File "R:\d3-evidence\zs4p-20261111\zs4p-proof-20261111.py", line 46, in reuse
+    assert sorted(diff) == ['eech-campaign/tools/normal_fire_capture.py', 'eech-campaign/tools/test_normal_fire_capture.py'], diff
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['eech-campaign/tools/normal_fire_capture.py', 'eech-campaign/tools/test_normal_fire_capture.py', 'eech-campaign/docs/d3-public-session-finalization.md']

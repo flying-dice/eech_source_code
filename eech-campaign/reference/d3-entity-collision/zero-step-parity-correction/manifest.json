@@ -1,0 +1,157 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-ZERO-STEP-PARITY-CORRECTION-FROZEN-20261111.json",
+      "sha256": "850104cd2b85e45c3251689ee7aa395872bf0a5ea9f220e9ef0b7bcbc1a07d49"
+    },
+    {
+      "path": "external/D3-REQUIREMENTS.json",
+      "sha256": "3165482fd5994e66db90e30c75b633de2d8c24380ce2948b694df66f0b14433c"
+    },
+    {
+      "path": "external/independent-zero-step-0e174-source-20261111.json",
+      "sha256": "0e61b0dabc819362aaeeefcc599590d4c4a6fc4a29abb66835e20d9d90ce4dd5"
+    },
+    {
+      "path": "external/zero-step-0e174-Root-binding-20261111.json",
+      "sha256": "2cdc0dc34ea4bc8b2c0ad6c17f6443ba90e0e949092d20c94a7bc12c59235f39"
+    },
+    {
+      "path": "readers/run-zs4p-direct-20261111.py",
+      "sha256": "8772e6e3c4ecd851e620aabb9b7a38ce1f4620a7575a587068f6858c879aea0c"
+    },
+    {
+      "path": "readers/zs4p-parity-20261111.py",
+      "sha256": "e7936cb667b45a5792cd6494a373d18efb8de3c254d7800f7b0e41a9cd36221e"
+    },
+    {
+      "path": "readers/zs4p-proof-20261111.py",
+      "sha256": "1adbd7a305acba106383b42be0cfa1841878e5dd645a9e54727b8e692d798ffe"
+    },
+    {
+      "path": "README.md",
+      "sha256": "24ba26910d9ab919628471e94fe3849398ddd557bf66628ea4f1a5ab5f6274d4"
+    },
+    {
+      "path": "runs/g1-python-GREEN.json",
+      "sha256": "f6681c7ad5b251b4d0ee4f6001db0a9dc46caabb6429074bd82901e13adb2d91"
+    },
+    {
+      "path": "runs/g1-python-GREEN.stderr.log",
+      "sha256": "366c3f938d30ab5f4cd82267bb0d9726164872dff1bb71c2ec82dc29f97cd077"
+    },
+    {
+      "path": "runs/g1-python-GREEN.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/g2-py-compile.json",
+      "sha256": "36018ea43f59cd38d42fbee1acf8663e983f6d920aa7e72687d9bcc80e383361"
+    },
+    {
+      "path": "runs/g2-py-compile.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/g2-py-compile.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/g3-parity.json",
+      "sha256": "0262c908647a2c550d5658000b2a86e84af7edcf375c46eea5aff4373f13ce0e"
+    },
+    {
+      "path": "runs/g3-parity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/g3-parity.stdout.log",
+      "sha256": "5d77fae4c19c6617f7828599e42794f7fe84afe28a916b9844f635648f165bcb"
+    },
+    {
+      "path": "runs/p-g1-fix-blocker.exit",
+      "sha256": "373ca7824301bca02bdc040f5b1d60b0cb9909728076b988ecb6af938f8cd928"
+    },
+    {
+      "path": "runs/p-g1-fix-blocker.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/p-g1-fix-blocker.stdout.log",
+      "sha256": "52df3e08baac635090707cc790bb27ca5d88c5a110b425f1c5805f238e735475"
+    },
+    {
+      "path": "runs/p-g2-characterize.exit",
+      "sha256": "95fe7a3501553e4b9133f7c7702a097ff5b811ab3ad43f96ef6bb891f0f444dd"
+    },
+    {
+      "path": "runs/p-g2-characterize.stderr.log",
+      "sha256": "3aa250acbd9fd2e1067b9c8024ee08c15226796c24f1ad3fc8436fbd3f08f2c4"
+    },
+    {
+      "path": "runs/p-g2-characterize.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/r1-old-validator-RED.json",
+      "sha256": "d71d560bf96ae9479086cb72cf74519575acb6f0111a1cb2ee6b9e08705a97b9"
+    },
+    {
+      "path": "runs/r1-old-validator-RED.stderr.log",
+      "sha256": "9fe1cf409793e81b92baee4b6f63d2dba0cfccad0c95f75fc2b8c53b1815516e"
+    },
+    {
+      "path": "runs/r1-old-validator-RED.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/zs4p-freeze-attempt1-FAILED-red-regex.console.log",
+      "sha256": "6e9fb7dee820dcbbe81dbd77f1000bd15f1c170150bc4943285fed86ec4dc17d"
+    },
+    {
+      "path": "runs/zs4p-freeze.console.log",
+      "sha256": "a053330941650690473cbe0d8b52eedb85354186aed8196e81741c5d7a9b2b71"
+    },
+    {
+      "path": "runs/zs4p-g2-pycache-removed.txt",
+      "sha256": "1d2c2fb7020b5c5a2bc075f0410c963ff40f8cc03987da851ed38e270aca07b2"
+    },
+    {
+      "path": "runs/zs4p-parity.exit",
+      "sha256": "cd6903198ccedbb537ac13c4a64c05d3738abfa281b17a699b305f2bd5a97050"
+    },
+    {
+      "path": "runs/zs4p-parity.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/zs4p-parity.stdout.log",
+      "sha256": "5d77fae4c19c6617f7828599e42794f7fe84afe28a916b9844f635648f165bcb"
+    },
+    {
+      "path": "runs/zs4p-reuse-20261111.json",
+      "sha256": "fdc7daa8a9e0801fc3ef5bbbf693441b4d00a2f2ad7d56d555db62af9674d3f6"
+    },
+    {
+      "path": "runs/zs4p-reuse-attempt1-FAILED-cmdline-too-long.console.log",
+      "sha256": "6d5d1716f1a40b95825fa265087ba6cc5f6590a1ecdaae37415e13bd880704da"
+    },
+    {
+      "path": "runs/zs4p-reuse-attempt2-FAILED-unpatched-cmdline-too-long.console.log",
+      "sha256": "6d5d1716f1a40b95825fa265087ba6cc5f6590a1ecdaae37415e13bd880704da"
+    },
+    {
+      "path": "runs/zs4p-reuse-attempt3-FAILED-extras-expectation.console.log",
+      "sha256": "452950e9a83861b7d3283859f57f03b9ab2e5994a17c724820d25230b01d8452"
+    },
+    {
+      "path": "runs/zs4p-reuse.console.log",
+      "sha256": "3153c891f94189759e81222e29ce351b96632cc382940ca0db8417d1cda207af"
+    }
+  ],
+  "self_excluded": true
+}

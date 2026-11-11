@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "zs4 schema4 zero-step candidate FROZEN (UNREVIEWED): real movement/SharedMovers/model/FlagStore positive first, old schema3 gate RED code11, healthy+zero-step GREEN through the genuine solver; STOP for ONE independent correctness/clean-code/boundary review. No native/cutover/all10 closure.",
+  "phase": "zs4 schema4 zero-step candidate (0e174) reviewed with ONE P2 (0e61b0da); Python-only parity correction FROZEN (UNREVIEWED); STOP for the SAME reviewer. No native/cutover/all10 closure.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "Retain required hosted-only raw TREE/FOREST/CLOUD extraction after its applicable gates;965 discharges finite boot CRT subfact only, removal remains uncleared. Sole open blocks_cutover GenericNative1 first requires natural moving public-path prerequisite/effect proof; D3G08 hierarchy remains separately required, not silently solved by Task50.",
@@ -929,9 +929,19 @@
       "missing_fact": "A schema4 witness, validators and controller consuming ONE entire contract: healthy completed routed MOVE with finite dt>0, terrain absent, pre-speed>=0, complete finite consumed prestate with pre-position inside the actual map bounds, observed nonzero actual pre->post displacement, canonical registration and latest-writer receipt immutable at NEED; B clones ONLY dt=0 once at the SAME exact callback after the delivered identical earlier-frame birth prefix, and the genuine solver must return the exact pre-position, different from healthy, with the same-cohort NEED/READ/44-word reask/16-word moving TEST effect. Actual native reachability of a displacing terrain-absent candidate remains UNKNOWN.",
       "next_fix": "Real movement/SharedMovers/model/FlagStore positive first, old schema3 gate RED (code11 on the lawful terrain-absent MOVE), schema4 healthy+zero-step GREEN, single-field refusals before effect/output, existing facade default/observer profile controls; one freeze/push and ONE independent review. No compiled production/API/build change and no native run in this batch.",
       "corrected_in_source": "594ef61368e2c5a9cbe6ed9f27cfdbad51ac7a94 UNREVIEWED: schema4 zero-step witness/validators/controller/tests; final six direct0, PRE/POST 4024 rows equal 5d701eba, 3815 product rows equal compiled 2fc, freeze 0570a18b. Status stays open until the independent reviewer confirms; native reachability UNKNOWN."
+    },
+    {
+      "id": "ENV-PUBLIC-SESSION-SCHEMA4-CANDIDATE-PARITY-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "severity": "P2",
+      "evidence": "Independent review R:/d3-evidence/independent-zero-step-0e174-source-20261111.json SHA-256 0e61b0dabc819362aaeeefcc599590d4c4a6fc4a29abb66835e20d9d90ce4dd5 (Root binding zero-step-0e174-Root-binding-20261111.json SHA-256 2cdc0dc34ea4bc8b2c0ad6c17f6443ba90e0e949092d20c94a7bc12c59235f39): normal_fire_capture.py lines202-203 candidate-to-selection equal map omits the schema4 fields latest, prestate and delegated that CANDIDATE_FIELDS parses and the Lua contract joins. Python validator and controller.healthy_reference can accept a reference whose decoded actual-candidate receipt disagrees with its selection; tests co-mutated both sides. No physical-delegate bypass established (Lua joins remain).",
+      "missing_fact": "Independent Python parity: the three fields joined, with candidate-only single-field refusals through report.validate and controller.healthy_reference before any B root/output/child.",
+      "next_fix": "Python-only correction: old-validator RED per field, add the three joins, whole field-map parity check, candidate-only GREEN refusals; reuse unchanged Lua/Rust/facade receipts by literal input joins; ONE SAME review.",
+      "corrected_in_source": "Python-only correction on base 0e174c1a09a9d1f74c159ffe59378b77ce43e93a, UNREVIEWED (packet eech-campaign/reference/d3-entity-collision/zero-step-parity-correction): three joins added; old-validator RED 9/9 candidate-only mismatches accepted (exit1); GREEN 9/9 refused by validator and controller gateway before any B root/output/child, Python 16 tests exit0; whole field-map parity PARITY. Status stays open until the SAME reviewer confirms."
     }
   ],
-  "next_action": "STOP for ONE independent correctness/clean-code/boundary review of the schema4 zero-step candidate (ENV-PUBLIC-SESSION-ZERO-STEP-DISPLACEMENT-1). Then Root decides a separately reviewed exact materialized native plan. No unreviewed native/consumed-root replay.",
+  "next_action": "STOP for the SAME reviewer to close ENV-PUBLIC-SESSION-SCHEMA4-CANDIDATE-PARITY-1 on the parity correction. Then Root decides a separately reviewed exact materialized native plan. No unreviewed native/consumed-root replay.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -1351,6 +1361,7 @@
     "status": "FROZEN_STOP_FOR_REVIEW",
     "packet": "eech-campaign/reference/d3-entity-collision/zero-step-contract/",
     "code_commit": "594ef61368e2c5a9cbe6ed9f27cfdbad51ac7a94",
-    "freeze_sha256": "0570a18b46f0d1c5cded780d7b3db02a4ce3ad158235c6895e653d6af71974dd"
+    "freeze_sha256": "0570a18b46f0d1c5cded780d7b3db02a4ce3ad158235c6895e653d6af71974dd",
+    "parity_correction": "eech-campaign/reference/d3-entity-collision/zero-step-parity-correction/ (UNREVIEWED; finding ENV-PUBLIC-SESSION-SCHEMA4-CANDIDATE-PARITY-1)"
   }
 }

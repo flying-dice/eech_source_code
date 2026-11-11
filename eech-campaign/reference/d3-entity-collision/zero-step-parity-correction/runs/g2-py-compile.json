@@ -1,0 +1,23 @@
+{
+  "controller_pid": 16364,
+  "state": "terminal",
+  "started_utc": "2026-11-11T10:47:10.747474+00:00",
+  "label": "g2-py-compile",
+  "command": "py-compile",
+  "args": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "-m",
+    "py_compile",
+    "eech-campaign/tools/normal_fire_capture.py",
+    "eech-campaign/tools/normal_fire_capture_controller.py",
+    "eech-campaign/tools/test_normal_fire_capture.py"
+  ],
+  "cwd": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d3-evidence\\collision-characterization-20261029",
+  "pid": 23536,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-11T10:47:11.206599+00:00"
+}

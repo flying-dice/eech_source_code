@@ -1,0 +1,19 @@
+{
+  "controller_pid": 6360,
+  "state": "terminal",
+  "started_utc": "2026-11-11T10:47:11.349144+00:00",
+  "label": "g3-parity",
+  "command": "parity",
+  "args": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d3-evidence\\zs4p-20261111\\zs4p-parity-20261111.py"
+  ],
+  "cwd": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d3-evidence\\collision-characterization-20261029",
+  "pid": 6292,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-11T10:47:11.468427+00:00"
+}
