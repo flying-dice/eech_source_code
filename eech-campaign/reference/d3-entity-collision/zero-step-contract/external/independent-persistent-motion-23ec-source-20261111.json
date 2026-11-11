@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-11T00:43:55.747144+00:00",
+  "review_kind": "One changed-material correctness, clean-code, boundary-safety and retained-check source review; no experiment replay",
+  "source": {
+    "before_commit": "d2bde13d52377811483b2428e9537036e8db9689",
+    "code_commit": "e23047a853d9093fbc0516a86fabc63204b316a0",
+    "metadata_commit": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "observed_HEAD": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+    "full_status_clean": true,
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "report_schema": 3
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-PERSISTENT-MOTION-CONTRACT-FROZEN-20261111.json",
+      "bytes": 6276,
+      "sha256": "f7da2231bb1fc548bd5c12543b67cd401b8aa3c82c6965a0afd69353b1b76527"
+    },
+    {
+      "path": "R:/d3-evidence/persistent-motion-contract-23ec-Root-binding-20261111.json",
+      "bytes": 2008,
+      "sha256": "e9f8957ac744032fec15923e24e7ca2febdef4151628be398caff67e2ed35ce5"
+    },
+    {
+      "path": "R:/d3-evidence/pmd2bde-publication-checkpoint-20261108.json",
+      "bytes": 22410,
+      "sha256": "c4922fadc891a271ddd7a26db5b2612b2107d03dd22d4028013a958b559756b1"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-persistent-motion-resume-20261111-completion.json",
+      "bytes": 1106,
+      "sha256": "9c051f2cf0a970fe7a778e0cad86e8c5c49315f036991cc2db1aba51532bd5db"
+    },
+    {
+      "path": "R:/d3-evidence/independent-public-domain-profile-d2bde-source-20261108.json",
+      "bytes": 10176,
+      "sha256": "2dee558ab3e429a822528ed8bd2b22bebd0e924549026becd0d0df15f4fa455d"
+    },
+    {
+      "path": "R:/d3-evidence/independent-public-domain-pde333-terminal-20261108.json",
+      "bytes": 9813,
+      "sha256": "def6b8f21c63769f90a50a85442f4524979c6f269d7030172bc95d4629915ffe"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/persistent-motion-contract/pmd2bde-writer-census-20261111.json",
+      "bytes": 2317,
+      "sha256": "1266383a36f323d0f15b2514be9a8e9539f10d17551351699d4639188b94d6c5"
+    },
+    {
+      "path": "R:/d3-evidence/collision-characterization-20261029/eech-campaign/reference/d3-entity-collision/persistent-motion-contract/persistent-motion-lead-decision-live-services-v213-20261108.json",
+      "bytes": 815,
+      "sha256": "9c6ad6c5d26f39163bd91453e804d75eb3473a0e893c3ece567488252a109be4"
+    },
+    {
+      "path": "R:/d3-evidence/pmd2bde-PRE-utc-20261108.json",
+      "bytes": 215,
+      "sha256": "3bb04c52ecb59920f1769935d2cd54b0e8496b7967824a17d3745229580570d7"
+    },
+    {
+      "path": "R:/d3-evidence/pmd2bde-POST-utc-20261108.json",
+      "bytes": 215,
+      "sha256": "590bb31cae28b85ff33d12431afced74622fa1161f39616c7aa368dde69d09ed"
+    }
+  ],
+  "findings": [],
+  "source_disposition": {
+    "named_gate": "ENV-PUBLIC-SESSION-PERSISTENT-MOVE-PROVENANCE-1",
+    "source_correction_satisfied": true,
+    "native_acceptance_gate_closed": false,
+    "contract": "Within lead213, a frame clock is not a physical writer. Latest completed real routed MOVE provenance may persist until an actual newer same-ID writer; first normal cohort/candidate/scene lock, real registration/scene/NEED/READ/reask/TEST, motion and500m terrain bounds remain unchanged.",
+    "writer_boundary": "Supported reference source has one SharedMovers; bind_mobile creates fresh monotonic IDs/bind-or-issue, and move_vehicle owns retire/step. Model-provider SharedMovers accesses are immutable observation/canonical reads. Roster/model cache writes are distinct from canonical Movers writers. This is a bounded static inventory, not exhaustive custom-host safety.",
+    "invalidation": "Every newer same-ID move entry clears the old receipt BEFORE delegate, including stop/place/routed_vector/unsupported/failed/unfinished modes. Semantic member/group bind invalidates prior matching IDs before binding, and new issued IDs have no receipt. A completed supported routed reply republishes copied provenance only if its ordinal remains latest; pending=true or invalid reply cannot preserve old credit. Unrelated actors do not invalidate this actor.",
+    "NEED": "The receipt is captured immutably before the actual NEED provider call, with completed model ordinal preceding NEED and no future frame. Position/motion are copied; later writes/deletions/reused tables cannot alter the captured evidence. Every move callback keeps its ordinal, so repeated same-ID calls without model calls cannot alias.",
+    "schema3_and_B": "Independent Lua/Python validators and literal schema separate query_frame and move_frame and require300<birth_frame<move_frame<=query_frame<=1500 plus exact model/callback order. Query C excerpts stay bound to query_frame; receipt evidence agrees with selection. B matches exact move_frame/call/identity/mode/model prefix and already delivered earlier-frame identical birth prefix BEFORE its single500m input effect, then requires same cohort/candidate and real position/pose effect at query.",
+    "accounting": "Six provenance states distinguish absent, completed, mode-invalidated, bind-invalidated, boot/prebirth and later-only receipts. They are bounded metadata from delivered callbacks, not a second physical store. READ/reask/TEST counters remain traversed credit counts, not absence of Core traffic. The old native mode0 cause is still unproved.",
+    "clean_code_boundary": "No additional actionable finding. No copied kernel/new ABI/API/world store/getter, delegate suppression or physical policy/flag/baseline/seed/frame/window/threshold change. The new state records provenance and invalidation rather than replacing SharedMovers authority."
+  },
+  "new_checks": {
+    "direct_exits": {
+      "s1-python": 0,
+      "s2-fmt": 0,
+      "s3-clippy": 0,
+      "s4-session-lua": 0
+    },
+    "original_outer_session": 75752,
+    "original_outer_actual_exit": 0,
+    "Rust_selected_targets": 1,
+    "Python_tests": 14,
+    "fresh_reference_host_cases": [
+      "healthy",
+      "B",
+      "stop",
+      "place",
+      "routed_vector",
+      "retire",
+      "invalid",
+      "bind",
+      "prebirth",
+      "boot",
+      "future",
+      "wrong",
+      "unrelated",
+      "repeat"
+    ],
+    "actual_behavior": "Real movement/SharedMovers/model/FlagStore healthy/B: delivered birth301, MOVE302, query303. Stop/place/routed_vector/bind invalidate; retire/unsupported/wrong-ID fail; boot/prebirth/future-only stay UNREACHED; unrelated-writer and repeated same-ID ordinal2 stay positive. Fourteen cases are not fourteen positive native outcomes.",
+    "scope": "Each case has a fresh eech-world process and real bind/movement/SharedMovers/model/FlagStore. Engine frame/event transport and C normal-fire excerpts are synthetic. Fixture f32 encoding transports actual returned normal f32 values, not broad floating/subnormal/nonfinite or retail authority. No whole FPU/global/session/lifetime proof.",
+    "negative_controls": "Four Lua receipt-reference faults and five Python faults reject before B output/prepare/boot or child setup. Existing TEST-domain, complete-reference, prefix/causality, reset and failure-precedence controls remain in the passing target.",
+    "RED_precision": "d1 raw whole-domain float fixture101 is setup, not behavioral RED. d2 corrected real-consumer positive then old same-frame diagnostic UNREACHED101 is meaningful missing-capability RED. d3/d4 fixture/schema and d8 mutation-anchor errors remain failed evidence. No reviewer replay.",
+    "timed_identity": "Actual11Nov PRE00:34:23.710102→00:34:26.454945 and POST00:35:01.184980→00:35:03.947085 enclose all four finals. Equal full4024 map SHA7b47736eb0e3e5d7bd30814498c119cb7f62e6d9d6fc02b03d68897a83e3d356; old20261108 family dates are labels, not actual check dates.",
+    "binding": "4021 raw Git-literal rows plus3 inherited uncompiled Lua CRLF/Git-LF qualifications;4024 current raw rows,30 extras/five readers stable;12 artifact identities Git-bound;71 manifest entries/72 Git-literal files/67 literal external copies. No source normalization or after-POST reader edit asserted.",
+    "completion": "Actual service FINAL/completed and lease released; explicitly authorized SolHigh fallback while requested Claude auth remained expired. No invented CLI exit/OS PID or Claude service claim."
+  },
+  "reuse": {
+    "retained_build_reuse_accepted": true,
+    "retained_default_reuse_accepted": true,
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "payloads": 97,
+    "compiled_scope": "3815 product/build/Cargo/static raw rows and2 producer configs exact compiled2fc. One inherited cfg(test)-excluded native_flag_read_refusal_check.rs exception remains explicit with literal module importer and old nr602 body; not blanket3816 identity. No product C/Rust/module/build/Cargo change requires a Windows rebuild.",
+    "cfg_test_exception": {
+      "path": "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+      "before_sha256": "16bc4fc41e4bccfad76acb0c06d4ac8284ea721f1a4a1fbf31cec68af21fd0b5",
+      "current_sha256": "603af48ea5ac8bb69ab1e37b9b85df505d4fbd184a871f723adc723bb6783001",
+      "cfg_test_importer": "eech-campaign/crates/eech-dc/src/module.rs",
+      "importer_raw_sha256": "d39bcab66d7324a4f3102b01f2c51b98de1b24dea641f90c68e048951ca0cfc1",
+      "production_excluded": true,
+      "old_test_body_literal_unchanged": true
+    },
+    "default_scope": "Only accepted fixed35-frame standard campaign default at true2fc: native0 and three COMPLETE files literal3abf/80fd with existing input/config/bundle joins. No new diagnostic/native moving or1500-frame default measurement; no replay required for this provenance/validator delta.",
+    "artifacts": {
+      "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "5210f4328136e6fc38eb64d36ede6949766461559ba071aaa870dbe91fb4248c",
+      "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "0381bd8a3725bae9d35fa3f3148a24c692548fadc961c2a94abdf10a3a354ddf",
+      "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+      "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "e62fb66c11392b0a507324a1a5871a2ad060c651795f777c8c5e8782e475ab11",
+      "eech-campaign/tools/normal_fire_capture.py": "2255aafdff6d70dbe09cea820111749a6195117e7e66ad4f4ea464cc5df79771",
+      "eech-campaign/tools/normal_fire_capture_controller.py": "fd7b3ebcb001821ed17f2a30a5b6e9fbb06808f90fa04e3331a53b4edebcd980",
+      "eech-campaign/tools/test_normal_fire_capture.py": "efc1d7df7b46dbe1c3e048d82703cef9abf4a59dc748b919bed312762d7f1876",
+      "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+      "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+      "eech-campaign/docs/d3-public-session-finalization.md": "65375b1a6a044f59d057dfb4153c247148b727d317a979399bfb86644b5aa6bc",
+      "eech-campaign/crates/eech-world/tests/normal_fire_session.rs": "fcf29b4a67616215a583507af5bb51e138e0b870c228a77efa9cd5e357abb6f8",
+      "eech-campaign/crates/eech-world/tests/lua/normal-fire-persistent-control.lua": "2329fa73348adafcbb591a60c68e9ee5053929fd502ab6ca16a7b369c157ab40"
+    },
+    "next_gate": "Separate exact schema3 materialized launch review must bind updated four Lua literals/validator/controller/helpers/input reference, immutable97 bundle, fresh verified root, accepted complete default references and fixed healthy-first/B-if-full-positive plan. Old bundled diagnostic must never be overlaid/executed or runtime relabeled."
+  },
+  "qualifications": {
+    "prior_scope": "Source2dee and complete1500UNREACHED def6 remain closed at finite scopes. Earlier boot/selector/phantom-close failures stay failures. No older closed experiment re-reviewed or rerun.",
+    "tracked_lag": "Old facade-finalization child row remains open despite source2dee/later complete def6. Root/sole author should reconcile exact source/actual status at next bounded metadata checkpoint; not a reopened production defect or waiver. Canonical checkpoint still showed author running when read; exact clean23ec/typed completion/Root joins are newer evidence.",
+    "shipping": "Old3abf fullpack INTERRUPTED at8907.67/8912.66, no completion/independently retained exits. Prefix equality is partial only; no40/all8 acceptance or consumed-root restart. Old764 accepted default fullpack remains distinct. No active native touched.",
+    "CI": "Latest parent exact23ec observation: loss success, campaign/TS in progress. No all9 or delivery claim and no CI-only wait; Root monitors separately.",
+    "report_construction": "First construction referenced a guessed non-existent lead-proof filename and stopped before any report write. Corrected only the evidence pointer to actual persistent-motion-lead-decision-live-services-v213-20261108.json; no source/check/native replay."
+  },
+  "decision": {
+    "status": "ACCEPTED_BOUNDED_SOURCE_CORRECTION",
+    "bounded_prerequisite_source_accepted": true,
+    "retained_build_reuse_accepted": true,
+    "retained_default_reuse_accepted": true,
+    "new_windows_build_required_by_this_delta": false,
+    "native_controller_launch_clearance": false,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "natural_moving_acceptance": false,
+    "generic_native_acceptance_1_closed": false,
+    "all10_closed": false,
+    "Task49_acceptance": false,
+    "whole_D3_acceptance": false,
+    "delivery_acceptance": false
+  },
+  "limits": [
+    "Read-only changed-source/check review only; no reviewer tests/build/cache/native/controller/scanner/checker/process/Git/source mutation or nested agents. Only this new immutable external report written.",
+    "Persistent provenance follows supported single registry and known writers; no unsupported custom replacement/session/VM/thread transfer safety or new refusal guarantee inferred.",
+    "Natural moving/collision, hierarchy/device, other consumers, FPU/RNG/lifetime/DCS, all10/GenericNative1/preparation2/wholeheight, finalCURRENT40/all8/four inputs/census/currentCI/review/normal merge and Task49/D3/delivery remain open at their own scopes.",
+    "No new native/cutover/loader-removal, D4/D5/TypeScript, formal GitHub approval, external-service closure or merge authorization."
+  ]
+}

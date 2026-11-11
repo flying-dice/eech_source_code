@@ -1,0 +1,19 @@
+{
+ "repo": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d3-evidence\\collision-characterization-20261029",
+ "head_rev": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+ "head_sha": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+ "file_count": 4024,
+ "changed_from_head_count": 10,
+ "deleted_from_head": [],
+ "files_whose_raw_bytes_and_git_filtered_identity_disagree_with_the_committed_blob": [
+  "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+  "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+  "modules/system/malloc.c.h",
+  "modules/system/nedmalloc.c"
+ ],
+ "fingerprint_of_raw_sha256_map": "5d701ebaa4a332bd9e88ff2389e5e00c090f708f5188b878da19c4246737ae75"
+}
+POST 4024 5d701ebaa4a332bd9e88ff2389e5e00c090f708f5188b878da19c4246737ae75 extras 38

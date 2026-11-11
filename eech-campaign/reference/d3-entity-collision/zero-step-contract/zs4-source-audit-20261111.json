@@ -1,0 +1,50 @@
+{
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "base": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+  "prior_raw_map_sha256": "ef65bae49d091f82d159c9575fce7e1cb7a4448a22bf5afd8fc38ab9d4fd0479",
+  "whole_relevant_product_build_Cargo_static_rows": 3815,
+  "cfg_test_raw_exception": {
+    "path": "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+    "before_sha256": "16bc4fc41e4bccfad76acb0c06d4ac8284ea721f1a4a1fbf31cec68af21fd0b5",
+    "current_sha256": "603af48ea5ac8bb69ab1e37b9b85df505d4fbd184a871f723adc723bb6783001",
+    "unchanged_from_base": true,
+    "cfg_test_importer": "eech-campaign/crates/eech-dc/src/module.rs",
+    "importer_raw_sha256": "d39bcab66d7324a4f3102b01f2c51b98de1b24dea641f90c68e048951ca0cfc1",
+    "production_excluded": true,
+    "old_test_body_literal_unchanged": true
+  },
+  "product_map_sha256": "0f8c5314764725d4d947cd5ba03241248f6c50cd38c6db1923569ea662357237",
+  "extra_producer_files": {
+    "eech-campaign/.cargo/config.toml": "19ecec09029c9181db4046ceef51e86fb10feadba3fb56e535e8eb6e700eafde",
+    "tools/generate_bitmap.py": "2cdb23ba3646286cd593fa1a9800d6f1458e8f3aca12055b16f6ed8b66f9d582"
+  },
+  "unchanged_prior_raw_rows": 4016,
+  "changed_prior_test_or_Lua_rows": [
+    "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+    "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua",
+    "eech-campaign/crates/eech-world/lua/normal-fire-session.lua",
+    "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-positive.txt",
+    "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-same-frame.txt",
+    "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua",
+    "eech-campaign/crates/eech-world/tests/normal_fire_session.rs"
+  ],
+  "artifacts": {
+    "eech-campaign/crates/eech-world/lua/normal-fire-session.lua": "756b95f42897706f2b3cb1ff4be90cc9b03f7aec697ec8b15a7f8246b6d0596c",
+    "eech-campaign/crates/eech-world/lua/normal-fire-correlation.lua": "0381bd8a3725bae9d35fa3f3148a24c692548fadc961c2a94abdf10a3a354ddf",
+    "eech-campaign/crates/eech-world/lua/physical-flags-read-transaction.lua": "7b1d3cc1b7a083061e224799d50da10605a2ebb737b08624f4dd2184d9386748",
+    "eech-campaign/crates/eech-world/lua/normal-fire-session-contract.lua": "43a06a27b9a4e8047e57279f83eabc4424794a374c2ea45b1ea6c170a430172c",
+    "eech-campaign/tools/normal_fire_capture.py": "308e6bd525f189fbdf3099288a1d05f14f724175f32beb0afffdd0ece3152a20",
+    "eech-campaign/tools/normal_fire_capture_controller.py": "7f180fd03c0336a30d2705cae7c0ef8edeb9c6fad6c7b950cdca83bc1986a67a",
+    "eech-campaign/tools/test_normal_fire_capture.py": "cb822e821e6721ec28cde8bbaf60b0eccbfb09de9be31a9af10a3f0f9cc29f27",
+    "eech-campaign/tools/native_flag_read.py": "c28432cf6edeb2f4b602a8d977957ec18dd1ebdf669e13a9b6192b46bca7d11d",
+    "eech-campaign/tools/native_flag_read_controller.py": "98f86d6defc96d6fd724c230974985f76aaa6e5a95dda2f5b925ae2d938b5ebd",
+    "eech-campaign/tools/migration-progress.py": "004b6a41519d6eaf9a6277d20bba1535f36e71041a0b5cbbb6bdc493867dca92",
+    "eech-campaign/docs/d3-public-session-finalization.md": "d406462d0a77327b9e7ad30b7adaa15f181f5a07f5a7ae13322ed1d070f388e6",
+    "eech-campaign/crates/eech-world/tests/normal_fire_session.rs": "d2eb4e7d31b545063d672aae888f23371376296123f8596273e4f8b1deb04fb1",
+    "eech-campaign/crates/eech-world/tests/lua/normal-fire-persistent-control.lua": "5ccea7359be09dcb05a178c129834dca89e9ac5844a51c558e8b090c0cf2bfbb",
+    "eech-campaign/crates/eech-world/tests/lua/normal-fire-session-control.lua": "4628dc0bdcd12b4e77664b075cfe3644b3d0fade2ef6f06dda44a8f16a7a3c11",
+    "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-positive.txt": "e70bb93044c5eb4c02a86994879770eaa9f2e005bb1a926284d5a7245b655052",
+    "eech-campaign/crates/eech-world/tests/data/synthetic-normal-fire-same-frame.txt": "e082ea7b15fc22aac590bd02df074d3539a85b93eedf1a07e47afce574b8a6ba"
+  },
+  "scope": "All product/build/Cargo/static rows of the prior raw map equal compiled 2fc; the inherited cfg(test)-excluded seam is byte-unchanged from 23ec. Diagnostic Lua/validators/tests/docs bound separately."
+}

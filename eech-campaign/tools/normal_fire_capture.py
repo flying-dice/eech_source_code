@@ -1,4 +1,4 @@
-"""Offline validator of the fixed-bound normal-fire public-session report.
+"""Offline validator of the fixed-bound normal-fire public-session report (schema4).
 No native action. Selected C excerpts are distinct from the complete raw stream.
 """
 import math
@@ -9,11 +9,11 @@ SCHEMA = {
     'identity': 'schema mode capture runtime bundle driver collector transaction contract reference profile scenario seed frame_ms warmup settle',
     'counts': 'frames fires births steps queries model_calls moving failed changed',
     'accounting': 'processed decisions outcomes first_query first_code first_frame first_selector first_models first_candidates first_need first_reads first_reasks first_tests first_mode first_registered first_type first_birth_frame first_move_frame first_move_call first_latest_call first_later_call first_receipt',
-    'selection': 'query_frame move_frame birth_frame fire detach w step query move_call move_before move_after before after need read carry test launcher birth_target step_target end_target target weapon scene name member group bind key lane word fact pose request reask position motion base ceiling previous current',
+    'selection': 'query_frame move_frame birth_frame fire detach w step query move_call move_before move_after latest before after need read carry test launcher birth_target step_target end_target target weapon scene name member group bind key lane word fact pose request reask position motion prestate tacview terrain delegated previous current',
     'evidence': 'fire detach birth step query models query_end step_end candidate',
     'verdict': 'status reason',
 }
-CANDIDATE_FIELDS='call scene identity member group bind move_identity move_call move_before move_after mode move_frame query_frame name read_call read_key lane word carry_call carry_identity carry_scene request reask test_call test_identity test_scene test_request pose'
+CANDIDATE_FIELDS='call scene identity member group bind move_identity move_call move_before move_after latest mode move_frame prestate delegated query_frame name read_call read_key lane word carry_call carry_identity carry_scene request reask test_call test_identity test_scene test_request pose'
 EVENTS = {
     'normal_fire': 'fire launcher target weapon ready actual intercept angle maximum',
     'normal_detach': 'fire detach launcher weapon config package devices burst ammo_before ammo_after visible_before visible_after flash_present flash_before flash_after volume ground pose',
@@ -93,6 +93,25 @@ def event(text):
     elif kind=='normal_model':integer('call',1,9007199254740991);integer('op',1,18)
     return e
 
+def canonical(x):
+    """Lua string.format('%.17g') of a finite double."""
+    return '%.17g' % x
+
+def ineligible(s, position, zero):
+    """Schema4 codes 22..27 from the consumed routed MOVE input and actual
+    returned position only (same order and meaning as the Lua contract)."""
+    tokens = s['prestate'].split(',')
+    if len(tokens) != 25 or s['tacview'] not in ('0', '1') or s['terrain'] not in ('absent', 'present'): return 23
+    try: n = [float(x) for x in tokens]
+    except ValueError: return 23
+    if not all(map(math.isfinite, n)) or any(canonical(x) != t for x, t in zip(n, tokens)): return 23
+    if s['terrain'] != 'absent': return 22
+    if not n[13] > 0: return 24
+    if n[3] < 0: return 25
+    if any(not n[19+i] <= n[i] <= n[22+i] for i in range(3)): return 26
+    if (list(position) == n[:3]) != zero: return 27
+    return None
+
 def parse(raw):
     check(isinstance(raw, bytes) and len(raw) <= 262144 and raw.endswith(b'\n') and b'\r' not in raw and b'\n\n' not in raw, 'report framing')
     rows = {}
@@ -106,21 +125,21 @@ def parse(raw):
 def accounting(r):
     a=r['accounting'];outcomes=[uint(v) for v in a['outcomes'].split(',')]
     n={k:uint(v) for k,v in a.items() if k not in ('outcomes','first_selector')}
-    check(len(outcomes)==21 and sum(outcomes)==n['decisions'] and n['decisions']>=n['processed'],'accounting outcomes')
+    check(len(outcomes)==27 and outcomes[10]==outcomes[11]==outcomes[12]==0 and sum(outcomes)==n['decisions'] and n['decisions']>=n['processed'],'accounting outcomes')
     check(a['first_selector'] in ('-1','0','1'),'accounting selector')
     check(n['first_receipt']<=5 and n['first_move_frame']<=n['first_frame'] and n['first_birth_frame']<=n['first_frame'],'receipt accounting')
     check(n['first_mode']<=11 and n['first_registered']<=1 and n['first_type']<=2147483647,'accounting tags')
     check(n['first_tests']<=n['first_reasks']<=n['first_reads']<=n['first_need']<=n['first_candidates']<=n['first_models'],'accounting first chain')
     if not n['processed']:check(all(v==0 for v in n.values()) and a['first_selector']=='0','empty accounting first')
-    else:check(n['first_query']>0 and 1<=n['first_code']<=21 and outcomes[n['first_code']-1]>0 and 1<=n['first_frame']<=1500,'accounting first query')
+    else:check(n['first_query']>0 and 1<=n['first_code']<=27 and outcomes[n['first_code']-1]>0 and 1<=n['first_frame']<=1500,'accounting first query')
     if r['counts']['failed']=='0':check(a['processed']==r['counts']['queries'] and outcomes[20]==uint(r['counts']['moving']),'accounting capture totals')
     return outcomes
 
 def validate(raw, expected, healthy=None):
     r = parse(raw); a, c, v = r['identity'], r['counts'], r['verdict']
     check(all(a.get(k) == str(value) for k, value in expected.items()), 'artifact/setup identity')
-    check(a['mode'] in ('healthy', 'terrain_lift'), 'mode')
-    fixed = dict(schema='3', profile='reference-hosted', scenario='lebanon_retail', seed='1', frame_ms='100', warmup='30', settle='120')
+    check(a['mode'] in ('healthy', 'zero_step'), 'mode')
+    fixed = dict(schema='4', profile='reference-hosted', scenario='lebanon_retail', seed='1', frame_ms='100', warmup='30', settle='120')
     check(all(a[k] == value for k, value in fixed.items()), 'fixed setup')
     check(re.fullmatch('[0-9a-f]{40}', a['runtime']), 'runtime source')
     check(all(re.fullmatch('[0-9a-f]{64}', a[k]) for k in ('bundle', 'driver', 'collector', 'transaction', 'contract')), 'artifact hash')
@@ -138,8 +157,8 @@ def validate(raw, expected, healthy=None):
     s, e = r['selection'], r['evidence']
     check(counts['changed'] == (0 if a['mode'] == 'healthy' else 1), 'input intervention count')
     check(all(counts[k] > 0 for k in ('fires', 'births', 'steps', 'queries', 'model_calls', 'moving')), 'positive traffic')
-    check(reason == ('healthy normal cohort' if a['mode'] == 'healthy' else 'same-cohort terrain effect'), 'positive reason')
-    n = {k: uint(s[k]) for k in 'query_frame move_frame birth_frame fire detach w step query move_call move_before move_after before after need read carry test weapon scene member group bind lane'.split()}
+    check(reason == ('healthy normal cohort' if a['mode'] == 'healthy' else 'same-cohort zero-step effect'), 'positive reason')
+    n = {k: uint(s[k]) for k in 'query_frame move_frame birth_frame fire detach w step query move_call move_before move_after latest before after need read carry test weapon scene member group bind lane'.split()}
     check(300 < n['birth_frame'] < n['query_frame'] <= 1500 and n['before'] < n['need'] < n['read'] and n['read'] + 1 == n['carry'] <= n['test'] <= n['after'] <= counts['model_calls'], 'earlier observed birth/window/callback order')
     check(counts['moving']<=counts['queries'] and n['step']<=counts['steps'] and n['query']<=counts['queries'],'capture count bounds')
     check(all(n[k]>0 for k in ('fire','detach','w','step','query','weapon','scene','member','group','bind')),'positive selected indices')
@@ -160,8 +179,12 @@ def validate(raw, expected, healthy=None):
     check(all(len(x) == 3 and all(map(math.isfinite, x)) for x in vectors.values()), 'real motion vectors')
     check(sum(x*x for x in vectors['motion']) > 1 and number(pose[15]) > 1 and all(math.isfinite(number(x)) for x in pose), 'moving pose')
     check(all(number(request[13+i]) == vectors['position'][i] and number(request[16+i]) == vectors['motion'][i] for i in range(3)), 'same host physical record')
-    scalar = {k: float(s[k]) for k in ('base', 'ceiling', 'previous', 'current')}
-    check(all(map(math.isfinite, scalar.values())) and scalar['base'] + 500 <= scalar['ceiling'] and scalar['current'] > scalar['previous'], 'physical input/frame clock')
+    check(s['latest'] == s['move_call'], 'latest same-ID writer receipt')
+    code = ineligible(s, vectors['position'], a['mode'] == 'zero_step')
+    check(code is None, f'schema4 MOVE eligibility code {code}')
+    check(s['delegated'] == ('0' if a['mode'] == 'zero_step' else s['prestate'].split(',')[13]), 'delegated physical step time')
+    scalar = {k: float(s[k]) for k in ('previous', 'current')}
+    check(all(map(math.isfinite, scalar.values())) and scalar['current'] > scalar['previous'], 'physical frame clock')
     events = {}
     for k, value in e.items():
         text = unhex(value)
@@ -201,10 +224,11 @@ def validate(raw, expected, healthy=None):
     check(len(models) == n['after'] - n['before'] > 0, 'model count')
     check(uint(qe['seq'])==uint(q['seq'])+len(models)+1,'query sequence closure')
     check(all(x['op'] == op for x, op in ((models[n['need']-n['before']-1], '16'), (models[n['read']-n['before']-1], '17'), (models[n['carry']-n['before']-1], '16'), (models[n['test']-n['before']-1], '16'))), 'actual callback roles')
-    if a['mode'] == 'terrain_lift':
+    if a['mode'] == 'zero_step':
         check(healthy is not None and healthy['verdict']['status'] == 'PASS' and healthy['identity']['mode'] == 'healthy', 'healthy first')
         old = healthy['selection']
-        check(all(s[k] == old[k] for k in 'query_frame move_frame birth_frame fire detach w step query launcher birth_target target move_call move_before weapon scene member group bind'.split()), 'same selected cohort')
+        check(all(s[k] == old[k] for k in 'query_frame move_frame birth_frame fire detach w step query launcher birth_target target move_call move_before weapon scene member group bind prestate tacview terrain'.split()), 'same selected cohort and consumed MOVE input')
+        check(s['delegated'] == '0' and old['delegated'] != '0', 'paired zero step time')
         check(all(e[k]==healthy['evidence'][k] for k in ('fire','detach','birth')),'paired common prefix')
         check(s['pose'] != old['pose'] and s['position'] != old['position'], 'real pose effect')
     return r

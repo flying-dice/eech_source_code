@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-08T13:08:25.759540+00:00",
+  "review_kind": "One changed-material correctness, clean-code, boundary-safety and retained-check review; no execution replay",
+  "source": {
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "branch": "codex/d3-object-tree-collision",
+    "before_commit": "e333fa14bc73529d51fa597ac229272546fc96ea",
+    "code_commit": "fc3922eec7d2409352d56f439d691b2a49f4183b",
+    "metadata_commit": "d2bde13d52377811483b2428e9537036e8db9689",
+    "observed_HEAD": "d2bde13d52377811483b2428e9537036e8db9689",
+    "full_status_clean": true,
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "report_schema": 2
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/independent-public-session-candidate-contract-e333-source-20261108.json",
+      "bytes": 14458,
+      "sha256": "d2ff2626d65658972dc15e0714f73b74dd4c21e5eb23c18d4de192a137d45432"
+    },
+    {
+      "path": "R:/d3-evidence/D3-PUBLIC-SESSION-TEST-DOMAIN-PROFILE-FROZEN-20261108.json",
+      "bytes": 15726,
+      "sha256": "ab2dc65728164804e811da4b148a58f2bd01c7ab2cba8d4d4c3b40cff35985f0"
+    },
+    {
+      "path": "R:/d3-evidence/public-session-test-domain-profile-d2bde-Root-binding-20261108.json",
+      "bytes": 2132,
+      "sha256": "447e43c0e8e09350817d3eb585ad2bda38b1b11559eba96ae068e81d33206432"
+    },
+    {
+      "path": "R:/d3-evidence/pde333-publication-checkpoint-20261108.json",
+      "bytes": 19655,
+      "sha256": "53af1ce28e7ea53649af2abad2507aacea6ef202a3a18bbdbca0cbce972de1eb"
+    },
+    {
+      "path": "R:/d3-evidence/codex-d3-public-domain-profile-fix-20261108-completion.json",
+      "bytes": 1101,
+      "sha256": "f4a5896332bddaff6da3b8e28c1ef662c49dfd7252d9277a17abc3c7d3cf4413"
+    },
+    {
+      "path": "R:/d3-evidence/pde333-PRE-utc-20261108.json",
+      "bytes": 215,
+      "sha256": "34541dd0cf41602ab22187b04b076084bd5ea11f9cbf969775831572e33bbb62"
+    },
+    {
+      "path": "R:/d3-evidence/pde333-POST-utc-20261108.json",
+      "bytes": 215,
+      "sha256": "80cca33c94417a7ecf5ffb76d3fc46272592a1a626e26eb8734968b5003b14bf"
+    },
+    {
+      "path": "R:/d3-evidence/pde333-staged-literal-whitespace-20261108.json",
+      "bytes": 635,
+      "sha256": "49317f5f0762414f9ddfd499338a66f39d6795ed951d7d195a41d7bd91ca930e"
+    }
+  ],
+  "findings": [],
+  "prior_finding_dispositions": [
+    {
+      "id": "ENV-PUBLIC-SESSION-TEST-REFERENCE-DOMAIN-1",
+      "severity": "P2",
+      "disposition": "CLOSED_SOURCE",
+      "source": "normal_fire_capture.py now checks the actual TEST scene native-index bound, UPDATED raw +0/-0/1/2 domain, incompatible city roles/nonzero-scene city rejection, and mobile=true for this16-word pose. Existing boolean/finiteness/canonical evidence and full-positive guards remain. Raw height word13 remains exempt from finite classification, exactly as T.request; signed zero is retained.",
+      "controls": "Retained genuine old-validator diagnostic RED exits1 with four ValueError-not-raised failures after a coherent positive. Corrected independent Python accepts the positive, all four valid UPDATED states with raw qNaN height, and the legitimate standalone role flag; rejects four one-field faults with intended reason and rejects out-of-native-index scene. C.healthy_reference rejects malformed positives before B setup. Actual Lua K/T controls use the same four cases, verify exact T.request/T.answer reasons, and reject them before output/prepare/boot. No reviewer replay.",
+      "scope": "Diagnostic healthy-reference completeness corrected; no production physical semantics or new physical oracle."
+    }
+  ],
+  "CI_profile_defect_disposition": {
+    "disposition": "CLOSED_SOURCE_WITH_FOCUSED_DEFAULT_AND_OBSERVER_CHECKS",
+    "prior_actual": "Exact e333 five failed campaign platform jobs remain failed evidence; parent diagnosed one common cfg(test)-only expectation error, not five product defects.",
+    "source": "Existing module.rs registers wpn_events only under weapon-fixture. The real LuaEngine proxy test now expects that function iff cfg!(feature=\"weapon-fixture\"), while still requiring actual frame/clock and absence of close/stop/finish/shutdown. No module registration, API, feature dependency or production code was changed.",
+    "actual_checks": "Retained default and normal-fire-correlation real-proxy tests each pass one selected test: two versus three actual registered driver methods. Both strict-clippy profiles pass. Diagnostic still consumes all three methods only on the feature-bearing retained observer runtime.",
+    "current_CI": "Exact d2bde current CI being monitored separately by Root; no terminal-success or all-platform verification claim is made here. Prior e333 failure is not relabeled. Focused checks and unchanged compiled runtime support source/default reuse; this report grants no native launch."
+  },
+  "new_actuals": {
+    "direct_exits": {
+      "s1-python": 0,
+      "s2-fmt": 0,
+      "s3-clippy-default": 0,
+      "s4-clippy-observer": 0,
+      "s5-facade-default": 0,
+      "s6-facade-observer": 0,
+      "s7-session-lua": 0
+    },
+    "original_outer_session": 71558,
+    "original_outer_actual_exit": 0,
+    "Python_tests": 13,
+    "Rust_tests": 3,
+    "TEST_domain_single_field_faults": 4,
+    "TEST_domain_before_B": 4,
+    "actual_facade_profiles": [
+      "default",
+      "normal-fire-correlation"
+    ],
+    "identity": "4023 PRE/POST/current rows;4020 raw Git literal plus three named inherited uncompiled Lua CRLF/Git-LF qualifications. PRE12:57:57.933217 capture completed12:58:00.713956; POST13:03:36.312001 capture completed13:03:39.359473. Identical map SHA ae1f5b55cb9178aa37cb35b0b746cc6e892da39f3ee12ea54021f50547e1086a. All28 extras and six readers stable/current, all ten artifacts Git LF.",
+    "publication": "59 manifest entries /60 literal Git packet files /55 literal external copies independently joined by Root. One sealed reader blank-space line57 is explicitly qualified; its literal bytes were preserved, not normalized. Failed publication derivation1 retained; metadata-only correction did not replay source checks.",
+    "completion": "Actual service FINAL/completed and cache lease released; no fabricated OS PID or CLI exit."
+  },
+  "reuse": {
+    "retained_build_reuse_accepted": true,
+    "retained_default_reuse_accepted": true,
+    "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+    "built_payloads": 97,
+    "qualification": "3815 product/build/Cargo/static raw rows and two producer configurations remain equal to compiled2fc. One existing cfg(test)-excluded native_flag_read_refusal_check.rs raw file changes; importer module.rs remains literal2fc and old nr602 test body remains exact. This is not blanket3816 raw identity. Four Lua/controller artifacts are unchanged from e333; validator correction and test/doc changes are separately bound.",
+    "cfg_test_exception": {
+      "path": "eech-campaign/crates/eech-dc/src/native_flag_read_refusal_check.rs",
+      "before_sha256": "16bc4fc41e4bccfad76acb0c06d4ac8284ea721f1a4a1fbf31cec68af21fd0b5",
+      "current_sha256": "603af48ea5ac8bb69ab1e37b9b85df505d4fbd184a871f723adc723bb6783001",
+      "cfg_test_importer": "eech-campaign/crates/eech-dc/src/module.rs",
+      "importer_raw_sha256": "d39bcab66d7324a4f3102b01f2c51b98de1b24dea641f90c68e048951ca0cfc1",
+      "production_excluded": true,
+      "old_test_body_literal_unchanged": true
+    },
+    "measured_default_scope": "Reuse only accepted2fc ordinary35-frame standard campaign default: native0 and three COMPLETE files literal3abf/80fd with existing full input/config/payload evidence. No new native/default/Windows build replay; no1500-frame default or new diagnostic noninterference measurement.",
+    "prior_source_scope": "The accepted e333 scanned-candidate lead contract, first cohort/candidate lock, immutable NEED-time move snapshot, exact pre-effect callback/prefix, accounting and no-phantom-close source conclusions are reused without reopening their controls.",
+    "failed_history": "Earlier boot failure, selector failure and b5021500-frame phantom-close failure remain failures at their exact scopes. This source closure does not turn zero moving witnesses into native acceptance.",
+    "future_gate": "Fresh schema-2 materialization must separately bind the corrected validator, four diagnostic literals, exact controller, full97 unchanged payloads, retained default reference, pristine/fresh roots, fixed healthy1500-first plan and B only after full positive/common prefix. No unsafe old bundled diagnostic may substitute or relabel the runtime."
+  },
+  "decision": {
+    "status": "ACCEPTED_BOUNDED_SOURCE_CORRECTION",
+    "bounded_prerequisite_source_accepted": true,
+    "retained_build_reuse_accepted": true,
+    "retained_default_reuse_accepted": true,
+    "new_windows_build_required_by_this_delta": false,
+    "native_controller_launch_clearance": false,
+    "native_launch_clearance": false,
+    "physical_cutover_clearance": false,
+    "natural_moving_acceptance": false,
+    "generic_native_acceptance_1_closed": false,
+    "Task49_acceptance": false,
+    "whole_D3_acceptance": false,
+    "delivery_acceptance": false
+  },
+  "limits": [
+    "Only changed TEST-domain/profile material plus retained new check/provenance joins reviewed. No reviewer tests, builds, native/controller/checker execution, cache access, source/Git mutation or nested agents.",
+    "No new product C/Rust/module/build/Cargo/API/policy/physics/seed/frame/window/baseline/tolerance change. No new materialized launch, native moving candidate, collision outcome, hierarchy/device, lifetime/FPU or DCS acceptance.",
+    "Physical cutover, all ten requirements, GenericNative1, preparation2 scope, wholeheight, finalCURRENT40/all8/four inputs/census/currentCI/review/normal merge, Task49/D3 and delivery remain open at their own scopes. Older764 fullpack and ongoing3abf fullpack retain separate identities; no process touched.",
+    "No D4/D5/TypeScript work, formal GitHub approval, service/card closure or merge authorization. Root owns tracking disposition and the next concrete launch prerequisite."
+  ]
+}

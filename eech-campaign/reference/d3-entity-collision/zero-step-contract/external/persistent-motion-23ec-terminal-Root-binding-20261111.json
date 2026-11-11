@@ -1,0 +1,139 @@
+{
+  "observed_utc": "2026-11-11T01:14:59.671187+00:00",
+  "reader_sha256": "392e3bec776e18da82a456cbd15a07ea9f34ea23890f666c1839ccb18bd7a314",
+  "supervisor_observed_controller_wait_exit": 0,
+  "controller_actual_exit": 0,
+  "supervision_completion_sha256": "677e46cb599fe497a16de4a18a96a91ab5fee7febb0e45307dcebb7568104e79",
+  "supervisor_declared_exit": 0,
+  "starter_exit_is_launch_only": true,
+  "controller_verdict": "UNREACHED",
+  "controller_error": null,
+  "plan_sha256": "d21f4336baf8f85fb8805fa8f725071f657363ce937936a7f0387e3c137a8120",
+  "controller_sha256": "fd7b3ebcb001821ed17f2a30a5b6e9fbb06808f90fa04e3331a53b4edebcd980",
+  "launch_review_sha256": "d5e6b8f399ebb35bc9f33ec8756ba19c42285cddc2e36a5c34bfb871b739ad12",
+  "completion_sha256": "1ce15863dddb2b8a6a776a75a56010db2e4580e04ab69ce9ba11a1bcc385dd01",
+  "compiled_runtime": "2fcf69f9b8972b4353687dc2ca1eaaac780836f3",
+  "diagnostic_git": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+  "payloads_final_unchanged": 97,
+  "artifacts_final_unchanged": 10,
+  "stages": [
+    {
+      "label": "pre-inputs",
+      "state": "terminal",
+      "pid": 17392,
+      "created_utc": "2026-11-11T00:48:17.139506+00:00",
+      "actual_exit": 0
+    },
+    {
+      "label": "native",
+      "state": "terminal",
+      "pid": 20276,
+      "created_utc": "2026-11-11T00:48:18.298444+00:00",
+      "actual_exit": 1
+    },
+    {
+      "label": "post-inputs",
+      "state": "terminal",
+      "pid": 14860,
+      "created_utc": "2026-11-11T01:12:18.046365+00:00",
+      "actual_exit": 0
+    }
+  ],
+  "cases": [
+    {
+      "mode": "healthy",
+      "native_actual_exit": 1,
+      "status": "UNREACHED",
+      "report_sha256": "8c28b0791c8bd578911ff113485efbc6a37933f86e237872e088fca263125e1a",
+      "event_bytes": 110076923,
+      "event_sha256": "1fd73aa2f08338eeeabbcb3500137f884ede4762522233e2284261f26b706898",
+      "complete_raw_EOF": true,
+      "consecutive_normal_records": 319569,
+      "last_normal_tick_ms": 149900,
+      "raw_event_counts": {
+        "normal_fire": 297,
+        "normal_detach": 297,
+        "normal_birth": 297,
+        "normal_end": 297,
+        "normal_step": 155296,
+        "normal_step_end": 155296,
+        "normal_query": 26,
+        "normal_model": 7737,
+        "normal_query_end": 26
+      },
+      "query_selectors": {
+        "0": 2,
+        "-1": 24
+      },
+      "counts": {
+        "frames": "1500",
+        "fires": "297",
+        "births": "297",
+        "steps": "155296",
+        "queries": "26",
+        "model_calls": "19714996",
+        "moving": "0",
+        "failed": "0",
+        "changed": "0"
+      },
+      "accounting": {
+        "processed": "26",
+        "decisions": "40",
+        "outcomes": "0,0,0,0,0,0,0,24,0,0,16,0,0,0,0,0,0,0,0,0,0",
+        "first_query": "1",
+        "first_code": "11",
+        "first_frame": "1477",
+        "first_selector": "0",
+        "first_models": "504",
+        "first_candidates": "241",
+        "first_need": "8",
+        "first_reads": "0",
+        "first_reasks": "0",
+        "first_tests": "0",
+        "first_mode": "1",
+        "first_registered": "1",
+        "first_type": "23",
+        "first_birth_frame": "938",
+        "first_move_frame": "1476",
+        "first_move_call": "808659",
+        "first_latest_call": "808659",
+        "first_later_call": "0",
+        "first_receipt": "1"
+      },
+      "input_audits": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\persistent-motion-capture-23ec-20261111-runs\\01-healthy\\pre-inputs.json",
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "files": 1179,
+          "engine_configs": 5
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\persistent-motion-capture-23ec-20261111-runs\\01-healthy\\post-inputs.json",
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "files": 1179,
+          "engine_configs": 5
+        }
+      ],
+      "actual_final_inputs_configs_unchanged": true,
+      "prior_failed_same_input_raw_comparison": {
+        "path": "D:\\EECH-Migration-Evidence\\normal-query-capture-b502-20261108-runs\\01-healthy\\capture.txt.events",
+        "sha256": "1fd73aa2f08338eeeabbcb3500137f884ede4762522233e2284261f26b706898",
+        "byte_equal_through_both_EOF": true,
+        "scope": "Priorb502FAILEDfinalization raw at same inputs/compiledruntime/seed/frame/window; never an accepted baseline or authority proof."
+      }
+    },
+    {
+      "mode": "terrain_lift",
+      "status": "NOT_LAUNCHED_UNREACHED",
+      "native_executed": false
+    }
+  ],
+  "remaining_processes_observed": [],
+  "B_root_exists": false,
+  "B_output_exists": false,
+  "report_schema": 3,
+  "natural_moving_acceptance": false,
+  "physical_cutover": false,
+  "all10_closed": false,
+  "scope": "Root mechanical terminal joins only; SAME actual-evidence review required. UNREACHED is not acceptance. Existing failed histories and old764/INTERRUPTED3ab scopes retained. Independent supervisor child.wait exit is distinct from starter launch0 and supervisor-declared exit; no supervisor OSexit fabricated. No replay, new baseline, tolerance or raw coordinate export."
+}

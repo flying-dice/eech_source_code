@@ -1,0 +1,7 @@
+{
+  "pid": 18896,
+  "birth_utc": "2026-11-11T10:24:04.1612510Z",
+  "argv": "\"C:\\WINDOWS\\system32\\wsl.exe\" -d EECH-D2-Build --cd / -- sh \"/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/restore-existing-dockerd-20261031-1015.sh\"",
+  "alive": true,
+  "purpose": "WSL dockerd for the sole leased Linux cache; attempt2 (attempt1 exited: unquoted path)"
+}

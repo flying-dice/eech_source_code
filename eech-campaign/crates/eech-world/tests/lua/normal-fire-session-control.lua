@@ -125,7 +125,7 @@ local create=host.create_exclusive;host.create_exclusive=function()calls.output=
 local function args(mode,out,reference)
  return {root=root,out=root..out,mode=mode,capture='fixture:'..mode,runtime=string.rep('b',40),bundle=string.rep('a',64),driver_sha256=string.rep('a',64),collector=base..'/normal-fire-correlation.lua',collector_sha256=string.rep('a',64),transaction=base..'/physical-flags-read-transaction.lua',transaction_sha256=string.rep('a',64),contract=base..'/normal-fire-session-contract.lua',contract_sha256=string.rep('a',64),reference=reference,reference_sha256=reference and string.rep('c',64) or nil}
 end
-host.args=args('terrain_lift','/positive-gate.txt',positive)
+host.args=args('zero_step','/positive-gate.txt',positive)
 local ok,why=pcall(assert(loadfile(base..'/normal-fire-session.lua')))
 assert(not ok and tostring(why):find('output touched',1,true) and calls.output==1 and calls.prepare==0)
 calls.output=0
@@ -134,6 +134,28 @@ for i,pair in ipairs({{'move_frame=302','move_frame=301'},{'move_frame=302','mov
  local bad,n=text:gsub(' '..pair[1]..' ',' '..pair[2]..' ',1);assert(n==1)
  local path=root..'/receipt-domain-'..i..'.txt';local file=assert(io.open(path,'wb'));assert(file:write(bad));assert(file:close());references[#references+1]=path
 end
+-- Schema4 consumed-input/receipt faults: one field, also in the candidate row,
+-- so the named contract clause (not a row mismatch) refuses the reference.
+local function receipt_fault(field,value,token)
+ local r=K.parse(text);local s=r.selection
+ if token then local t={};for v in (s.prestate..','):gmatch('(.-),') do t[#t+1]=v end;t[token]=value;value=table.concat(t,',') end
+ s[field]=value
+ local ce=K.unhex(r.evidence.candidate);local n
+ if field=='prestate' or field=='delegated' or field=='latest' or field=='move_before' then ce,n=ce:gsub(' '..field..'=[^%s]+',' '..field..'='..value,1);assert(n==1) end
+ r.evidence.candidate=T.hex(ce);local rows={}
+ for _,kind in ipairs({'identity','counts','accounting','selection','evidence','verdict'}) do rows[#rows+1]=K.row(kind,r[kind]) end
+ return table.concat(rows,'\n')..'\n'
+end
+local receipt_faults={
+ {'terrain','present',nil,'code 22'},{'prestate','nan',1,'finite canonical consumed MOVE input'},{'prestate','8.0',1,'finite canonical consumed MOVE input'},
+ {'prestate','0',14,'code 24'},{'prestate','-1',4,'code 25'},{'prestate','7',23,'code 26'},{'prestate','10',1,'code 27'},
+ {'delegated','0.5',nil,'delegated physical step time'},{'latest','2',nil,'latest same-ID writer receipt'},{'move_before','11',nil,'existing movement callback order'},
+ {'tacview','2',nil,'complete consumed MOVE input'}}
+for i,fault in ipairs(receipt_faults) do
+ local bad=receipt_fault(fault[1],fault[2],fault[3]);local ok,reason=pcall(function()return K.healthy(K.parse(bad),{},T)end)
+ assert(not ok and tostring(reason):find(fault[4],1,true),fault[1]..' '..tostring(reason))
+ local path=root..'/receipt-schema4-'..i..'.txt';local file=assert(io.open(path,'wb'));assert(file:write(bad));assert(file:close());references[#references+1]=path
+end
 for i,bad in ipairs(domain_references) do
  local path=root..'/TEST-domain-'..i..'.txt';local file=assert(io.open(path,'wb'));assert(file:write(bad));assert(file:close());references[#references+1]=path
 end
@@ -141,7 +163,7 @@ for i,triple in ipairs(faults) do
  local path=root..'/semantic-'..i..'.txt';local file=assert(io.open(path,'wb'));assert(file:write(damage(triple)));assert(file:close());references[#references+1]=path
 end
 for _,reference in ipairs(references) do
- host.args=args('terrain_lift','/forbidden.txt',reference)
+ host.args=args('zero_step','/forbidden.txt',reference)
  local accepted,reason=pcall(assert(loadfile(base..'/normal-fire-session.lua')))
  assert(not accepted and not tostring(reason):find('output touched',1,true))
  assert(calls.output==0 and calls.prepare==0 and calls.boot==0 and calls.frame==0)
@@ -194,7 +216,7 @@ local baseline=K.parse(text);local unregistered=false;local same_live=false;loca
 local boot_extra=0;local boot_query=false;local candidate_variant=false;local transport_flag_key='f1';local candidate_bad;local alternate_candidate=false;local transport_frame=0
 local wrong_move_identity=false
 local function candidate_id()return candidate_variant and ((alternate_candidate and transport_frame>=303) and 'eech-world:4' or 'eech-world:3') or 'eech-world:2'end
-local options,binds,candidate_calls,y,lift_calls,move_calls
+local options,binds,candidate_calls,x,zero_calls,move_calls
 local shared_position
 local function patterns(row)return table.concat(row,',')end
 local function flag_request(phase,lane)
@@ -204,19 +226,26 @@ local function flag_request(phase,lane)
  return patterns(w)..(phase==21 and ' '..transport_flag_key or '')
 end
 local function candidate_key(carried,placed)
- local w=K.patterns(baseline.selection.request,44);w[15]=y==100 and '0x42c80000' or '0x44160000'
+ local w=K.patterns(baseline.selection.request,44);w[14]=x==10 and '0x41200000' or '0x41000000'
  if candidate_bad=='stationary' then w[17]=Z;w[18]=Z;w[19]=Z end
  if carried then w[21]=O end
  if placed then w[44]=O;w[28]=O;w[32]=O;w[36]=O end
  return patterns(w)..' '..(candidate_bad=='identity' and 'eech-world:9' or candidate_id())
 end
 host.bind_mobile=function()binds=binds+1;return 'eech-world:'..binds end
+-- Transport stand-in for the solver: terrain absent, pre-position 8,100,20
+-- moves 2 m per second of physical step time (healthy 10,100,20, zero 8,100,20).
+-- The genuine solver pair runs in normal-fire-persistent-control.lua.
 host.move_vehicle=function(step)
  move_calls=move_calls+1
- assert(step.host_id==candidate_id() and step.mode==(candidate_bad=='ship' and 'ship_move' or 'move'));y=step.terrain.elevation
- if y==600 then lift_calls=lift_calls+1 else assert(y==100 or (candidate_bad=='overwrite' and y==200)) end
- local position={10,y,20};if candidate_bad=='overwrite' then shared_position[1]=10;shared_position[2]=y;shared_position[3]=20;position=shared_position end
+ assert(step.host_id==candidate_id() and step.mode==(candidate_bad=='ship' and 'ship_move' or 'move') and step.terrain==nil)
+ x=step.pose.position[1]+2*step.delta_seconds
+ if step.delta_seconds==0 then zero_calls=zero_calls+1 else assert(step.delta_seconds==1) end
+ local position={x,step.late and 200 or 100,20};if candidate_bad=='overwrite' then shared_position[1]=position[1];shared_position[2]=position[2];shared_position[3]=20;position=shared_position end
  return {position=position,motion_vector=candidate_bad=='stationary' and {0,0,0} or {2,0,0}}
+end
+local function routed_step(id,late)
+ return {host_id=id,mode=candidate_bad=='ship' and 'ship_move' or 'move',pose={position={8,100,20},velocity=2,attitude={1,0,0,0,1,0,0,0,1}},delta_seconds=1,desired_velocity=2,max_acceleration=1,waypoint={100,100,20},tacview_logging=false,map_min={0,-1000,0},map_max={4095,10000,4095},late=late}
 end
 host.model=function(op,scene,depth,kind,definition,key)
  if op=='scene' then return {name='fixture-scene1'} end
@@ -233,14 +262,14 @@ host.model=function(op,scene,depth,kind,definition,key)
  if op=='entity_candidate' then
   candidate_calls=candidate_calls+1
   if candidate_calls<3 then return {result=candidate_calls==1 and 'need_updated' or 'need_placement',name='fixture-scene1'} end
-  local p=K.patterns(baseline.selection.pose,16);if y==600 then p[2]='0x44160000';p[5]='0x44160000' end;if candidate_bad=='pose' or candidate_bad=='stationary' then p[16]=Z end
+  local p=K.patterns(baseline.selection.pose,16);if x==8 then p[1]='0x40c00000' end;if candidate_bad=='pose' or candidate_bad=='stationary' then p[16]=Z end
   return {result='test',name='fixture-scene1',p=patterns(p)}
  end
  return {result='recorded'}
 end
 package.loaded.eech_dc=nil
 package.preload.eech_dc=function()return {prepare_installation=function()end,boot=function(o)
- options=o;binds=0;candidate_calls=0;y=100;lift_calls=0;move_calls=0;transport_flag_key='f1';transport_frame=0;shared_position={10,100,20}
+ options=o;binds=0;candidate_calls=0;x=10;zero_calls=0;move_calls=0;transport_flag_key='f1';transport_frame=0;shared_position={10,100,20}
  o.bind_mobile({member_key=1,group_key=1});o.bind_mobile({member_key=2,group_key=1})
  if candidate_variant then o.bind_mobile({member_key=candidate_bad=='registration' and 0 or 3,group_key=1});if alternate_candidate then o.bind_mobile({member_key=4,group_key=1}) end end
  o.model('scene',1);o.model('entity_scan',0,nil,nil,nil,flag_request(19))
@@ -269,11 +298,11 @@ package.preload.eech_dc=function()return {prepare_installation=function()end,boo
   if count==301 and not same_live then pending=prefix(30000) end
   if count==302 or (same_live and not no_later and count==303) then
    candidate_calls=0
-   local step={host_id=candidate_id(),mode=candidate_bad=='ship' and 'ship_move' or 'move',terrain={elevation=100},map_max={4095,10000,4095}}
-   if candidate_bad~='late_move' then o.move_vehicle(step);assert(step.terrain.elevation==100,'caller input mutated') end
+   local step=routed_step(candidate_id())
+   if candidate_bad~='late_move' then o.move_vehicle(step);assert(step.delta_seconds==1,'caller input mutated') end
    if candidate_bad=='repeat' then
-    local again={host_id=wrong_move_identity and 'eech-world:4' or candidate_id(),mode='move',terrain={elevation=100},map_max={4095,10000,4095}}
-    o.move_vehicle(again);assert(again.terrain.elevation==100,'second caller input mutated')
+    local again=routed_step(wrong_move_identity and 'eech-world:4' or candidate_id());again.mode='move'
+    o.move_vehicle(again);assert(again.delta_seconds==1,'second caller input mutated')
    end
    o.model('entity_candidate',1,nil,nil,nil,candidate_key(false,false))
    o.model('entity_scan',0,nil,nil,nil,flag_request(21))
@@ -281,7 +310,7 @@ package.preload.eech_dc=function()return {prepare_installation=function()end,boo
    o.model('entity_pose',1)
    o.model('entity_candidate',1,nil,nil,nil,candidate_key(true,true))
    if candidate_bad=='late_move' or candidate_bad=='overwrite' then
-    local late={host_id=candidate_id(),mode='move',terrain={elevation=candidate_bad=='overwrite' and 200 or 100},map_max={4095,10000,4095}};o.move_vehicle(late)
+    local late=routed_step(candidate_id(),candidate_bad=='overwrite');o.move_vehicle(late)
    end
    pending=(same_live and count==302 and prefix(30100) or '')..query(count==303)
    if other_live and count==302 then
@@ -297,21 +326,21 @@ package.preload.eech_dc=function()return {prepare_installation=function()end,boo
 host.args=args('healthy','/transport-positive.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/transport-positive.txt','rb'));local healthy=e:read('*a');e:close()
-assert(K.healthy(K.parse(healthy),{},T) and lift_calls==0)
-host.args=args('terrain_lift','/transport-B.txt',root..'/transport-positive.txt')
+assert(K.healthy(K.parse(healthy),{},T) and zero_calls==0)
+host.args=args('zero_step','/transport-B.txt',root..'/transport-positive.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/transport-B.txt','rb'));local b=K.parse(e:read('*a'));e:close()
-assert(K.validate(b,{},T) and b.counts.changed=='1' and lift_calls==1)
+assert(K.validate(b,{},T) and b.counts.changed=='1' and zero_calls==1)
 assert(K.paired(b,K.parse(healthy)))
 candidate_variant=true;host.args=args('healthy','/scanned-other-candidate.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))),'normal query must admit its actual moving scanned candidate, separately from birth/current target')
 local e=assert(io.open(root..'/scanned-other-candidate.txt','rb'));local physical=K.parse(e:read('*a'));e:close()
 assert(K.healthy(physical,{},T) and physical.selection.target=='eech-world:3')
 assert(physical.selection.birth_target=='eech-world:2' and physical.selection.step_target=='none' and physical.selection.end_target=='none')
-host.args=args('terrain_lift','/scanned-other-candidate-B.txt',root..'/scanned-other-candidate.txt')
+host.args=args('zero_step','/scanned-other-candidate-B.txt',root..'/scanned-other-candidate.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/scanned-other-candidate-B.txt','rb'));local candidate_B=K.parse(e:read('*a'));e:close()
-assert(K.validate(candidate_B,{},T) and K.paired(candidate_B,physical) and lift_calls==1)
+assert(K.validate(candidate_B,{},T) and K.paired(candidate_B,physical) and zero_calls==1)
 for _,fault in ipairs({'identity','registration','read','pose','stationary','ship','late_move'}) do
  candidate_bad=fault;host.args=args('healthy','/candidate-'..fault..'.txt')
  assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
@@ -328,17 +357,17 @@ for _,case in ipairs({'repeat','overwrite'}) do
  assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
  local e=assert(io.open(root..'/move-'..case..'.txt','rb'));local h=K.parse(e:read('*a'));e:close()
  assert(K.healthy(h,{},T) and h.selection.move_call==(case=='repeat' and '2' or '1') and h.selection.position=='10,100,20')
- host.args=args('terrain_lift','/move-'..case..'-B.txt',root..'/move-'..case..'.txt')
+ host.args=args('zero_step','/move-'..case..'-B.txt',root..'/move-'..case..'.txt')
  assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
  local e=assert(io.open(root..'/move-'..case..'-B.txt','rb'));local b=K.parse(e:read('*a'));e:close()
- assert(K.validate(b,{},T) and K.paired(b,h) and lift_calls==1 and move_calls==2)
+ assert(K.validate(b,{},T) and K.paired(b,h) and zero_calls==1 and move_calls==2)
 end
 for _,fault in ipairs({'late','identity'}) do
  candidate_bad=fault=='late' and 'overwrite' or 'repeat';wrong_move_identity=fault=='identity'
- host.args=args('terrain_lift','/wrong-move-'..fault..'.txt',root..'/move-repeat.txt')
+ host.args=args('zero_step','/wrong-move-'..fault..'.txt',root..'/move-repeat.txt')
  assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
  local e=assert(io.open(root..'/wrong-move-'..fault..'.txt','rb'));local b=K.parse(e:read('*a'));e:close()
- assert(b.verdict.status=='FAIL' and b.counts.failed=='1' and b.counts.changed=='0' and lift_calls==0 and move_calls==1)
+ assert(b.verdict.status=='FAIL' and b.counts.failed=='1' and b.counts.changed=='0' and zero_calls==0 and move_calls==1)
  assert(K.unhex(b.verdict.reason):find('same actual movement callback before effect',1,true))
 end
 wrong_move_identity=false
@@ -353,10 +382,10 @@ boot_extra=100001;host.args=args('healthy','/long-boot-driver.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/long-boot-driver.txt','rb'));local long_driver=K.parse(e:read('*a'));e:close()
 assert(K.healthy(long_driver,{},T) and long_driver.counts.model_calls=='100016' and long_driver.selection.before=='100011')
-host.args=args('terrain_lift','/long-boot-driver-B.txt',root..'/long-boot-driver.txt')
+host.args=args('zero_step','/long-boot-driver-B.txt',root..'/long-boot-driver.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/long-boot-driver-B.txt','rb'));local long_B=K.parse(e:read('*a'));e:close()
-assert(K.validate(long_B,{},T) and K.paired(long_B,long_driver) and lift_calls==1)
+assert(K.validate(long_B,{},T) and K.paired(long_B,long_driver) and zero_calls==1)
 boot_extra=0;boot_query=true;host.args=args('healthy','/boot-query.txt')
 assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/boot-query.txt','rb'));local bad_boot=K.parse(e:read('*a'));e:close()
@@ -364,19 +393,19 @@ assert(bad_boot.verdict.status=='FAIL' and bad_boot.counts.failed=='1' and bad_b
 boot_query=false
 for _,fault in ipairs({'birth_pose','fire_actual','wrong_w','same_frame'}) do
  prefix_fault=fault; same_live=fault=='same_frame'
- host.args=args('terrain_lift','/prefix-'..fault..'.txt',root..'/transport-positive.txt')
+ host.args=args('zero_step','/prefix-'..fault..'.txt',root..'/transport-positive.txt')
  assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
  local e=assert(io.open(root..'/prefix-'..fault..'.txt','rb'));local r=K.parse(e:read('*a'));e:close()
- assert(r.verdict.status=='FAIL' and r.counts.failed=='1' and r.counts.changed=='0' and lift_calls==0 and move_calls==0)
+ assert(r.verdict.status=='FAIL' and r.counts.failed=='1' and r.counts.changed=='0' and zero_calls==0 and move_calls==0)
 end
 prefix_fault=nil;same_live=true;host.args=args('healthy','/same-cohort-later.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/same-cohort-later.txt','rb'));local later=e:read('*a');local r=K.parse(later);e:close()
 assert(K.healthy(r,{},T) and r.selection.query_frame=='303' and r.selection.birth_frame=='302' and r.selection.w=='1')
-host.args=args('terrain_lift','/same-cohort-later-B.txt',root..'/same-cohort-later.txt')
+host.args=args('zero_step','/same-cohort-later-B.txt',root..'/same-cohort-later.txt')
 assert(pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/same-cohort-later-B.txt','rb'));local b=K.parse(e:read('*a'));e:close()
-assert(K.validate(b,{},T) and K.paired(b,r) and lift_calls==1)
+assert(K.validate(b,{},T) and K.paired(b,r) and zero_calls==1)
 for _,mode in ipairs({'no_later','other_cohort'}) do
  no_later=mode=='no_later';other_live=mode=='other_cohort'
  host.args=args('healthy','/'..mode..'.txt')
@@ -398,7 +427,8 @@ unregistered=true;host.args=args('healthy','/noncanonical.txt')
 assert(not pcall(assert(loadfile(base..'/normal-fire-session.lua'))))
 local e=assert(io.open(root..'/noncanonical.txt','rb'));local u=K.parse(e:read('*a'));e:close()
 assert(u.verdict.status=='UNREACHED' and u.counts.failed=='0' and u.counts.births=='1' and u.counts.moving=='0')
-print('normal_session_proof_gates=PASS semantic_faults=25 pre_effect_reference_faults=27 prefix_faults=4 same_cohort_later_healthy_B=2 no_later_and_other_cohort_UNREACHED=2 real_flag_store_calls='..#history..' flag_ACK_faults=3 ACK_failure_precedes_UNREACHED=3 retained_C_codec_births=1 synthetic_transport_healthy_B=2')
+print('schema4_receipt_faults=PASS consumed_input_and_receipt_single_field_faults='..#receipt_faults)
+print('normal_session_proof_gates=PASS semantic_faults=25 pre_effect_reference_faults='..#references..' prefix_faults=4 same_cohort_later_healthy_B=2 no_later_and_other_cohort_UNREACHED=2 real_flag_store_calls='..#history..' flag_ACK_faults=3 ACK_failure_precedes_UNREACHED=3 retained_C_codec_births=1 synthetic_transport_healthy_B=2')
 print('boot_retention_controls=PASS real_provider_calls=200036 first_frame_and_next_frame_queries=2 partial_feed=1 drain_faults=2 wrong_op=1 alternating_overflow=1 retired_budget=1 driver_long_boot_healthy_B=2 boot_query_refused_before_frame1=1 continuation_surfaces=6')
 print('signed_query_selector=PASS domains=3 invalid_domains=7 real_provider_contexts=3 selected_cohort_gates_unchanged=1')
 print('public_session_contract=PASS phantom_close_removed=1 no_getter_after_failure=1 real_flags_scanned_candidate_healthy_B=2 separate_target_histories=1 candidate_registration_flag_pose_faults=4 stationary_and_other_mode_UNREACHED=2 locked_candidate_no_fallback=1 bounded_numeric_accounting=1')

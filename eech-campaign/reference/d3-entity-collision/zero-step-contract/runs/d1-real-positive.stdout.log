@@ -1,0 +1,120 @@
+
+running 1 test
+persistent healthy: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=healthy
+persistent_real_collaborators=PASS case=healthy
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent B: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=B
+ZERO_STEP_PAIR=PASS healthy_position=10,100,21.999998092651367 zero_step_position=10,100,20 delegated=0 prestate=10,100,20,2,1,0,0,0,1,0,0,0,1,1,2,1,10,100,100,0,-1000,0,4095,10000,4095
+persistent_real_collaborators=PASS case=B
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent B_dt: persistent_real_collaborators=PASS case=B_dt
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent B_input: persistent_real_collaborators=PASS case=B_input
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent B_terrain: persistent_real_collaborators=PASS case=B_terrain
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent B_bounds: persistent_real_collaborators=PASS case=B_bounds
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent B_writer: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=B_writer
+persistent_real_collaborators=PASS case=B_writer
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent terrain: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=terrain
+persistent_real_collaborators=PASS case=terrain
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent zero_dt: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=zero_dt
+persistent_real_collaborators=PASS case=zero_dt
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent reverse: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=reverse
+persistent_real_collaborators=PASS case=reverse
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent outside: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=outside
+persistent_real_collaborators=PASS case=outside
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent waypoint: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=waypoint
+persistent_real_collaborators=PASS case=waypoint
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent stop: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=stop
+persistent_real_collaborators=PASS case=stop
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent place: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=place
+persistent_real_collaborators=PASS case=place
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent routed_vector: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=routed_vector
+persistent_real_collaborators=PASS case=routed_vector
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent retire: persistent_real_collaborators=PASS case=retire
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent invalid: persistent_real_collaborators=PASS case=invalid
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent bind: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=bind
+persistent_real_collaborators=PASS case=bind
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent prebirth: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=prebirth
+persistent_real_collaborators=PASS case=prebirth
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent boot: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=boot
+persistent_real_collaborators=PASS case=boot
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent future: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=future
+persistent_real_collaborators=PASS case=future
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent wrong: persistent_real_collaborators=PASS case=wrong
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent unrelated: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=unrelated
+persistent_real_collaborators=PASS case=unrelated
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+persistent repeat: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=repeat
+persistent_real_collaborators=PASS case=repeat
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+
+test persistent_real_collaborators_zero_step_contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.93s
+

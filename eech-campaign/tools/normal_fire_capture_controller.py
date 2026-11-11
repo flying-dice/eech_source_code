@@ -26,7 +26,7 @@ common = module('normal_capture_common', HERE / 'native_flag_read_controller.py'
 report = module('normal_capture_report', HERE / 'normal_fire_capture.py')
 check, sha, load, now = common.check, common.sha, common.load, common.now
 LUA = ('driver', 'collector', 'transaction', 'contract')
-MODES = ('healthy', 'terrain_lift')
+MODES = ('healthy', 'zero_step')
 
 def bundle(p):
     base = Path(p['binary_dir']).resolve(); manifest = load(p['bundle_manifest'])
@@ -84,7 +84,7 @@ def preflight(path):
     return p, paths, base, roots, out, reference
 
 def expected(p, mode, reference='none'):
-    return dict(schema='3', mode=mode, capture=p['capture_prefix']+':'+mode, runtime=p['source_revision'], bundle=p['bundle_manifest_sha256'], reference=reference, **{k:p['hashes'][k] for k in LUA})
+    return dict(schema='4', mode=mode, capture=p['capture_prefix']+':'+mode, runtime=p['source_revision'], bundle=p['bundle_manifest_sha256'], reference=reference, **{k:p['hashes'][k] for k in LUA})
 
 def healthy_reference(path, digest, identity):
     check(sha(path) == digest, 'healthy report bytes changed')
@@ -120,7 +120,7 @@ def execute(path, clearance):
             if index: healthy=healthy_reference(healthy_path,healthy_sha,expected(p,'healthy'))
             artifacts(p);bundle(p)
             if index:
-                roots.mkdir();root=roots/'02-terrain_lift';shutil.copytree(p['pristine'],root)
+                roots.mkdir();root=roots/'02-zero_step';shutil.copytree(p['pristine'],root)
             else:root=Path(p['healthy_root']).resolve()
             cwd=out/f'{index+1:02d}-{mode}';cwd.mkdir()
             row=dict(mode=mode,root=str(root),out=str(cwd),state='running');state['cases'].append(row)
@@ -133,7 +133,7 @@ def execute(path, clearance):
             result=report.validate(result_path.read_bytes(),expected(p,mode,healthy_sha),healthy)
             row.update(state='terminal',native_exit=code,report_sha256=sha(result_path),events_sha256=sha(events),status=result['verdict']['status']);persist()
             if not index and row['status']=='UNREACHED':
-                check(code!=0,'UNREACHED unexpectedly exited0');state['cases'].append(dict(mode='terrain_lift',status='NOT_LAUNCHED_UNREACHED',native_executed=False));state['verdict']='UNREACHED';break
+                check(code!=0,'UNREACHED unexpectedly exited0');state['cases'].append(dict(mode='zero_step',status='NOT_LAUNCHED_UNREACHED',native_executed=False));state['verdict']='UNREACHED';break
             check(code==0 and row['status']=='PASS','native/observer failure precedes UNREACHED')
             if not index:healthy,healthy_path,healthy_sha=result,result_path,sha(result_path)
             else:state['verdict']='FINITE_SAME_COHORT_EFFECT'

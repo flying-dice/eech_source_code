@@ -1,0 +1,19 @@
+{
+  "controller_pid": 24656,
+  "state": "terminal",
+  "started_utc": "2026-11-11T10:34:17.215777+00:00",
+  "label": "s1-python",
+  "command": "python-tests",
+  "args": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\tools\\test_normal_fire_capture.py"
+  ],
+  "scope": "Working tree check; Linux commands run in the sole leased volume eech-linux-d3-physical-flags-9d247-20261107, image sha256:9d247b4e... named, never substituted.",
+  "pid": 20968,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-11T10:34:17.884605+00:00"
+}

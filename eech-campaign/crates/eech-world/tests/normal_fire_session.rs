@@ -50,11 +50,34 @@ fn normal_session_validates_the_whole_reference_before_effects_and_failure_prece
     println!("{stdout}\n{stderr}");
     assert!(result.status.success(), "{}\n{stdout}\n{stderr}", result.status);
     assert!(stdout.contains("normal_session_proof_gates=PASS"));
-    // Fresh real reference host per healthy/B case: no identity/global reset.
+}
+
+/// Schema4 real reference-host bind/movement/SharedMovers/model/FlagStore
+/// cases. Healthy runs first and is the zero-step reference of every `B*` case.
+#[test]
+fn persistent_real_collaborators_zero_step_contract() {
+    let root = std::env::temp_dir().join(format!("eech-normal-session-persistent-{}", std::process::id()));
+    std::fs::create_dir(&root).unwrap();
+    let positive = root.join("synthetic-positive.txt");
+    std::fs::write(&positive, include_bytes!("data/synthetic-normal-fire-positive.txt")).unwrap();
+    let path = |p: &std::path::Path| format!("{:?}", p.to_string_lossy().replace('\\', "/"));
+    let lua = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lua");
+    let model = model_root::Root::minimal();
+    // Fresh real reference host per case: no identity/global reset.
     let reference = root.join("persistent-healthy.txt");
     for mode in [
         "healthy",
         "B",
+        "B_dt",
+        "B_input",
+        "B_terrain",
+        "B_bounds",
+        "B_writer",
+        "terrain",
+        "zero_dt",
+        "reverse",
+        "outside",
+        "waypoint",
         "stop",
         "place",
         "routed_vector",

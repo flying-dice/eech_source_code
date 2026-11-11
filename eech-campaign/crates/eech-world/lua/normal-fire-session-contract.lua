@@ -4,11 +4,46 @@ K.schemas={
  identity='schema mode capture runtime bundle driver collector transaction contract reference profile scenario seed frame_ms warmup settle',
  counts='frames fires births steps queries model_calls moving failed changed',
  accounting='processed decisions outcomes first_query first_code first_frame first_selector first_models first_candidates first_need first_reads first_reasks first_tests first_mode first_registered first_type first_birth_frame first_move_frame first_move_call first_latest_call first_later_call first_receipt',
- selection='query_frame move_frame birth_frame fire detach w step query move_call move_before move_after before after need read carry test launcher birth_target step_target end_target target weapon scene name member group bind key lane word fact pose request reask position motion base ceiling previous current',
+ selection='query_frame move_frame birth_frame fire detach w step query move_call move_before move_after latest before after need read carry test launcher birth_target step_target end_target target weapon scene name member group bind key lane word fact pose request reask position motion prestate tacview terrain delegated previous current',
  evidence='fire detach birth step query models query_end step_end candidate',
  verdict='status reason'
 }
-K.candidate_fields='call scene identity member group bind move_identity move_call move_before move_after mode move_frame query_frame name read_call read_key lane word carry_call carry_identity carry_scene request reask test_call test_identity test_scene test_request pose'
+K.candidate_fields='call scene identity member group bind move_identity move_call move_before move_after latest mode move_frame prestate delegated query_frame name read_call read_key lane word carry_call carry_identity carry_scene request reask test_call test_identity test_scene test_request pose'
+-- Schema4 (lead216). The ONE counterfactual is zero physical step time on the
+-- SAME completed routed MOVE callback. The consumed input is copied in the
+-- host's own read order (main.rs movement_from/pose_from and Advance): pose
+-- position3, velocity, attitude9, then delta_seconds, desired_velocity,
+-- max_acceleration, waypoint3, map_min3, map_max3. Terrain is optional on the
+-- real path (rv_hostmv.c fills it only off-waypoint with terrain follow) and is
+-- recorded as present/absent. No getter, geometry or sidecar is consulted.
+K.prestate_layout={{'pose','position',3},{'pose','velocity',1},{'pose','attitude',9},{nil,'delta_seconds',1},{nil,'desired_velocity',1},{nil,'max_acceleration',1},{nil,'waypoint',3},{nil,'map_min',3},{nil,'map_max',3}}
+function K.prestate(step)
+ if type(step)~='table' or type(step.pose)~='table' or type(step.tacview_logging)~='boolean' then return nil end
+ local n={}
+ for _,f in ipairs(K.prestate_layout) do
+  local v=(f[1] and step[f[1]] or step)[f[2]];if f[3]==1 then v={v} end
+  if type(v)~='table' or #v~=f[3] then return nil end
+  for i=1,f[3] do local x=v[i];if type(x)~='number' or x~=x or math.abs(x)==math.huge then return nil end;n[#n+1]=x end
+ end
+ local text={};for i,x in ipairs(n) do text[i]=string.format('%.17g',x) end
+ return {numbers=n,text=table.concat(text,','),tacview=step.tacview_logging and '1' or '0',terrain=step.terrain==nil and 'absent' or 'present'}
+end
+-- Eligibility of one completed routed MOVE from its consumed input and actual
+-- returned position only: 22 terrain present, 23 incomplete/nonfinite input,
+-- 24 step time not >0, 25 negative pre-speed, 26 pre-position outside the
+-- actual map volume, 27 no actual displacement (a healthy step must move; the
+-- zero-step result must stay at the pre-position). A motion vector alone never
+-- proves displacement: on top of its waypoint the solver skips integration.
+function K.ineligible(pre,position,zero)
+ if not pre then return 23 end
+ if pre.terrain~='absent' then return 22 end
+ local n=pre.numbers
+ if not (n[14]>0) then return 24 end
+ if n[4]<0 then return 25 end
+ for i=1,3 do if n[i]<n[19+i] or n[i]>n[22+i] then return 26 end end
+ local same=position[1]==n[1] and position[2]==n[2] and position[3]==n[3]
+ if same~=(zero==true) then return 27 end
+end
 function K.candidate_row(row)
  local out={'normal-candidate'};local allowed={}
  for key in K.candidate_fields:gmatch('%S+') do assert(row[key]~=nil,'candidate missing '..key);allowed[key]=true;out[#out+1]=key..'='..tostring(row[key]) end
@@ -70,7 +105,8 @@ end
 function K.accounting(r)
  local a=assert(r.accounting,'accounting missing');local counts={};local total=0
  for n in (a.outcomes..','):gmatch('(.-),') do local v=K.uint(n);counts[#counts+1]=v;total=total+v end
- assert(#counts==21 and total==K.uint(a.decisions) and K.uint(a.decisions)>=K.uint(a.processed),'accounting outcomes')
+ assert(#counts==27 and total==K.uint(a.decisions) and K.uint(a.decisions)>=K.uint(a.processed),'accounting outcomes')
+ assert(counts[11]==0 and counts[12]==0 and counts[13]==0,'retired schema3 terrain codes')
  for k,v in pairs(a) do if k~='outcomes' and k~='first_selector' then K.uint(v) end end
  assert(a.first_selector=='-1' or a.first_selector=='0' or a.first_selector=='1','accounting selector')
  assert(tonumber(a.first_receipt)<=5 and tonumber(a.first_move_frame)<=tonumber(a.first_frame) and tonumber(a.first_birth_frame)<=tonumber(a.first_frame),'receipt accounting')
@@ -79,7 +115,7 @@ function K.accounting(r)
  if a.processed=='0' then
   for k,v in pairs(a) do if k~='outcomes' then assert(v=='0','empty accounting first') end end
  else
-  local code=tonumber(a.first_code);assert(tonumber(a.first_query)>0 and code>=1 and code<=21 and counts[code]>0 and tonumber(a.first_frame)>=1 and tonumber(a.first_frame)<=1500,'accounting first query')
+  local code=tonumber(a.first_code);assert(tonumber(a.first_query)>0 and code>=1 and code<=27 and counts[code]>0 and tonumber(a.first_frame)>=1 and tonumber(a.first_frame)<=1500,'accounting first query')
  end
  if r.counts.failed=='0' then assert(a.processed==r.counts.queries and counts[21]==tonumber(r.counts.moving),'accounting capture totals') end
  return counts
@@ -87,19 +123,19 @@ end
 function K.validate(r,expected,T)
  local a,c,s,e=r.identity,r.counts,r.selection,r.evidence
  for k,v in pairs(expected) do assert(a[k]==tostring(v),'reference identity '..k) end
- assert(a.mode=='healthy' or a.mode=='terrain_lift','mode')
- assert((a.mode=='healthy' and a.reference=='none') or (a.mode=='terrain_lift' and #a.reference==64 and a.reference:match('^[0-9a-f]+$')),'reference')
- assert(a.schema=='3' and a.profile=='reference-hosted' and a.scenario=='lebanon_retail' and a.seed=='1' and a.frame_ms=='100' and a.warmup=='30' and a.settle=='120','fixed setup')
+ assert(a.mode=='healthy' or a.mode=='zero_step','mode')
+ assert((a.mode=='healthy' and a.reference=='none') or (a.mode=='zero_step' and #a.reference==64 and a.reference:match('^[0-9a-f]+$')),'reference')
+ assert(a.schema=='4' and a.profile=='reference-hosted' and a.scenario=='lebanon_retail' and a.seed=='1' and a.frame_ms=='100' and a.warmup=='30' and a.settle=='120','fixed setup')
  assert(#a.capture>=1 and #a.capture<=128 and a.capture:match('^[%w_.:-]+$'),'capture identity')
  for _,k in ipairs({'runtime'}) do assert(#a[k]==40 and a[k]:match('^[0-9a-f]+$'),'source identity') end
  for _,k in ipairs({'bundle','driver','collector','transaction','contract'}) do assert(#a[k]==64 and a[k]:match('^[0-9a-f]+$'),'artifact identity') end
  for k,v in pairs(c) do K.uint(v) end
  K.accounting(r)
  assert(c.frames=='1500' and c.failed=='0' and c.changed==(a.mode=='healthy' and '0' or '1'),'healthy counts')
- assert(r.verdict.status=='PASS' and K.unhex(r.verdict.reason)==(a.mode=='healthy' and 'healthy normal cohort' or 'same-cohort terrain effect'),'positive required')
+ assert(r.verdict.status=='PASS' and K.unhex(r.verdict.reason)==(a.mode=='healthy' and 'healthy normal cohort' or 'same-cohort zero-step effect'),'positive required')
  assert(s and e,'positive witness missing')
  for _,k in ipairs({'fires','births','steps','queries','model_calls','moving'}) do assert(K.uint(c[k])>0,'missing traffic '..k) end
- for _,k in ipairs({'query_frame','move_frame','birth_frame','fire','detach','w','step','query','move_call','move_before','move_after','before','after','need','read','carry','test','weapon','scene','member','group','bind','lane'}) do K.uint(s[k]) end
+ for _,k in ipairs({'query_frame','move_frame','birth_frame','fire','detach','w','step','query','move_call','move_before','move_after','latest','before','after','need','read','carry','test','weapon','scene','member','group','bind','lane'}) do K.uint(s[k]) end
  assert(tonumber(s.birth_frame)<tonumber(s.move_frame) and tonumber(s.move_frame)<=tonumber(s.query_frame),'completed MOVE after observed birth and before query')
  assert(tonumber(s.birth_frame)>300 and tonumber(s.birth_frame)<tonumber(s.query_frame) and tonumber(s.query_frame)<=1500,'earlier observed birth/window')
  assert(tonumber(c.moving)<=tonumber(c.queries) and tonumber(s.step)<=tonumber(c.steps) and tonumber(s.query)<=tonumber(c.queries),'capture count bounds')
@@ -120,8 +156,16 @@ function K.validate(r,expected,T)
  for _,k in ipairs({'position','motion'}) do local a={};for v in (s[k]..','):gmatch('(.-),') do local x=tonumber(v);assert(x and x==x and math.abs(x)<math.huge,'finite motion');a[#a+1]=x end;assert(#a==3,'motion count');vector[k]=a end
  assert(vector.motion[1]^2+vector.motion[2]^2+vector.motion[3]^2>1 and K.number(pose[16])>1,'actual moving pose')
  for i=1,3 do assert(K.number(q.words[13+i])==vector.position[i] and K.number(q.words[16+i])==vector.motion[i],'same host motion/facts') end
- for _,k in ipairs({'base','ceiling','previous','current'}) do local x=tonumber(s[k]);assert(x and x==x and math.abs(x)<math.huge,'finite scalar') end
- assert(tonumber(s.base)+500<=tonumber(s.ceiling) and tonumber(s.current)>tonumber(s.previous),'physical input/clock')
+ assert(s.latest==s.move_call,'latest same-ID writer receipt')
+ local tokens_in,numbers={},{}
+ for v in (s.prestate..','):gmatch('(.-),') do local x=tonumber(v);assert(x and x==x and math.abs(x)<math.huge and string.format('%.17g',x)==v,'finite canonical consumed MOVE input');tokens_in[#tokens_in+1]=v;numbers[#numbers+1]=x end
+ assert(#numbers==25 and (s.tacview=='0' or s.tacview=='1') and (s.terrain=='absent' or s.terrain=='present'),'complete consumed MOVE input')
+ local zero=a.mode=='zero_step'
+ local code=K.ineligible({numbers=numbers,terrain=s.terrain},vector.position,zero)
+ assert(not code,'schema4 MOVE eligibility code '..tostring(code))
+ assert(s.delegated==(zero and '0' or tokens_in[14]),'delegated physical step time')
+ for _,k in ipairs({'previous','current'}) do local x=tonumber(s[k]);assert(x and x==x and math.abs(x)<math.huge,'finite scalar') end
+ assert(tonumber(s.current)>tonumber(s.previous),'physical clock')
  local events={};for k,v in pairs(e) do local text=K.unhex(v);assert(#text>0,'evidence missing');events[k]=text end
  local function event(k,kind)
   assert(K.event,'collector grammar missing');K.event(events[k])
@@ -138,7 +182,7 @@ function K.validate(r,expected,T)
  for _,x in ipairs({f,b,st,se}) do assert(x.launcher==s.launcher and x.weapon==s.weapon,'cohort evidence') end
  assert(f.target==s.birth_target and b.target==s.birth_target and st.target==s.step_target and se.target==s.end_target,'immutable target history')
  local ce=tokens(assert(events.candidate:match('^normal%-candidate (.+)$'),'candidate evidence prefix'));assert(K.candidate_row(ce)==events.candidate,'candidate evidence grammar')
- local equal={call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',move_frame='move_frame',query_frame='query_frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose'}
+ local equal={call='need',scene='scene',identity='target',member='member',group='group',bind='bind',move_identity='target',move_call='move_call',move_before='move_before',move_after='move_after',latest='latest',move_frame='move_frame',prestate='prestate',delegated='delegated',query_frame='query_frame',name='name',read_call='read',read_key='key',lane='lane',word='word',carry_call='carry',carry_identity='target',carry_scene='scene',request='request',reask='reask',test_call='test',test_identity='target',test_scene='scene',pose='pose'}
  for key,selected in pairs(equal) do assert(ce[key]==s[selected],'actual physical candidate '..key) end;assert(ce.mode=='move','supported routed candidate')
  local test_q=assert(T.request(tonumber(ce.test_scene),nil,nil,nil,ce.test_request..' '..ce.test_identity,K.patterns));assert(not T.answer(test_q,{result='test',name=name,p=ce.pose},{[test_q.scene]=name},K.patterns),'actual TEST request')
  for _,x in ipairs({st,qev,qe,se}) do assert(x.w==s.w and x.step==s.step and tonumber(x.tick)==(tonumber(s.query_frame)-1)*100,'frame evidence') end
@@ -159,7 +203,8 @@ end
 function K.paired(r,healthy)
  assert(healthy.identity.mode=='healthy' and healthy.verdict.status=='PASS','healthy first')
  for _,k in ipairs({'fire','detach','birth'}) do assert(r.evidence[k]==healthy.evidence[k],'paired common '..k..' prefix differs') end
- for _,k in ipairs({'query_frame','move_frame','birth_frame','fire','detach','w','step','query','launcher','birth_target','target','move_call','move_before','weapon','scene','member','group','bind'}) do assert(r.selection[k]==healthy.selection[k],'paired identity '..k) end
+ for _,k in ipairs({'query_frame','move_frame','birth_frame','fire','detach','w','step','query','launcher','birth_target','target','move_call','move_before','weapon','scene','member','group','bind','prestate','tacview','terrain'}) do assert(r.selection[k]==healthy.selection[k],'paired identity '..k) end
+ assert(healthy.identity.mode=='healthy' and r.identity.mode=='zero_step' and r.selection.delegated=='0' and healthy.selection.delegated~='0','paired zero step time')
  assert(r.selection.pose~=healthy.selection.pose and r.selection.position~=healthy.selection.position,'paired pose effect')
  return true
 end

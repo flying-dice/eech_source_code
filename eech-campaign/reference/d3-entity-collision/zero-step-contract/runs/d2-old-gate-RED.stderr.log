@@ -1,0 +1,12 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.61s
+     Running tests/normal_fire_session.rs (/target/t/debug/deps/normal_fire_session-1904c73208ef1b9a)
+
+thread 'persistent_real_collaborators_zero_step_contract' (102) panicked at crates/eech-world/tests/normal_fire_session.rs:108:9:
+persistent healthy: REAL_NEED_READ_REASK_TEST=PASS move_frame302 query_frame303 case=healthy
+
+[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x00001fa1 -> 0x00007fa1); the x87 environment is unchanged
+Error: RuntimeError("[string \"/tmp/eech-normal-session-persistent-101/per...\"]:114: real retained-state consumer must qualify: ...mpaign/crates/eech-world/lua/normal-fire-session.lua:206: normal-fire-session: UNREACHED: fixed window has no eligible cohort UNREACHED first_code=11 first_receipt=1 outcomes=0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-normal-session-persistent-101/per...\"]:114: in function 'persistent_run'\n\t[string \"/tmp/eech-normal-session-persistent-101/per...\"]:132: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p eech-world --test normal_fire_session`

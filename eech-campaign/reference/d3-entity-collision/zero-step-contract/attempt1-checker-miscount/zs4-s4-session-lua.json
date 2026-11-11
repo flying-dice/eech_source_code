@@ -1,0 +1,23 @@
+{
+  "controller_pid": 19156,
+  "state": "terminal",
+  "started_utc": "2026-11-11T10:34:27.765495+00:00",
+  "label": "s4-session-lua",
+  "command": "cargo test --locked -p eech-world --test normal_fire_session -- --nocapture",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/zs4-20261111/check-normal-fire-zs4-linux-20261111.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --locked -p eech-world --test normal_fire_session -- --nocapture"
+  ],
+  "scope": "Working tree check; Linux commands run in the sole leased volume eech-linux-d3-physical-flags-9d247-20261107, image sha256:9d247b4e... named, never substituted.",
+  "pid": 23856,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-11T10:34:33.477726+00:00"
+}

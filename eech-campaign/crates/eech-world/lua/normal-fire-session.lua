@@ -1,21 +1,23 @@
 -- Opt-in read-only normal campaign fire. Fixed Lebanon/seed1/100ms/30+120s.
 -- No launch/target/angle/readiness/flag/view override. Native authority requires
 -- the separately reviewed Root materialization and actual complete receipts.
+-- Schema4 (lead216): B's ONE counterfactual is physical delta_seconds=0 on the
+-- SAME completed routed MOVE callback; the genuine solver computes the result.
 local a=assert(host.args);local T=assert(loadfile(assert(a.transaction)))()
 local K=assert(loadfile(assert(a.contract)))();local N=assert(loadfile(assert(a.collector)))()
 K.event=N.event
-local mode=a.mode or 'healthy';assert(mode=='healthy' or mode=='terrain_lift','mode')
-local identity={schema='3',mode=mode,capture=assert(a.capture),runtime=assert(a.runtime),bundle=assert(a.bundle),driver=assert(a.driver_sha256),collector=assert(a.collector_sha256),transaction=assert(a.transaction_sha256),contract=assert(a.contract_sha256),reference=a.reference_sha256 or 'none',profile='reference-hosted',scenario='lebanon_retail',seed='1',frame_ms='100',warmup='30',settle='120'}
+local mode=a.mode or 'healthy';assert(mode=='healthy' or mode=='zero_step','mode')
+local identity={schema='4',mode=mode,capture=assert(a.capture),runtime=assert(a.runtime),bundle=assert(a.bundle),driver=assert(a.driver_sha256),collector=assert(a.collector_sha256),transaction=assert(a.transaction_sha256),contract=assert(a.contract_sha256),reference=a.reference_sha256 or 'none',profile='reference-hosted',scenario='lebanon_retail',seed='1',frame_ms='100',warmup='30',settle='120'}
 local allowed={root=true,out=true,mode=true,capture=true,runtime=true,bundle=true,driver_sha256=true,collector=true,collector_sha256=true,transaction=true,transaction_sha256=true,contract=true,contract_sha256=true,reference=true,reference_sha256=true}
 for k in pairs(a) do assert(allowed[k],'unsupported argument '..k) end
 assert(type(a.root)=='string' and type(a.out)=='string','root/out')
 for _,k in ipairs({'bundle','driver','collector','transaction','contract'}) do assert(#identity[k]==64 and identity[k]:match('^[0-9a-f]+$'),'artifact hash') end
 assert(#identity.runtime==40 and identity.runtime:match('^[0-9a-f]+$'),'runtime source')
 local reference,reference_report
-if mode=='terrain_lift' then
+if mode=='zero_step' then
  local f=assert(io.open(assert(a.reference),'rb'));local text=f:read('*a');assert(f:close())
  local expected={};for k,v in pairs(identity) do expected[k]=v end
- expected.mode='healthy';expected.capture=identity.capture:gsub(':terrain_lift$',':healthy');expected.reference='none'
+ expected.mode='healthy';expected.capture=identity.capture:gsub(':zero_step$',':healthy');expected.reference='none'
  reference_report=K.parse(text);reference=K.healthy(reference_report,expected,T) -- FULL gate before output/provider/boot
  assert(identity.reference~='none' and #identity.reference==64,'reference digest')
 else assert(a.reference==nil and identity.reference=='none','healthy reference') end
@@ -26,7 +28,7 @@ local records,moves={},{};local selected,evidence,previous,current;local locked;
 local move_sequence,last_model_call=0,0
 local observed_modes={};local mode_codes={move=1,stop=2,place=3,ship_move=4,person_begin=5,person_end=6,fixed_wing_move=7,helicopter_begin=8,helicopter_end=9}
 local accounting={};for k in K.schemas.accounting:gmatch('%S+') do accounting[k]=0 end
-local outcomes={};for i=1,21 do outcomes[i]=0 end
+local outcomes={};for i=1,27 do outcomes[i]=0 end
 local function issue(why) failed=failed or tostring(why) end
 local function finite(x) return type(x)=='number' and x==x and math.abs(x)<math.huge end
 local function vector(v) return type(v)=='table' and #v==3 and finite(v[1]) and finite(v[2]) and finite(v[3]) end
@@ -59,6 +61,8 @@ local function move(step)
  if failed then error(failed,0) end
  move_sequence=move_sequence+1;local move_call=move_sequence;local before_model=last_model_call
  assert(move_call<=9007199254740991,'movement callback ordinal overflow')
+ local routed=type(step)=='table' and type(step.host_id)=='string' and step.mode=='move'
+ local pre=routed and K.prestate(step) or nil -- consumed input copied BEFORE any delegate
  if type(step)=='table' and type(step.host_id)=='string' then
   local prior=moves[step.host_id];local previous=observed_modes[step.host_id]
   moves[step.host_id]=nil -- invalidate BEFORE any delegate, including failed/unfinished/unsupported modes
@@ -66,19 +70,22 @@ local function move(step)
  end
  local delegated=step
  if reference and move_call==tonumber(reference.move_call) then
-  assert(frame==tonumber(reference.move_frame) and type(step)=='table' and step.host_id==reference.target and step.mode=='move' and before_model==tonumber(reference.move_before),'same actual movement callback before effect')
+  assert(frame==tonumber(reference.move_frame) and routed and step.host_id==reference.target and before_model==tonumber(reference.move_before),'same actual movement callback before effect')
   K.common(reference_report,capture:prefix(tonumber(reference.w)),frame)
   local r=registrations[step.host_id];assert(r and tostring(r.member)==reference.member and tostring(r.group)==reference.group and tostring(r.bind)==reference.bind,'same canonical registration before effect')
-  assert(changed==0 and type(step.terrain)=='table' and finite(step.terrain.elevation) and type(step.map_max)=='table' and finite(step.map_max[2]) and step.terrain.elevation+500<=step.map_max[2],'eligible terrain input')
-  assert(string.format('%.17g',step.terrain.elevation)==reference.base and string.format('%.17g',step.map_max[2])==reference.ceiling,'same terrain input')
-  delegated={};for k,v in pairs(step) do delegated[k]=v end;delegated.terrain={};for k,v in pairs(step.terrain) do delegated.terrain[k]=v end
-  delegated.terrain.elevation=step.terrain.elevation+500;changed=changed+1
+  -- Every consumed field, not only one: pose, step time, speed inputs,
+  -- waypoint, map volume, tacview flag and terrain presence.
+  assert(changed==0 and pre and pre.text==reference.prestate and pre.tacview==reference.tacview and pre.terrain==reference.terrain,'same consumed MOVE input before effect')
+  delegated={};for k,v in pairs(step) do delegated[k]=v end;delegated.delta_seconds=0;changed=changed+1
  end
  local answer=host.move_vehicle(delegated)
- if type(step)=='table' and step.mode=='move' then
+ if routed then
   if type(answer)=='table' and vector(answer.position) and vector(answer.motion_vector) and answer.pending~=true then
-   local t=step.terrain;local ceiling=type(step.map_max)=='table' and step.map_max[2] or nil
-   if observed_modes[step.host_id].call==move_call then moves[step.host_id]={identity=step.host_id,mode=step.mode,frame=frame,call=move_call,before_model=before_model,after_model=last_model_call,position={answer.position[1],answer.position[2],answer.position[3]},motion={answer.motion_vector[1],answer.motion_vector[2],answer.motion_vector[3]},base=type(t)=='table' and t.elevation or nil,ceiling=ceiling};observed_modes[step.host_id].receipt_state=1;observed_modes[step.host_id].receipt_frame=frame;observed_modes[step.host_id].receipt_call=move_call end
+   local position={answer.position[1],answer.position[2],answer.position[3]};local zero=delegated~=step
+   -- The genuine solver's result is checked, never patched: zero step time
+   -- must leave the actual pre-position and differ from the healthy one.
+   if zero and (K.ineligible(pre,position,true) or csv(position)==reference.position) then issue('zero-step solver result is not the actual pre-position distinct from healthy') end
+   if observed_modes[step.host_id].call==move_call then moves[step.host_id]={identity=step.host_id,mode=step.mode,frame=frame,call=move_call,before_model=before_model,after_model=last_model_call,position=position,motion={answer.motion_vector[1],answer.motion_vector[2],answer.motion_vector[3]},prestate=pre,zero=zero,delegated=delegated.delta_seconds};observed_modes[step.host_id].receipt_state=1;observed_modes[step.host_id].receipt_frame=frame;observed_modes[step.host_id].receipt_call=move_call end
   else issue('invalid real move reply') end
  end;return answer
 end
@@ -115,10 +122,10 @@ local function choose(query)
    elseif locked and (id~=locked.target or r.q.scene~=locked.scene) then reject=15
    elseif not id:match('^eech%-world:[1-9]%d*$') or not registration then reject=10
    elseif not m then reject=9
-   elseif not finite(m.base) then reject=11
-   elseif not finite(m.ceiling) then reject=12
-   elseif m.base+500>m.ceiling then reject=13
-   elseif m.motion[1]^2+m.motion[2]^2+m.motion[3]^2<=1 then reject=14 end
+   else
+    reject=K.ineligible(m.prestate,m.position,m.zero)
+    if not reject and m.motion[1]^2+m.motion[2]^2+m.motion[3]^2<=1 then reject=14 end
+   end
    if reject then done(reject)
    else
     for axis=1,3 do
@@ -142,8 +149,8 @@ local function choose(query)
       else
        if K.number(K.patterns(test.answer.p,16)[16])<=1 then done(18);error('live candidate TEST is not moving',0) end
        if first then accounting.first_tests=accounting.first_tests+1 end
-       local s={query_frame=frame,move_frame=m.frame,birth_frame=f.frame,fire=b.fire,detach=b.detach,w=b.w,step=query.step,query=query.query,before=query.before,after=query.result.after,need=event.call,read=query.models[j].call,carry=carry_event.call,test=test_event.call,launcher=b.launcher,birth_target=b.target,step_target=st.target,end_target=st.result.target,target=id,move_call=m.call,move_before=m.before_model,move_after=m.after_model,weapon=b.weapon,scene=r.q.scene,name=T.hex(r.answer.name),member=registration.member,group=registration.group,bind=registration.bind,key=read.key,lane=read.lane,word=read.word,fact=carry.q.words[21],pose=test.answer.p,request=table.concat(r.q.words,','),reask=table.concat(carry.q.words,','),position=csv(m.position),motion=csv(m.motion),base=string.format('%.17g',m.base),ceiling=string.format('%.17g',m.ceiling),previous=string.format('%.17g',previous),current=string.format('%.17g',current)}
-       local ce={call=event.call,scene=r.q.scene,identity=id,member=registration.member,group=registration.group,bind=registration.bind,move_identity=m.identity,move_call=m.call,move_before=m.before_model,move_after=m.after_model,mode=m.mode,move_frame=m.frame,query_frame=frame,name=s.name,read_call=s.read,read_key=read.key,lane=read.lane,word=read.word,carry_call=carry_event.call,carry_identity=carry.q.identity,carry_scene=carry.q.scene,request=s.request,reask=s.reask,test_call=test_event.call,test_identity=test.q.identity,test_scene=test.q.scene,test_request=table.concat(test.q.words,','),pose=s.pose}
+       local s={query_frame=frame,move_frame=m.frame,birth_frame=f.frame,fire=b.fire,detach=b.detach,w=b.w,step=query.step,query=query.query,before=query.before,after=query.result.after,need=event.call,read=query.models[j].call,carry=carry_event.call,test=test_event.call,launcher=b.launcher,birth_target=b.target,step_target=st.target,end_target=st.result.target,target=id,move_call=m.call,move_before=m.before_model,move_after=m.after_model,latest=r.observed_call,weapon=b.weapon,scene=r.q.scene,name=T.hex(r.answer.name),member=registration.member,group=registration.group,bind=registration.bind,key=read.key,lane=read.lane,word=read.word,fact=carry.q.words[21],pose=test.answer.p,request=table.concat(r.q.words,','),reask=table.concat(carry.q.words,','),position=csv(m.position),motion=csv(m.motion),prestate=m.prestate.text,tacview=m.prestate.tacview,terrain=m.prestate.terrain,delegated=string.format('%.17g',m.delegated),previous=string.format('%.17g',previous),current=string.format('%.17g',current)}
+       local ce={call=event.call,scene=r.q.scene,identity=id,member=registration.member,group=registration.group,bind=registration.bind,move_identity=m.identity,move_call=m.call,move_before=m.before_model,move_after=m.after_model,latest=s.latest,mode=m.mode,move_frame=m.frame,prestate=s.prestate,delegated=s.delegated,query_frame=frame,name=s.name,read_call=s.read,read_key=read.key,lane=read.lane,word=read.word,carry_call=carry_event.call,carry_identity=carry.q.identity,carry_scene=carry.q.scene,request=s.request,reask=s.reask,test_call=test_event.call,test_identity=test.q.identity,test_scene=test.q.scene,test_request=table.concat(test.q.words,','),pose=s.pose}
        local ev={fire=T.hex(f.literal),detach=T.hex(b.detachment.literal),birth=T.hex(b.literal),step=T.hex(st.literal),query=T.hex(query.literal),query_end=T.hex(query.result.literal),step_end=T.hex(st.result.literal),candidate=T.hex(K.candidate_row(ce))}
        local lines={};for _,v in ipairs(query.models) do lines[#lines+1]=v.literal end;ev.models=T.hex(table.concat(lines,'\n')..'\n')
        if not locked then locked={fire=b.fire,detach=b.detach,w=b.w,launcher=b.launcher,weapon=b.weapon,target=id,scene=r.q.scene} end
@@ -189,12 +196,12 @@ accounting.outcomes=table.concat(outcomes,',')
 if reference and not selected and not failed then issue('changed case did not retain selected cohort');counts.failed=1 end
 local status=failed and 'FAIL' or (selected and 'PASS' or 'UNREACHED')
 if reference and status=='PASS' then
- for _,k in ipairs({'query_frame','move_frame','move_call','move_before','birth_frame','fire','detach','w','step','query','launcher','target','weapon','scene','member','group','bind'}) do if tostring(selected[k])~=reference[k] then issue('changed selected identity '..k) end end
- if changed~=1 or selected.pose==reference.pose or selected.position==reference.position then issue('terrain input has no same-cohort pose effect') end
+ for _,k in ipairs({'query_frame','move_frame','move_call','move_before','birth_frame','fire','detach','w','step','query','launcher','target','weapon','scene','member','group','bind','prestate','tacview','terrain'}) do if tostring(selected[k])~=reference[k] then issue('changed selected identity '..k) end end
+ if changed~=1 or selected.delegated~='0' or selected.pose==reference.pose or selected.position==reference.position then issue('zero step time has no same-cohort pose effect') end
  if failed then counts.failed=1;status='FAIL' end
 end
 if status=='PASS' then
- local text=K.row('identity',identity)..'\n'..K.row('counts',counts)..'\n'..K.row('accounting',accounting)..'\n'..K.row('selection',selected)..'\n'..K.row('evidence',evidence)..'\n'..K.row('verdict',{status=status,reason=T.hex(mode=='healthy' and 'healthy normal cohort' or 'same-cohort terrain effect')})..'\n'
+ local text=K.row('identity',identity)..'\n'..K.row('counts',counts)..'\n'..K.row('accounting',accounting)..'\n'..K.row('selection',selected)..'\n'..K.row('evidence',evidence)..'\n'..K.row('verdict',{status=status,reason=T.hex(mode=='healthy' and 'healthy normal cohort' or 'same-cohort zero-step effect')})..'\n'
  local valid,problem=pcall(function()return K.validate(K.parse(text),{},T)end)
  if valid and reference then valid,problem=pcall(function()return K.paired(K.parse(text),reference_report)end) end
  if not valid then issue(problem);counts.failed=1;status='FAIL' end
@@ -202,5 +209,5 @@ end
 assert(out:write(K.row('identity',identity)..'\n'..K.row('counts',counts)..'\n'))
 assert(out:write(K.row('accounting',accounting)..'\n'))
 if selected then assert(out:write(K.row('selection',selected)..'\n'..K.row('evidence',evidence)..'\n')) end
-assert(out:write(K.row('verdict',{status=status,reason=T.hex(failed or (selected and (mode=='healthy' and 'healthy normal cohort' or 'same-cohort terrain effect') or (awaiting_birth and 'locked cohort lacks earlier observed eligible query' or 'no eligible normal moving cohort')))})..'\n'));assert(raw:close());assert(out:close())
+assert(out:write(K.row('verdict',{status=status,reason=T.hex(failed or (selected and (mode=='healthy' and 'healthy normal cohort' or 'same-cohort zero-step effect') or (awaiting_birth and 'locked cohort lacks earlier observed eligible query' or 'no eligible normal moving cohort')))})..'\n'));assert(raw:close());assert(out:close())
 assert(status=='PASS','normal-fire-session: '..status..': '..tostring(failed or 'fixed window has no eligible cohort'))

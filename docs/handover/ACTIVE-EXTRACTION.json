@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "pmd2bde schema3 FROZEN: final4direct0/outer0, Python14/Rusttarget1/14fresh reference-host cases; PREPOST4024 equal/30extras/5readers. STOP SAME changed-material review; no native/cutover/all10 closure.",
+  "phase": "zs4 schema4 zero-step candidate FROZEN (UNREVIEWED): real movement/SharedMovers/model/FlagStore positive first, old schema3 gate RED code11, healthy+zero-step GREEN through the genuine solver; STOP for ONE independent correctness/clean-code/boundary review. No native/cutover/all10 closure.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "Retain required hosted-only raw TREE/FOREST/CLOUD extraction after its applicable gates;965 discharges finite boot CRT subfact only, removal remains uncleared. Sole open blocks_cutover GenericNative1 first requires natural moving public-path prerequisite/effect proof; D3G08 hierarchy remains separately required, not silently solved by Task50.",
@@ -885,11 +885,14 @@
     },
     {
       "id": "ENV-NORMAL-FIRE-PUBLIC-FACADE-FINALIZATION-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
       "evidence": "Actual reviewed b5021500frame healthyFAIL: engine:close methodnil; real LuaEngine userdata has only frame/clock/wpn_events driver methods, no close. Synthetic Engine invented close. Root363f terminal binding; B neverprepared/launched.",
-      "missing_fact": "Actual public facade finalization plus lead210 consumer alignment: separate birth/current targets from actual moving scannedcandidate; exact pre-NEED movement snapshot/callback ordinal and complete reference/accounting gates; fixed26 past raw lacks live movement/reply facts.",
-      "next_fix": "Freeze combined facade/candidate contract version2 with real proxy/FlagStore/temporal controls; 3815 rawrows unchanged+1cfg(test)-excluded seam+2 configs; ONE SAME boundary/source review then Root exactmaterializedreview, no immediate retail rerun."
+      "missing_fact": "None for the SOURCE scope named in closure_scope; native, moving, GenericNative1, all10 and whole-D3 gates remain separate and OPEN.",
+      "next_fix": "No further source fix for this finding. Native/physical acceptance stays with GenericNative1 and separately reviewed native runs.",
+      "closed_at_source": "d2bde13d52377811483b2428e9537036e8db9689",
+      "closure_review_sha256": "2dee558ab3e429a822528ed8bd2b22bebd0e924549026becd0d0df15f4fa455d",
+      "closure_scope": "Closed at SOURCE only (the SAME review 2dee558a of code fc3922eec/metadata d2bde13d5, findings [], ACCEPTED_BOUNDED_SOURCE_CORRECTION: no phantom close, facade/candidate contract and actual default+observer profile checks). b502 remains FAIL and def6 COMPLETE_UNREACHED keeps its own scope; no native, moving, physical, GenericNative1, all10, Task49 or D3 acceptance."
     },
     {
       "id": "ENV-PUBLIC-SESSION-TEST-REFERENCE-DOMAIN-1",
@@ -909,14 +912,25 @@
     },
     {
       "id": "ENV-PUBLIC-SESSION-PERSISTENT-MOVE-PROVENANCE-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
       "evidence": "SAMEdef6 COMPLETE_UNREACHED:24query code8/16candidate code9; source persistent canonical record versus witness frame-local receipt mismatch. Lead213 authorizes finite correction.",
-      "missing_fact": "Latest completed actual routed MOVE at NEED across frames, invalidated by every newer writer; exact earlier birth prefix before terrain B callback.",
-      "next_fix": "Real movement/model/FlagStore crossframe positive-first control/oldgate RED, schema3 with separateframes, bounded provenance/accounting, one freeze/review; no arbitrary age/native replay."
+      "missing_fact": "None for the SOURCE scope named in closure_scope; native, moving, GenericNative1, all10 and whole-D3 gates remain separate and OPEN.",
+      "next_fix": "No further source fix for this finding. The complete23ec UNREACHED terminal leads to ENV-PUBLIC-SESSION-ZERO-STEP-DISPLACEMENT-1.",
+      "closed_at_source": "23ec563cc48b16bf90c6de061ee13efc109475dd",
+      "closure_review_sha256": "04d45a40bb6a98012c114fef916afdb210dcb2a5efee161964b1175c46c17de5",
+      "closure_scope": "Closed at SOURCE only (the SAME review 04d45a40 of code e23047a85/metadata 23ec563cc, findings [], source_correction_satisfied, native_acceptance_gate_closed false). The exact23ec COMPLETE1500 UNREACHED terminal (SAME 83510e4e, Root ad149639) is underreach/noninterference evidence only; no native, moving, physical, GenericNative1, all10, Task49 or D3 acceptance."
+    },
+    {
+      "id": "ENV-PUBLIC-SESSION-ZERO-STEP-DISPLACEMENT-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Exact23ec schema3 healthy capture COMPLETE1500 UNREACHED (Root binding ad1496399d88026906e09e8a84516e72b78ad81c39653840d0601296f5be5a56, SAME terminal 83510e4e7c040fef477911cd6048f4a318ae9eca8ca0fd54c39a223c222f487d findings[]): the completed routed MOVE receipt is present but all16 candidates reject code11 because the captured MOVE carried no terrain. rv_hostmv.c349-377 supplies terrain only for horizontal waypoint distance^2>1 AND guide terrain-follow!=NONE, so absent terrain is lawful and the schema3 +500m terrain counterfactual cannot be reached on that path. Retained raw has no MOVE prestate/dt, so actual displacement is UNKNOWN. Lead216 (ledger14548994 v216) replaces that counterfactual with a versioned schema4 ONE same-callback physical delta_seconds->0; source disposition R:/d3-evidence/zero-step-23ec-source-proposal-20261111.json SHA-256 5304b8e7068412b63360d58b1f0842ff068193b18d9fc191d2fe9da9982ed3c9.",
+      "missing_fact": "A schema4 witness, validators and controller consuming ONE entire contract: healthy completed routed MOVE with finite dt>0, terrain absent, pre-speed>=0, complete finite consumed prestate with pre-position inside the actual map bounds, observed nonzero actual pre->post displacement, canonical registration and latest-writer receipt immutable at NEED; B clones ONLY dt=0 once at the SAME exact callback after the delivered identical earlier-frame birth prefix, and the genuine solver must return the exact pre-position, different from healthy, with the same-cohort NEED/READ/44-word reask/16-word moving TEST effect. Actual native reachability of a displacing terrain-absent candidate remains UNKNOWN.",
+      "next_fix": "Real movement/SharedMovers/model/FlagStore positive first, old schema3 gate RED (code11 on the lawful terrain-absent MOVE), schema4 healthy+zero-step GREEN, single-field refusals before effect/output, existing facade default/observer profile controls; one freeze/push and ONE independent review. No compiled production/API/build change and no native run in this batch."
     }
   ],
-  "next_action": "STOP for ONE SAME correctness/clean-code/extraction-boundary review of persistent receipt correction. Then Root decides separate exactmaterializedreview/actual nextproductionstep. No unreviewed native/consumedroot replay.",
+  "next_action": "STOP for ONE independent correctness/clean-code/boundary review of the schema4 zero-step candidate (ENV-PUBLIC-SESSION-ZERO-STEP-DISPLACEMENT-1). Then Root decides a separately reviewed exact materialized native plan. No unreviewed native/consumed-root replay.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -1308,7 +1322,7 @@
     "old_results": "2dee SOURCEclosed; def6 COMPLETE_UNREACHED/captured-stream only; b502FAIL unchanged",
     "compiled_reuse": "3815 product rawsame +1 inherited cfg(test)-excluded source exception +2 configs;2fc identity preserved",
     "native_launch": false,
-    "status": "FROZEN_STOP_FOR_SAME",
+    "status": "SOURCE_CLOSED_SAME_04d45a40; exact23ec native COMPLETE1500 UNREACHED code11 (SAME 83510e4e)",
     "freeze": "D3-PERSISTENT-MOTION-CONTRACT-FROZEN-20261111.json",
     "packet": "eech-campaign/reference/d3-entity-collision/persistent-motion-contract/",
     "final_commands": 4,
@@ -1320,5 +1334,20 @@
     "extras": 30,
     "readers": 5,
     "post_POST": "STOP/publication metadata only"
+  },
+  "zero_step_contract": {
+    "lead": "216",
+    "schema": 4,
+    "blocker": "ENV-PUBLIC-SESSION-ZERO-STEP-DISPLACEMENT-1",
+    "counterfactual": "ONE physical delta_seconds->0 on the SAME completed routed MOVE callback; genuine solver result must equal the actual pre-position and differ from healthy",
+    "healthy_eligibility": "completed routed MOVE, finite dt>0, terrain absent, pre-speed>=0, complete finite consumed input (25 numbers + tacview + terrain) with pre-position inside actual map volume, actual nonzero displacement, canonical registration, latest same-ID writer at NEED",
+    "codes": "11-13 retired (schema3 terrain); 22 terrain present, 23 incomplete input, 24 dt not>0, 25 negative pre-speed, 26 outside map volume, 27 no displacement; outcomes 27",
+    "actual_collaborators": "real main bind/move + SharedMovers + model/FlagStore; synthetic Engine/C-event transport only",
+    "old_results": "schema3 terrain results, 23ec COMPLETE1500 UNREACHED, b502 FAIL, def6 and earlier failures literal",
+    "compiled_reuse": "compiled 2fc runtime and 97 payloads unchanged; no product C/Rust/API/build/Cargo change",
+    "native_launch": false,
+    "native_reachability": "UNKNOWN",
+    "status": "FROZEN_STOP_FOR_REVIEW",
+    "packet": "eech-campaign/reference/d3-entity-collision/zero-step-contract/"
   }
 }
